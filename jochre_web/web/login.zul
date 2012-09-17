@@ -1,0 +1,31 @@
+<?page id="pgHomePage" title="Jochre Home Page"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="menu.zul" />
+<window id="winLogin" title="${c:l('login.title')}" apply="com.joliciel.jochre.web.LoginController"
+  border="normal" width="840px">
+  <grid width="500px">
+  	<rows>
+  		<row>
+  			<cell width="100px"><label sclass="labelCell" value="${c:l('login.username')}" /></cell>
+  			<cell><textbox id="txtUserName" /><label id="lblError" value="${c:l('login.loginFailed')}" visible="false" /></cell>
+  		</row>
+  		<row>
+  			<cell><label sclass="labelCell" value="${c:l('login.password')}" /></cell>
+  			<cell><textbox id="txtPassword" type="password" /></cell>
+  		</row>
+  		<row id="rowCaptcha">
+  			<cell></cell>
+  			<cell><bw.captcha id="captcha" bgColor="16777215" fontColor="0" fontBgColor="8947848" lineColor="0" /><button id="btnCaptcha" label="${c:l('login.regenerateCaptcha')}" /></cell>
+  		</row>
+  		<row id="rowCaptchaTextbox">
+   			<cell><label sclass="labelCell" value="${c:l('login.captcha')}" /></cell>
+  			<cell><textbox id="txtCaptcha" /><label id="lblBadCaptcha" value="${c:l('login.badCaptcha')}" visible="false" /></cell>
+  		</row>
+  	</rows>
+  </grid>
+  <button id="btnLogin" label="${c:l('login.login')}" />
+</window>
+</zk>

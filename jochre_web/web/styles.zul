@@ -1,0 +1,14 @@
+<style dynamic="true">
+.rightToLeft {
+direction: rtl;
+font-family:"Times New Roman",Georgia,Serif;
+font-size: 14pt;
+}
+.labelCell {
+font-weight: bold;
+}
+body {
+font-family:Verdana,Arial;
+font-size: 12px;
+}
+</style>

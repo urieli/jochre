@@ -1,0 +1,288 @@
+<?page id="pgImage" title="Jochre Image Text Entry"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="styles.zul" />
+<include src="menu.zul" />
+<script id="hebrewAccentsSpan" type="text/javascript">
+<![CDATA[
+var hebrewAccents="toBeFilled";
+]]></script>
+<script type="text/javascript"><![CDATA[
+String.prototype.trim = function() { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
+
+function updateLetters()
+{
+	var textbox = arguments[0].$n();
+	//alert(textbox.$n().value + ": " + textbox.getValue());
+	var letterGroups = getLetterGroups(textbox);
+	
+	var letterGroupIndex = 0;
+	for (var labelGroupIndex = 1; labelGroupIndex<arguments.length;labelGroupIndex++) {
+		var labelGroup = arguments[labelGroupIndex];
+		if (letterGroupIndex >= letterGroups.length) {
+			for (var labelIndex = 0; labelIndex<labelGroup.length; labelIndex++) {
+				var letterLabel = labelGroup[labelIndex].$n();
+				letterLabel.innerHTML = "";
+			}
+			continue;
+		}
+		var letterGroup = letterGroups[letterGroupIndex++];
+		var wrongLength = (labelGroup.length!=letterGroup.length);
+		var letterIndex = 0;
+		for (var labelIndex = 0; labelIndex<labelGroup.length; labelIndex++) {
+			var letterLabel = labelGroup[labelIndex].$n();
+			if (letterIndex>=letterGroup.length) {
+				letterLabel.innerHTML = "";
+				continue;
+			}
+
+			var letter = letterGroup[letterIndex++];
+			if (letter.charAt(0)=="["&&letter.charAt(letter.length-1)=="]")
+				letter = letter.substr(1, letter.length-2);
+			letterLabel.innerHTML=letter;
+			if (wrongLength){
+				letterLabel.style.color="red";
+				letterLabel.style.backgroundColor="yellow";
+			} else {
+				letterLabel.style.color="black";
+				letterLabel.style.backgroundColor="";
+			}
+		} // next label
+	} // next label group
+}
+
+function getLetterGroups(textbox) {
+	var letterGroupIndex = 0;
+	var letterIndex = 0;
+	var letterGroups = [];
+	var letterGroup = [];
+
+	for (var i = 0; i<textbox.value.length; i++) {
+		var letter = textbox.value.charAt(i);
+		if (letter==" ") {
+			if (letterGroup.length>0)
+				letterGroups[letterGroupIndex++] = letterGroup;
+			letterGroup = [];
+			letterIndex = 0;
+		} else {
+			if (letter=="[") {
+				var endIndex = textbox.value.indexOf("]", i);
+				if (endIndex>=0) {
+					letter = textbox.value.substr(i, endIndex-i+1);
+					i = endIndex;
+				}
+			} else if (letter=="-") {
+				var nextLetter = textbox.value.charAt(i+1);
+				if (nextLetter=="-") {
+					letter = "—";
+					i++;
+				}
+			}
+			if (hebrewAccents.indexOf(letter)>=0&&letterIndex>0) {
+				if (letter=="ַ"&&letterIndex>1
+						&&letterGroup[letterIndex-1]=="י"
+						&&letterGroup[letterIndex-2]=="י") {
+					letterGroup[letterIndex-2]="ײַ";
+					letterGroup.pop(); // get rid of the other yud
+					letterIndex--;
+				} else {
+					letterGroup[letterIndex-1] = letterGroup[letterIndex-1]+letter;
+				}
+			} else if (letter=="װ") {
+				letterGroup[letterIndex++] = "ו";
+				letterGroup[letterIndex++] = "ו";
+			} else if (letter=="ױ") {
+				letterGroup[letterIndex++] = "ו";
+				letterGroup[letterIndex++] = "י";
+			} else if (letter=="ײ") {
+				letterGroup[letterIndex++] = "י";
+				letterGroup[letterIndex++] = "י";
+			} else if (letter=="„") {
+				letterGroup[letterIndex++] = ",";
+				letterGroup[letterIndex++] = ",";
+			} else if (letter=="“") {
+				letterGroup[letterIndex++] = "'";
+				letterGroup[letterIndex++] = "'";
+			} else {
+				letterGroup[letterIndex++] = letter;
+			}
+		} // not a space
+	} // next letter
+	if (letterGroup.length>0) {
+		letterGroups[letterGroupIndex++] = letterGroup;
+	}
+	
+	var text = "";
+	
+	for (var i=0;i<letterGroups.length;i++) {
+		letterGroup = letterGroups[i];
+		text += ". Group " + i + ": ";
+		for(var j=0;j<letterGroup.length;j++) {
+			text += letterGroup[j];
+		}
+	}
+	return letterGroups;
+}
+
+function pushLetters(pushDirection, startIndex, textBoxArray) {
+	var textBoxToPush = textBoxArray[startIndex].$n();
+	var valueToPush = textBoxToPush.value.trim();
+	if (valueToPush.length>0) {
+		var emptyCellIndex = -1;
+		//alert("pushDirection: " + pushDirection + ", startIndex: " + startIndex);
+		if (pushDirection==1) {
+			// push forward
+			var lastChar = valueToPush.substr(valueToPush.length-1);
+			if (hebrewAccents.indexOf(lastChar)>=0&&valueToPush.length>1)
+				lastChar = valueToPush.substr(valueToPush.length-2);
+			var theRest = valueToPush.substr(0,valueToPush.length-lastChar.length)
+			var nextTextBox = textBoxArray[startIndex+1].$n();
+			for (var i=startIndex+1;i<textBoxArray.length;i++) {
+				var textBox = textBoxArray[i].$n();
+				if (textBox.value.trim().length==0) {
+					emptyCellIndex = i;
+					break;
+				}
+			}
+			if (emptyCellIndex>0) {
+				for (var i=emptyCellIndex;i>startIndex+1;i--) {
+					var thisTextBox = textBoxArray[i].$n();
+					var prevTextBox = textBoxArray[i-1].$n();
+					thisTextBox.value = prevTextBox.value;
+					//thisTextBox.fire('onChange');
+				}
+				nextTextBox.value = lastChar;
+				//nextTextBox.fire('onChange');
+			} else {
+				nextTextBox.value = lastChar + nextTextBox.value;
+				//nextTextBox.fire('onChange');
+			}
+			textBoxToPush.value = theRest;
+			//textBoxToPush.fire('onChange');
+		} else {
+			// push back
+			var firstChar = valueToPush.substr(0,1);
+			if (hebrewAccents.indexOf(valueToPush.substr(1,2))>=0)
+				firstChar = valueToPush.substr(0,2);
+			var theRest = valueToPush.substr(firstChar.length);
+			var prevTextBox = textBoxArray[startIndex-1].$n();
+			for (var i=startIndex-1;i>=0;i--) {
+				var textBox = textBoxArray[i].$n();
+				if (textBox.value.trim().length==0) {
+					emptyCellIndex = i;
+					break;
+				}
+			}
+			if (emptyCellIndex>0) {
+				for (var i=emptyCellIndex;i<startIndex;i++) {
+					var thisTextBox = textBoxArray[i].$n();
+					var nextTextBox = textBoxArray[i+1].$n();
+					thisTextBox.value = nextTextBox.value;
+					//thisTextBox.fire('onChange');
+				}
+				prevTextBox.value = firstChar;
+				//prevTextBox.fire('onChange');
+			} else {
+				prevTextBox.value = prevTextBox.value + firstChar;
+				//prevTextBox.fire('onChange');
+			}
+			textBoxToPush.value = theRest;
+			//textBoxToPush.fire('onChange');
+		}
+		for (var i=0;i<textBoxArray.length;i++) {
+			var textBox = textBoxArray[i];
+			textBox.setValue(textBox.$n().value);
+			textBox.fireOnChange();
+		}
+	}
+}
+]]></script>
+<window id="winJochreImage" title="${c:l('image.winJochreImage.title')}" apply="com.joliciel.jochre.web.ImageController"
+  border="normal" width="840px">
+	<vlayout>
+			<html>
+			<attribute name="content">
+				<fieldset>
+				<legend>Instructions</legend>
+				<p>You will see three lines for each row:</p>
+				<ol>
+				<li>the image of the text,</li>
+				<li>the letters currently entered, aligned with the image, and</li>
+				<li>a textbox to enter letters directly.</li>
+				</ol>
+				<p>For images whose status is not "Auto - new", there will be an additional row
+				between (2) and (3), showing the letters originally guessed.</p>
+				<p>If a word has the wrong number of characters, the word in row (2) will be highlighted in yellow.</p>
+				<ul>
+				<li>If you are unsure about a word, or the word is appearing with a yellow background in row(2),
+				click on the word in row (1) and correct it in the dialog box which appears.</li>
+				<li>If a letter has been split among two images, you need to enter it twice, the first time
+				preceded by a vertical bar |, and the second time follows by a vertical bar |, as follows:
+				|[letter] in the first image, and [letter]| in the second image.</li>
+				<li>If two letters have been grouped together, you can either click on the word in row (1) to enter them
+				correctly, or you can group them together in row 3 by surrounding them with square brackets, as follows:
+				[Letter1Letter2]</li>
+				<li>Certain letters will be automatically split: "„" into two commas, "“" into two single quotes.
+				Others will be automatically grouped: "--" into a long dash.</li>
+				<li>Horizontal bars should always be entered as one or more underscores: _</li>
+				<li>On row (3), non-alphabetical specks should be entered as follows: []</li>
+				</ul>
+				<p>If you see anything very strange about the image, do not correct it - instead, contact
+				the Jochre Yiddish corpus administrator so that the segmentation can be corrected.</p>
+				</fieldset>
+			</attribute>
+			</html>
+		<hlayout>
+			<label value="${c:l('image.status')}"></label>
+			<combobox id="cmbStatus" />
+			<label id="lblImageStatus" visible="false" />
+			<button id="btnSave" label="${c:l('button.save')}" ></button>
+			<button id="btnSaveAndExit" label="${c:l('button.saveAndExit')}" ></button>
+			<button id="btnExitWithoutSave" label="${c:l('button.exitWithoutSave')}" ></button>
+		</hlayout>
+		<hlayout id="divOwner">
+			<label value="${c:l('image.owner')}"></label>
+			<combobox id="cmbOwner" />
+			<label id="lblOwner" visible="false" />
+		</hlayout>
+		<grid id="rowGrid" width="740px" zclass="z-grid"></grid>
+		<hlayout>
+			<button id="btnSave2" label="${c:l('button.save')}" ></button>
+			<button id="btnSaveAndExit2" label="${c:l('button.saveAndExit')}" ></button>
+			<button id="btnExitWithoutSave2" label="${c:l('button.exitWithoutSave')}" ></button>
+		</hlayout>
+	</vlayout>
+</window>
+<window id="winFixText" border="normal" title="${c:l('image.winFixText.title')}"
+	visible="false" sizable="true" apply="com.joliciel.jochre.web.FixTextWindowController">
+	<vbox>
+	<hbox>
+		<checkbox id="chkHardHyphen" label="${c:l('image.hardHyphen')}" />
+		<checkbox id="chkBrokenWord" label="${c:l('image.brokenWord')}" />
+		<checkbox id="chkSegmentProblem" label="${c:l('image.segmentProblem')}" />
+		<label id="lblWord" value="Hello"></label>
+	</hbox>
+	<hbox>
+		<grid id="letterGrid">
+			<rows id="letterGridRows">
+				<row id="shapeRow" valign="top" >
+					<label value="Shape Row"/>
+				</row>
+				<row id="letterBoxRow">
+					<label value="Letter Box Row"/>
+				</row>
+				<row id="arrowRow" valign="top" height="20px">
+					<label value="Arrow Row"/>
+				</row>
+			</rows>
+		</grid>
+	</hbox>
+	</vbox>
+	<hbox>
+         <button id="btnOK" label="${c:l('button.ok')}" />
+         <button id="btnCancel" label="${c:l('button.cancel')}" />
+     </hbox>
+</window>
+</zk>

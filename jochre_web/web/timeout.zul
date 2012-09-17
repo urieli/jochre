@@ -1,0 +1,9 @@
+<window width="80%" title="Session Timeout" border="normal">
+	<include src="menu.zul" />
+	<vbox>
+The page or component you request is no longer available.
+This is normally caused by timeout, opening too many Web pages, or rebooting
+the server.
+	<button label="Home" href="index.zul"/>
+	</vbox>
+</window>

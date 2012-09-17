@@ -1,0 +1,197 @@
+///////////////////////////////////////////////////////////////////////////////
+//Copyright (C) 2012 Assaf Urieli
+//
+//This file is part of Jochre.
+//
+//Jochre is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//Jochre is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+//
+//You should have received a copy of the GNU Affero General Public License
+//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
+//////////////////////////////////////////////////////////////////////////////
+package com.joliciel.jochre.graphics;
+
+import java.util.BitSet;
+import java.util.List;
+import java.util.ArrayList;
+
+import mockit.NonStrictExpectations;
+import mockit.NonStrict;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+public class LineSegmentImplTest {
+	@SuppressWarnings("unused")
+	private static final Log LOG = LogFactory.getLog(LineSegmentImplTest.class);
+
+	@Test
+	public void testGetEnclosingRectangle(@NonStrict final Shape shape) {
+		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		List<Integer> steps = new ArrayList<Integer>();
+		steps.add(2);
+		steps.add(3);
+		lineDef.setSteps(steps);
+		
+		new NonStrictExpectations() {
+			{
+        	shape.getHeight(); returns(8);
+        	shape.getWidth(); returns(8);
+        }};
+        
+		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 1, 3);
+		lineSegment.setLength(4);
+		
+		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
+		
+    	int[] bitsetPixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 1, 1, 0, 0,
+		  0, 1, 1, 1, 1, 1, 0, 0,
+		  0, 1, 1, 1, 1, 1, 0, 0,
+		  0, 1, 1, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0
+		};
+    	
+    	for (int x = 0; x < 8; x++)
+    		for (int y = 0; y < 8; y++) {
+    			assertEquals("x = " + x + ", y = " + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
+    		}
+    	
+    	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
+    }
+	
+	@Test
+	public void testGetEnclosingRectangleDiagonal(@NonStrict final Shape shape) {
+		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		List<Integer> steps = new ArrayList<Integer>();
+		steps.add(1);
+		steps.add(2);
+		lineDef.setSteps(steps);
+		
+		new NonStrictExpectations() {
+			{
+        	shape.getHeight(); returns(8);
+        	shape.getWidth(); returns(8);
+        }};
+        
+		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 1, 5);
+		lineSegment.setLength(4);
+		
+		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
+		
+    	int[] bitsetPixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 1, 0, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 1, 0, 0,
+		  0, 1, 1, 1, 1, 0, 0, 0,
+		  0, 1, 1, 0, 0, 0, 0, 0,
+		  0, 1, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0
+		};
+    	
+		for (int y = 0; y < 8; y++) {
+			for (int x = 0; x < 8; x++) {
+    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
+    		}
+		}
+       	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
+    }
+	
+	@Test
+	public void testGetEnclosingRectangleDoubleDiagonal(@NonStrict final Shape shape) {
+		LineDefinitionImpl lineDef = new LineDefinitionImpl(1,0);
+		List<Integer> steps = new ArrayList<Integer>();
+		steps.add(2);
+		lineDef.setSteps(steps);
+		
+		new NonStrictExpectations() {
+			{
+        	shape.getHeight(); returns(8);
+        	shape.getWidth(); returns(8);
+        }};
+        
+		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 3, 6);
+
+		lineSegment.setLength(4);
+		
+		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
+		
+    	int[] bitsetPixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 1, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0
+		};
+    	
+    	for (int x = 0; x < 8; x++)
+    		for (int y = 0; y < 8; y++) {
+    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
+    		}
+       	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
+    }
+
+	@Test
+	public void testGetEnclosingRectangleIntersection(@NonStrict final Shape shape) {
+		LineDefinitionImpl lineDef1 = new LineDefinitionImpl(0,0);
+		List<Integer> steps1 = new ArrayList<Integer>();
+		steps1.add(2);
+		steps1.add(3);
+		lineDef1.setSteps(steps1);
+		
+		new NonStrictExpectations() {
+			{
+        	shape.getHeight(); returns(8);
+        	shape.getWidth(); returns(8);
+        }};
+        
+		LineSegmentImpl lineSegement1 = new LineSegmentImpl(shape, lineDef1, 5, 2, 1, 3);
+		lineSegement1.setLength(4);
+		
+		LineDefinitionImpl lineDef2 = new LineDefinitionImpl(1,0);
+		List<Integer> steps2 = new ArrayList<Integer>();
+		steps2.add(2);
+		lineDef2.setSteps(steps2);
+		
+        
+		LineSegmentImpl lineSegment2 = new LineSegmentImpl(shape, lineDef2, 5, 2, 3, 6);
+		lineSegment2.setLength(4);
+		
+		BitSet intersection = lineSegement1.getEnclosingRectangleIntersection(lineSegment2,1);
+		
+    	int[] bitsetPixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 1, 1, 0, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 0, 1, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0,
+		  0, 0, 0, 0, 0, 0, 0, 0
+		};
+    	
+    	
+    	for (int x = 0; x < 8; x++)
+    		for (int y = 0; y < 8; y++) {
+    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, intersection.get(y*8 + x));
+    		}
+	}
+
+}

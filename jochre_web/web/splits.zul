@@ -1,0 +1,26 @@
+<?page id="pgSplits" title="Jochre Shape Splitting Interface"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="styles.zul" />
+<include src="menu.zul" />
+<window id="winSplits" title="${c:l('splits.title')}" apply="com.joliciel.jochre.web.SplitController"
+  border="normal" width="840px">
+  <vbox>
+    <grid id="splitGrid" width="640px">
+    	<rows id="splitGridRows"></rows>
+    </grid>
+	<hlayout>
+		<button id="btnSave" label="${c:l('button.save')}" ></button>
+		<button id="btnDone" label="${c:l('button.done')}" ></button>
+	</hlayout>
+  </vbox>
+</window>
+<!--  
+<window id="winChooseSplit" border="normal" title="${c:l('docs.winChooseSplit.title')}"
+	visible="false" sizable="true" apply="com.joliciel.jochre.web.ChooseSplitController" width="640px">
+	
+</window>
+-->
+</zk>

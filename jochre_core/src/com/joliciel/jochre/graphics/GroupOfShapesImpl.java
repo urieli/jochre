@@ -1,0 +1,345 @@
+///////////////////////////////////////////////////////////////////////////////
+//Copyright (C) 2012 Assaf Urieli
+//
+//This file is part of Jochre.
+//
+//Jochre is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//Jochre is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+//
+//You should have received a copy of the GNU Affero General Public License
+//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
+//////////////////////////////////////////////////////////////////////////////
+package com.joliciel.jochre.graphics;
+
+import java.util.List;
+import java.util.ArrayList;
+
+import com.joliciel.jochre.EntityImpl;
+
+class GroupOfShapesImpl extends EntityImpl implements
+		GroupOfShapesInternal {
+	
+	private GraphicsServiceInternal graphicsService;
+
+	private List<Shape> shapes;
+	private int index;
+	private int rowId;
+	private RowOfShapes row = null;
+	
+	private boolean hardHyphen = false;
+	private boolean brokenWord = false;
+	private boolean segmentationProblem = false;
+	
+	private boolean coordinatesFound = false;
+	private int left;
+	private int top;
+	private int right;
+	private int bottom;
+	private int xHeight = -1;
+	
+	private int[] meanLine = null;
+	private int[] baseLine = null;
+	
+	private boolean dirty = true;
+	
+	public List<Shape> getShapes() {
+		if (shapes==null) {
+			if (this.isNew())
+				shapes = new ArrayList<Shape>();
+			else {
+				shapes = this.graphicsService.findShapes(this);
+				for (Shape shape : shapes) {
+					((ShapeInternal) shape).setGroup(this);
+				}
+			}
+		}
+		return shapes;
+	}
+	
+
+
+	@Override
+	public void addShapes(List<Shape> shapesToAdd) {
+		if (this.shapes==null) {
+			this.shapes = new ArrayList<Shape>();
+			for (Shape shape : shapesToAdd) {
+				if (shape.getGroupId()==this.getId()) {
+					this.shapes.add(shape);
+					((ShapeInternal) shape).setGroup(this);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void addShape(Shape shape) {
+		this.getShapes().add(shape);
+		shape.setGroup(this);
+	}
+
+
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		if (this.index!=index) {
+			this.index = index;
+			dirty = true;
+		}
+	}
+
+
+
+	public int getRowId() {
+		return rowId;
+	}
+
+
+
+	public void setRowId(int rowId) {
+		if (this.rowId!=rowId) {
+			this.rowId = rowId;
+			dirty = true;
+		}
+	}
+
+
+
+	public RowOfShapes getRow() {
+		if (this.row==null && this.rowId!=0) {
+			this.row = this.graphicsService.loadRowOfShapes(this.rowId);
+		}
+		return row;
+	}
+
+
+
+	public void setRow(RowOfShapes row) {
+		this.row = row;
+		if (row!=null)
+			this.setRowId(row.getId());
+		else
+			this.setRowId(0);
+	}
+
+
+
+	@Override
+	public void saveInternal() {
+		if (this.row!=null && this.rowId==0)
+			this.setRowId(this.row.getId());
+
+		if (this.dirty)
+			this.graphicsService.saveGroupOfShapes(this);
+		
+		if (this.shapes!=null) {
+			int index = 0;
+			for (Shape shape : this.shapes) {
+				shape.setGroup(this);
+				shape.setIndex(index++);
+				shape.save();
+			}
+		}	
+	}
+
+	public GraphicsServiceInternal getGraphicsService() {
+		return graphicsService;
+	}
+
+	public void setGraphicsService(GraphicsServiceInternal graphicsService) {
+		this.graphicsService = graphicsService;
+	}
+
+	@Override
+	public int getLeft() {
+		this.findCoordinates();
+		return this.left;
+	}
+
+	@Override
+	public int getTop() {
+		this.findCoordinates();
+		return this.top;
+	}
+
+	@Override
+	public int getRight() {
+		this.findCoordinates();
+		return this.right;
+	}
+
+	@Override
+	public int getBottom() {
+		this.findCoordinates();
+		return this.bottom;
+	}
+	
+	private void findCoordinates() {
+		if (!coordinatesFound) {
+			Shape firstShape = this.getShapes().iterator().next();
+			left = firstShape.getLeft();
+			top = firstShape.getTop();
+			right = firstShape.getRight();
+			bottom = firstShape.getBottom();
+			
+			for (Shape shape : shapes) {
+				if (shape.getLeft() < left)
+					left = shape.getLeft();
+				if (shape.getTop() < top)
+					top = shape.getTop();
+				if (shape.getRight() > right)
+					right = shape.getRight();
+				if (shape.getBottom() > bottom)
+					bottom = shape.getBottom();
+			}
+			coordinatesFound = true;
+		}
+	}
+
+	@Override
+	public String getWord() {
+		StringBuilder sb = new StringBuilder();
+		for (Shape shape : this.getShapes()) {
+			if (shape.getLetter()!=null)
+				sb.append(shape.getLetter());
+		}
+		return sb.toString();
+	}
+	
+	@Override
+	public int hashCode() {
+		if (this.isNew())
+			return super.hashCode();
+		else
+			return ((Integer)this.getId()).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this.isNew()) {
+			return super.equals(obj);
+		} else {
+			GroupOfShapes otherGroup = (GroupOfShapes) obj;
+			return (this.getId()==otherGroup.getId());
+		}
+	}
+	
+	@Override
+	public void recalculate() {
+		this.coordinatesFound = false;
+		this.meanLine = null;
+		this.baseLine = null;
+	}
+
+	@Override
+	public String toString() {
+		return "Group " + this.getIndex() + ", left(" + this.getLeft() + ")"
+		+ ", top(" + this.getTop() + ")"
+		+ ", right(" + this.getRight() + ")"
+		+ ", bot(" + this.getBottom() + ")"
+		+ " [id=" + this.getId() + "]";
+	}
+	
+	@Override
+	public int[] getMeanLine() {
+		this.getGuideLines();
+		return this.meanLine;
+	}
+
+	@Override
+	public int[] getBaseLine() {
+		this.getGuideLines();
+		return this.baseLine;
+	}
+	
+	private void getGuideLines() {
+		if (this.meanLine==null) {
+			Shape leftMostShape = null;
+			Shape rightMostShape = null;
+			for (Shape shape : this.getShapes()) {
+				if (leftMostShape==null) {
+					leftMostShape = shape;
+					rightMostShape = shape;
+				} else {
+					if (shape.getLeft()<leftMostShape.getLeft())
+						leftMostShape = shape;
+					if (shape.getRight()>rightMostShape.getRight())
+						rightMostShape = shape;
+				}				
+			}
+			int[] meanLine = { leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getMeanLine(),
+					rightMostShape.getRight(), rightMostShape.getTop() + rightMostShape.getMeanLine()};
+			int[] baseLine = {leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getBaseLine(),
+					rightMostShape.getRight(), rightMostShape.getTop() + rightMostShape.getBaseLine()};
+			
+			this.meanLine = meanLine;
+			this.baseLine = baseLine;
+		}
+	}
+
+
+
+	@Override
+	public int getXHeight() {
+		if (xHeight<0) {
+			Shape firstShape = this.getShapes().get(0);
+			xHeight = firstShape.getBaseLine() - firstShape.getMeanLine();
+		}
+		return xHeight;
+	}
+
+	@Override
+	public boolean isHardHyphen() {
+		return hardHyphen;
+	}
+
+	@Override
+	public void setHardHyphen(boolean hardHyphen) {
+		if (this.hardHyphen!=hardHyphen) {
+			this.hardHyphen = hardHyphen;
+			dirty = true;
+		}
+	}
+
+	public boolean isBrokenWord() {
+		return brokenWord;
+	}
+
+	public void setBrokenWord(boolean brokenWord) {
+		if (this.brokenWord!=brokenWord) {
+			this.brokenWord = brokenWord;
+			dirty = true;
+		}
+	}
+
+	@Override
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	@Override
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+	}
+
+	public boolean isSegmentationProblem() {
+		return segmentationProblem;
+	}
+
+	public void setSegmentationProblem(boolean segmentationProblem) {
+		if (this.segmentationProblem!=segmentationProblem) {
+			this.segmentationProblem = segmentationProblem;
+			dirty = true;
+		}		
+	}
+	
+}

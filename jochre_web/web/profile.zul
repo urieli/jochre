@@ -1,0 +1,37 @@
+<?page id="pgProfile" title="Jochre Home Page"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="menu.zul" />
+<window id="winProfile" title="${c:l('login.title')}" apply="com.joliciel.jochre.web.ProfileController"
+  border="normal" width="840px">
+  <grid width="500px">
+  	<rows>
+  		<row>
+  			<cell width="200px"><label sclass="labelCell" value="${c:l('profile.username')}"></label></cell>
+  			<cell><label id="lblUsername"></label></cell>
+  		</row>
+  		<row>
+  			<cell><label sclass="labelCell" value="${c:l('profile.newPassword')}"></label></cell>
+  			<cell><textbox id="txtPassword" type="password" /></cell>
+  		</row>
+  		<row>
+  			<cell><label sclass="labelCell" value="${c:l('profile.reenterPassword')}"></label></cell>
+  			<cell><textbox id="txtPassword2" type="password" />
+  			<label id="lblPwdError" value="${c:l('profile.pwdError')}" visible="false"></label></cell>
+  		</row>
+  		<row>
+  			<cell><label sclass="labelCell" value="${c:l('profile.firstName')}"></label></cell>
+  			<cell><textbox id="txtFirstName" constraint="no empty" /></cell>
+  		</row>
+  		<row>
+  			<cell><label sclass="labelCell" value="${c:l('profile.lastName')}"></label></cell>
+  			<cell><textbox id="txtLastName" constraint="no empty" /></cell>
+  		</row>
+  	</rows>
+  </grid>
+  <button id="btnSave" label="${c:l('button.save')}" />
+  <button id="btnCancel" label="${c:l('button.cancel')}" />
+</window>
+</zk>

@@ -1,0 +1,31 @@
+<?page id="pgMenu" title="Jochre Menu"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<zk>
+<panel id="panelMenu" apply="com.joliciel.jochre.web.MenuController"
+  border="normal" width="840px">
+  <panelchildren>
+  	<borderlayout height="70px" width="98%">
+  	<west border="0" width="150px"><image src="/images/jochreLogo.png" /></west>
+  	<center border="0">
+  	<vlayout>
+	  	<div>Java Optical CHaracter REcognition</div>
+	  	<div>Yiddish Corpus</div>
+  	</vlayout>
+  	</center>
+	<east border="0" width="250px">
+	<vbox>
+	<cell align="right"><label id="lblName" /></cell>
+	<cell align="right">
+	 <toolbar id="toolbar1" sclass="vista" height="20px" align="end">
+	     <toolbarbutton label="${c:l('menu.home')}" image="/images/iconHome.gif" href="docs.zul"/>
+	     <toolbarbutton label="${c:l('menu.split')}" image="/images/iconSplit.gif" href="splits.zul" />           
+	     <toolbarbutton label="${c:l('menu.profile')}" image="/images/iconProfile.gif" href="profile.zul" />           
+	     <toolbarbutton label="${c:l('menu.logout')}" id="btnLogout" image="/images/iconLogout.gif" />
+	 </toolbar>
+	 </cell>
+	 </vbox>
+	 </east>
+	 </borderlayout>
+	 </panelchildren>
+</panel>
+</zk>

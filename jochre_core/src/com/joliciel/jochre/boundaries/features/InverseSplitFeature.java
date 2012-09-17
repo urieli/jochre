@@ -1,0 +1,55 @@
+///////////////////////////////////////////////////////////////////////////////
+//Copyright (C) 2012 Assaf Urieli
+//
+//This file is part of Jochre.
+//
+//Jochre is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//Jochre is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+//
+//You should have received a copy of the GNU Affero General Public License
+//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
+//////////////////////////////////////////////////////////////////////////////
+package com.joliciel.jochre.boundaries.features;
+
+import com.joliciel.talismane.utils.features.DoubleFeature;
+import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.jochre.boundaries.Split;
+
+/**
+ * Inverts a regular split feature, giving 1-result.
+ * @author Assaf Urieli
+ *
+ */
+public class InverseSplitFeature extends AbstractSplitFeature<Double> implements
+		DoubleFeature<Split> {
+
+	SplitFeature<Double> feature;
+	
+	public InverseSplitFeature(SplitFeature<Double> feature) {
+		super();
+		this.feature = feature;
+		this.setName(this.feature.getName() + "{inverse}");
+	}
+
+	
+	@Override
+	public FeatureResult<Double> checkInternal(Split split) {
+		FeatureResult<Double> rawOutcome = feature.check(split);
+		FeatureResult<Double> outcome = null;
+		if (rawOutcome!=null) {
+			double weight = rawOutcome.getOutcome();
+			double inverseWeight = 1 - weight;
+			if (inverseWeight<0)
+				inverseWeight = 0;
+			outcome = this.generateResult(inverseWeight);
+		}
+		return outcome;
+	}
+}

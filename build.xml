@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build" name="jochre-all">
+    <import file="ant/global.xml"/>
+	<target name="clean">
+		<subant target="clean">
+			<fileset dir=".">
+				<include name="jochre_core/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="clean">
+			<fileset dir=".">
+				<include name="jochre_web/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="clean">
+			<fileset dir=".">
+				<include name="jochre_yiddish/build.xml"/>
+			</fileset>
+		</subant>
+	</target>
+
+	<target name="build">
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_core/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_web/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_yiddish/build.xml"/>
+			</fileset>
+		</subant>
+	</target>
+	
+	<target name="webapp" depends="build">
+		<subant target="webapp">
+			<fileset dir=".">
+				<include name="jochre_web/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="webapp">
+			<fileset dir=".">
+				<include name="jochre_yiddish/build.xml"/>
+			</fileset>
+		</subant>
+	</target>
+</project>

@@ -1,0 +1,8 @@
+BridgeWidth()
+Inverse(BridgeWidth())
+SplitShapeWeightRatio()
+Inverse(SplitShapeWeightRatio())
+SplitShapeWidthRatio()
+Inverse(SplitShapeWidthRatio())
+TrueContourSlopeDifferenceRange	TrueContourSlopeDifference(IndexRange(2,8,2))
+Inverse(TrueContourSlopeDifferenceRange())

@@ -1,0 +1,59 @@
+<?page id="pgText" title="Jochre Document Text"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="styles.zul" />
+<include src="menu.zul" />
+<window id="winJochreText" title="${c:l('text.title')}" apply="com.joliciel.jochre.web.TextController"
+  border="normal" width="840px">
+  <vlayout>
+ 	<grid id="documentGrid" visible="false">
+  		<rows>
+			<row>
+				<cell sclass="labelCell" width="160px"><label sclass="labelCell" value="${c:l('text.docName')}"/></cell>
+				<cell><label id="lblDocName" value=""/></cell>
+			</row>
+		</rows>
+	</grid>
+  <timer id="startRenderTimer" delay="5" repeats="false" running="false"/>
+  <panel id="uploadPanel" visible="false">
+  	<panelchildren>
+  	<vlayout>
+  	<hlayout><label value="${c:l('text.selectFile')}" /> <button id="btnUpload" upload="true,maxsize=-1,native" label="${c:l('button.upload')}" />
+  	<label id="lblFileName" value="${c:l('text.awaitingFile')}" /></hlayout>
+  	<grid id="gridPages" visible="false">
+  		<rows>
+			<row>
+				<cell sclass="labelCell" width="160px"><label sclass="labelCell" value="${c:l('text.startPage')}"/></cell>
+				<cell><textbox id="txtStartPage" value="0" constraint="/[0-9]+/: ${c:l('text.startPageNotNumber')}"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell" width="160px"><label sclass="labelCell" value="${c:l('text.endPage')}"/></cell>
+				<cell><textbox id="txtEndPage" value="0"  constraint="/[0-9]+/: ${c:l('text.endPageNotNumber')}"></textbox></cell>
+			</row>
+  		</rows>
+  	</grid>
+  	<button id="btnAnalyse" label="${c:l('text.analyse')}" disabled="true" />
+  	</vlayout>
+  	</panelchildren>
+  </panel>
+  <hlayout id="progressBox" visible="false">
+      <timer id="progressTimer" delay="500" repeats="true" running="false"/>
+	  <label value="${c:l('text.progress')}"/>
+	  <progressmeter width="200px" id="progressMeter1" value="0"/>
+	  <label id="lblCurrentAction" value="" />
+  </hlayout>
+  <label id="lblAwaitingFile" visible="false" value="${c:l('text.awaitingFile')}" />
+  <groupbox id="errorBox" visible="false" width="500px">
+	<caption label="${c:l('text.errorBoxCaption')}"/>
+	<vlayout>
+	<label value="${c:l('text.errorInstructions')}" />
+	<label id="lblErrorMessage" />
+	</vlayout>
+	</groupbox>
+   <button id="btnDone" label="${c:l('button.done')}" />
+  <div id="htmlContent" sclass="rightToLeft"></div>
+  </vlayout>
+</window>
+</zk>

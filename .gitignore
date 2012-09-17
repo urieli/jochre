@@ -1,0 +1,9 @@
+# Jochre .gitignore
+*/.classpath
+*/.project
+*/.settings/
+*/bin/
+*/build/
+*/corpusTest/
+dist/
+webapp/

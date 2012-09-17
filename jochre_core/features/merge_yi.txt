@@ -1,0 +1,6 @@
+MergedWidth(1.2)
+Inverse(MergedWidth(1.2))
+MergeDistance(0.15)
+Inverse(MergeDistance(0.15))
+BorderlineNeighboursRange	BorderlineNeighbours(IndexRange(0,3),IndexRange(0,3))
+Inverse(BorderlineNeighboursRange())

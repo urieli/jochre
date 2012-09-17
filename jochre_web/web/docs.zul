@@ -1,0 +1,205 @@
+<?page id="pgDocs" title="Jochre Document Menu"?>
+<?taglib uri="http://www.zkoss.org/dsp/web/core" prefix="c"?>
+<?meta HTTP-EQUIV="Pragma" CONTENT="no-cache" ?>
+<?meta HTTP-EQUIV="Expires" CONTENT="-1" ?>
+<zk>
+<include src="styles.zul" />
+<include src="menu.zul" />
+<window id="winJochreHome" title="${c:l('docs.title')}" apply="com.joliciel.jochre.web.DocumentController"
+  border="normal" width="840px">
+  <hbox>
+<panel border="normal" title="${c:l('docs.documents.title')}" id="treePanel" width="300px" height="500px">
+	<panelchildren>
+	<vlayout>
+	   	<tree id="docTree" zclass="z-filetree" model="@{winJochreHome$composer.documentTree}"
+	   		vflex="true" width="100%" height="420px">
+			<treecols sizable="true">
+				<treecol label="${c:l('docs.documents.name')}" />
+			</treecols>
+	   	</tree>
+		<hlayout>
+			<button id="btnNewDoc" label="${c:l('docs.documents.newDoc')}" />
+			<button id="btnAnalyseDoc" label="${c:l('docs.documents.analyseDoc')}" />
+		</hlayout>
+	</vlayout>
+   	</panelchildren>
+</panel>
+<vbox>
+<panel border="normal" title="${c:l('docs.documentDetails.title')}" id="docPanel" width="540px">
+	<panelchildren>
+	<grid width="95%">
+		<rows>
+			<row>
+				<cell sclass="labelCell" width="160px"><label sclass="labelCell" value="${c:l('docs.documentDetails.documentName')}"/></cell>
+				<cell><label id="lblDocName" value="${c:l('docs.documentDetails.noDocumentSelected')}"></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.documentNameLocal')}"/></cell>
+				<cell><label id="lblDocNameLocal" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.reference')}"/></cell>
+				<cell><label id="lblReference" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.authors')}"/></cell>
+				<cell>
+			        <listbox id="lstAuthors" rows="3" vflex="true">
+				        <listitem self="@{each=Author}">
+			                <listcell label="@{Author.fullName}" />
+			                <listcell label="@{Author.fullNameLocal}" />
+			            </listitem>
+					</listbox>
+				</cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.publisher')}"/></cell>
+				<cell><label id="lblPublisher" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.city')}"/></cell>
+				<cell><label id="lblCity" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.year')}"/></cell>
+				<cell><label id="lblYear" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.fileName')}"/></cell>
+				<cell><label id="lblFileName" value=""></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.documentId')}"/></cell>
+				<cell><label id="lblDocId"></label></cell>
+			</row>
+		</rows>
+	</grid>
+	<hlayout>
+		<button id="btnUpdateDoc" label="${c:l('button.edit')}" disabled="true" />
+		<button id="btnDownloadDocText" label="${c:l('docs.documentDetails.downloadText')}" disabled="true" />
+		<button id="btnAddPages" label="${c:l('docs.documentDetails.addPages')}" disabled="true" />
+	</hlayout>
+	</panelchildren>
+</panel>
+<panel border="normal" title="${c:l('docs.imageDetails.title')}" id="imagePanel" width="540px">
+	<panelchildren>
+	<grid>
+		<rows>
+			<row>
+				<cell sclass="labelCell" width="100px"><label sclass="labelCell" value="${c:l('docs.imageDetails.imageName')}"/></cell>
+				<cell><label id="lblImageIndex" value="${c:l('docs.imageDetails.noImageSelected')}"></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell" width="100px"><label sclass="labelCell" value="${c:l('docs.imageDetails.imageStatus')}"/></cell>
+				<cell><label id="lblImageStatus"></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.imageDetails.owner')}"/></cell>
+				<cell><label id="lblImageOwner"></label></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell" width="100px"><label sclass="labelCell" value="${c:l('docs.imageDetails.imageId')}"/></cell>
+				<cell><label id="lblImageId"></label></cell>
+			</row>
+		</rows>
+	</grid>
+	<hlayout>
+		<button id="btnLoadImage" label="${c:l('docs.imageDetails.loadImage')}" disabled="true" />
+		<button id="btnDownloadImageText" label="${c:l('docs.imageDetails.downloadText')}" disabled="true" />
+		<button id="btnDeleteImage" label="${c:l('docs.imageDetails.deleteImage')}" disabled="true" />
+	</hlayout>
+	</panelchildren>
+</panel>
+</vbox>
+</hbox>
+</window>
+<window id="winUpdateDocument" border="normal" title="${c:l('docs.winUpdateDocument.title')}"
+	visible="false" sizable="true" apply="com.joliciel.jochre.web.UpdateDocumentController" width="640px">
+	<grid>
+		<rows>
+			<row>
+				<cell sclass="labelCell" width="160px"><label sclass="labelCell" value="${c:l('docs.documentDetails.documentName')}"/></cell>
+				<cell><textbox id="txtDocName" value="${c:l('docs.documentDetails.noDocumentSelected')}" width="300px"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.documentNameLocal')}"/></cell>
+				<cell><textbox id="txtDocNameLocal" value="" width="300px"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.reference')}"/></cell>
+				<cell><textbox id="txtReference" value="" width="300px"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.authors')}"/></cell>
+				<cell>
+					<vbox>
+					<cell>
+			        <listbox id="lstAuthors" rows="3"
+			            vflex="true">
+				        <listitem self="@{each=author}" value="@{author}">
+			                <listcell label="@{author.fullName}" />
+			                <listcell label="@{author.fullNameLocal}" />
+			            </listitem>
+					</listbox>
+					</cell>
+					<cell>
+					<hbox>
+						<button id="btnDeleteAuthor" label="${c:l('button.remove')}" />
+						<button id="btnUpdateAuthor" label="${c:l('button.edit')}" />
+						<combobox id="cmbAuthors" />
+						<button id="btnAddAuthor" label="${c:l('docs.documentDetails.addAuthor')}" />
+					</hbox>
+				    </cell>
+				    <cell>
+				    <grid>
+				        <auxhead>
+				            <auxheader colspan="4" class="topic">${c:l('docs.documentDetails.newAuthor')}</auxheader>
+				        </auxhead>
+				        <columns>
+				        	<column label="${c:l('docs.documentDetails.newAuthorLanguage')}" align="center" />
+				            <column label="${c:l('docs.documentDetails.newAuthorFirstName')}" align="center" />
+				            <column label="${c:l('docs.documentDetails.newAuthorLastName')}" align="center" />
+				        </columns>
+				        <rows>
+				            <row>
+				                <label value="${c:l('docs.documentDetails.newAuthorLanguageEnglish')}" />
+				                <textbox id="txtAuthorFirstName" value="" width="150px" />
+				                <textbox id="txtAuthorLastName" value="" width="150px" />
+				            </row>
+				            <row>
+				                <label value="${c:l('docs.documentDetails.newAuthorLanguageLocal')}" />
+				                <textbox id="txtAuthorFirstNameLocal" value="" width="150px" />
+				                <textbox id="txtAuthorLastNameLocal" value="" width="150px" />
+				            </row>
+				            <row>
+				            	<cell colspan="3">
+				            		<button id="btnAddNewAuthor" label="${c:l('docs.documentDetails.addNewAuthor')}" />
+				            		<button id="btnCancelAuthor" label="${c:l('button.cancel')}" />
+				            	</cell>
+				            </row>
+				        </rows>
+				    </grid>
+				    </cell>
+					</vbox>
+				</cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.publisher')}"/></cell>
+				<cell><textbox id="txtPublisher" value="" width="300px"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.city')}"/></cell>
+				<cell><textbox id="txtCity" value="" width="300px"></textbox></cell>
+			</row>
+			<row>
+				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.year')}"/></cell>
+				<cell><textbox id="txtYear" value=""  constraint="/[1-2][0-9][0-9][0-9]/: ${c:l('docs.documentDetails.yearBadFormat')}" width="300px"></textbox></cell>
+			</row>
+		</rows>
+	</grid>
+	<hbox>
+         <button id="btnSave" label="${c:l('button.save')}" />
+         <button id="btnCancel" label="${c:l('button.cancel')}" />
+     </hbox>
+</window>
+</zk>
