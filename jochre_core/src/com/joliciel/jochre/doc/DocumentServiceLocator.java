@@ -45,6 +45,7 @@ public class DocumentServiceLocator {
 			documentService.setSecurityService(this.jochreServiceLocator.getSecurityServiceLocator().getSecurityService());
 			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
 			documentService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
+			documentService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
 		}
 		return documentService;
 	}

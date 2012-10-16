@@ -24,6 +24,7 @@ import java.util.PriorityQueue;
 
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.Decision;
 
 /**
  * Returns shapes each representing a single letter (after splitting/merging),
@@ -40,6 +41,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	private double minHeightRatioForSplit = 1.0;
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
+	private BoundaryDecisionFactory boundaryDecisionFactory = new BoundaryDecisionFactory();
 	
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
@@ -115,18 +117,20 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 						}
 						heap.add(mergedSequence);
 						
-						mergedSequence.addDecision(mergeProb);
-						for (double splitDecisionProb : splitSequence.getDecisionProbabilities())
-							mergedSequence.addDecision(splitDecisionProb);
+						Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_MERGE.getCode(), mergeProb);
+						mergedSequence.addDecision(mergeDecision);
+						for (Decision<SplitMergeOutcome> splitDecision : splitSequence.getDecisions())
+							mergedSequence.addDecision(splitDecision);
 					}
 					
 					if (mergeProb<1) {
 						ShapeSequence totalSequence = boundaryService.getShapeSequencePlusOne(history);
 						if (mergeProb>0) {
-							totalSequence.addDecision(1-mergeProb);
+							Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_NOT_MERGE.getCode(), 1-mergeProb);
+							totalSequence.addDecision(mergeDecision);
 						}
-						for (double splitDecisionProb : splitSequence.getDecisionProbabilities())
-							totalSequence.addDecision(splitDecisionProb);
+						for (Decision<SplitMergeOutcome> splitDecision : splitSequence.getDecisions())
+							totalSequence.addDecision(splitDecision);
 						
 						for (ShapeInSequence splitShape : splitSequence) {
 							totalSequence.add(splitShape);

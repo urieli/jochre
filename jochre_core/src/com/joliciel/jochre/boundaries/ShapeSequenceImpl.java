@@ -4,12 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
+import com.joliciel.talismane.machineLearning.ScoringStrategy;
+import com.joliciel.talismane.machineLearning.Solution;
 
 class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSequence, Comparable<ShapeSequence> {
 	private static final long serialVersionUID = 8564092412152008511L;
 	
-	private List<Double> decisionProbabilities = new ArrayList<Double>();
+	private double score = 0.0;
+	private boolean scoreCalculated = false;
 	private BoundaryServiceInternal boundaryServiceInternal;
+	
+	private List<Decision<SplitMergeOutcome>> decisions = new ArrayList<Decision<SplitMergeOutcome>>();
+	private List<Solution<?>> underlyingSolutions = new ArrayList<Solution<?>>();
+	private ScoringStrategy scoringStrategy = new HarmonicMeanScoringStrategy();
 	
 	ShapeSequenceImpl() {
 		super();
@@ -27,6 +36,7 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	public ShapeSequenceImpl(ShapeSequence history) {
 		super(history.size()+1);
 		this.addAll(history);
+		this.decisions.addAll(history.getDecisions());
 	}
 	
 	/**
@@ -39,10 +49,8 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 		
 		this.addAll(sequence1);
 		this.addAll(sequence2);
-		for (double prob : sequence1.getDecisionProbabilities())
-			this.addDecision(prob);
-		for (double prob : sequence2.getDecisionProbabilities())
-			this.addDecision(prob);
+		this.decisions.addAll(sequence1.getDecisions());
+		this.decisions.addAll(sequence2.getDecisions());
 		
 		int i = 0;
 		for (ShapeInSequence shapeInSequence : this) {
@@ -53,27 +61,11 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	
 	@Override
 	public double getScore() {
-		double score = 0;
-		
-		for (double decisionProb : decisionProbabilities) {
-			score += Math.log(decisionProb);
+		if (!scoreCalculated) {
+			score = this.scoringStrategy.calculateScore(this);
+			scoreCalculated = true;
 		}
-		
-		// apply a geometric mean
-		if (decisionProbabilities.size()>0)
-			score = score / decisionProbabilities.size();
-		score = Math.exp(score);
 		return score;
-	}
-
-	@Override
-	public void addDecision(double probability) {
-		this.decisionProbabilities.add(probability);
-	}
-
-	@Override
-	public List<Double> getDecisionProbabilities() {
-		return decisionProbabilities;
 	}
 
 	@Override
@@ -136,5 +128,27 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 		return shapeInSequence;
 	}
 
+	@Override
+	public List<Decision<SplitMergeOutcome>> getDecisions() {
+		return decisions;
+	}
+
+	@Override
+	public List<Solution<?>> getUnderlyingSolutions() {
+		return underlyingSolutions;
+	}
+
+	@Override
+	public void addDecision(Decision<SplitMergeOutcome> decision) {
+		this.decisions.add(decision);
+	}
+
+	public ScoringStrategy getScoringStrategy() {
+		return scoringStrategy;
+	}
+
+	public void setScoringStrategy(ScoringStrategy scoringStrategy) {
+		this.scoringStrategy = scoringStrategy;
+	}
 
 }

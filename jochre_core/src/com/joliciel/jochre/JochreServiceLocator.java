@@ -42,10 +42,11 @@ import com.joliciel.jochre.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.pdf.PdfServiceLocator;
 import com.joliciel.jochre.security.SecurityServiceLocator;
 import com.joliciel.jochre.text.TextServiceLocator;
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FeatureServiceLocator;
-import com.joliciel.talismane.utils.util.ObjectCache;
-import com.joliciel.talismane.utils.util.SimpleObjectCache;
+import com.joliciel.talismane.machineLearning.MachineLearningServiceLocator;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FeatureServiceLocator;
+import com.joliciel.talismane.utils.ObjectCache;
+import com.joliciel.talismane.utils.SimpleObjectCache;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
@@ -67,6 +68,7 @@ public class JochreServiceLocator {
 	private BoundaryFeatureServiceLocator boundaryFeatureServiceLocator;
 	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
 	private LetterFeatureServiceLocator letterFeatureServiceLocator;
+	private MachineLearningServiceLocator machineLearningServiceLocator;
 	
 	private FeatureService featureService;
 	
@@ -250,6 +252,12 @@ public class JochreServiceLocator {
 			featureService = FeatureServiceLocator.getInstance().getFeatureService();
 		}
 		return featureService;
+	}
+
+	public MachineLearningServiceLocator getMachineLearningServiceLocator() {
+		if (machineLearningServiceLocator==null)
+			machineLearningServiceLocator = MachineLearningServiceLocator.getInstance();
+		return machineLearningServiceLocator;
 	}
 	
 }

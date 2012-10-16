@@ -33,8 +33,8 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.WritableImageGrid;
-import com.joliciel.talismane.utils.features.BooleanFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.BooleanFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * If we view the empty space at the centre of the shape, does it's lower-left extremety

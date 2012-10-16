@@ -19,8 +19,8 @@
 package com.joliciel.jochre.letterGuesser.features;
 
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
-import com.joliciel.talismane.utils.features.Feature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.Feature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * A single feature that checks a given shape and returns a result.

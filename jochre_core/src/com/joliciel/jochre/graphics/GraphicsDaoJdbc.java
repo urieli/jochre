@@ -44,7 +44,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.lang.Linguistics;
-import com.joliciel.talismane.utils.util.DaoUtils;
+import com.joliciel.talismane.utils.DaoUtils;
 
 final class GraphicsDaoJdbc implements GraphicsDao {
 	private static final Log LOG = LogFactory.getLog(GraphicsDaoJdbc.class);
@@ -119,17 +119,27 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_SHAPE + ", count(split_id) as the_count FROM ocr_shape" +
 				" LEFT JOIN ocr_split on shape_id = split_shape_id" +
-			" WHERE length(shape_letter)>1" +
-			" and shape_letter not like '%|'" +
-			" and shape_letter not like '|%'" +
-			" and shape_letter not in (:dual_character_letters)" +
-			" GROUP BY " + SELECT_SHAPE + 
-			" ORDER BY the_count, shape_letter, shape_id";
+				" LEFT JOIN ocr_group ON shape_group_id = group_id" +
+				" LEFT JOIN ocr_row ON group_row_id = row_id" +
+				" LEFT JOIN ocr_paragraph ON row_paragraph_id = paragraph_id" +
+				" LEFT JOIN ocr_image ON paragraph_image_id = image_id" +
+				" WHERE length(shape_letter)>1" +
+				" AND shape_letter not like '%|'" +
+				" AND shape_letter not like '|%'" +
+				" AND shape_letter not in (:dual_character_letters)" +
+				" AND image_imgstatus_id in (:image_imgstatus_id)" +
+				" GROUP BY " + SELECT_SHAPE + 
+				" ORDER BY the_count, shape_letter, shape_id";
 		
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		Linguistics linguistics = Linguistics.getInstance(locale);
 
 		paramSource.addValue("dual_character_letters", linguistics.getDualCharacterLetters());
+		List<Integer> imageStatusList = new ArrayList<Integer>();
+		imageStatusList.add(ImageStatus.TRAINING_VALIDATED.getId());
+		imageStatusList.add(ImageStatus.TRAINING_HELD_OUT.getId());
+		imageStatusList.add(ImageStatus.TRAINING_TEST.getId());
+		paramSource.addValue("image_imgstatus_id", imageStatusList);
 
 		LOG.debug(sql);
 		logParameters(paramSource);

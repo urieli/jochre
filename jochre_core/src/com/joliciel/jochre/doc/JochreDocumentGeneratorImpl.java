@@ -20,11 +20,13 @@ package com.joliciel.jochre.doc;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 
@@ -38,9 +40,11 @@ import com.joliciel.jochre.analyser.LetterAssigner;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
+import com.joliciel.jochre.boundaries.MergeOutcome;
 import com.joliciel.jochre.boundaries.ShapeMerger;
 import com.joliciel.jochre.boundaries.ShapeSplitter;
 import com.joliciel.jochre.boundaries.SplitCandidateFinder;
+import com.joliciel.jochre.boundaries.SplitOutcome;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
@@ -49,18 +53,20 @@ import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Segmenter;
 import com.joliciel.jochre.graphics.SourceImage;
+import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.maxent.JolicielMaxentModel;
-import com.joliciel.talismane.utils.util.LogUtils;
-import com.joliciel.talismane.utils.util.Monitorable;
-import com.joliciel.talismane.utils.util.MultiTaskProgressMonitor;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
-import com.joliciel.talismane.utils.util.SimpleProgressMonitor;
+import com.joliciel.talismane.machineLearning.MachineLearningModel;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
+import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 /**
  * A utility class to create and analyse JochreDocuments out of a source file
@@ -79,6 +85,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	BoundaryService boundaryService;
 	LetterFeatureService letterFeatureService;
 	BoundaryFeatureService boundaryFeatureService;
+	MachineLearningService machineLearningService;
 	
 	File outputDirectory = null;
 	String filename = "";
@@ -409,7 +416,9 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.wordChooser = wordChooser;
 		
 		try {
-			JolicielMaxentModel letterModel = new JolicielMaxentModel(letterModelFile);
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
+			MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
+
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 			letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
@@ -426,20 +435,23 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
 				splitCandidateFinder.setMinDistanceBetweenSplits(5);
 				
-				JolicielMaxentModel splitModel = new JolicielMaxentModel(splitModelFile);
+				ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
+				MachineLearningModel<SplitOutcome> splitModel = machineLearningService.getModel(splitZis);
 				List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 				Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 				ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
 			
-				JolicielMaxentModel mergeModel = new JolicielMaxentModel(mergeModelFile);
+				ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
+				MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(mergeZis);
 				List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 				Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 				double maxWidthRatioForMerge = 1.2;
 				double maxDistanceRatioForMerge = 0.15;
+				double minProbForDecision = 0.7;
 				
 				ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
-				boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, 5);
+				boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
 				boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
 				boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
 				boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
@@ -478,6 +490,15 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	public void requestSegmentation(File outputDirectory) {
 		this.showSegmentation = true;
 		this.outputDirectory = outputDirectory;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 	
 }

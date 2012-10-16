@@ -61,9 +61,9 @@ import com.joliciel.jochre.text.TextFormat;
 import com.joliciel.jochre.text.TextGetter;
 import com.joliciel.jochre.text.TextService;
 
-import com.joliciel.talismane.utils.util.LogUtils;
-import com.joliciel.talismane.utils.util.MessageResource;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
+import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.MessageResource;
+import com.joliciel.talismane.utils.ProgressMonitor;
 
 public class TextController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;

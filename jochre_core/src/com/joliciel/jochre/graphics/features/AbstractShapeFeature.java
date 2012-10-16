@@ -20,8 +20,8 @@ package com.joliciel.jochre.graphics.features;
 
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
-import com.joliciel.talismane.utils.features.AbstractCachableFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * An Abstract base class for shape features.

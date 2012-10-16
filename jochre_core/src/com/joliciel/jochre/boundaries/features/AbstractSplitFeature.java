@@ -19,7 +19,7 @@
 package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.talismane.utils.features.AbstractCachableFeature;
+import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 
 abstract class AbstractSplitFeature<Y> extends AbstractCachableFeature<Split,Y> implements
 		SplitFeature<Y> {

@@ -19,7 +19,7 @@
 package com.joliciel.jochre.pdf;
 
 import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.talismane.utils.util.Monitorable;
+import com.joliciel.talismane.utils.Monitorable;
 
 /**
  * Visits a set of images from a pdf document, and returns them as a JochreDocument.

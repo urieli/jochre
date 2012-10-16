@@ -36,7 +36,7 @@ import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentInternal;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.doc.JochrePageInternal;
-import com.joliciel.talismane.utils.util.DaoUtils;
+import com.joliciel.talismane.utils.DaoUtils;
 
 public final class DocumentDaoJdbc implements DocumentDao {
 	private static final Log LOG = LogFactory.getLog(DocumentDaoJdbc.class);

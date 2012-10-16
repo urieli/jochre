@@ -7,9 +7,9 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
-import com.joliciel.talismane.utils.features.FunctionDescriptorParser;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 public class BoundaryFeatureServiceImpl implements BoundaryFeatureService {
 	private static final Log LOG = LogFactory.getLog(BoundaryFeatureServiceImpl.class);

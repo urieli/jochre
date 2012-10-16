@@ -20,9 +20,10 @@ import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.DecisionMaker;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 public class RecursiveShapeSplitterTest {
 	private static final Log LOG = LogFactory.getLog(RecursiveShapeSplitterTest.class);
@@ -38,7 +39,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShape(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker decisionMaker,
+			final DecisionMaker<SplitOutcome> decisionMaker,
 			final Shape shape,
 			final JochreImage jochreImage,
 			@NonStrict final DataSource dataSource) {
@@ -162,7 +163,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShapeNoSplitMoreLikely(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker decisionMaker,
+			final DecisionMaker<SplitOutcome> decisionMaker,
 			final Shape shape,
 			final JochreImage jochreImage,
 			@NonStrict final DataSource dataSource) {
@@ -285,8 +286,8 @@ public class RecursiveShapeSplitterTest {
 		LOG.debug("twoThirds: " + twoThirds);
 		for (ShapeSequence shapeSequence : shapeSequences) {
 			LOG.debug("sequence " + i + " decisions:");
-			for (double decisionProb : shapeSequence.getDecisionProbabilities())
-				LOG.debug(decisionProb);
+			for (Decision<SplitMergeOutcome> decision : shapeSequence.getDecisions())
+				LOG.debug(decision.getProbability());
 			
 			if (i==0) {
 				prob = 1.0;
@@ -325,7 +326,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShapeSplitMoreLikely(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker decisionMaker,
+			final DecisionMaker<SplitOutcome> decisionMaker,
 			final Shape shape,
 			final JochreImage jochreImage,
 			@NonStrict final DataSource dataSource) {
@@ -458,8 +459,8 @@ public class RecursiveShapeSplitterTest {
 		LOG.debug("twoThirds: " + twoThirds);
 		for (ShapeSequence shapeSequence : shapeSequences) {
 			LOG.debug("sequence " + i + " decisions:");
-			for (double decisionProb : shapeSequence.getDecisionProbabilities())
-				LOG.debug(decisionProb);
+			for (Decision<SplitMergeOutcome> decision : shapeSequence.getDecisions())
+				LOG.debug(decision.getProbability());
 			
 			if (i==0) {
 				prob = 1.0;

@@ -25,16 +25,30 @@ import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.DecisionMaker;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.DecisionFactory;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
 
 class BoundaryServiceImpl implements BoundaryServiceInternal {
+	private MachineLearningService machineLearningService;
 	GraphicsService graphicsService;
 	BoundaryDao boundaryDao;
 	
 	public BoundaryServiceImpl() {
 	}
 
+	@Override
+	public BoundaryDetector getDeterministicBoundaryDetector(
+			ShapeSplitter shapeSplitter, ShapeMerger shapeMerger,
+			double minProbabilityForDecision) {
+		DeterministicBoundaryDetector boundaryDetector = new DeterministicBoundaryDetector();
+		boundaryDetector.setShapeSplitter(shapeSplitter);
+		boundaryDetector.setShapeMerger(shapeMerger);
+		boundaryDetector.setMinProbabilityForDecision(minProbabilityForDecision);
+		boundaryDetector.setBoundaryService(this);
+		return boundaryDetector;		
+	}
 
 	@Override
 	public BoundaryDetector getLetterByLetterBoundaryDetector(ShapeSplitter shapeSplitter,
@@ -163,6 +177,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
+		eventStream.setMachineLearningService(this.getMachineLearningService());
 		eventStream.setImageStatusesToInclude(imageStatusesToInclude);
 		eventStream.setImageCount(imageCount);
 		eventStream.setMinWidthRatio(minWidthRatio);
@@ -180,6 +195,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
+		eventStream.setMachineLearningService(this.getMachineLearningService());
 		eventStream.setImageStatusesToInclude(imageStatusesToInclude);
 		eventStream.setImageCount(imageCount);
 		eventStream.setMaxWidthRatio(maxWidthRatio);
@@ -192,7 +208,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	public ShapeSplitter getShapeSplitter(
 			SplitCandidateFinder splitCandidateFinder,
 			Set<SplitFeature<?>> splitFeatures,
-			DecisionMaker decisionMaker, double minWidthRatio, int beamWidth, int maxDepth) {
+			DecisionMaker<SplitOutcome> decisionMaker, double minWidthRatio, int beamWidth, int maxDepth) {
 		RecursiveShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		shapeSplitter.setMinWidthRatio(minWidthRatio);
 		shapeSplitter.setBeamWidth(beamWidth);
@@ -242,9 +258,31 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 	@Override
 	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures,
-			DecisionMaker decisionMaker) {
+			DecisionMaker<MergeOutcome> decisionMaker) {
 		ShapeMergerImpl merger = new ShapeMergerImpl(decisionMaker, mergeFeatures);
 		merger.setBoundaryServiceInternal(this);
 		return merger;
 	}
+
+	@Override
+	public DecisionFactory<SplitOutcome> getSplitDecisionFactory() {
+		return new SplitDecisionFactory();
+	}
+
+	@Override
+	public DecisionFactory<MergeOutcome> getMergeDecisionFactory() {
+		return new MergeDecisionFactory();
+	}
+
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
+	}
+
 }

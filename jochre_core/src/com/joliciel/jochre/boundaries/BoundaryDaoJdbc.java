@@ -32,7 +32,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.boundaries.SplitInternal;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.util.DaoUtils;
+import com.joliciel.talismane.utils.DaoUtils;
 
 final class BoundaryDaoJdbc implements BoundaryDao {
 	private static final Log LOG = LogFactory.getLog(BoundaryDaoJdbc.class);

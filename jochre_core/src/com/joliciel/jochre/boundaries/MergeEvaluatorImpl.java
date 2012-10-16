@@ -30,6 +30,7 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 	private static final Log LOG = LogFactory.getLog(MergeEvaluatorImpl.class);
 	double maxWidthRatio = 1.2;
 	double maxDistanceRatio = 0.15;
+	double minProbabilityForDecision = 0.5;
 	BoundaryServiceInternal boundaryServiceInternal;
 
 	@Override
@@ -71,7 +72,7 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 					
 					if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
 						double mergeProb = shapeMerger.checkMerge(previousShape, shape);
-						boolean wantsToMerge = (mergeProb >= 0.5);
+						boolean wantsToMerge = (mergeProb >= minProbabilityForDecision);
 						fScoreCalculator.increment(shouldMerge ? "YES" : "NO", wantsToMerge ? "YES" : "NO");
 					} else {
 						LOG.trace("too wide");
@@ -101,6 +102,14 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 
 	public void setMaxDistanceRatio(double maxDistanceRatio) {
 		this.maxDistanceRatio = maxDistanceRatio;
+	}
+
+	public double getMinProbabilityForDecision() {
+		return minProbabilityForDecision;
+	}
+
+	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
+		this.minProbabilityForDecision = minProbabilityForDecision;
 	}
 
 	public BoundaryServiceInternal getBoundaryServiceInternal() {

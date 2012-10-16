@@ -39,16 +39,17 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
-import com.joliciel.talismane.utils.util.LogUtils;
-import com.joliciel.talismane.utils.util.Monitorable;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
-import com.joliciel.talismane.utils.util.SimpleProgressMonitor;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
+import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 /**
  * Perform a analysis using a beam search.
@@ -209,12 +210,12 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							
 							PerformanceMonitor.startTask("heap sort");
 							try {
-								for (WeightedOutcome<String> weightedOutcome : shape.getWeightedOutcomes()) {
+								for (Decision<Letter> letterGuess : shape.getLetterGuesses()) {
 									// leave out very low probability outcomes
-									if (weightedOutcome.getWeight() > this.minOutcomeWeight) {
+									if (letterGuess.getProbability() > this.minOutcomeWeight) {
 										LetterSequence sequence = this.getLetterGuesserService().getLetterSequencePlusOne(history);
-										sequence.add(weightedOutcome);
-										
+										sequence.add(letterGuess.getOutcome());
+										sequence.addDecision(letterGuess);
 										heap.add(sequence);
 									} // weight big enough to include
 								} // next letter guess for this shape
@@ -282,9 +283,8 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-								WeightedOutcome<String> bestOutcome = bestSequence.get(i);
-								String bestGuess = bestOutcome.getOutcome();
-								this.assignLetter(shapeInSequence, bestGuess);
+								String bestOutcome = bestSequence.get(i).getString();
+								this.assignLetter(shapeInSequence, bestOutcome);
 								i++;
 							} // next shape
 							

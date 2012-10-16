@@ -22,14 +22,14 @@ import java.util.List;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Solution;
 
 /**
  * A sequence of weighted outcomes with an attached score.
  * @author Assaf Urieli
  *
  */
-public interface LetterSequence extends List<WeightedOutcome<String>> {
+public interface LetterSequence extends List<Letter>, Solution<Letter> {
 
 	/**
 	 * Get the sum of logs of the weights.

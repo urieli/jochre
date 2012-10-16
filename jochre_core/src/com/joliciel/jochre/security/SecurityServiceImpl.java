@@ -21,7 +21,7 @@ package com.joliciel.jochre.security;
 import java.util.List;
 
 import com.joliciel.jochre.EntityNotFoundException;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.utils.ObjectCache;
 
 class SecurityServiceImpl implements SecurityServiceInternal {
 	private ObjectCache objectCache;	

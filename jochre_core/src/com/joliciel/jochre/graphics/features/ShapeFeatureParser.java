@@ -21,9 +21,9 @@ package com.joliciel.jochre.graphics.features;
 import java.util.List;
 
 import com.joliciel.jochre.graphics.ShapeWrapper;
-import com.joliciel.talismane.utils.features.FeatureClassContainer;
-import com.joliciel.talismane.utils.features.FeatureParser;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
+import com.joliciel.talismane.machineLearning.features.FeatureParser;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 /**
  * A parser for shape features.

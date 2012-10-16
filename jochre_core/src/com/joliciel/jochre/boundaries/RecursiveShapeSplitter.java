@@ -28,10 +28,11 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.DecisionMaker;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
  * Splits a shape using a DecisionMaker.
@@ -63,14 +64,15 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 	private BoundaryServiceInternal boundaryServiceInternal;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
-	private DecisionMaker decisionMaker;
+	private DecisionMaker<SplitOutcome> decisionMaker;
+	private BoundaryDecisionFactory boundaryDecisionFactory = new BoundaryDecisionFactory();
 	
 	double minWidthRatio = 1.1;
 	int beamWidth = 5;
 	int maxDepth = 3;
 	
 	public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder,
-			Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker) {
+			Set<SplitFeature<?>> splitFeatures, DecisionMaker<SplitOutcome> decisionMaker) {
 		super();
 		this.splitCandidateFinder = splitCandidateFinder;
 		this.splitFeatures = splitFeatures;
@@ -153,7 +155,9 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 					shapeSequence.addShape(shape, originalShape);
 					double prob = (splitProb / maxSplitProb) * topCandidateWeight;
 					LOG.trace(padding + "noSplit prob=(" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
-					shapeSequence.addDecision(prob);
+					
+					Decision<SplitMergeOutcome> decision = boundaryDecisionFactory.createDecision(SplitOutcome.DO_NOT_SPLIT.getCode(), prob);
+					shapeSequence.addDecision(decision);
 					myShapeSequences.add(shapeSequence);
 				} else {
 					// a proper split
@@ -204,10 +208,10 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 								LOG.trace(padding + sb.toString());
 							}
 							double totalProb = 1.0;
-							for (double prob : newSequence.getDecisionProbabilities()) {
-								totalProb = totalProb * prob;
+							for (Decision<SplitMergeOutcome> decision : newSequence.getDecisions()) {
+								totalProb = totalProb * decision.getProbability();
 							}
-							newSequence.getDecisionProbabilities().clear();
+							newSequence.getDecisions().clear();
 							double prob = 0.0;
 							if (topCandidate) {
 								prob = totalProb * (splitProb / maxSplitProb);
@@ -216,7 +220,9 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 								prob = totalProb * (splitProb / maxSplitProb) * topCandidateWeight;
 								LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
 							}
-							newSequence.addDecision(prob);
+							
+							Decision<SplitMergeOutcome> decision = this.boundaryDecisionFactory.createDecision(SplitOutcome.DO_SPLIT.getCode(), prob);
+							newSequence.addDecision(decision);
 							myShapeSequences.add(newSequence);
 						}
 					}
@@ -265,18 +271,18 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 				PerformanceMonitor.endTask("analyse features");
 			}
 			
-			List<WeightedOutcome<String>> outcomes = null;
+			List<Decision<SplitOutcome>> decisions = null;
 			PerformanceMonitor.startTask("decision maker");
 			try {
-				outcomes = decisionMaker.decide(featureResults);
+				decisions = decisionMaker.decide(featureResults);
 			} finally {
 				PerformanceMonitor.endTask("decision maker");
 			}
 			
 			double yesProb = 0.0;
-			for (WeightedOutcome<String> weightedOutcome : outcomes) {
-				if (weightedOutcome.getOutcome().equals("YES")) {
-					yesProb = weightedOutcome.getWeight();
+			for (Decision<SplitOutcome> decision : decisions) {
+				if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT)) {
+					yesProb = decision.getProbability();
 					break;
 				}
 			}

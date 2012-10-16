@@ -24,9 +24,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.utils.features.DoubleFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.DoubleFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.jochre.boundaries.ShapePair;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;

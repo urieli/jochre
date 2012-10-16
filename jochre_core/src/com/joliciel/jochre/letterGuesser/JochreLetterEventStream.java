@@ -19,11 +19,11 @@
 package com.joliciel.jochre.letterGuesser;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,17 +38,19 @@ import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.utils.CorpusEvent;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.CorpusEvent;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreLetterEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreLetterEventStream.class);
 	private GraphicsService graphicsService;
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
 	private BoundaryService boundaryService;
+	private MachineLearningService machineLearningService;
+
 	private BoundaryDetector boundaryDetector;
 	
 	private Set<LetterFeature<?>> features = null;
@@ -113,9 +115,10 @@ class JochreLetterEventStream implements CorpusEventStream {
 				
 				String outcome = shape.getLetter();
 				
-				event = new CorpusEvent(featureResults, outcome);
+				event = this.machineLearningService.getCorpusEvent(featureResults, outcome);
 				
-				history.add(new WeightedOutcome<String>(outcome, 1.0));
+				Letter letter = new Letter(outcome);
+				history.add(letter);
 				// set shape to null so that hasNext can retrieve the next one.
 				this.shapeInSequence = null;
 			}
@@ -245,12 +248,21 @@ class JochreLetterEventStream implements CorpusEventStream {
 
 	@Override
 	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new TreeMap<String, Object>();
+		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
 		attributes.put("eventStream", this.getClass().getSimpleName());		
 		attributes.put("imageCount", imageCount);		
 		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
 		
 		return attributes;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 
 }

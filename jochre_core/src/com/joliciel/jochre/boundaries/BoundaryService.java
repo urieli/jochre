@@ -25,13 +25,24 @@ import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.DecisionMaker;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.DecisionFactory;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 public interface BoundaryService {	
 	public CorpusEventStream getJochreSplitEventStream(ImageStatus[] imageStatusesToInclude, Set<SplitFeature<?>> splitFeatures, int imageCount, double minWidthRatio, double minHeightRatio);
 	public CorpusEventStream getJochreMergeEventStream(ImageStatus[] imageStatusesToInclude, Set<MergeFeature<?>> mergeFeatures, int imageCount, double maxWidthRatio, double maxDistanceRatio);
 
+	/**
+	 * Returns the single "most likely" shape sequence, as long as each decision has a score >= minProbabilityForDecision.
+	 * Otherwise, returns the original boundaries.
+	 * @param shapeSplitter
+	 * @param shapeMerger
+	 * @param minProbabilityForDecision minimum probability for applying a split or merge
+	 * @return
+	 */
+	public BoundaryDetector getDeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, double minProbabilityForDecision);
+	
 	/**
 	 * Returns shapes each representing a single letter (after splitting/merging),
 	 * regardless of the original boundaries.
@@ -81,7 +92,7 @@ public interface BoundaryService {
 	 * @return
 	 */
 	public ShapeSplitter getShapeSplitter(SplitCandidateFinder splitCandidateFinder,
-			Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker, 
+			Set<SplitFeature<?>> splitFeatures, DecisionMaker<SplitOutcome> decisionMaker, 
 			double minWidthRatio, 
 			int beamWidth,
 			int maxDepth);
@@ -99,6 +110,9 @@ public interface BoundaryService {
 	
 	public MergeEvaluator getMergeEvaluator(double maxWidthRatio, double maxDistanceRatio);
 	
-	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker decisionMaker);
+	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker<MergeOutcome> decisionMaker);
 
+	public DecisionFactory<SplitOutcome> getSplitDecisionFactory();
+	
+	public DecisionFactory<MergeOutcome> getMergeDecisionFactory();
 }

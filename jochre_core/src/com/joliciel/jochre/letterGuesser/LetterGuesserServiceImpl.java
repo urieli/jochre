@@ -26,14 +26,17 @@ import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.DecisionMaker;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.DecisionFactory;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.utils.ObjectCache;
 
 class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	private ObjectCache objectCache;	
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
+	private MachineLearningService machineLearningService;
 	
 	public LetterGuesserServiceImpl() {
 	}
@@ -46,7 +49,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		this.objectCache = objectCache;
 	}
 	
-	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
+	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
 		LetterGuesserImpl letterGuesser = new LetterGuesserImpl(features, decisionMaker);
 		letterGuesser.setLetterGuesserServiceInternal(this);
 		return letterGuesser;
@@ -98,6 +101,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setLetterGuesserServiceInternal(this);
 		eventStream.setBoundaryService(this.getBoundaryService());
+		eventStream.setMachineLearningService(this.getMachineLearningService());
 		eventStream.setImageCount(imageCount);
 		
 		eventStream.setBoundaryDetector(boundaryDetector);
@@ -106,6 +110,20 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 
 	public void setBoundaryService(BoundaryService boundaryService) {
 		this.boundaryService = boundaryService;
+	}
+
+	@Override
+	public DecisionFactory<Letter> getLetterDecisionFactory() {
+		return new LetterDecisionFactory();
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 	
 }

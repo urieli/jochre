@@ -34,7 +34,7 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * This Text Getter is specific to Yiddish - may need other ones for other languages.

@@ -19,7 +19,7 @@
 package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.jochre.boundaries.ShapePair;
-import com.joliciel.talismane.utils.features.AbstractCachableFeature;
+import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 
 abstract class AbstractMergeFeature<Y> extends AbstractCachableFeature<ShapePair,Y> implements
 		MergeFeature<Y> {

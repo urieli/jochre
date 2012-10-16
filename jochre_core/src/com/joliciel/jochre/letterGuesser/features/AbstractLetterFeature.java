@@ -19,7 +19,7 @@
 package com.joliciel.jochre.letterGuesser.features;
 
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
-import com.joliciel.talismane.utils.features.AbstractCachableFeature;
+import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 
 /**
  * An Abstract base class for features, basically defining feature equality.

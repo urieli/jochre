@@ -25,8 +25,8 @@ import org.apache.commons.math.stat.descriptive.moment.Mean;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
-import com.joliciel.talismane.utils.features.BooleanFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.BooleanFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * Check whether a set of brightness sectors is relatively empty.

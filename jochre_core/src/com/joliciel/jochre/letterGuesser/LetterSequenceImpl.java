@@ -19,19 +19,23 @@
 package com.joliciel.jochre.letterGuesser;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
+import com.joliciel.talismane.machineLearning.ScoringStrategy;
+import com.joliciel.talismane.machineLearning.Solution;
 
 /**
  * 
  * @author Assaf Urieli
  *
  */
-final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implements Comparable<LetterSequenceImpl>, LetterSequence {
+final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<LetterSequenceImpl>, LetterSequence {
 	private static final long serialVersionUID = 7846011721688179506L;
 
 	private double score = 0;
@@ -48,14 +52,18 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 	private BoundaryService boundaryService;
 	private int frequency = 0;
 	
+	private List<Decision<Letter>> decisions = new ArrayList<Decision<Letter>>();
+	private List<Solution<?>> underlyingSolutions = new ArrayList<Solution<?>>();
+	private ScoringStrategy scoringStrategy = new HarmonicMeanScoringStrategy();
+	
 	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence) {
 		super();
-		this.underlyingShapeSequence = underlyingShapeSequence;
+		this.setUnderlyingShapeSequence(underlyingShapeSequence);
 	}
 	
 	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence, int initialCapacity) {
 		super(initialCapacity);
-		this.underlyingShapeSequence = underlyingShapeSequence;
+		this.setUnderlyingShapeSequence(underlyingShapeSequence);
 	}
 	
 	/**
@@ -66,7 +74,8 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 	public LetterSequenceImpl(LetterSequence history) {
 		super(history.size()+1);
 		this.addAll(history);
-		this.underlyingShapeSequence = history.getUnderlyingShapeSequence();
+		this.decisions.addAll(history.getDecisions());
+		this.setUnderlyingShapeSequence(history.getUnderlyingShapeSequence());
 	}
 	
 	/**
@@ -78,10 +87,14 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 		super(sequence1.size() + sequence2.size());
 		this.addAll(sequence1);
 		this.addAll(sequence2);
+		this.decisions.addAll(sequence1.getDecisions());
+		this.decisions.addAll(sequence2.getDecisions());
+		
 		this.setDashToSkip(sequence1.getDashToSkip());
 		this.boundaryService = boundaryService;
 		
-		this.underlyingShapeSequence = this.boundaryService.getShapeSequence(sequence1.getUnderlyingShapeSequence(), sequence2.getUnderlyingShapeSequence());
+		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1.getUnderlyingShapeSequence(), sequence2.getUnderlyingShapeSequence());
+		this.setUnderlyingShapeSequence(shapeSequence);
 	}
 	
 	/* (non-Javadoc)
@@ -90,16 +103,7 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 	@Override
 	public double getScore() {
 		if (!scoreCalculated) {
-			for (WeightedOutcome<String> outcome : this) {
-				score = score + outcome.getWeightLog();
-			}
-			score = score / this.size();
-			// instead of adding the logs, doing a geometric mean
-			score = Math.exp(score);
-			
-			if (this.underlyingShapeSequence!=null)
-				score = score * this.underlyingShapeSequence.getScore();
-			
+			score = this.scoringStrategy.calculateScore(this);
 			scoreCalculated = true;
 		}
 		return score;
@@ -191,12 +195,11 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 	public String getGuessedSequence() {
 		if (guessedSequence==null) {
 			StringBuilder builder = new StringBuilder();
-			for (WeightedOutcome<String> outcome : this) {
-				String letter = outcome.getOutcome();
-				if (letter.length()==0)
+			for (Letter letter : this) {
+				if (letter.getString().length()==0)
 					builder.append("[]");
 				else
-					builder.append(letter);
+					builder.append(letter.getString());
 			}
 			guessedSequence = builder.toString();
 		}
@@ -227,6 +230,7 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 
 	public void setUnderlyingShapeSequence(ShapeSequence underlyingShapeSequence) {
 		this.underlyingShapeSequence = underlyingShapeSequence;
+		this.underlyingSolutions.add(underlyingShapeSequence);
 	}
 
 	@Override
@@ -251,6 +255,29 @@ final class LetterSequenceImpl extends ArrayList<WeightedOutcome<String>> implem
 
 	public void setFrequency(int frequency) {
 		this.frequency = frequency;
+	}
+
+	@Override
+	public List<Decision<Letter>> getDecisions() {
+		return this.decisions;
+	}
+
+	@Override
+	public List<Solution<?>> getUnderlyingSolutions() {
+		return this.underlyingSolutions;
+	}
+
+	@Override
+	public void addDecision(Decision<Letter> decision) {
+		this.decisions.add(decision);
+	}
+
+	public ScoringStrategy getScoringStrategy() {
+		return scoringStrategy;
+	}
+
+	public void setScoringStrategy(ScoringStrategy scoringStrategy) {
+		this.scoringStrategy = scoringStrategy;
 	}
 
 

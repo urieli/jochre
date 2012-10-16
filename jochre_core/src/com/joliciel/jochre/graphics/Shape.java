@@ -26,8 +26,9 @@ import java.util.Set;
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.jochre.letterGuesser.Letter;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * A rectangle containing a shape that needs to be identified as a grapheme.
@@ -306,10 +307,10 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	public <T> void putResultInCache(ShapeFeature<T> shapeFeature, FeatureResult<T> featureResult);
 	
 	/**
-	 * An ordered set of weighted outcomes for the current shape.
+	 * An ordered set of letter guesses for the current shape.
 	 * @return
 	 */
-	public Set<WeightedOutcome<String>> getWeightedOutcomes();
+	public Set<Decision<Letter>> getLetterGuesses();
 	
 	/**
 	 * Writes a textual form of the image (pixel by pixel) to the log.

@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
-import com.joliciel.talismane.utils.features.DoubleFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.DoubleFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.Shape;
 

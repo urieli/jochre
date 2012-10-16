@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.text;
 
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.utils.ObjectCache;
 
 class TextServiceImpl implements TextService {
 	private ObjectCache objectCache;	

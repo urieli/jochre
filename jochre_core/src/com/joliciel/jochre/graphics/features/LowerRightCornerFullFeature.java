@@ -21,8 +21,8 @@ package com.joliciel.jochre.graphics.features;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
-import com.joliciel.talismane.utils.features.BooleanFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.BooleanFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * Is the lower-right corner full?

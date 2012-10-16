@@ -27,10 +27,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -49,9 +49,9 @@ import org.apache.commons.logging.LogFactory;
  */
 public class TextFileLexicon implements Lexicon, Serializable {
 
-	private static final long serialVersionUID = 1278484873657866571L;
+	private static final long serialVersionUID = 1278484873657866572L;
 	private static final Log LOG = LogFactory.getLog(TextFileLexicon.class);
-	private Map<String,Integer> entries = new TreeMap<String, Integer>();
+	private Map<String,Integer> entries = new HashMap<String, Integer>();
 
 	public TextFileLexicon() {
 	}

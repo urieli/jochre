@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.doc;
 
-import com.joliciel.talismane.utils.util.Monitorable;
+import com.joliciel.talismane.utils.Monitorable;
 
 /**
  * An interface for extracting a JochreDocument from an image File (jpeg, gif or png).

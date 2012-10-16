@@ -19,7 +19,7 @@
 package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.talismane.utils.features.Feature;
+import com.joliciel.talismane.machineLearning.features.Feature;
 
 /**
  * A feature defining a potential split-point within a shape,

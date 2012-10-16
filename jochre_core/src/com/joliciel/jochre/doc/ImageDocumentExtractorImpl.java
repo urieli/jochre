@@ -28,10 +28,10 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.talismane.utils.util.LogUtils;
-import com.joliciel.talismane.utils.util.Monitorable;
-import com.joliciel.talismane.utils.util.MultiTaskProgressMonitor;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
+import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
 
 
 class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {

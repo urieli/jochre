@@ -35,6 +35,7 @@ class SplitEvaluatorImpl implements SplitEvaluator {
 	int tolerance = 4;
 	double minWidthRatio = 1.1;
 	double minHeightRatio = 1.0;
+	double minProbabilityForDecision = 0.5;
 	BoundaryServiceInternal boundaryServiceInternal;
 	
 	@Override
@@ -55,12 +56,14 @@ class SplitEvaluatorImpl implements SplitEvaluator {
 				if (widthRatio>=minWidthRatio&&heightRatio>=minHeightRatio) {
 					List<ShapeSequence> shapeSequences = shapeSplitter.split(shape);
 					ShapeSequence splitShapes = shapeSequences.get(0);
-					for (ShapeInSequence splitShapeInSequence : splitShapes) {
-						Shape splitShape = splitShapeInSequence.getShape();
-						if (splitShape.getRight()!=shape.getRight()) {
-							Split guessedSplit = boundaryServiceInternal.getEmptySplit(shape);
-							guessedSplit.setPosition(splitShape.getRight()-shape.getLeft());
-							guessedSplits.add(guessedSplit);
+					if (splitShapes.getScore()>minProbabilityForDecision) {
+						for (ShapeInSequence splitShapeInSequence : splitShapes) {
+							Shape splitShape = splitShapeInSequence.getShape();
+							if (splitShape.getRight()!=shape.getRight()) {
+								Split guessedSplit = boundaryServiceInternal.getEmptySplit(shape);
+								guessedSplit.setPosition(splitShape.getRight()-shape.getLeft());
+								guessedSplits.add(guessedSplit);
+							}
 						}
 					}
 				} else {
@@ -157,6 +160,15 @@ class SplitEvaluatorImpl implements SplitEvaluator {
 		this.minHeightRatio = minHeightRatio;
 	}
 
+
+	public double getMinProbabilityForDecision() {
+		return minProbabilityForDecision;
+	}
+
+	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
+		this.minProbabilityForDecision = minProbabilityForDecision;
+	}
+	
 	public BoundaryServiceInternal getBoundaryServiceInternal() {
 		return boundaryServiceInternal;
 	}

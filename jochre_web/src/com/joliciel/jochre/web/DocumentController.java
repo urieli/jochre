@@ -48,7 +48,7 @@ import com.joliciel.jochre.text.TextFormat;
 import com.joliciel.jochre.text.TextGetter;
 import com.joliciel.jochre.text.TextService;
 import com.joliciel.jochre.text.TextServiceLocator;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class DocumentController extends GenericForwardComposer<Window> {
 	private static final Log LOG = LogFactory.getLog(DocumentController.class);

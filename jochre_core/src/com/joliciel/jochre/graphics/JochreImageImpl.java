@@ -19,9 +19,9 @@
 package com.joliciel.jochre.graphics;
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.ArrayList;
 
 import org.apache.commons.logging.Log;
@@ -372,7 +372,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal {
 		String key = left + "," + top + "," + right + "," + bottom;
 		
 		if (this.shapeMap==null)
-			this.shapeMap = new TreeMap<String, Shape>();
+			this.shapeMap = new HashMap<String, Shape>();
 		Shape shape = this.shapeMap.get(key);
 		if (shape==null) {
 			ShapeInternal shapeInternal = this.graphicsService.getEmptyShapeInternal();

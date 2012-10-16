@@ -37,7 +37,8 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 import com.joliciel.jochre.security.SecurityService;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.utils.ObjectCache;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
 	private DocumentDao documentDao;
@@ -50,6 +51,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	private LetterFeatureService letterFeatureService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private BoundaryService boundaryService;
+	private MachineLearningService machineLearningService;
 	
 	public DocumentDao getDocumentDao() {
 		return documentDao;
@@ -274,6 +276,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		generator.setGraphicsService(this.getGraphicsService());
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
+		generator.setMachineLearningService(this.getMachineLearningService());
 		return generator;
 	}
 
@@ -291,6 +294,15 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	public void setBoundaryService(BoundaryService boundaryService) {
 		this.boundaryService = boundaryService;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 	
 }

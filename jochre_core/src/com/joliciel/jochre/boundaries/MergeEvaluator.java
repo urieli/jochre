@@ -28,4 +28,12 @@ import com.joliciel.jochre.stats.FScoreCalculator;
  */
 public interface MergeEvaluator {
 	FScoreCalculator<String> evaluate(JochreCorpusGroupReader groupReader, ShapeMerger shapeMerger);
+
+	/**
+	 * The minimum probability to take a merge decision. Default: 0.5.
+	 * @return
+	 */
+	public double getMinProbabilityForDecision();
+	public void setMinProbabilityForDecision(double minProbabilityForDecision);
+
 }

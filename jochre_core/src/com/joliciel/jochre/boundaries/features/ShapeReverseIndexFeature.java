@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**

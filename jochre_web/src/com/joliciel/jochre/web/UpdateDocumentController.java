@@ -26,7 +26,7 @@ import com.joliciel.jochre.doc.Author;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	private static final Log LOG = LogFactory.getLog(UpdateDocumentController.class);

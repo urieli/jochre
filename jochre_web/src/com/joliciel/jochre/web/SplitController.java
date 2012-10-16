@@ -33,7 +33,7 @@ import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class SplitController extends GenericForwardComposer<Window> {
 	private static final Log LOG = LogFactory.getLog(SplitController.class);

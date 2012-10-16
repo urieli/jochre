@@ -19,7 +19,7 @@
 package com.joliciel.jochre.lexicon;
 
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.utils.ObjectCache;
 
 class LexiconServiceImpl implements LexiconServiceInternal {
 	private ObjectCache objectCache;	

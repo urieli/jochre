@@ -24,19 +24,19 @@ import java.util.List;
 import com.joliciel.jochre.boundaries.features.ShapeInSequenceFeatureParser;
 import com.joliciel.jochre.graphics.features.ShapeFeatureParser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
-import com.joliciel.talismane.utils.features.AbstractFeature;
-import com.joliciel.talismane.utils.features.AbstractFeatureParser;
-import com.joliciel.talismane.utils.features.BooleanFeature;
-import com.joliciel.talismane.utils.features.DoubleFeature;
-import com.joliciel.talismane.utils.features.Feature;
-import com.joliciel.talismane.utils.features.FeatureClassContainer;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FeatureWrapper;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
-import com.joliciel.talismane.utils.features.IntegerFeature;
-import com.joliciel.talismane.utils.features.StringFeature;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
+import com.joliciel.talismane.machineLearning.features.AbstractFeature;
+import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
+import com.joliciel.talismane.machineLearning.features.BooleanFeature;
+import com.joliciel.talismane.machineLearning.features.DoubleFeature;
+import com.joliciel.talismane.machineLearning.features.Feature;
+import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.StringFeature;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 	private ShapeFeatureParser shapeFeatureParser;
@@ -81,11 +81,6 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 		} finally {
 			PerformanceMonitor.endTask("LetterFeatureParser.parseDescriptor");
 		}
-	}
-	
-	@Override
-	protected Object parseArgument(FunctionDescriptor argumentDescriptor) {
-		return null;
 	}
 
 	@Override

@@ -32,7 +32,7 @@ import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.security.SecurityService;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.utils.ObjectCache;
 
 final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	private GraphicsDao graphicsDao;

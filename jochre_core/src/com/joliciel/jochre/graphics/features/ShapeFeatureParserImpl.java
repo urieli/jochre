@@ -5,12 +5,12 @@ import java.util.List;
 
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ShapeWrapper;
-import com.joliciel.talismane.utils.features.AbstractFeatureParser;
-import com.joliciel.talismane.utils.features.Feature;
-import com.joliciel.talismane.utils.features.FeatureClassContainer;
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FeatureSyntaxException;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
+import com.joliciel.talismane.machineLearning.features.Feature;
+import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FeatureSyntaxException;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> implements
 		ShapeFeatureParser {
@@ -46,11 +46,6 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 		this.container = container;
 	}
 	
-	@Override
-	protected Object parseArgument(FunctionDescriptor argumentDescriptor) {
-		return null;
-	}
-
 	@Override
 	public List<FunctionDescriptor> getModifiedDescriptors(
 			FunctionDescriptor functionDescriptor) {

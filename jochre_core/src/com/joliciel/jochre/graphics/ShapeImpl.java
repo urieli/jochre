@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,11 +42,12 @@ import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
+import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PersistentList;
-import com.joliciel.talismane.utils.util.PersistentListImpl;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PersistentList;
+import com.joliciel.talismane.utils.PersistentListImpl;
 
 class ShapeImpl extends EntityImpl implements ShapeInternal {
     private static final Log LOG = LogFactory.getLog(ShapeImpl.class);
@@ -75,10 +75,10 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	private LetterGuesserService letterGuesserService;
 	private BoundaryService boundaryService;
 	
-	private Map<String,Map<SectionBrightnessMeasurementMethod,double[][]>> brightnessBySectorMap = new TreeMap<String, Map<SectionBrightnessMeasurementMethod,double[][]>>();
-	private Map<String,Map<SectionBrightnessMeasurementMethod,Double>> brightnessMeanBySectorMap = new TreeMap<String, Map<SectionBrightnessMeasurementMethod,Double>>();
+	private Map<String,Map<SectionBrightnessMeasurementMethod,double[][]>> brightnessBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,double[][]>>();
+	private Map<String,Map<SectionBrightnessMeasurementMethod,Double>> brightnessMeanBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,Double>>();
 	
-	private Map<String,FeatureResult<?>> staticFeatureResults = new TreeMap<String, FeatureResult<?>>();
+	private Map<String,FeatureResult<?>> staticFeatureResults = new HashMap<String, FeatureResult<?>>();
 	
 	private Dictionary<String, BitSet> bitsets = new Hashtable<String, BitSet>();
 	private Dictionary<Integer, BitSet> outlines = new Hashtable<Integer, BitSet>();
@@ -94,7 +94,7 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	
 	private boolean dirty = true;
 	
-	private Set<WeightedOutcome<String>> weightedOutcomes = null;
+	private Set<Decision<Letter>> letterGuesses = null;
 	private int totalBrightness = 0;
 	
 	private int[] startingPoint;
@@ -869,8 +869,8 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 		image = null;
 		pixelGrabber = null;
 
-		brightnessBySectorMap = new TreeMap<String, Map<SectionBrightnessMeasurementMethod,double[][]>>();
-		brightnessMeanBySectorMap = new TreeMap<String, Map<SectionBrightnessMeasurementMethod,Double>>();
+		brightnessBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,double[][]>>();
+		brightnessMeanBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,Double>>();
 		
 		bitsets = new Hashtable<String, BitSet>();
 		outlines = new Hashtable<Integer, BitSet>();
@@ -947,11 +947,11 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	}
 
 	@Override
-	public Set<WeightedOutcome<String>> getWeightedOutcomes() {
-		if (this.weightedOutcomes==null) {
-			this.weightedOutcomes = new TreeSet<WeightedOutcome<String>>();
+	public Set<Decision<Letter>> getLetterGuesses() {
+		if (this.letterGuesses==null) {
+			this.letterGuesses = new TreeSet<Decision<Letter>>();
 		}
-		return weightedOutcomes;
+		return letterGuesses;
 	}
 
 	@Override

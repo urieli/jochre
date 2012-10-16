@@ -19,7 +19,7 @@
 package com.joliciel.jochre.graphics.features;
 
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.talismane.utils.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
 
 class GraphicsFeatureServiceImpl implements GraphicsFeatureServiceInternal {
 	private FeatureService featureService;

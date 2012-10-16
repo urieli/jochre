@@ -21,6 +21,7 @@ package com.joliciel.jochre;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,10 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-
-import opennlp.model.EventStream;
-import opennlp.model.GenericModelReader;
-import opennlp.model.MaxentModel;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,10 +50,12 @@ import com.joliciel.jochre.analyser.SimpleLetterFScoreObserver;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.MergeEvaluator;
+import com.joliciel.jochre.boundaries.MergeOutcome;
 import com.joliciel.jochre.boundaries.ShapeMerger;
 import com.joliciel.jochre.boundaries.ShapeSplitter;
 import com.joliciel.jochre.boundaries.SplitCandidateFinder;
 import com.joliciel.jochre.boundaries.SplitEvaluator;
+import com.joliciel.jochre.boundaries.SplitOutcome;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
@@ -75,6 +75,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.features.VerticalElongationFeature;
 import com.joliciel.jochre.letterGuesser.ComponentCharacterValidator;
+import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
@@ -92,15 +93,17 @@ import com.joliciel.jochre.pdf.PdfService;
 import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.maxent.JolicielMaxentModel;
-import com.joliciel.talismane.utils.maxent.MaxentDecisionMaker;
-import com.joliciel.talismane.utils.maxent.MaxentEventStream;
-import com.joliciel.talismane.utils.maxent.MaxentModelTrainer;
-import com.joliciel.talismane.utils.maxent.OutcomeEqualiserEventStream;
-import com.joliciel.talismane.utils.util.LogUtils;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.DecisionFactory;
+import com.joliciel.talismane.machineLearning.MachineLearningModel;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.ModelTrainer;
+import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
+import com.joliciel.talismane.machineLearning.MachineLearningModel.MachineLearningAlgorithm;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.maxent.MaxentModelTrainer;
+import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 
 /**
  * Class encapsulating the various top-level Jochre commands and command-line interface.
@@ -110,6 +113,11 @@ import com.joliciel.talismane.utils.util.PerformanceMonitor;
 public class Jochre {
 	private static final Log LOG = LogFactory.getLog(Jochre.class);
 
+	public enum BoundaryDetectorType {
+		LetterByLetter,
+		Deterministic
+	}
+	
 	GraphicsService graphicsService;
 	DocumentService documentService;
 	AnalyserService analyserService;
@@ -120,6 +128,7 @@ public class Jochre {
 	PdfService pdfService;
 	LetterFeatureService letterFeatureService;
 	BoundaryFeatureService boundaryFeatureService;
+	MachineLearningService machineLearningService;
 
 	String isoLanguage = "yi";
 	Locale locale = null;
@@ -159,7 +168,7 @@ public class Jochre {
 			int shapeId = -1;
 			int docId = -1;
 			int imageId = 0;
-			int iterations = 0;
+			int iterations = 100;
 			int cutoff = 0;
 			int userId = -1;
 			int imageCount = 0;
@@ -175,7 +184,9 @@ public class Jochre {
 			String splitFeatureFilePath = "";
 			String mergeFeatureFilePath = "";
 			boolean reconstructLetters = false;
-	
+			double minProbForDecision = 0.5;
+			BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
+			
 			boolean firstArg = true;
 			for (String arg : args) {
 				if (firstArg) {
@@ -243,6 +254,10 @@ public class Jochre {
 				}
 				else if (argName.equals("reconstructLetters"))
 					reconstructLetters = (argValue.equals("true"));
+				else if (argName.equals("minProbForDecision"))
+					minProbForDecision = Double.parseDouble(argValue);
+				else if (argName.equals("boundaryDetector")) 
+					boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
 				else
 					throw new RuntimeException("Unknown argument: " + argName);
 	
@@ -270,19 +285,19 @@ public class Jochre {
 			} else if (command.equals("train")) {
 				jochre.doCommandTrain(letterModelPath, letterFeatureFilePath, iterations, cutoff, imageCount, reconstructLetters);
 			} else if (command.equals("evaluate")||command.equals("evaluateComplex")) {
-				jochre.doCommandEvaluate(letterModelPath, testSet, imageId, outputDirPath, null, beamWidth, reconstructLetters);
+				jochre.doCommandEvaluate(letterModelPath, testSet, imageCount, imageId, outputDirPath, null, beamWidth, reconstructLetters);
 			} else if (command.equals("evaluateFull")) {
-				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, null, beamWidth);
+				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, null, beamWidth, boundaryDetectorType, minProbForDecision);
 			} else if (command.equals("analyse")) {
 				jochre.doCommandAnalyse(letterModelPath, docId, imageId, testSet, null);
 			} else if (command.equals("trainSplits")) {
 				jochre.doCommandTrainSplits(splitModelPath, splitFeatureFilePath, iterations, cutoff, imageCount);
 			} else if (command.equals("evaluateSplits")) {
-				jochre.doCommandEvaluateSplits(splitModelPath, testSet, imageCount, beamWidth);
+				jochre.doCommandEvaluateSplits(splitModelPath, testSet, imageCount, beamWidth, minProbForDecision);
 			} else if (command.equals("trainMerge")) {
 				jochre.doCommandTrainMerge(mergeModelPath, mergeFeatureFilePath, multiplier, iterations, cutoff, imageCount);	
 			} else if (command.equals("evaluateMerge")) {
-				jochre.doCommandEvaluateMerge(mergeModelPath, testSet, imageCount);
+				jochre.doCommandEvaluateMerge(mergeModelPath, testSet, imageCount, minProbForDecision);
 			} else if (command.equals("logImage")) {
 				jochre.doCommandLogImage(shapeId);
 			} else if (command.equals("testFeature")) {
@@ -311,6 +326,7 @@ public class Jochre {
 		pdfService = locator.getPdfServiceLocator().getPdfService();
 		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
 		boundaryFeatureService = locator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService();
+		machineLearningService = locator.getMachineLearningServiceLocator().getMachineLearningService();
 	}
 
 	/**
@@ -428,18 +444,19 @@ public class Jochre {
 			double maxWidthRatio = 1.2;
 			double maxDistanceRatio = 0.15;
 			CorpusEventStream corpusEventStream = boundaryService.getJochreMergeEventStream(imageStatusesToInclude, mergeFeatures, imageCount, maxWidthRatio, maxDistanceRatio);
-			EventStream eventStream = new MaxentEventStream(corpusEventStream);
 			if (multiplier > 0) {
-				eventStream = new OutcomeEqualiserEventStream(eventStream, multiplier);
+				corpusEventStream = new OutcomeEqualiserEventStream(corpusEventStream, multiplier);
 			}
 			
 			File file = new File(mergeModelPath);
-			MaxentModelTrainer trainer = new MaxentModelTrainer(eventStream);
-			trainer.setCutoff(cutoff);
-			trainer.setIterations(iterations);
-			
-			trainer.trainModel();
-			trainer.persistModel(file);
+			Map<String,Object> trainParameters = new HashMap<String, Object>();
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
+			ModelTrainer<MergeOutcome> trainer = machineLearningService.getModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
+
+			DecisionFactory<MergeOutcome> mergeDecisionFactory = boundaryService.getMergeDecisionFactory();
+			MachineLearningModel<MergeOutcome> mergeModel = trainer.trainModel(corpusEventStream, mergeDecisionFactory, mergeFeatureDescriptors);
+			mergeModel.persist(file);
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
@@ -452,22 +469,20 @@ public class Jochre {
 	 * @param mergeModelPath the path of the model to be evaluated.
 	 * @param testSet the test set to be evaluated
 	 * @param imageCount the maximum number of corpus images to use when testing - if <= 0 will use all.
+	 * @param minProbForDecision 
 	 * @throws IOException
 	 */
 	public void doCommandEvaluateMerge(String mergeModelPath, ImageStatus testSet,
-			int imageCount) throws IOException {
+			int imageCount, double minProbForDecision) throws IOException {
 		if (mergeModelPath.length()==0)
 			throw new RuntimeException("Missing argument: mergeModel");
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		MaxentModel mergeModel = new GenericModelReader(new File(mergeModelPath)).getModel();
-		MaxentDecisionMaker mergeDecisionMaker = new MaxentDecisionMaker(mergeModel);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath));
+		MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(zis);
 		
-		File mergeModelFile = new File(mergeModelPath);
-		JolicielMaxentModel mergeMaxentModel = new JolicielMaxentModel(mergeModelFile);
-		
-		List<String> mergeFeatureDescriptors = mergeMaxentModel.getFeatureDescriptors();
+		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 		
 		ImageStatus[] imageStatusesToInclude = new ImageStatus[] { testSet };
@@ -478,8 +493,10 @@ public class Jochre {
 		double maxWidthRatio = 1.2;
 		double maxDistanceRatio = 0.15;
 		
-		ShapeMerger merger = boundaryService.getShapeMerger(mergeFeatures, mergeDecisionMaker);
+		ShapeMerger merger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 		MergeEvaluator evaluator = boundaryService.getMergeEvaluator(maxWidthRatio, maxDistanceRatio);
+		if (minProbForDecision>=0)
+			evaluator.setMinProbabilityForDecision(minProbForDecision);
 		FScoreCalculator<String> fScoreCalculator = evaluator.evaluate(groupReader, merger);
 		LOG.debug(fScoreCalculator.getTotalFScore());
 	}
@@ -521,12 +538,14 @@ public class Jochre {
 			CorpusEventStream corpusEventStream = boundaryService.getJochreSplitEventStream(imageStatusesToInclude, splitFeatures, imageCount, minWidthRatio, minHeightRatio);
 		
 			File splitModelFile = new File(splitModelPath);
-			MaxentModelTrainer trainer = new MaxentModelTrainer(corpusEventStream);
-			trainer.setCutoff(cutoff);
-			trainer.setIterations(iterations);
+			Map<String,Object> trainParameters = new HashMap<String, Object>();
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
+			ModelTrainer<SplitOutcome> trainer = machineLearningService.getModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
 
-			JolicielMaxentModel jolicielMaxentModel = new JolicielMaxentModel(trainer, splitFeatureDescriptors);
-			jolicielMaxentModel.persist(splitModelFile);
+			DecisionFactory<SplitOutcome> splitDecisionFactory = boundaryService.getSplitDecisionFactory();
+			MachineLearningModel<SplitOutcome> splitModel = trainer.trainModel(corpusEventStream, splitDecisionFactory, splitFeatureDescriptors);
+			splitModel.persist(splitModelFile);
 
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -539,19 +558,20 @@ public class Jochre {
 	 * @param splitModelPath the path of the model to be evaluated.
 	 * @param testSet the test set to be evaluated
 	 * @param imageCount the maximum number of corpus images to use when testing - if <= 0 will use all.
+	 * @param minProbForDecision 
 	 * @throws IOException
 	 */
-	public void doCommandEvaluateSplits(String splitModelPath, ImageStatus testSet, int imageCount, int beamWidth) throws IOException {
+	public void doCommandEvaluateSplits(String splitModelPath, ImageStatus testSet, int imageCount, int beamWidth, double minProbForDecision) throws IOException {
 		if (splitModelPath.length()==0)
 			throw new RuntimeException("Missing argument: splitModel");
 		if (!splitModelPath.endsWith(".zip"))
 			throw new RuntimeException("splitModel must end with .zip");
 		
 		ImageStatus[] imageStatusesToInclude = new ImageStatus[] { testSet};
-		File splitModelFile = new File(splitModelPath);
-		JolicielMaxentModel splitMaxentModel = new JolicielMaxentModel(splitModelFile);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath));
+		MachineLearningModel<SplitOutcome> splitModel = machineLearningService.getModel(zis);
 		
-		List<String> splitFeatureDescriptors = splitMaxentModel.getFeatureDescriptors();
+		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 			
 		double minWidthRatio = 1.1;
@@ -561,13 +581,16 @@ public class Jochre {
 		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 		
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitMaxentModel.getDecisionMaker(), minWidthRatio, beamWidth, maxDepth);
+		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatio, beamWidth, maxDepth);
 		
 		JochreCorpusShapeReader shapeReader = graphicsService.getJochreCorpusShapeReader();
 		shapeReader.setImageStatusesToInclude(imageStatusesToInclude);
 		shapeReader.setImageCount(imageCount);
 		
 		SplitEvaluator splitEvaluator = boundaryService.getSplitEvaluator(5, minWidthRatio, minHeightRatio);
+		if (minProbForDecision>=0)
+			splitEvaluator.setMinProbabilityForDecision(minProbForDecision);
+		
 		FScoreCalculator<String> fScoreCalculator = splitEvaluator.evaluate(shapeReader, shapeSplitter);
 		LOG.debug(fScoreCalculator.getTotalFScore());
 	}
@@ -617,12 +640,18 @@ public class Jochre {
 			CorpusEventStream corpusEventStream = letterGuesserService.getJochreLetterEventStream(imageStatusesToInclude, features, boundaryDetector, letterValidator, imageCount);
 			
 			File letterModelFile = new File(letterModelPath);
-			MaxentModelTrainer trainer = new MaxentModelTrainer(corpusEventStream);
-			trainer.setCutoff(cutoff);
-			trainer.setIterations(iterations);
 
-			JolicielMaxentModel jolicielMaxentModel = new JolicielMaxentModel(trainer, descriptors);
-			jolicielMaxentModel.persist(letterModelFile);
+			DecisionFactory<Letter> letterDecisionFactory = letterGuesserService.getLetterDecisionFactory();
+			
+			Map<String,Object> trainParameters = new HashMap<String, Object>();
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
+			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
+			
+			ModelTrainer<Letter> trainer = machineLearningService.getModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
+			
+			MachineLearningModel<Letter> letterModel = trainer.trainModel(corpusEventStream, letterDecisionFactory, descriptors);
+			letterModel.persist(letterModelFile);
+
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
@@ -634,28 +663,30 @@ public class Jochre {
 	 * @param letterModelPath the path to the model
 	 * @param testSet the set of images to be evaluated
 	 * @param imageId the single image to be evaluated
+	 * @param imageId2 
 	 * @param outputDirPath the directory to which we write the evaluation files
 	 * @param lexicon the lexicon to use for word correction
 	 * @throws IOException
 	 */
-	public void doCommandEvaluate(String letterModelPath, ImageStatus testSet, int imageId,
-			String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, boolean reconstructLetters) throws IOException {
+	public void doCommandEvaluate(String letterModelPath, ImageStatus testSet, int imageCount,
+			int imageId, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, boolean reconstructLetters) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		if (!letterModelPath.endsWith(".zip"))
 			throw new RuntimeException("letterModel must end with .zip");
 
-		File letterModelFile = new File(letterModelPath);
-		JolicielMaxentModel letterMaxentModel = new JolicielMaxentModel(letterModelFile);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
+		MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
 		
-		List<String> letterFeatureDescriptors = letterMaxentModel.getFeatureDescriptors();
+		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 			
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterMaxentModel.getDecisionMaker());
+		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		
 		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
 		imageReader.setImageStatusesToInclude(new ImageStatus[] {testSet});
 		imageReader.setImageId(imageId);
+		imageReader.setImageCount(imageCount);
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
@@ -741,13 +772,13 @@ public class Jochre {
 			throw new RuntimeException("letterModel must end with .zip");
 		
 
-		File letterModelFile = new File(letterModelPath);
-		JolicielMaxentModel letterMaxentModel = new JolicielMaxentModel(letterModelFile);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
+		MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
 		
-		List<String> letterFeatureDescriptors = letterMaxentModel.getFeatureDescriptors();
+		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 		
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterMaxentModel.getDecisionMaker());
+		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		
 		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyzer(5, 0.01, wordChooser);
 
@@ -784,33 +815,32 @@ public class Jochre {
 	 * @param imageId the single image to evaluate in the saved corpus
 	 * @param save whether or not the letter guesses should be saved
 	 * @param outputDirPath the output directory where we write the evaluation results
+	 * @param boundaryDetectorType 
+	 * @param minProbForDecision 
 	 * @throws IOException
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, ImageStatus testSet,
-			int imageId, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth) throws IOException {
+			int imageId, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, BoundaryDetectorType boundaryDetectorType, double minProbForDecision) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		
-		File letterModelFile = new File(letterModelPath);
-		JolicielMaxentModel letterMaxentModel = new JolicielMaxentModel(letterModelFile);
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
+		MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
 		
-		List<String> letterFeatureDescriptors = letterMaxentModel.getFeatureDescriptors();
+		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 		
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterMaxentModel.getDecisionMaker());
+		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		
 		if (splitModelPath.length()==0)
 			throw new RuntimeException("Missing argument: splitModel");
 		if (!splitModelPath.endsWith(".zip"))
 			throw new RuntimeException("splitModel must end with .zip");
 
-		MaxentModel splitModel = new GenericModelReader(new File(splitModelPath)).getModel();
-		MaxentDecisionMaker splitDecisionMaker = new MaxentDecisionMaker(splitModel);
+		ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelPath));
+		MachineLearningModel<SplitOutcome> splitModel = machineLearningService.getModel(splitZis);
 		
-		File splitModelFile = new File(splitModelPath);
-		JolicielMaxentModel splitMaxentModel = new JolicielMaxentModel(splitModelFile);
-		
-		List<String> splitFeatureDescriptors = splitMaxentModel.getFeatureDescriptors();
+		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 		
 		double minWidthRatioForSplit = 1.1;
@@ -820,31 +850,36 @@ public class Jochre {
 		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 	
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitDecisionMaker, minWidthRatioForSplit, beamWidth, maxSplitDepth);
+		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, beamWidth, maxSplitDepth);
 
 		if (mergeModelPath.length()==0)
 			throw new RuntimeException("Missing argument: mergeModel");
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		MaxentModel mergeModel = new GenericModelReader(new File(mergeModelPath)).getModel();
-		MaxentDecisionMaker mergeDecisionMaker = new MaxentDecisionMaker(mergeModel);
+		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelPath));
+		MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(mergeZis);
 		
-		File mergeModelFile = new File(mergeModelPath);
-		JolicielMaxentModel mergeMaxentModel = new JolicielMaxentModel(mergeModelFile);
-		
-		List<String> mergeFeatureDescriptors = mergeMaxentModel.getFeatureDescriptors();
+		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 		double maxWidthRatioForMerge = 1.2;
 		double maxDistanceRatioForMerge = 0.15;
 		
-		ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeDecisionMaker);
+		ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 			
 		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
 		imageReader.setImageStatusesToInclude(new ImageStatus[] {testSet});
 		imageReader.setImageId(imageId);
-
-		BoundaryDetector boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, 5);
+		
+		BoundaryDetector boundaryDetector = null;
+		switch (boundaryDetectorType) {
+		case LetterByLetter:
+			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, 5);
+			break;
+		case Deterministic:
+			boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
+			break;
+		}
 		boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
 		boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
 		boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);

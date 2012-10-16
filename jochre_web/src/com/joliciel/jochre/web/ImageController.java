@@ -53,7 +53,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;

@@ -18,11 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.joliciel.jochre.EntityImpl;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
@@ -36,7 +36,7 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 	private int position;
 	private boolean dirty;
 	
-	private Map<String,FeatureResult<?>> featureResults = new TreeMap<String, FeatureResult<?>>();
+	private Map<String,FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
 
 	@Override
 	public int getShapeId() {

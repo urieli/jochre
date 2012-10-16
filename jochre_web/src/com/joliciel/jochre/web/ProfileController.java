@@ -19,7 +19,7 @@ import org.zkoss.zul.Textbox;
 
 import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class ProfileController extends GenericForwardComposer<Div> {
 	/**

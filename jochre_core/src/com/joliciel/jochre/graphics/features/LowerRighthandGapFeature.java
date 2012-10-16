@@ -24,8 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
-import com.joliciel.talismane.utils.features.BooleanFeature;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.BooleanFeature;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 /**
  * Is there a noticeable gap at the lower right?

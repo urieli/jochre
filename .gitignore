@@ -5,5 +5,8 @@
 */bin/
 */build/
 */corpusTest/
+*/logs/
 dist/
 webapp/
+logs/
+ant/conf.xml

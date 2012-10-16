@@ -20,7 +20,7 @@ package com.joliciel.jochre.graphics;
 
 import java.awt.image.BufferedImage;
 
-import com.joliciel.talismane.utils.util.Monitorable;
+import com.joliciel.talismane.utils.Monitorable;
 
 /**
  * Takes a SourceImage and converts it into an JochreImage,

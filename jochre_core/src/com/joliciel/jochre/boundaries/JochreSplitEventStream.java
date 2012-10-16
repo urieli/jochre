@@ -18,18 +18,19 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.utils.CorpusEvent;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
+import com.joliciel.talismane.machineLearning.CorpusEvent;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ImageStatus;
@@ -40,6 +41,7 @@ class JochreSplitEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreSplitEventStream.class);
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
+	private MachineLearningService machineLearningService;
 	private SplitCandidateFinder splitCandidateFinder;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
@@ -100,7 +102,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 					PerformanceMonitor.endTask("analyse features");
 				}
 
-				String outcome = "NO";
+				SplitOutcome outcome = SplitOutcome.DO_NOT_SPLIT;
 				for (Split split : splitCandidate.getShape().getSplits()) {
 					int distance = splitCandidate.getPosition() - split.getPosition();
 					if (distance<0) distance = 0-distance;
@@ -111,7 +113,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 					// and than calculate this distance as n / 2 (e.g. 9 and 4).
 					// But this reduces recall too much, and what we care about here is recall
 					if (distance<splitCandidateFinder.getMinDistanceBetweenSplits()) {
-						outcome = "YES";
+						outcome = SplitOutcome.DO_SPLIT;
 						break;
 					}				
 				}
@@ -121,7 +123,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = new CorpusEvent(featureResults, outcome);
+				event = this.machineLearningService.getCorpusEvent(featureResults, outcome.getCode());
 	
 				// set splitCandidate to null so that hasNext can retrieve the next one.
 				this.splitCandidate = null;
@@ -250,7 +252,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 
 	@Override
 	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new TreeMap<String, Object>();
+		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
 		attributes.put("eventStream", this.getClass().getSimpleName());		
 		attributes.put("imageCount", imageCount);		
 		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
@@ -258,6 +260,15 @@ class JochreSplitEventStream implements CorpusEventStream {
 		attributes.put("minWidthRatio", minWidthRatio);			
 		
 		return attributes;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 
 	

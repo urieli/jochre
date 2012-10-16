@@ -27,18 +27,18 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.utils.DecisionMaker;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class ShapeMergerImpl implements ShapeMerger {
 	private static final Log LOG = LogFactory.getLog(ShapeMergerImpl.class);
-	DecisionMaker decisionMaker;
+	DecisionMaker<MergeOutcome> decisionMaker;
 	Set<MergeFeature<?>> mergeFeatures;
 	BoundaryServiceInternal boundaryServiceInternal;
 	
-	public ShapeMergerImpl(DecisionMaker decisionMaker,
+	public ShapeMergerImpl(DecisionMaker<MergeOutcome> decisionMaker,
 			Set<MergeFeature<?>> mergeFeatures) {
 		super();
 		this.decisionMaker = decisionMaker;
@@ -75,18 +75,18 @@ public class ShapeMergerImpl implements ShapeMerger {
 				PerformanceMonitor.endTask("analyse features");
 			}
 			
-			List<WeightedOutcome<String>> outcomes = null;
+			List<Decision<MergeOutcome>> decisions = null;
 			PerformanceMonitor.startTask("decision maker");
 			try {
-				outcomes = decisionMaker.decide(featureResults);
+				decisions = decisionMaker.decide(featureResults);
 			} finally {
 				PerformanceMonitor.endTask("decision maker");
 			}
 			
 			double yesProb = 0.0;
-			for (WeightedOutcome<String> weightedOutcome : outcomes) {
-				if (weightedOutcome.getOutcome().equals("YES")) {
-					yesProb = weightedOutcome.getWeight();
+			for (Decision<MergeOutcome> decision : decisions) {
+				if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
+					yesProb = decision.getProbability();
 					break;
 				}
 			}

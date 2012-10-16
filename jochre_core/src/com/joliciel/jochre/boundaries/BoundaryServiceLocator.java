@@ -39,6 +39,7 @@ public class BoundaryServiceLocator {
 			boundaryService = new BoundaryServiceImpl();
 			boundaryService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			boundaryService.setBoundaryDao(this.getBoundaryDao());
+			boundaryService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
 		}
 		return boundaryService;
 	}

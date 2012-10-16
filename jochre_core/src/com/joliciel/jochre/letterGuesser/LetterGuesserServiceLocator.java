@@ -34,6 +34,7 @@ public class LetterGuesserServiceLocator {
 			letterGuesserService.setObjectCache(this.jochreServiceLocator.getObjectCache());
 			letterGuesserService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			letterGuesserService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
+			letterGuesserService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
 		}
 		return letterGuesserService;
 	}

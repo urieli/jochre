@@ -27,22 +27,22 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.utils.DecisionMaker;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
-import com.joliciel.talismane.utils.util.WeightedOutcome;
+import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 
 final class LetterGuesserImpl implements LetterGuesser {
 	private static final Log LOG = LogFactory.getLog(LetterGuesserImpl.class);
 	
 	private static final double MIN_PROB_TO_STORE = 0.001;
 	
-	DecisionMaker decisionMaker = null;
+	DecisionMaker<Letter> decisionMaker = null;
 	Set<LetterFeature<?>> features = null;
 	
 	LetterGuesserServiceInternal letterGuesserServiceInternal;
 	
-	public LetterGuesserImpl(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
+	public LetterGuesserImpl(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
 		this.decisionMaker = decisionMaker;
 		this.features = features;
 	}
@@ -84,26 +84,26 @@ final class LetterGuesserImpl implements LetterGuesser {
 				PerformanceMonitor.endTask("analyse features");
 			}
 			
-			List<WeightedOutcome<String>> weightedOutcomes = null;
+			List<Decision<Letter>> letterGuesses = null;
 			PerformanceMonitor.startTask("decision maker");
 			try {
-				weightedOutcomes = decisionMaker.decide(featureResults);
+				letterGuesses = decisionMaker.decide(featureResults);
 			} finally {
 				PerformanceMonitor.endTask("decision maker");
 			}
 			
-			String bestOutcome = null;
+			Letter bestOutcome = null;
 			PerformanceMonitor.startTask("store outcomes");
 			try {
-				shape.getWeightedOutcomes().clear();
+				shape.getLetterGuesses().clear();
 		
-				for (WeightedOutcome<String> weightedOutcome : weightedOutcomes) {
-					if (weightedOutcome.getWeight()>=MIN_PROB_TO_STORE) {
-						shape.getWeightedOutcomes().add(weightedOutcome);
+				for (Decision<Letter> letterGuess : letterGuesses) {
+					if (letterGuess.getProbability()>=MIN_PROB_TO_STORE) {
+						shape.getLetterGuesses().add(letterGuess);
 					}
 				}
 				
-				bestOutcome = shape.getWeightedOutcomes().iterator().next().getOutcome();
+				bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
 			} finally {
 				PerformanceMonitor.endTask("store outcomes");
 			}
@@ -114,7 +114,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 				LOG.trace("Best outcome: " + bestOutcome);
 			}
 
-			return bestOutcome;
+			return bestOutcome.getString();
 		} finally {
 			PerformanceMonitor.endTask("LetterGuesserImpl.guessLetter");
 		}

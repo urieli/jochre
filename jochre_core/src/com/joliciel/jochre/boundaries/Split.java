@@ -19,7 +19,7 @@
 package com.joliciel.jochre.boundaries;
 
 import com.joliciel.jochre.Entity;
-import com.joliciel.talismane.utils.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;

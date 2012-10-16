@@ -18,18 +18,19 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.utils.CorpusEvent;
-import com.joliciel.talismane.utils.CorpusEventStream;
-import com.joliciel.talismane.utils.features.FeatureResult;
-import com.joliciel.talismane.utils.util.PerformanceMonitor;
+import com.joliciel.talismane.machineLearning.CorpusEvent;
+import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
@@ -41,6 +42,8 @@ class JochreMergeEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreMergeEventStream.class);
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
+	private MachineLearningService machineLearningService;
+
 	private SplitCandidateFinder splitCandidateFinder;
 	
 	private Set<MergeFeature<?>> mergeFeatures = null;
@@ -100,7 +103,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 					PerformanceMonitor.endTask("analyse features");
 				}
 				
-				String outcome = "NO";
+				MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
 				boolean shouldMerge = false;
 				if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
 					if (mergeCandidate.getSecondShape().getLetter().length()==0||mergeCandidate.getSecondShape().getLetter().endsWith("|"))
@@ -110,15 +113,15 @@ class JochreMergeEventStream implements CorpusEventStream {
 						shouldMerge = true;
 				}
 				if (shouldMerge)
-					outcome = "YES";
+					outcome = MergeOutcome.DO_MERGE;
 				
-				if (outcome.equals("YES"))
+				if (outcome.equals(MergeOutcome.DO_MERGE))
 					yesCount++;
 				else
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = new CorpusEvent(featureResults, outcome);
+				event = this.machineLearningService.getCorpusEvent(featureResults, outcome.getCode());
 	
 				// set mergeCandidate to null so that hasNext can retrieve the next one.
 				this.mergeCandidate = null;
@@ -251,7 +254,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 
 	@Override
 	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new TreeMap<String, Object>();
+		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
 		attributes.put("eventStream", this.getClass().getSimpleName());		
 		attributes.put("imageCount", imageCount);		
 		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
@@ -259,6 +262,15 @@ class JochreMergeEventStream implements CorpusEventStream {
 		attributes.put("maxWidthRatio", maxWidthRatio);		
 		
 		return attributes;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 
 }

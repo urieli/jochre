@@ -33,9 +33,9 @@ import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureTester;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureTesterImpl;
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
-import com.joliciel.talismane.utils.features.FunctionDescriptorParser;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
     private static final Log LOG = LogFactory.getLog(LetterFeatureServiceImpl.class);

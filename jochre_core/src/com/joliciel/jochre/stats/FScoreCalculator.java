@@ -35,7 +35,7 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.utils.util.CSVFormatter;
+import com.joliciel.talismane.utils.CSVFormatter;
 
 /**
  * Calculates the f-score for a given classification task.

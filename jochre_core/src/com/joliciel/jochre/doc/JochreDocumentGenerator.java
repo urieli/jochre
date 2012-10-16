@@ -22,7 +22,7 @@ import java.io.File;
 
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.util.Monitorable;
+import com.joliciel.talismane.utils.Monitorable;
 
 public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorable {
 	public void addProcessedImageObserver(ProcessedImageObserver observer);

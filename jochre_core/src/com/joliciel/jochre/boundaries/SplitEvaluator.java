@@ -28,4 +28,11 @@ import com.joliciel.jochre.stats.FScoreCalculator;
  */
 public interface SplitEvaluator {
 	FScoreCalculator<String> evaluate(JochreCorpusShapeReader shapeReader, ShapeSplitter shapeSplitter);
+	
+	/**
+	 * The minimum probability to take a split decision. Default: 0.5.
+	 * @return
+	 */
+	public double getMinProbabilityForDecision();
+	public void setMinProbabilityForDecision(double minProbabilityForDecision);
 }

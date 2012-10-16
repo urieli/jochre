@@ -23,8 +23,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.util.PersistentList;
-import com.joliciel.talismane.utils.util.PersistentListImpl;
+import com.joliciel.talismane.utils.PersistentList;
+import com.joliciel.talismane.utils.PersistentListImpl;
 
 class JochreDocumentImpl extends EntityImpl implements
 		JochreDocumentInternal {

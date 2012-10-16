@@ -21,31 +21,19 @@ package com.joliciel.jochre.boundaries;
 import java.util.List;
 
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.Solution;
 
 /**
  * A sequence of shapes resulting from a shape split or merge, with a score.
  * @author Assaf Urieli
  *
  */
-public interface ShapeSequence extends List<ShapeInSequence> {
+public interface ShapeSequence extends List<ShapeInSequence>, Solution<SplitMergeOutcome> {
 	/**
 	 * The score attached to this particular sequence.
 	 * @return
 	 */
 	public double getScore();
-	
-	/**
-	 * Indicate that this shape sequence is based on an additional decision
-	 * with the probability provided.
-	 * @param probability
-	 */
-	public void addDecision(double probability);
-	
-	/**
-	 * The probabilities of all decisions made to construct this shape sequence.
-	 * @return
-	 */
-	public List<Double> getDecisionProbabilities();
 	
 	/**
 	 * Add a given shape to this sequence.

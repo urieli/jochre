@@ -24,7 +24,7 @@ import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
-import com.joliciel.talismane.utils.util.ObjectCache;
+import com.joliciel.talismane.utils.ObjectCache;
 
 class AnalyserServiceImpl implements AnalyserServiceInternal {
 	private ObjectCache objectCache;	

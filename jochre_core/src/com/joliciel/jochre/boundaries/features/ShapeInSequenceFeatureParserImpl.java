@@ -3,10 +3,10 @@ package com.joliciel.jochre.boundaries.features;
 import java.util.List;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
-import com.joliciel.talismane.utils.features.AbstractFeatureParser;
-import com.joliciel.talismane.utils.features.FeatureClassContainer;
-import com.joliciel.talismane.utils.features.FeatureService;
-import com.joliciel.talismane.utils.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
+import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 class ShapeInSequenceFeatureParserImpl extends AbstractFeatureParser<ShapeInSequence>
 		implements ShapeInSequenceFeatureParser {
@@ -25,12 +25,6 @@ class ShapeInSequenceFeatureParserImpl extends AbstractFeatureParser<ShapeInSequ
 		
 		this.container = container;
 	}
-
-	@Override
-	protected Object parseArgument(FunctionDescriptor argumentDescriptor) {
-		return null;
-	}
-
 
 	@Override
 	public List<FunctionDescriptor> getModifiedDescriptors(

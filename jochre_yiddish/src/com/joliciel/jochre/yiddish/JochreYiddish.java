@@ -38,7 +38,7 @@ import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.WordSplitter;
-import com.joliciel.talismane.utils.util.LogUtils;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreYiddish implements LocaleSpecificLexiconService {
 	private static final Log LOG = LogFactory.getLog(JochreYiddish.class);
@@ -63,6 +63,7 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			String outputDirPath = null;
 			int docId = -1;
 			int imageId = 0;
+			int imageCount=-1;
 			int userId = -1;
 			int beamWidth = 5;
 			boolean save = false;
@@ -94,6 +95,8 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 					save = (argValue.equals("true"));
 				else if (argName.equals("imageId"))
 					imageId = Integer.parseInt(argValue);
+				else if (argName.equals("imageCount"))
+					imageCount = Integer.parseInt(argValue);
 				else if (argName.equals("docId"))
 					docId = Integer.parseInt(argValue);
 				else if (argName.equals("userId"))
@@ -170,9 +173,9 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			jochre.setUserId(userId);
 
 			if (command.equals("evaluate")||command.equals("evaluateComplex")) {
-				jochre.doCommandEvaluate(letterModelPath, testSet, imageId, outputDirPath, wordChooser, beamWidth, reconstructLetters);
+				jochre.doCommandEvaluate(letterModelPath, testSet, imageCount, imageId, outputDirPath, wordChooser, beamWidth, reconstructLetters);
 			} else if (command.equals("evaluateFull")) {
-				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, wordChooser, beamWidth);
+				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, wordChooser, beamWidth, Jochre.BoundaryDetectorType.Deterministic, 0.5);
 			} else if (command.equals("analyse")) {
 				jochre.doCommandAnalyse(letterModelPath, docId, imageId, testSet, wordChooser);
 			} else if (command.equals("buildLexicon")) {

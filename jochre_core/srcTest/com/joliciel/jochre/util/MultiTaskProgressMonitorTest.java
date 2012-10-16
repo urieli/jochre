@@ -22,10 +22,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
-import com.joliciel.talismane.utils.util.Monitorable;
-import com.joliciel.talismane.utils.util.MultiTaskProgressMonitor;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
-import com.joliciel.talismane.utils.util.SimpleProgressMonitor;
+import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
+import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 public class MultiTaskProgressMonitorTest {
     private static final Log LOG = LogFactory.getLog(MultiTaskProgressMonitorTest.class);

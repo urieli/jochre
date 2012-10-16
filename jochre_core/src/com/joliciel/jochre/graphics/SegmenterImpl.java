@@ -45,8 +45,8 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 import com.joliciel.jochre.stats.CardinalityComparator;
 import com.joliciel.jochre.stats.DBSCANClusterer;
 import com.joliciel.jochre.stats.MeanAbsoluteDeviation;
-import com.joliciel.talismane.utils.util.ProgressMonitor;
-import com.joliciel.talismane.utils.util.SimpleProgressMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
+import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 class SegmenterImpl implements Segmenter {
 	private static final Log LOG = LogFactory.getLog(SegmenterImpl.class);
