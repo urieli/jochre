@@ -22,6 +22,7 @@ import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.graphics.JochreCorpusImageReader;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
+import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 
 /**
  * Analyse images using a given model.
@@ -36,13 +37,24 @@ public interface ImageAnalyser {
 	 * @param letterGuesser the letter guesser to use
 	 * @param imageStatus which image status to evaluate (typically held-out or test)
 	 */
-	public void analyse(LetterGuesser letterGuesser, JochreCorpusImageReader imageReader);
+	public void analyse(JochreCorpusImageReader imageReader);
+
+	public abstract void analyse(JochreImage image);
 
 	public abstract void addObserver(LetterGuessObserver letterGuessObserver);
 
-	public abstract void analyse(LetterGuesser letterGuesser, JochreImage image);
-
+	public abstract void setLetterGuesser(LetterGuesser letterGuesser);
+	public abstract LetterGuesser getLetterGuesser();
+	
 	public abstract void setBoundaryDetector(BoundaryDetector boundaryDetector);
-
 	public abstract BoundaryDetector getBoundaryDetector();
+
+	public abstract void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser);
+	public abstract MostLikelyWordChooser getMostLikelyWordChooser();
+
+	public abstract void setMinOutcomeWeight(double minOutcomeWeight);
+	public abstract double getMinOutcomeWeight();
+
+	public abstract void setBeamWidth(int beamWidth);
+	public abstract int getBeamWidth();
 }

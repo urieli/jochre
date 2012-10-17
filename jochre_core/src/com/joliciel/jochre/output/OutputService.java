@@ -16,10 +16,15 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.doc;
+package com.joliciel.jochre.output;
 
-import com.joliciel.jochre.graphics.JochreImage;
+import java.io.Writer;
 
-public interface ProcessedImageObserver {
-	public void onImageProcessed(JochreImage jochreImage);
+import com.joliciel.jochre.doc.DocumentObserver;
+import com.joliciel.jochre.lexicon.Lexicon;
+
+public interface OutputService {
+	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat);
+	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat, Lexicon lexicon);
+	public DocumentObserver getAbbyyFineReader8Exporter(Writer writer);
 }

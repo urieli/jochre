@@ -59,6 +59,7 @@ import com.joliciel.jochre.boundaries.SplitOutcome;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
@@ -287,7 +288,7 @@ public class Jochre {
 			} else if (command.equals("evaluate")||command.equals("evaluateComplex")) {
 				jochre.doCommandEvaluate(letterModelPath, testSet, imageCount, imageId, outputDirPath, null, beamWidth, reconstructLetters);
 			} else if (command.equals("evaluateFull")) {
-				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, null, beamWidth, boundaryDetectorType, minProbForDecision);
+				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageCount, imageId, save, outputDirPath, null, beamWidth, boundaryDetectorType, minProbForDecision);
 			} else if (command.equals("analyse")) {
 				jochre.doCommandAnalyse(letterModelPath, docId, imageId, testSet, null);
 			} else if (command.equals("trainSplits")) {
@@ -701,8 +702,10 @@ public class Jochre {
 			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
 		}
 		
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyzer(beamWidth, 0.01, wordChooser);
+		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
 		evaluator.setBoundaryDetector(boundaryDetector);
+		evaluator.setLetterGuesser(letterGuesser);
+		evaluator.setMostLikelyWordChooser(wordChooser);
 	
 		FScoreObserver fScoreObserver = null;
 		LetterValidator letterValidator = new ComponentCharacterValidator(locale);
@@ -740,7 +743,7 @@ public class Jochre {
 		
 //			evaluator.setOutcomesToAnalyse(new String[] {"מ"});
 		try {
-			evaluator.analyse(letterGuesser, imageReader);
+			evaluator.analyse(imageReader);
 		} finally {
 			if (errorWriter!=null)
 				errorWriter.close();
@@ -780,8 +783,10 @@ public class Jochre {
 		
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyzer(5, 0.01, wordChooser);
-
+		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+		analyser.setLetterGuesser(letterGuesser);
+		analyser.setMostLikelyWordChooser(wordChooser);
+		
 		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
 		imageReader.setImageStatusesToInclude(new ImageStatus[] {testSet});
 		imageReader.setImageId(imageId);
@@ -795,15 +800,86 @@ public class Jochre {
 			for (JochrePage page : doc.getPages()) {
 				for (JochreImage image : page.getImages()) {
 					if (image.getImageStatus().equals(ImageStatus.AUTO_NEW)) {
-						analyser.analyse(letterGuesser, image);
+						analyser.analyse(image);
 					}
 					image.clearMemory();
 				}
 			}
 		} else {
-			analyser.analyse(letterGuesser, imageReader);
+			analyser.analyse(imageReader);
 		}
 
+	}
+	
+	public void doCommandAnalyse(File pdfFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers, int firstPage, int lastPage) throws IOException {
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
+		MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
+
+		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+		analyser.setLetterGuesser(letterGuesser);
+		analyser.setMostLikelyWordChooser(wordChooser);
+		BoundaryDetector boundaryDetector = null;
+		
+		if (splitModelFile!=null && mergeModelFile!=null) {
+			double minWidthRatioForSplit = 1.1;
+			double minHeightRatioForSplit = 1.0;
+			int splitBeamWidth = 5;
+			int maxSplitDepth = 2;
+			
+			SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
+			splitCandidateFinder.setMinDistanceBetweenSplits(5);
+			
+			ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
+			MachineLearningModel<SplitOutcome> splitModel = machineLearningService.getModel(splitZis);
+			List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
+			Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+			ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
+		
+			ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
+			MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(mergeZis);
+			List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
+			Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
+			double maxWidthRatioForMerge = 1.2;
+			double maxDistanceRatioForMerge = 0.15;
+			double minProbForDecision = 0.5;
+			
+			ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+
+			boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
+			boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
+			boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
+			boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
+			boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
+			analyser.setBoundaryDetector(boundaryDetector);
+			
+			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
+			shapeLetterAssigner.setEvaluate(false);
+			shapeLetterAssigner.setSingleLetterMethod(false);
+			
+			analyser.addObserver(shapeLetterAssigner);
+		} else {
+			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			analyser.setBoundaryDetector(boundaryDetector);
+			
+			LetterAssigner letterAssigner = new LetterAssigner();
+			analyser.addObserver(letterAssigner);
+		}
+		
+		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(pdfFile.getName(), "", locale);
+		documentGenerator.requestAnalysis(analyser);
+		
+		PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(pdfFile, firstPage, lastPage, documentGenerator);
+		
+		LetterAssigner letterAssigner = new LetterAssigner();
+		analyser.addObserver(letterAssigner);
+		
+		for (DocumentObserver observer : observers)
+			documentGenerator.addDocumentObserver(observer);
+		
+		pdfImageVisitor.visitImages();
 	}
 
 	/**
@@ -813,6 +889,7 @@ public class Jochre {
 	 * @param mergeModelPath the path to the merging model
 	 * @param testSet the set of images to evaluate in the saved corpus
 	 * @param imageId the single image to evaluate in the saved corpus
+	 * @param imageId2 
 	 * @param save whether or not the letter guesses should be saved
 	 * @param outputDirPath the output directory where we write the evaluation results
 	 * @param boundaryDetectorType 
@@ -820,7 +897,7 @@ public class Jochre {
 	 * @throws IOException
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, ImageStatus testSet,
-			int imageId, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, BoundaryDetectorType boundaryDetectorType, double minProbForDecision) throws IOException {
+			int imageCount, int imageId, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, BoundaryDetectorType boundaryDetectorType, double minProbForDecision) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		
@@ -857,7 +934,7 @@ public class Jochre {
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelPath));
+		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelPath));
 		MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(mergeZis);
 		
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
@@ -870,6 +947,7 @@ public class Jochre {
 		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
 		imageReader.setImageStatusesToInclude(new ImageStatus[] {testSet});
 		imageReader.setImageId(imageId);
+		imageReader.setImageCount(imageCount);
 		
 		BoundaryDetector boundaryDetector = null;
 		switch (boundaryDetectorType) {
@@ -885,7 +963,9 @@ public class Jochre {
 		boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
 		boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
 		
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyzer(beamWidth, 0.01, wordChooser);
+		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
+		evaluator.setLetterGuesser(letterGuesser);
+		evaluator.setMostLikelyWordChooser(wordChooser);
 		evaluator.setBoundaryDetector(boundaryDetector);
 		
 		LetterValidator letterValidator = new ComponentCharacterValidator(locale);
@@ -916,7 +996,7 @@ public class Jochre {
 //			evaluator.setOutcomesToAnalyse(new String[] {"מ"});
 		
 		try {
-			evaluator.analyse(letterGuesser, imageReader);
+			evaluator.analyse(imageReader);
 		} finally {
 			if (errorWriter!=null)
 				errorWriter.close();
@@ -1010,8 +1090,8 @@ public class Jochre {
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageSaver pdfImageSaver = pdfService.getPdfImageSaver();
-			pdfImageSaver.saveImages(pdfFile, outputDirPath, firstPage, lastPage);
+			PdfImageSaver pdfImageSaver = pdfService.getPdfImageSaver(pdfFile);
+			pdfImageSaver.saveImages(outputDirPath, firstPage, lastPage);
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
 		}

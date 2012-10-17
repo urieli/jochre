@@ -36,21 +36,35 @@ import org.jpedal.objects.PdfImageData;
  */
 abstract class AbstractPdfImageVisitor {
 	private static final Log LOG = LogFactory.getLog(AbstractPdfImageVisitor.class);
+	private PdfDecoder pdfDecoder = null;
+	private File pdfFile;
+	
+	public AbstractPdfImageVisitor(File pdfFile) {
+		try {
+			this.pdfFile = pdfFile;
+			this.pdfDecoder = new PdfDecoder( false );
 
+			this.pdfDecoder.setExtractionMode(PdfDecoder.RAWIMAGES+PdfDecoder.FINALIMAGES);
+	
+			FileInputStream fis = new FileInputStream(pdfFile);
+			this.pdfDecoder.openPdfFileFromInputStream(fis, true);
+		} catch (FileNotFoundException fnfe) {
+			throw new RuntimeException(fnfe);
+		} catch (PdfException pdfe) {
+			throw new RuntimeException(pdfe);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	/**
 	 * Visit all of the images in a pdf file.
 	 * @param pdfFile
 	 * @param firstPage a value of -1 means no first page
 	 * @param lastPage a value of -1 means no last page
 	 */
-	final void visitImages(File pdfFile, int firstPage, int lastPage) {
+	final void visitImages(int firstPage, int lastPage) {
 		try {
-			PdfDecoder pdfDecoder = new PdfDecoder( false );
-			pdfDecoder.setExtractionMode(PdfDecoder.RAWIMAGES+PdfDecoder.FINALIMAGES);
-
-			FileInputStream fis = new FileInputStream(pdfFile);
-			pdfDecoder.openPdfFileFromInputStream(fis, true);
-
 			try {
 				for( int i = 1;i < pdfDecoder.getPageCount() + 1; i++ )
 				{
@@ -101,4 +115,14 @@ abstract class AbstractPdfImageVisitor {
 	 * @param imageIndex
 	 */
 	abstract void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex);
+	
+	public int getPageCount() {
+		return pdfDecoder.getPageCount();
+	}
+	
+	public File getPdfFile() {
+		return pdfFile;
+	}
+	
+	
 }

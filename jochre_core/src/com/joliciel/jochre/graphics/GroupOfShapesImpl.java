@@ -29,6 +29,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 	private GraphicsServiceInternal graphicsService;
 
 	private List<Shape> shapes;
+	private List<Shape> correctedShapes;
 	private int index;
 	private int rowId;
 	private RowOfShapes row = null;
@@ -48,6 +49,8 @@ class GroupOfShapesImpl extends EntityImpl implements
 	private int[] baseLine = null;
 	
 	private boolean dirty = true;
+	
+	private int frequency = 0;
 	
 	public List<Shape> getShapes() {
 		if (shapes==null) {
@@ -340,6 +343,123 @@ class GroupOfShapesImpl extends EntityImpl implements
 			this.segmentationProblem = segmentationProblem;
 			dirty = true;
 		}		
+	}
+
+	public int getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(int frequency) {
+		this.frequency = frequency;
+	}
+
+	public List<Shape> getCorrectedShapes() {
+		if (this.correctedShapes==null) {
+			correctedShapes = new ArrayList<Shape>(shapes.size());
+			List<Shape> splitShapes = null;
+			boolean haveSplitShape = false;
+			int mergedTop = 0;
+			int mergedBottom = 0;
+			int mergedLeft = 0;
+			int mergedRight = 0;
+			String lastLetter = "";
+			for (Shape shape : shapes) {
+				if (shape.getLetter().length()==0) {
+					// do nothing
+				} else if (shape.getLetter().contains("|") && haveSplitShape) {
+					// end of a split shape
+					Shape mergedShape = shape.getJochreImage().getShape(mergedLeft, mergedTop, mergedRight, mergedBottom);
+					StringBuilder currentSequence = new StringBuilder();
+					double confidence = 1.0;
+					for (Shape splitShape : splitShapes) {
+						String letter = splitShape.getLetter();
+						confidence = confidence * splitShape.getConfidence();
+						if (letter.startsWith("|")) {
+							// beginning of a gehakte letter
+							currentSequence.append(letter);
+							continue;
+						} else if (letter.endsWith("|")) {
+							// end of a gehakte letter
+							if (currentSequence.length()>0&&currentSequence.charAt(0)=='|') {
+								String letter1 = currentSequence.toString().substring(1);
+								String letter2 = letter.substring(0, letter.length()-1);
+								if (letter1.equals(letter2)) {
+									letter = letter1;
+								} else {
+									letter = currentSequence.toString() + letter;
+								}
+								currentSequence = new StringBuilder();
+							}
+						}
+					}
+					mergedShape.setLetter(currentSequence.toString());
+					mergedShape.setConfidence(confidence);
+					correctedShapes.add(mergedShape);
+					splitShapes = null;
+					haveSplitShape = false;
+				} else if (shape.getLetter().contains("|") || haveSplitShape) {
+					if (!haveSplitShape) {
+						// first shape in split
+						haveSplitShape = true;
+						splitShapes = new ArrayList<Shape>(2);
+						splitShapes.add(shape);
+						mergedTop = shape.getTop();
+						mergedBottom = shape.getBottom();
+						mergedLeft = shape.getLeft();
+						mergedRight = shape.getRight();
+					} else {
+						splitShapes.add(shape);
+						if (shape.getTop()<mergedTop)
+							mergedTop = shape.getTop();
+						if (shape.getLeft()<mergedLeft)
+							mergedLeft = shape.getLeft();
+						if (shape.getBottom()>mergedBottom)
+							mergedBottom = shape.getBottom();
+						if (shape.getRight()>mergedRight)
+							mergedRight = shape.getRight();
+					}
+				} else if ((shape.getLetter().equals(",") && lastLetter.equals(","))
+						|| (shape.getLetter().equals("'") && lastLetter.equals("'"))){
+					//TODO: specific to Yiddish, need to generalise
+					mergedTop = shape.getTop();
+					mergedBottom = shape.getBottom();
+					mergedLeft = shape.getLeft();
+					mergedRight = shape.getRight();
+					Shape lastShape = correctedShapes.remove(correctedShapes.size()-1);
+					if (lastShape.getTop()<mergedTop)
+						mergedTop = lastShape.getTop();
+					if (lastShape.getLeft()<mergedLeft)
+						mergedLeft = lastShape.getLeft();
+					if (lastShape.getBottom()>mergedBottom)
+						mergedBottom = lastShape.getBottom();
+					if (lastShape.getRight()>mergedRight)
+						mergedRight = lastShape.getRight();
+					Shape mergedShape = shape.getJochreImage().getShape(mergedLeft, mergedTop, mergedRight, mergedBottom);
+					if (lastLetter.equals(","))
+						mergedShape.setLetter("„");
+					else
+						mergedShape.setLetter("“");
+					mergedShape.setConfidence(shape.getConfidence() * lastShape.getConfidence());
+					correctedShapes.add(mergedShape);
+				} else if (shape.getLetter().equals(",,")) {
+					//TODO: specific to Yiddish, need to generalise
+					Shape newShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getRight(), shape.getBottom());
+					newShape.setLetter("„");
+					newShape.setConfidence(shape.getConfidence());
+					correctedShapes.add(newShape);
+				} else if (shape.getLetter().equals("''")) {
+					//TODO: specific to Yiddish, need to generalise
+					Shape newShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getRight(), shape.getBottom());
+					newShape.setLetter("“");
+					newShape.setConfidence(shape.getConfidence());
+					correctedShapes.add(newShape);
+				} else {
+					correctedShapes.add(shape);
+				}
+				lastLetter = shape.getLetter();
+			}
+		}
+		return correctedShapes;
 	}
 	
 }

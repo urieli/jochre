@@ -24,7 +24,7 @@ import com.joliciel.jochre.doc.SourceFileProcessor;
 
 public interface PdfService {
 
-	public abstract PdfImageSaver getPdfImageSaver();
+	public abstract PdfImageSaver getPdfImageSaver(File pdfFile);
 
 	public abstract PdfImageVisitor getPdfImageVisitor(File pdfFile, int firstPage,
 			int lastPage, SourceFileProcessor documentProcessor);

@@ -16,7 +16,7 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.text;
+package com.joliciel.jochre.output;
 
 import java.io.StringWriter;
 import java.util.List;
@@ -36,6 +36,8 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextGetterImpl;
 
 import static org.junit.Assert.*;
 
@@ -92,8 +94,8 @@ public class TextGetterImplTest {
         }};
         
         StringWriter writer = new StringWriter();
-		TextGetterImpl textGetter = new TextGetterImpl();
-		textGetter.getText(jochreImage, writer, TextFormat.PLAIN);
+		TextGetterImpl textGetter = new TextGetterImpl(writer, TextFormat.PLAIN);
+		textGetter.onImageComplete(jochreImage);
 		String result = writer.toString();
 		LOG.debug(result);
 		assertEquals("„אַm|שע|, \n", result);
@@ -158,16 +160,16 @@ public class TextGetterImplTest {
         }};
         
         StringWriter writer = new StringWriter();
-		TextGetterImpl textGetter = new TextGetterImpl();
-		textGetter.getText(jochreImage, writer, TextFormat.XHTML);
+		TextGetterImpl textGetter = new TextGetterImpl(writer, TextFormat.XHTML);
+		textGetter.onImageComplete(jochreImage);
 		String result = writer.toString();
 		LOG.debug(result);
 		assertEquals("<P>A <BIG>B </BIG>C <SMALL>D </SMALL></P>", result);
     }
     
 	public void testAppendBidiText() {
-		TextGetterImpl textGetter = new TextGetterImpl();
-		StringWriter writer = new StringWriter();
+	    StringWriter writer = new StringWriter();
+		TextGetterImpl textGetter = new TextGetterImpl(writer, TextFormat.XHTML);
 		String text = "איך מײן אַז ס'איז 5.01 פּראָצענט, אָדער ebyam אַפֿילו %5.02.";
 		textGetter.appendBidiText(text, writer);
 		String result = writer.toString();

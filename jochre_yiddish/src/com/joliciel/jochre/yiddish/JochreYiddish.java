@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.Jochre;
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconMerger;
@@ -38,6 +41,8 @@ import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.OutputService;
 import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreYiddish implements LocaleSpecificLexiconService {
@@ -75,6 +80,8 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			double smoothing = 0.5;
 			double frequencyLogBase = 2.0;
 			boolean reconstructLetters = false;
+			int firstPage = -1;
+			int lastPage = -1;
 	
 			boolean firstArg = true;
 			for (String arg : args) {
@@ -127,6 +134,10 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 				}
 				else if (argName.equals("reconstructLetters"))
 					reconstructLetters = (argValue.equals("true"));
+				else if (argName.equals("firstPage"))
+					firstPage = Integer.parseInt(argValue);
+				else if (argName.equals("lastPage"))
+					lastPage = Integer.parseInt(argValue);
 				else
 					throw new RuntimeException("Unknown argument: " + argName);
 	
@@ -147,8 +158,11 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			
 			MostLikelyWordChooser wordChooser = null;
 			
+			OutputService outputService = jochreServiceLocator.getTextServiceLocator().getTextService();
+			
+			Lexicon yiddishLexicon = null;
 			if (lexiconDirPath.length()>0) {
-				Lexicon yiddishLexicon = jochreYiddish.getLexicon();
+				yiddishLexicon = jochreYiddish.getLexicon();
 				LexiconService lexiconService = jochreServiceLocator.getLexiconServiceLocator().getLexiconService();
 
 	        	wordChooser = lexiconService.getMostLikelyWordChooser(yiddishLexicon, wordSplitter);
@@ -175,9 +189,46 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			if (command.equals("evaluate")||command.equals("evaluateComplex")) {
 				jochre.doCommandEvaluate(letterModelPath, testSet, imageCount, imageId, outputDirPath, wordChooser, beamWidth, reconstructLetters);
 			} else if (command.equals("evaluateFull")) {
-				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageId, save, outputDirPath, wordChooser, beamWidth, Jochre.BoundaryDetectorType.Deterministic, 0.5);
+				jochre.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, testSet, imageCount, imageId, save, outputDirPath, wordChooser, beamWidth, Jochre.BoundaryDetectorType.Deterministic, 0.5);
 			} else if (command.equals("analyse")) {
 				jochre.doCommandAnalyse(letterModelPath, docId, imageId, testSet, wordChooser);
+			} else if (command.equals("analyseFile")) {
+				File pdfFile = new File(filename);
+				File letterModelFile = new File(letterModelPath);
+				File splitModelFile = null;
+				File mergeModelFile = null;
+				if (splitModelPath.length()>0)
+					splitModelFile = new File(splitModelPath);
+				if (mergeModelPath.length()>0)
+					mergeModelFile = new File(mergeModelPath);
+				
+        		File outputDir = new File(outputDirPath);
+        		outputDir.mkdirs();
+
+        		String baseName = filename.substring(0, filename.indexOf("."));
+	    		if (baseName.lastIndexOf("/")>0)
+	    			baseName = baseName.substring(baseName.lastIndexOf("/")+1);
+	    		
+        		List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
+		       	Writer analysisFileWriter = null;
+	    		String outputFileName = baseName+ ".xml";
+				File analysisFile = new File(outputDir, outputFileName);
+				analysisFile.delete();
+				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+				
+				DocumentObserver observer = outputService.getAbbyyFineReader8Exporter(analysisFileWriter);
+				observers.add(observer);
+				
+		       	Writer htmlWriter = null;
+	    		String htmlFileName = baseName+ ".html";
+	    		
+				File htmlFile = new File(outputDir, htmlFileName);
+				htmlFile.delete();
+				htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true),"UTF8"));
+				
+				DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, yiddishLexicon);
+				observers.add(textGetter);
+				jochre.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, observers, firstPage, lastPage);
 			} else if (command.equals("buildLexicon")) {
 				jochre.doCommandBuildLexicon(outputDirPath, wordSplitter);
 			}

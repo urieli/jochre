@@ -99,15 +99,12 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	File splitModelFile = null;
 	File mergeModelFile = null;
 	
-	MostLikelyWordChooser wordChooser;
-	
 	ImageAnalyser analyser = null;
-	LetterGuesser letterGuesser = null;
 	
 	boolean showSegmentation = false;
 	MultiTaskProgressMonitor currentMonitor;
 	
-	List<ProcessedImageObserver> processedImageObservers = new ArrayList<ProcessedImageObserver>();
+	List<DocumentObserver> documentObservers = new ArrayList<DocumentObserver>();
 
 	/**
 	 * Constructor for existing documents.
@@ -149,13 +146,17 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			}
 		}
 		
+		for (DocumentObserver observer : documentObservers)
+			observer.onDocumentStart(this.doc);
+
 		return this.doc;
 	}
 
 
 	@Override
 	public void onDocumentComplete(JochreDocument doc) {
-		// nothing to do here
+		for (DocumentObserver observer : documentObservers)
+			observer.onDocumentComplete(doc);
 	}
 
 
@@ -166,15 +167,19 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 
 	@Override
 	public JochrePage onPageStart(int pageIndex) {
-		JochrePage currentPage = this.doc.newPage();
-		currentPage.setIndex(pageIndex);
+		JochrePage jochrePage = this.doc.newPage();
+		jochrePage.setIndex(pageIndex);
 		if (save)
-			currentPage.save();
-		return currentPage;
+			jochrePage.save();
+		for (DocumentObserver observer : documentObservers)
+			observer.onPageStart(jochrePage);
+		return jochrePage;
 	}
 	
 	@Override
 	public void onPageComplete(JochrePage jochrePage) {
+		for (DocumentObserver observer : documentObservers)
+			observer.onPageComplete(jochrePage);
 		jochrePage.clearMemory();
 	}
 
@@ -188,6 +193,9 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			SourceImage sourceImage = jochrePage.newJochreImage(image, imageName+ '.' +SUFFIX);
 			if (currentUser!=null)
 				sourceImage.setOwner(currentUser);
+			
+			for (DocumentObserver observer : documentObservers)
+				observer.onImageStart(sourceImage);
 			
 			Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
 			segmenter.setDrawSegmentation(showSegmentation);
@@ -242,15 +250,15 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 					currentMonitor.startTask(monitor, 0.6);
 				}
 
-				analyser.analyse(letterGuesser, sourceImage);
+				analyser.analyse(sourceImage);
 				
 				if (currentMonitor!=null&&analyser instanceof Monitorable) {
 					currentMonitor.endTask();
 				}
 			}
 			
-			for (ProcessedImageObserver observer : processedImageObservers) {
-				observer.onImageProcessed(sourceImage);
+			for (DocumentObserver observer : documentObservers) {
+				observer.onImageComplete(sourceImage);
 			}
 			return sourceImage;
 		} catch (IOException ioe) {
@@ -322,8 +330,8 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.boundaryFeatureService = boundaryFeatureService;
 	}
 
-	public void addProcessedImageObserver(ProcessedImageObserver observer) {
-		this.processedImageObservers.add(observer);
+	public void addDocumentObserver(DocumentObserver observer) {
+		this.documentObservers.add(observer);
 	}
 
 
@@ -383,13 +391,6 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		return mergeModelFile;
 	}
 
-
-	@Override
-	public MostLikelyWordChooser getWordChooser() {
-		return wordChooser;
-	}
-
-
 	@Override
 	public boolean isShowSegmentation() {
 		return showSegmentation;
@@ -406,6 +407,11 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.requestAnalysis(null, null, letterModelFile, wordChooser);
 	}
 
+	public void requestAnalysis(ImageAnalyser analyser) {
+		this.analyse = true;
+		this.analyser = analyser;
+	}
+	
 	@Override
 	public void requestAnalysis(File splitModelFile, File mergeModelFile,
 			File letterModelFile, MostLikelyWordChooser wordChooser) {
@@ -413,7 +419,6 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.letterModelFile = letterModelFile;
 		this.splitModelFile = splitModelFile;
 		this.mergeModelFile = mergeModelFile;
-		this.wordChooser = wordChooser;
 		
 		try {
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
@@ -421,8 +426,10 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
-			letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-			analyser = analyserService.getBeamSearchImageAnalyzer(5, 0.01, wordChooser);
+			LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+			analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+			analyser.setLetterGuesser(letterGuesser);
+			analyser.setMostLikelyWordChooser(wordChooser);
 
 			BoundaryDetector boundaryDetector = null;
 			
@@ -447,7 +454,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 				double maxWidthRatioForMerge = 1.2;
 				double maxDistanceRatioForMerge = 0.15;
-				double minProbForDecision = 0.7;
+				double minProbForDecision = 0.5;
 				
 				ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 

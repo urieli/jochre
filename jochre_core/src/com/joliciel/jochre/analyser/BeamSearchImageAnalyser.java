@@ -68,6 +68,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	private MostLikelyWordChooser mostLikelyWordChooser;
 	private BoundaryDetector boundaryDetector;
+	private LetterGuesser letterGuesser;
 	
 	private int beamWidth = DEFAULT_BEAM_WIDTH;
 	private double minOutcomeWeight = 0;	
@@ -86,13 +87,13 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	}
 	
 	@Override
-	public void analyse(LetterGuesser letterGuesser, JochreCorpusImageReader imageReader) {
+	public void analyse(JochreCorpusImageReader imageReader) {
 		PerformanceMonitor.startTask("BeamSearchImageAnalyser.analyseAll");
 		try {
 			
 			while (imageReader.hasNext()) {
 				JochreImage image = imageReader.next();
-				this.analyseInternal(letterGuesser, image);
+				this.analyseInternal(image);
 				image.clearMemory();
 			} // next image
 	
@@ -105,13 +106,10 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	}
 	
 	@Override
-	public void analyse(LetterGuesser letterGuesser,
-			JochreImage image) {
+	public void analyse(JochreImage image) {
 		PerformanceMonitor.startTask("BeamSearchImageAnalyser.analyse");
 		try {
-
-			this.analyseInternal(letterGuesser, image);
-			image.clearMemory();
+			this.analyseInternal(image);
 			
 			for (LetterGuessObserver observer : observers) {
 				observer.onFinish();
@@ -121,8 +119,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 		}
 	}
 	
-	public void analyseInternal(LetterGuesser letterGuesser,
-			JochreImage image) {
+	public void analyseInternal(JochreImage image) {
 		LOG.debug("Analysing image " + image.getId());
 		if (currentMonitor!=null) {
 			currentMonitor.setCurrentAction("imageMonitor.analysingImage", new Object[] {image.getPage().getIndex()});
@@ -281,6 +278,8 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								observer.onStartSequence(bestSequence);
 							}
 	
+							group.setFrequency(bestSequence.getFrequency());
+							
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
 								String bestOutcome = bestSequence.get(i).getString();
@@ -333,10 +332,12 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	}
 
 
+	@Override
 	public MostLikelyWordChooser getMostLikelyWordChooser() {
 		return mostLikelyWordChooser;
 	}
 
+	@Override
 	public void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser) {
 		this.mostLikelyWordChooser = mostLikelyWordChooser;
 	}
@@ -376,6 +377,34 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	@Override
 	public void setBoundaryDetector(BoundaryDetector boundaryDetector) {
 		this.boundaryDetector = boundaryDetector;
+	}
+
+	public LetterGuesser getLetterGuesser() {
+		return letterGuesser;
+	}
+
+	public void setLetterGuesser(LetterGuesser letterGuesser) {
+		this.letterGuesser = letterGuesser;
+	}
+
+	@Override
+	public int getBeamWidth() {
+		return beamWidth;
+	}
+
+	@Override
+	public void setBeamWidth(int beamWidth) {
+		this.beamWidth = beamWidth;
+	}
+
+	@Override
+	public double getMinOutcomeWeight() {
+		return minOutcomeWeight;
+	}
+
+	@Override
+	public void setMinOutcomeWeight(double minOutcomeWeight) {
+		this.minOutcomeWeight = minOutcomeWeight;
 	}
 	
 	

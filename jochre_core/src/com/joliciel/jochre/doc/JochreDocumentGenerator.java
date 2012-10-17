@@ -20,13 +20,20 @@ package com.joliciel.jochre.doc;
 
 import java.io.File;
 
+import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.Monitorable;
 
 public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorable {
-	public void addProcessedImageObserver(ProcessedImageObserver observer);
-
+	public void addDocumentObserver(DocumentObserver observer);
+	
+	/**
+	 * Request analysis using a pre-constructed analyser.
+	 * @param analyser
+	 */
+	public void requestAnalysis(ImageAnalyser analyser);
+	
 	/**
 	 * Call if this document should be analysed for letters.
 	 * @param letterModelFile
@@ -66,12 +73,6 @@ public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorabl
 	 * @return
 	 */
 	public abstract boolean isShowSegmentation();
-
-	/**
-	 * The word chooser to user for this generator.
-	 * @return
-	 */
-	public abstract MostLikelyWordChooser getWordChooser();
 
 	/**
 	 * If analyse and split/merge required, the file containing the merge model.

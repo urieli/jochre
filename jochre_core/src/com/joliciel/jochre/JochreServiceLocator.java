@@ -39,9 +39,9 @@ import com.joliciel.jochre.graphics.features.GraphicsFeatureServiceLocator;
 import com.joliciel.jochre.letterGuesser.LetterGuesserServiceLocator;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureServiceLocator;
 import com.joliciel.jochre.lexicon.LexiconServiceLocator;
+import com.joliciel.jochre.output.OutputServiceLocator;
 import com.joliciel.jochre.pdf.PdfServiceLocator;
 import com.joliciel.jochre.security.SecurityServiceLocator;
-import com.joliciel.jochre.text.TextServiceLocator;
 import com.joliciel.talismane.machineLearning.MachineLearningServiceLocator;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureServiceLocator;
@@ -63,7 +63,7 @@ public class JochreServiceLocator {
 	private BoundaryServiceLocator boundaryServiceLocator;
 	private LexiconServiceLocator lexiconServiceLocator;
 	private SecurityServiceLocator securityServiceLocator;
-	private TextServiceLocator textServiceLocator;
+	private OutputServiceLocator textServiceLocator;
 	private PdfServiceLocator pdfServiceLocator;
 	private BoundaryFeatureServiceLocator boundaryFeatureServiceLocator;
 	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
@@ -197,9 +197,9 @@ public class JochreServiceLocator {
 		return securityServiceLocator;
 	}
 
-	public TextServiceLocator getTextServiceLocator() {
+	public OutputServiceLocator getTextServiceLocator() {
 		if (this.textServiceLocator==null) {
-			this.textServiceLocator = new TextServiceLocator(this, this.getDataSource());
+			this.textServiceLocator = new OutputServiceLocator(this, this.getDataSource());
 		}
 		return textServiceLocator;
 	}

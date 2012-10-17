@@ -32,4 +32,5 @@ public interface PdfImageVisitor extends Runnable, Monitorable {
 	 * @return
 	 */
 	public JochreDocument visitImages();
+
 }

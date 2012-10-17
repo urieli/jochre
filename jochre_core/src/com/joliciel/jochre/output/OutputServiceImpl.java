@@ -16,8 +16,30 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.text;
+package com.joliciel.jochre.output;
 
-public interface TextService {
-	public TextGetter getTextGetter();
+import java.io.Writer;
+
+import com.joliciel.jochre.doc.DocumentObserver;
+import com.joliciel.jochre.lexicon.Lexicon;
+
+class OutputServiceImpl implements OutputService {
+	@Override
+	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat) {
+		return this.getTextGetter(writer, textFormat, null);
+	}
+
+	@Override
+	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat,
+			Lexicon lexicon) {
+		TextGetterImpl textGetter =  new TextGetterImpl(writer, textFormat, lexicon);
+		return textGetter;
+	}
+
+	@Override
+	public DocumentObserver getAbbyyFineReader8Exporter(Writer writer) {
+		AbbyyFineReader8Exporter exporter = new AbbyyFineReader8Exporter(writer);
+		return exporter;
+	}
+
 }

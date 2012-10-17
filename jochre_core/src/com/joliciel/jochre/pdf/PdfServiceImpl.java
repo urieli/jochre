@@ -18,15 +18,15 @@ class PdfServiceImpl implements PdfService {
 	 */
 	public PdfImageVisitor getPdfImageVisitor(File pdfFile, int firstPage, int lastPage,
 			SourceFileProcessor documentProcessor) {
-		PdfImageVisitorImpl pdfImageExtractor = new PdfImageVisitorImpl(pdfFile, firstPage, lastPage, documentProcessor);
-		pdfImageExtractor.setGraphicsService(this.getGraphicsService());
-		return pdfImageExtractor;
+		PdfImageVisitorImpl pdfImageVisitor = new PdfImageVisitorImpl(pdfFile, firstPage, lastPage, documentProcessor);
+		pdfImageVisitor.setGraphicsService(this.getGraphicsService());
+		return pdfImageVisitor;
 	}
 	
 	@Override
-	public PdfImageSaver getPdfImageSaver() {
+	public PdfImageSaver getPdfImageSaver(File pdfFile) {
 		if (pdfImageSaver==null) {
-			pdfImageSaver = new PdfImageSaverImpl();
+			pdfImageSaver = new PdfImageSaverImpl(pdfFile);
 		}
 		return pdfImageSaver;
 	}

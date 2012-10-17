@@ -38,16 +38,16 @@ import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.doc.Author;
+import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
+import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.OutputService;
+import com.joliciel.jochre.output.OutputServiceLocator;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
-import com.joliciel.jochre.text.TextFormat;
-import com.joliciel.jochre.text.TextGetter;
-import com.joliciel.jochre.text.TextService;
-import com.joliciel.jochre.text.TextServiceLocator;
 import com.joliciel.talismane.utils.LogUtils;
 
 public class DocumentController extends GenericForwardComposer<Window> {
@@ -387,10 +387,10 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		    	LOG.debug(file.getName());
 		    	OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 		    	
-		    	TextServiceLocator textServiceLocator = locator.getTextServiceLocator();
-		    	TextService textService = textServiceLocator.getTextService();
-		    	TextGetter textGetter = textService.getTextGetter();
-		    	textGetter.getText(currentImage, out, TextFormat.PLAIN);
+		    	OutputServiceLocator textServiceLocator = locator.getTextServiceLocator();
+		    	OutputService textService = textServiceLocator.getTextService();
+		    	DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.PLAIN);
+		    	textGetter.onImageComplete(currentImage);
 		    	out.flush();
 		    	out.close();
 		    	

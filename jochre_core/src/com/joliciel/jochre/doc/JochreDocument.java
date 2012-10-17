@@ -124,4 +124,7 @@ public interface JochreDocument extends Entity {
 	public abstract String getNameLocal();
 	public abstract void setReference(String reference);
 	public abstract String getReference();
+	
+	public int getTotalPageCount();
+	public void setTotalPageCount(int totalPageCount);
 }

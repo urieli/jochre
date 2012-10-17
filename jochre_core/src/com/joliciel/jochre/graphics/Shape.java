@@ -364,4 +364,11 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	 * @return int[width][2], giving, for each x-coordinate in the shape, the distance to the shape's first black pixel, as seen from the top (0) and bottom (1).
 	 */
 	public int[][] getVerticalContour();
+	
+	/**
+	 * The confidence in the current letter guess, in a scale from 0 to 1.
+	 * @return
+	 */
+	public double getConfidence();
+	public void setConfidence(double confidence);
 }

@@ -15,13 +15,11 @@ import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 
-
 class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVisitor {
 	private static final Log LOG = LogFactory.getLog(PdfImageVisitorImpl.class);
 	
 	GraphicsService graphicsService;
 	SourceFileProcessor documentProcessor;
-	File pdfFile;
 	int firstPage;
 	int lastPage;
 	MultiTaskProgressMonitor currentMonitor;
@@ -34,8 +32,8 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 	 */
 	public PdfImageVisitorImpl(File pdfFile, int firstPage, int lastPage,
 			SourceFileProcessor documentProcessor) {
+		super(pdfFile);
 		this.documentProcessor = documentProcessor;	
-		this.pdfFile = pdfFile;
 		this.firstPage = firstPage;
 		this.lastPage = lastPage;
 	}
@@ -53,8 +51,9 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 				currentMonitor.setCurrentAction("imageMonitor.extractingNextImage");
 			
 			JochreDocument jochreDocument = this.documentProcessor.onDocumentStart();
+			jochreDocument.setTotalPageCount(this.getPageCount());
 			
-			this.visitImages(pdfFile, firstPage, lastPage);
+			this.visitImages(firstPage, lastPage);
 			
 			JochrePage finalPage = jochreDocument.getCurrentPage();
 			if (finalPage!=null) {
@@ -96,7 +95,7 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 			currentMonitor.startTask(monitor, percentAllotted);
 		}
 		
-		String prettyName = pdfFile.getName();
+		String prettyName = this.getPdfFile().getName();
 		if (prettyName.indexOf('.')>=0)
 			prettyName = prettyName.substring(0, prettyName.indexOf('.'));
 		prettyName += "_" + pageIndex;

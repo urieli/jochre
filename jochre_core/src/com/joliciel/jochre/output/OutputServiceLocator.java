@@ -16,22 +16,42 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.text;
+package com.joliciel.jochre.output;
 
-import java.io.Writer;
+import javax.sql.DataSource;
 
-import com.joliciel.jochre.graphics.JochreImage;
+import com.joliciel.jochre.JochreServiceLocator;
 
-/**
- * Gets the text out of an image after it's been analysed.
- * @author Assaf Urieli
- *
- */
-public interface TextGetter {
-	/**
-	 * Gets the text out of an image and writes it to the writer.
-	 * @param image
-	 * @param writer
-	 */
-	public void getText(JochreImage image, Writer writer, TextFormat textFormat);
+public class OutputServiceLocator {
+	OutputServiceImpl outputService = null;
+
+	private DataSource dataSource;
+	private JochreServiceLocator jochreServiceLocator;
+	
+	public OutputServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
+		this.jochreServiceLocator = jochreServiceLocator;
+		this.dataSource = dataSource;
+	}
+	
+	public OutputService getTextService() {
+		if (outputService==null) {
+			outputService = new OutputServiceImpl();
+		}
+		return outputService;
+	}
+
+
+	public JochreServiceLocator getJochreServiceLocator() {
+		return jochreServiceLocator;
+	}
+
+	public DataSource getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+	
+	
 }

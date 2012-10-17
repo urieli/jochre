@@ -203,6 +203,8 @@ class SegmenterImpl implements Segmenter {
 		
 		List<RowOfShapes> candidateRows = new ArrayList<RowOfShapes>();
 		for (RowOfShapes row : sourceImage.getRows()) {
+			if (row.getRight() == row.getLeft())
+				continue;
 			int height = row.getBottom() - row.getTop();
 			if (height >= minHeightForSplit) {
 				LOG.debug("Adding candidate " + row.toString());
@@ -1317,13 +1319,18 @@ class SegmenterImpl implements Segmenter {
 							break;
 					}
 					if (!hasNonSpeck) {
-
 						rowsToDelete.add(row);
 					}
 				}
 			}
 		}
 		
+		for (RowOfShapes row : sourceImage.getRows()) {
+			if (!hasGroups && row.getShapes().size()==0) {
+				rowsToDelete.add(row);
+			}
+		}
+
 		for (RowOfShapes row : rowsToDelete) {
 			LOG.debug("Removing row with shapes:");
 			for (GroupOfShapes group : row.getGroups())

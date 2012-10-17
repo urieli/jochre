@@ -103,6 +103,7 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	Collection<BridgeCandidate> bridgeCandidates = null;
 	
 	PersistentList<Split> splits = null;
+	Double confidence = null;
 	
 	ShapeImpl() {
 		
@@ -1774,6 +1775,22 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	public Shape getShape() {
 		return this;
 	}
+
+	@Override
+	public double getConfidence() {
+		if (confidence==null) {
+			confidence = 1.0;
+			for (Decision<Letter> guess : this.letterGuesses) {
+				if (guess.getOutcome().getString().equals(this.letter)) {
+					confidence = guess.getProbability();
+					break;
+				}
+			}
+		}
+		return confidence;
+	}
 	
-	
+	public void setConfidence(double confidence) {
+		this.confidence = confidence;
+	}
 }

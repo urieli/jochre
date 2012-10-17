@@ -16,7 +16,7 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.text;
+package com.joliciel.jochre.output;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -29,11 +29,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 
+import com.joliciel.jochre.doc.DocumentObserver;
+import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -41,11 +45,57 @@ import com.joliciel.talismane.utils.LogUtils;
  * @author Assaf Urieli
  *
  */
-class TextGetterImpl implements TextGetter {
+class TextGetterImpl implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(TextGetterImpl.class);
+	private Writer writer;
+	private TextFormat textFormat = TextFormat.PLAIN;
+	private Lexicon lexicon;
+	
+	public TextGetterImpl(Writer writer, TextFormat textFormat) {
+		this(writer, textFormat, null);
+	}
+	
+	public TextGetterImpl(Writer writer, TextFormat textFormat, Lexicon lexicon) {
+		this.writer = writer;
+		this.textFormat = textFormat;
+		this.lexicon = lexicon;
+	}
 
 	@Override
-	public void getText(JochreImage image, Writer writer, TextFormat textFormat) {
+	public void onDocumentStart(JochreDocument jochreDocument) {
+		if (textFormat.equals(TextFormat.XHTML)) {
+			try {
+				writer.write("<html>\n");
+				writer.write("<head>\n");
+				writer.write("<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\" />\n");
+				writer.write("<title>" + jochreDocument.getName() + "</title>\n");
+				writer.write("</head>\n");
+				writer.write("<body>\n");
+			} catch (IOException ioe) {
+				LogUtils.logError(LOG, ioe);
+				throw new RuntimeException(ioe);
+			}
+		}
+	}
+
+	@Override
+	public void onPageStart(JochrePage jochrePage) {
+		if (textFormat.equals(TextFormat.XHTML)) {
+			try {
+				writer.write("<h3>Page " + (jochrePage.getIndex()) + "</h3>\n");
+			} catch (IOException ioe) {
+				LogUtils.logError(LOG, ioe);
+				throw new RuntimeException(ioe);
+			}
+		}
+	}
+
+	@Override
+	public void onImageStart(JochreImage jochreImage) {
+	}
+
+	@Override
+	public void onImageComplete(JochreImage image) {
 		try {
 			double minRatioBiggerFont = 1.15;
 			double maxRatioSmallerFont = 0.85;
@@ -64,16 +114,22 @@ class TextGetterImpl implements TextGetter {
 				}
 				meanXHeight = xHeightMean.getResult();
 			}
+			String paragraphString = "<p>";
+			if (!image.isLeftToRight())
+				paragraphString = "<p dir=\"rtl\">";
 			for (Paragraph paragraph : image.getParagraphs()) {
 				if (textFormat.equals(TextFormat.XHTML))
-					writer.append("<P>");
+					writer.append(paragraphString);
 				
 				Map<Integer, Boolean> fontSizeChanges = new TreeMap<Integer, Boolean>();
 				int currentFontSize = 0;
 				StringBuilder paragraphText = new StringBuilder();
 				
+				String lastWord = "";
+				boolean lastRowEndedWithHyphen = false;
 				for (RowOfShapes row : paragraph.getRows()) {
 					for (GroupOfShapes group : row.getGroups()) {
+						boolean endOfRowHyphen = false;
 						if (textFormat.equals(TextFormat.XHTML)) {
 							double ratio = (double) group.getXHeight() /  meanXHeight;
 							if (ratio>=minRatioBiggerFont) {
@@ -115,7 +171,6 @@ class TextGetterImpl implements TextGetter {
 								}
 							}
 							
-							
 							if (letter.equals(",")) {
 								// could be ",," = "„"
 								if (currentSequence.length()>0&&currentSequence.charAt(0)==',') {
@@ -139,19 +194,43 @@ class TextGetterImpl implements TextGetter {
 									// do nothing - dash at the end of the line
 									// we'll assume for now these dashes are always supposed to disappear
 									// though of course they could be used in the place of a real mid-word dash
+									endOfRowHyphen = true;
 								} else {
 									sb.append(shape.getLetter());									
 								}
 							} else {
 								sb.append(currentSequence);
 								currentSequence = new StringBuilder();
-								sb.append(letter);
+								if (letter.equals(",,")) {
+									sb.append("„");
+								} else if (letter.equals("''")) {
+									sb.append("“");
+								} else {
+									sb.append(letter);									
+								}
 							}
 						} // next shape
 						sb.append(currentSequence);
-
-						paragraphText.append(sb);
-						paragraphText.append(' ');
+						
+						String word = sb.toString();
+						if (endOfRowHyphen) {
+							lastRowEndedWithHyphen = true;
+							endOfRowHyphen = false;
+						} else if (lastRowEndedWithHyphen) {
+							if (lexicon!=null) {
+								String hyphenatedWord = lastWord + "-" + word;
+								int frequency = lexicon.getFrequency(hyphenatedWord);
+								LOG.debug("hyphenatedWord: " + hyphenatedWord + ", Frequency: " + frequency);
+								if (frequency > 0) {
+									paragraphText.append("-");
+								}
+							}
+							lastRowEndedWithHyphen = false;
+						}
+						lastWord = word;
+						paragraphText.append(word);
+						if (!lastRowEndedWithHyphen)
+							paragraphText.append(' ');
 					} // next group
 				} // next row
 				String paragraphStr = paragraphText.toString();
@@ -179,18 +258,18 @@ class TextGetterImpl implements TextGetter {
 						writer.append(text.substring(currentIndex, fontSizeChange));
 						if (isBigger) {
 							if (currentFontSize==0) {
-								writer.append("<BIG>"); 
+								writer.append("<big>"); 
 								currentFontSize++;
 							} else if (currentFontSize<0) {
-								writer.append("</SMALL>");
+								writer.append("</small>");
 								currentFontSize++;
 							}
 						} else {
 							if (currentFontSize==0) {
-								writer.append("<SMALL>");
+								writer.append("<small>");
 								currentFontSize--;
 							} else if (currentFontSize>0) {
-								writer.append("</BIG>");
+								writer.append("</big>");
 								currentFontSize--;
 							}
 						}
@@ -199,14 +278,14 @@ class TextGetterImpl implements TextGetter {
 					writer.append(text.substring(currentIndex));
 					
 					if (currentFontSize>0) {
-						writer.append("</BIG>");
+						writer.append("</big>");
 					} else if (currentFontSize<0) {
-						writer.append("</SMALL>");
+						writer.append("</small>");
 					}
 				} // haveFontSizes?
 
 				if (textFormat.equals(TextFormat.XHTML))
-					writer.append("</P>");
+					writer.append("</p>");
 				else
 					writer.append('\n');
 				writer.flush();
@@ -216,7 +295,33 @@ class TextGetterImpl implements TextGetter {
 			throw new RuntimeException(ioe);
 		}
 	}
-	
+
+	@Override
+	public void onPageComplete(JochrePage jochrePage) {
+		if (textFormat.equals(TextFormat.XHTML)) {
+			try {
+				writer.write("<hr/>\n");
+			} catch (IOException ioe) {
+				LogUtils.logError(LOG, ioe);
+				throw new RuntimeException(ioe);
+			}
+		}
+	}
+
+	@Override
+	public void onDocumentComplete(JochreDocument jochreDocument) {
+		if (textFormat.equals(TextFormat.XHTML)) {
+			try {
+				writer.write("</body>\n");
+				writer.write("</html>\n");
+			} catch (IOException ioe) {
+				LogUtils.logError(LOG, ioe);
+				throw new RuntimeException(ioe);
+			}
+		}
+	}
+
+
 	void appendBidiText(String text, Writer writer) {
 		try {
 			// assumption here is that if text is marked as left-to-right
@@ -250,5 +355,4 @@ class TextGetterImpl implements TextGetter {
 			throw new RuntimeException(ioe);
 		}
 	}
-
 }

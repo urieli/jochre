@@ -244,7 +244,11 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	public double getBaseLineMiddlePoint() {
 		double xMidPoint = (((double)this.getRight()+(double)this.getLeft())/2.0);
 		Shape midShape = this.findNearestShape((int)Math.round(xMidPoint));
-		double yMidPoint = midShape.getTop() + midShape.getBaseLine();
+		double yMidPoint = 0;
+		if (midShape!=null)
+			yMidPoint = midShape.getTop() + midShape.getBaseLine();
+		else
+			yMidPoint = (((double)this.getBottom()+(double)this.getTop())/2.0);
 		return yMidPoint;
 	}
 
@@ -661,6 +665,8 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 		}
 		if (minTop > 0)
 			minTop = 0;
+		if (maxBottom < 0)
+			maxBottom = 0;
 		
 		int yIntervalTop = 0 - minTop;
 		int yIntervalBottom = maxBottom;
@@ -814,6 +820,13 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 			currentGroup.addShape(shape);
 			previousShape = shape;
 		} // next shape
+		
+		for (GroupOfShapes group : this.getGroups()) {
+			int j = 0;
+			for (Shape shape : group.getShapes()) {
+				shape.setIndex(j++);
+			}
+		}
 	}
 
 	public int getXHeight() {

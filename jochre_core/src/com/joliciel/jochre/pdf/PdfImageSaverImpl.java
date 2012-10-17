@@ -34,19 +34,23 @@ public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfIma
 	private static String SUFFIX = "png";
 
 	private String outputDirectory;
-	private File pdfFile;
+
+	public PdfImageSaverImpl(File pdfFile) {
+		super(pdfFile);
+	}
 	
 	@Override
-	public void saveImages(File pdfFile, String outputDirectory, int firstPage, int lastPage) {
+	public void saveImages(String outputDirectory, int firstPage, int lastPage) {
+
 		// Create the output directory if it doesn't exist
 		this.outputDirectory = outputDirectory;
-		this.pdfFile = pdfFile;
+
 		LOG.debug( "Images will be stored to " + outputDirectory );
 		File outputDirectoryPath = new File( outputDirectory );
 		if( outputDirectoryPath.exists() == false )
 			outputDirectoryPath.mkdirs();
 		
-		this.visitImages(pdfFile, firstPage, lastPage);
+		this.visitImages(firstPage, lastPage);
 	}
 
 	@Override
@@ -60,7 +64,7 @@ public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfIma
 		if( pagePath.exists() == false )
 			pagePath.mkdirs();
 		
-		String fileName = pdfFile.getName().substring(0, pdfFile.getName().lastIndexOf('.'));
+		String fileName = this.getPdfFile().getName().substring(0, this.getPdfFile().getName().lastIndexOf('.'));
 		fileName += "_" + pageIndex + "_" + imageIndex + "." + SUFFIX;
 		try {
 			ImageIO.write(image,SUFFIX,new File(pageDirectory + SEPARATOR + fileName));

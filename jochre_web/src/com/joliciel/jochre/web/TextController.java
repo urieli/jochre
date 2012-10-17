@@ -46,7 +46,7 @@ import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.doc.ProcessedImageObserver;
+import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.Lexicon;
@@ -54,12 +54,11 @@ import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.OutputService;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.pdf.PdfService;
 import com.joliciel.jochre.security.User;
-import com.joliciel.jochre.text.TextFormat;
-import com.joliciel.jochre.text.TextGetter;
-import com.joliciel.jochre.text.TextService;
 
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
@@ -74,7 +73,7 @@ public class TextController extends GenericForwardComposer<Window> {
 	private GraphicsService graphicsService;
 	private DocumentService documentService;
 	private LexiconService lexiconService;
-	private TextService textService;
+	private OutputService textService;
 	
 	private JochreDocument currentDoc;
 	private JochreImage currentImage;
@@ -185,12 +184,12 @@ public class TextController extends GenericForwardComposer<Window> {
 	public void onTimer$startRenderTimer(Event event) {
 		try {
 			progressBox.setVisible(true);
-			TextGetter textGetter = textService.getTextGetter();
+			
 			if (currentImage!=null) {
 				Html html = new Html();
 				StringWriter out = new StringWriter();
-
-				textGetter.getText(currentImage, out, TextFormat.XHTML);
+				DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+				textGetter.onImageComplete(currentImage);
 				html.setContent(out.toString());
 				htmlContent.appendChild(html);
 				progressMeter1.setValue(100);
@@ -201,7 +200,8 @@ public class TextController extends GenericForwardComposer<Window> {
 					for (JochreImage image : page.getImages()) {
 						Html html = new Html();
 						StringWriter out = new StringWriter();
-						textGetter.getText(image, out, TextFormat.XHTML);
+						DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+						textGetter.onImageComplete(image);
 						out.append("<HR/>");
 						html.setContent(out.toString());
 						htmlContent.appendChild(html);
@@ -260,7 +260,6 @@ public class TextController extends GenericForwardComposer<Window> {
 		try {
 			LOG.debug("onClick$btnAnalyse");
 			if (currentFile!=null) {
-				TextGetter textGetter = textService.getTextGetter();
 				progressBox.setVisible(true);
 				lblAwaitingFile.setVisible(false);
 				int startPage = txtStartPage.getValue().length()==0 ? -1 : Integer.parseInt(txtStartPage.getValue());
@@ -309,7 +308,7 @@ public class TextController extends GenericForwardComposer<Window> {
 				
 				MostLikelyWordChooser wordChooser = lexiconService.getMostLikelyWordChooser(lexicon, wordSplitter);
 
-				this.documentHtmlGenerator = new DocumentHtmlGenerator(textGetter);
+				this.documentHtmlGenerator = new DocumentHtmlGenerator();
 				
 				if (this.currentDoc!=null) {
 					this.currentDoc.setFileName(currentFile.getName());
@@ -320,7 +319,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", locale);
 				}
 				documentGenerator.requestAnalysis(splitModelFile, mergeModelFile, letterModelFile, wordChooser);
-				documentGenerator.addProcessedImageObserver(this.documentHtmlGenerator);
+				documentGenerator.addDocumentObserver(this.documentHtmlGenerator);
 				
 				String lowerCaseFileName = currentFile.getName().toLowerCase();
 				Thread thread = null;
@@ -405,13 +404,11 @@ public class TextController extends GenericForwardComposer<Window> {
 		}
 	}
 	
-	private class DocumentHtmlGenerator implements ProcessedImageObserver {
-		private TextGetter textGetter;
+	private class DocumentHtmlGenerator implements DocumentObserver {
 		private List<Html> htmlList = new ArrayList<Html>();
 
-		public DocumentHtmlGenerator(TextGetter textGetter) {
+		public DocumentHtmlGenerator() {
 			super();
-			this.textGetter = textGetter;
 		}
 
 		public List<Html> getHtmlList() {
@@ -419,13 +416,34 @@ public class TextController extends GenericForwardComposer<Window> {
 		}
 
 		@Override
-		public void onImageProcessed(JochreImage jochreImage) {
+		public void onDocumentStart(JochreDocument jochreDocument) {	
+		}
+
+		@Override
+		public void onPageStart(JochrePage jochrePage) {
+		}
+
+		@Override
+		public void onImageStart(JochreImage jochreImage) {
+		}
+
+		@Override
+		public void onImageComplete(JochreImage jochreImage) {
 			Html html = new Html();
 			StringWriter out = new StringWriter();
-			textGetter.getText(jochreImage, out, TextFormat.XHTML);
+			DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+			textGetter.onImageComplete(jochreImage);
 			out.append("<HR/>");
 			html.setContent(out.toString());
 			htmlList.add(html);
+		}
+
+		@Override
+		public void onPageComplete(JochrePage jochrePage) {
+		}
+
+		@Override
+		public void onDocumentComplete(JochreDocument jochreDocument) {	
 		}
 
 	}

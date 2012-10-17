@@ -49,6 +49,8 @@ class JochreDocumentImpl extends EntityImpl implements
 
 	private List<JochreImage> images;
 	private PersistentList<Author> authors;
+	
+	private int totalPageCount;
 
 	@Override
 	public List<JochrePage> getPages() {
@@ -336,6 +338,14 @@ class JochreDocumentImpl extends EntityImpl implements
 	@Override
 	public void setReference(String reference) {
 		this.reference = reference;
+	}
+
+	public int getTotalPageCount() {
+		return totalPageCount;
+	}
+
+	public void setTotalPageCount(int totalPageCount) {
+		this.totalPageCount = totalPageCount;
 	}
 	
 }

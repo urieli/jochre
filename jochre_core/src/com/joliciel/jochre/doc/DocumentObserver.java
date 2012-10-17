@@ -16,31 +16,15 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.text;
+package com.joliciel.jochre.doc;
 
-import com.joliciel.talismane.utils.ObjectCache;
+import com.joliciel.jochre.graphics.JochreImage;
 
-class TextServiceImpl implements TextService {
-	private ObjectCache objectCache;	
-	@SuppressWarnings("unused")
-	private TextServiceLocator textServiceLocator;
-
-	public TextServiceImpl(TextServiceLocator textServiceLocator) {
-		this.textServiceLocator = textServiceLocator;
-	}
-	
-	@Override
-	public TextGetter getTextGetter() {
-		TextGetterImpl textGetter =  new TextGetterImpl();
-		return textGetter;
-	}
-
-	public ObjectCache getObjectCache() {
-		return objectCache;
-	}
-
-	public void setObjectCache(ObjectCache objectCache) {
-		this.objectCache = objectCache;
-	}
-
+public interface DocumentObserver {
+	public void onDocumentStart(JochreDocument jochreDocument);
+	public void onPageStart(JochrePage jochrePage);
+	public void onImageStart(JochreImage jochreImage);
+	public void onImageComplete(JochreImage jochreImage);
+	public void onPageComplete(JochrePage jochrePage);
+	public void onDocumentComplete(JochreDocument jochreDocument);
 }

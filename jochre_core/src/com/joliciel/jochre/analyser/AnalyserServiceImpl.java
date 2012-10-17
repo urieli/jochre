@@ -23,7 +23,6 @@ import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class AnalyserServiceImpl implements AnalyserServiceInternal {
@@ -44,10 +43,9 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 	}
 	
 	@Override
-	public ImageAnalyser getBeamSearchImageAnalyzer(int maxBeamWidth,
-			double minOutcomeWeight, MostLikelyWordChooser mostLikelyWordChooser) {
+	public ImageAnalyser getBeamSearchImageAnalyser(int maxBeamWidth,
+			double minOutcomeWeight) {
 		BeamSearchImageAnalyser evaluator = new BeamSearchImageAnalyser(maxBeamWidth, minOutcomeWeight);
-		evaluator.setMostLikelyWordChooser(mostLikelyWordChooser);
 		evaluator.setAnalyserServiceInternal(this);
 		evaluator.setGraphicsService(this.getGraphicsService());
 		evaluator.setLetterGuesserService(this.getLetterGuesserService());

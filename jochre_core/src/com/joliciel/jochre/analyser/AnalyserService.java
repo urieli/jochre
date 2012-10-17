@@ -19,8 +19,7 @@
 package com.joliciel.jochre.analyser;
 
 import com.joliciel.jochre.analyser.ImageAnalyser;
-import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 
 public interface AnalyserService {	
-	public ImageAnalyser getBeamSearchImageAnalyzer(int beamWidth, double minOutcomeWeight, MostLikelyWordChooser mostLikelyWordChooser);
+	public ImageAnalyser getBeamSearchImageAnalyser(int beamWidth, double minOutcomeWeight);
 }

@@ -18,8 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.pdf;
 
-import java.io.File;
-
 /**
  * Saves a set of images extracted from a pdf document.
  * @author Assaf Urieli
@@ -28,10 +26,9 @@ import java.io.File;
 public interface PdfImageSaver {
 	/**
 	 * Save the images to the outputDirectory indicated.
-	 * @param pdfFile
 	 * @param outputDirectory
 	 * @param firstPage a value of -1 means no first page
 	 * @param lastPage a value of -1 means no last page
 	 */
-	public void saveImages(File pdfFile, String outputDirectory, int firstPage, int lastPage);
+	public void saveImages(String outputDirectory, int firstPage, int lastPage);
 }

@@ -132,4 +132,18 @@ public interface GroupOfShapes extends Entity {
 	 */
 	public boolean isSegmentationProblem();
 	public void setSegmentationProblem(boolean segmentationProblem);
+	
+	/**
+	 * The frequency of the word represented by this letter sequence.
+	 * @return
+	 */
+	public int getFrequency();
+	public void setFrequency(int frequency);
+	
+	/**
+	 * A list of shapes, as corrected for merged shapes, split shapes and specks.
+	 * @return
+	 */
+	public List<Shape> getCorrectedShapes();
+
 }
