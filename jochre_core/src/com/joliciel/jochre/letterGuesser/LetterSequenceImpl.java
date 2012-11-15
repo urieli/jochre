@@ -20,7 +20,6 @@ package com.joliciel.jochre.letterGuesser;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
@@ -29,6 +28,7 @@ import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
 import com.joliciel.talismane.machineLearning.ScoringStrategy;
 import com.joliciel.talismane.machineLearning.Solution;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
  * 
@@ -51,6 +51,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	private ShapeSequence underlyingShapeSequence;
 	private BoundaryService boundaryService;
 	private int frequency = 0;
+	private List<WeightedOutcome<String>> wordFrequencies = new ArrayList<WeightedOutcome<String>>();
 	
 	private List<Decision<Letter>> decisions = new ArrayList<Decision<Letter>>();
 	private List<Solution<?>> underlyingSolutions = new ArrayList<Solution<?>>();
@@ -278,6 +279,10 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 
 	public void setScoringStrategy(ScoringStrategy scoringStrategy) {
 		this.scoringStrategy = scoringStrategy;
+	}
+
+	public List<WeightedOutcome<String>> getWordFrequencies() {
+		return wordFrequencies;
 	}
 
 

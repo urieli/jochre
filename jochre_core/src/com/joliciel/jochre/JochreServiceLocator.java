@@ -112,7 +112,7 @@ public class JochreServiceLocator {
     }
     
     private Properties getDataSourceProperties() {
-        if (dataSourceProperties==null) {
+        if (dataSourceProperties==null && this.getDataSourcePropertiesResource()!=null) {
             dataSourceProperties = new Properties();
             try {
             	LOG.debug("Loading database properties from: " + this.getDataSourcePropertiesResource());
@@ -130,18 +130,20 @@ public class JochreServiceLocator {
     
     private DataSource getDataSource() {
         if (dataSource==null) {
-            ComboPooledDataSource ds = new ComboPooledDataSource();
-            Properties props = this.getDataSourceProperties();
-            try {
-                ds.setDriverClass(props.getProperty("jdbc.driverClassName"));
-            } catch (PropertyVetoException e) {
-                 e.printStackTrace();
-                 throw new RuntimeException(e);
+             Properties props = this.getDataSourceProperties();
+            if (props!=null) {
+                ComboPooledDataSource ds = new ComboPooledDataSource();
+	            try {
+	                ds.setDriverClass(props.getProperty("jdbc.driverClassName"));
+	            } catch (PropertyVetoException e) {
+	                 e.printStackTrace();
+	                 throw new RuntimeException(e);
+	            }
+	            ds.setJdbcUrl(props.getProperty("jdbc.url"));
+	            ds.setUser(props.getProperty("jdbc.username"));
+	            ds.setPassword(props.getProperty("jdbc.password"));
+	            dataSource = ds;
             }
-            ds.setJdbcUrl(props.getProperty("jdbc.url"));
-            ds.setUser(props.getProperty("jdbc.username"));
-            ds.setPassword(props.getProperty("jdbc.password"));
-            dataSource = ds;
         }
         return dataSource;
     }

@@ -132,8 +132,23 @@ public class YiddishWordSplitter implements WordSplitter {
 	
 	public static String standardiseWord(String originalWord) {
 		String word = originalWord;
+		// double-character fixes
+		word = word.replaceAll("וו", "װ");
+		word = word.replaceAll("וי", "ױ");
+		word = word.replaceAll("ױִ", "ויִ");
+		
 		// systematic replacements, including redundent melupm vov and khirik yud
+		word = word.replaceAll("װוּ", "װוּּ");
+		word = word.replaceAll("וּװ", "וּּװ");
+		word = word.replaceAll("וּי", "וּּי");
 		word = word.replaceAll("וּ", "ו");
+		word = word.replaceAll("עיִ", "עיִִ");
+		word = word.replaceAll("אַיִ", "אַיִִ");
+		word = word.replaceAll("אָיִ", "אָיִִ");
+		word = word.replaceAll("ויִ", "ויִִ");
+		word = word.replaceAll("וּיִ", "וּיִִ");
+		word = word.replaceAll("יִי", "יִִי");
+		word = word.replaceAll("ייִ", "ייִִ");
 		word = word.replaceAll("יִ", "י");
 		word = word.replaceAll("עֶ", "ע");
 		word = word.replaceAll("עֵ", "ע");
@@ -142,28 +157,28 @@ public class YiddishWordSplitter implements WordSplitter {
 		word = word.replaceAll("שׁ", "ש");
 		word = word.replaceAll("וֹ", "ו");
 		word = word.replaceAll("\\Aת([^ּ])", "תּ$1");
+		
+		// more double-character fixes
+		word = word.replaceAll("(.)יי", "$1ײ");
+		word = word.replaceAll("ייַ", "ײַ");
+		word = word.replaceAll("“", "\"");
+		word = word.replaceAll("''", "\"");
+		word = word.replaceAll(",,", "„");
+		if (word.startsWith("יי"))
+			word = "ייִ" + word.substring(2);
 
 		// silent 
-		if (word.equals("וואו")) word = "וווּ";
-		word = word.replaceAll("וואו([^ּ])", "וווּ$1");
-		word = word.replaceAll("ואוו", "וּוו");
-		word = word.replaceAll("וואוי", "וווי");
+		if (word.equals("װאו")) word = "װוּ";
+		word = word.replaceAll("װאו([^ּ])", "װוּ$1");
+		word = word.replaceAll("ואװ", "וּװ");
+		word = word.replaceAll("װאױ", "װױ");
 		word = word.replaceAll("אַא", "אַ");
 
 		// silent ה
 		word = word.replaceAll("טהו", "טו");
 		word = word.replaceAll("טהאָ", "טאָ");
 
-		// double-character fixes
-		word = word.replaceAll("וי", "ױ");
-		word = word.replaceAll("וו", "װ");
-		word = word.replaceAll("(.)יי", "$1ײ");
-		word = word.replaceAll("ייַ", "ײַ");
-		if (word.startsWith("יי"))
-			word = "ייִ" + word.substring(2);
-		word = word.replaceAll("“", "\"");
-		word = word.replaceAll("''", "\"");
-		word = word.replaceAll(",,", "„");
+
 
 		// apostrophes all over the place (except at the end)
 		word = word.replaceAll("(.)'(.)", "$1$2");

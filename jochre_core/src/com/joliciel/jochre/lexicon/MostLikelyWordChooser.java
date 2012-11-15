@@ -18,7 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
-import java.io.Writer;
 import java.util.List;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 
@@ -48,9 +47,6 @@ public interface MostLikelyWordChooser {
 	 */
 	public LetterSequence chooseMostLikelyWord(
 			List<LetterSequence> heap, List<LetterSequence> holdoverHeap, int n);
-	
-	public Writer getUnknownWordWriter();
-	public void setUnknownWordWriter(Writer unknownWordWriter);
 	
 	public WordSplitter getWordSplitter();
 	public void setWordSplitter(WordSplitter wordSplitter);

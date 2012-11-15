@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.joliciel.jochre.EntityImpl;
+import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.letterGuesser.LetterSequence;
 
 class GroupOfShapesImpl extends EntityImpl implements
 		GroupOfShapesInternal {
@@ -50,7 +52,8 @@ class GroupOfShapesImpl extends EntityImpl implements
 	
 	private boolean dirty = true;
 	
-	private int frequency = 0;
+	private LetterSequence bestLetterSequence = null;
+	private Boolean junk = null;
 	
 	public List<Shape> getShapes() {
 		if (shapes==null) {
@@ -346,11 +349,9 @@ class GroupOfShapesImpl extends EntityImpl implements
 	}
 
 	public int getFrequency() {
-		return frequency;
-	}
-
-	public void setFrequency(int frequency) {
-		this.frequency = frequency;
+		if (this.bestLetterSequence!=null)
+			return this.bestLetterSequence.getFrequency();
+		return -1;
 	}
 
 	public List<Shape> getCorrectedShapes() {
@@ -461,5 +462,36 @@ class GroupOfShapesImpl extends EntityImpl implements
 		}
 		return correctedShapes;
 	}
-	
+
+
+	public boolean isJunk() {
+		if (junk==null) {
+			if (this.getFrequency()<=0 || this.getShapes().size()<=1) {
+				double averageConfidence = 0;
+				if (this.getShapes().size()>0) {
+					for (Shape shape : this.getShapes()) {
+						averageConfidence += shape.getConfidence();
+					}
+					averageConfidence = averageConfidence / this.getShapes().size();
+				}
+				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+					junk = true;
+				else
+					junk = false;
+			} else {
+				junk = false;
+			}
+		}
+		return junk;
+	}
+
+
+
+	@Override
+	public LetterSequence getBestLetterSequence() {
+		return this.bestLetterSequence;
+	}
+	public void setBestLetterSequence(LetterSequence bestLetterSequence) {
+		this.bestLetterSequence = bestLetterSequence;
+	}
 }

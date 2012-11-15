@@ -21,6 +21,7 @@ package com.joliciel.jochre.graphics;
 import java.util.List;
 
 import com.joliciel.jochre.Entity;
+import com.joliciel.jochre.letterGuesser.LetterSequence;
 
 /**
  * A group of shapes within a row, corresponding a single orthographic word.
@@ -138,12 +139,18 @@ public interface GroupOfShapes extends Entity {
 	 * @return
 	 */
 	public int getFrequency();
-	public void setFrequency(int frequency);
 	
 	/**
 	 * A list of shapes, as corrected for merged shapes, split shapes and specks.
 	 * @return
 	 */
 	public List<Shape> getCorrectedShapes();
+	
+	/**
+	 * Returns the best letter sequence for this group, if any, or null if none.
+	 * @return
+	 */
+	public LetterSequence getBestLetterSequence();
+	public void setBestLetterSequence(LetterSequence bestLetterSequence);
 
 }

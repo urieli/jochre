@@ -60,4 +60,11 @@ public interface Paragraph extends Entity {
 	 * The bottom-most y coordinate of this paragraph (based on the rows it contains).
 	 */
 	public int getBottom();
+	
+	/**
+	 * Does this paragraph contain a vast majority of "junk" analyses
+	 * (low confidence letters, inexistent words, etc. not to be exported)
+	 * @return
+	 */
+	public boolean isJunk();
 }

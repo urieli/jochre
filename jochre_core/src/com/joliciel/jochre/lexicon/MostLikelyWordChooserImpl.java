@@ -18,8 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
@@ -42,7 +41,6 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	LetterGuesserService letterGuesserService = null;
 	WordSplitter wordSplitter;
 	Lexicon lexicon;
-	Writer unknownWordWriter;
 	
 	public LetterSequence chooseMostLikelyWord(
 			List<LetterSequence> heap, List<LetterSequence> holdoverHeap, int n) {
@@ -142,7 +140,6 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		int i = 0;
 		double bestScore = Double.NEGATIVE_INFINITY;
 		LetterSequence bestSequence = null;
-		int bestSequencyFrequency = 0;
 		
 		List<LetterSequence> sequences = new ArrayList<LetterSequence>(n);
 		for (LetterSequence sequence : heap) {
@@ -164,9 +161,55 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			List<String> words = this.getWordSplitter().splitText(wordText);
 			
 			for (String word : words) {
-				int frequency = this.lexicon.getFrequency(word);
+				// More intelligent handling of dashes:
+				// If a word contains a dash, we should analyse both sides of the dash separately
+				// as well as the whole thing together
+				int frequency = 0;
+				
+				if (word.contains("-")) {
+					String[] parts = word.split("-");
+					boolean trySplit = true;
+					// only try to split if all parts have at least 2 characters
+					for (String part : parts) {
+						part = part.trim();
+						if (part.length()>0 & !part.equals("-")) {
+							if (part.length()<=2) {
+								trySplit = false;
+								break;
+							}
+						}
+					}
+					if (trySplit) {
+						frequency = this.lexicon.getFrequency(word);
+
+						List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
+						int minPartFrequency = Integer.MAX_VALUE;
+						for (String part : parts) {
+							part = part.trim();
+							if (part.length()>0) {
+								int partFrequency  = this.lexicon.getFrequency(part);
+								partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
+								if (!part.equals("-") && partFrequency < minPartFrequency)
+									minPartFrequency = partFrequency;
+							}
+						}
+						if (frequency>minPartFrequency) {
+							sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+						} else {
+							sequence.getWordFrequencies().addAll(partFrequencies);
+							frequency = minPartFrequency;
+						}
+					} else {
+						frequency = this.lexicon.getFrequency(word);
+						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+					}
+				} else {
+					frequency = this.lexicon.getFrequency(word);
+					sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+				}
 				if (frequency < minFrequency)
 					minFrequency = frequency;
+
 			}
 			
 			sequence.setFrequency(minFrequency);
@@ -179,21 +222,12 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			if (adjustedScore>bestScore) {
 				bestSequence = sequence;
 				bestScore = adjustedScore;
-				bestSequencyFrequency = minFrequency;
 			}
 			i++;
 		}
 		if (LOG.isDebugEnabled())
 			LOG.debug("Best: " + bestSequence.toString());
 		
-		if (bestSequencyFrequency==0 && this.unknownWordWriter!=null) {
-			try {
-				this.unknownWordWriter.write(bestSequence.toString() + "\n");
-				this.unknownWordWriter.flush();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
 		return bestSequence;
 	}
 	
@@ -268,13 +302,4 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	public void setLexicon(Lexicon lexicon) {
 		this.lexicon = lexicon;
 	}
-
-	public Writer getUnknownWordWriter() {
-		return unknownWordWriter;
-	}
-
-	public void setUnknownWordWriter(Writer unknownWordWriter) {
-		this.unknownWordWriter = unknownWordWriter;
-	}
-
 }

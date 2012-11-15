@@ -1,6 +1,7 @@
 [#ftl]
 <page width="${image.width?c}" height="${image.height?c}" resolution="600" originalCoords="true">
 [#list image.paragraphs as paragraph]
+[#if !paragraph.junk]
 <block blockType="Text" l="${paragraph.left?c}" t="${paragraph.top?c}" r="${paragraph.right?c}" b="${paragraph.bottom?c}">
 	<text>
 	<par lineSpacing="-1">
@@ -24,7 +25,7 @@
 					[/#if]
 					<charParams l="${spaceLeft?c}" t="${spaceTop?c}" r="${spaceRight?c}" b="${spaceBottom?c}" wordStart="false" wordFromDictionary="false" wordNormal="false" wordNumeric="false" wordIdentifier="false" charConfidence="255" serifProbability="255" wordPenalty="0" meanStrokeWidth="0"> </charParams>
 				[/#if]
-				[#assign lastGroup=group]	
+				[#assign lastGroup=group]
 			[/#list]
 		</formatting>
 		</line>
@@ -32,6 +33,7 @@
 	</par>
 	</text>
 </block>
+[/#if]
 [/#list]
 </page>
 

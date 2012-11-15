@@ -48,6 +48,9 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	@Override
 	public int getFrequency(String initialWord) {
 		String word = YiddishWordSplitter.standardiseWord(initialWord);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
+		}
 
 		// systematic replacements for non-hebraic words
 		Set<String> variants = new TreeSet<String>();
@@ -55,10 +58,6 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		// in case it's a hebraic word, we keep the initial word in the mix
 		variants.add(word);
 		
-		// niqqud
-		variants = this.addVariants(variants, "בּ", "ב");
-		variants = this.addVariants(variants, "כֿ", "כ");
-
 		// silent ה
 		variants = this.addVariants(variants, "(.)עה", "$1ע");
 		variants = this.addVariants(variants, "(.)יה", "$1י");
@@ -91,13 +90,19 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		variants = this.addVariants(variants, "לל", "ל");
 
 		// בּ instead of ב
-		variants = this.addVariants(variants, "א([^ַ])", "אַ$1");
-		variants = this.addVariants(variants, "א([^ָ])", "אָ$1");
+		variants = this.addVariants(variants, "א([^ַָ])", "אַ$1");
+		variants = this.addVariants(variants, "א([^ַָ])", "אָ$1");
 		variants = this.addVariants(variants, "יִ", "י");
-		variants = this.addVariants(variants, "פ([^ֿ])", "פֿ$1");
-		variants = this.addVariants(variants, "פ([^ּ])", "פּ$1");
+		variants = this.addVariants(variants, "פ([^ּֿ])", "פֿ$1");
+		variants = this.addVariants(variants, "פ([^ּֿ])", "פּ$1");
+		variants = this.addVariants(variants, "ב([^ּֿ])", "בֿ$1");
+		variants = this.addVariants(variants, "ב([^ּֿ])", "בּ$1");
 		variants = this.addVariants(variants, "וּ", "ו");
 		
+		// niqqud
+		variants = this.addVariants(variants, "בּ", "ב");
+		variants = this.addVariants(variants, "כֿ", "כ");
+
 		// other typical variants
 		variants = this.addVariants(variants, "דט", "ט");
 		variants = this.addVariants(variants, "\\Aפֿער(.)", "פֿאַר$1");

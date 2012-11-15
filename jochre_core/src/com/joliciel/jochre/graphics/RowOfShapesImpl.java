@@ -38,6 +38,7 @@ import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 import com.joliciel.jochre.EntityImpl;
+import com.joliciel.jochre.JochreSession;
 
 class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	private static final Log LOG = LogFactory.getLog(RowOfShapesImpl.class);
@@ -74,7 +75,8 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	double averageShapeHeightMargin;
 	
 	private SimpleRegression regression;
-	
+	private Boolean junk = null;
+
 	RowOfShapesImpl() {
 	}
 	
@@ -1055,6 +1057,32 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 			xAdjustmentCalculated = true;
 		}
 		return xAdjustment;
+	}
+
+	public boolean isJunk() {
+		if (junk==null) {
+			if (this.getGroups().size()>0) {
+				double averageConfidence = 0;
+				double shapeCount = 0;
+				for (GroupOfShapes group : this.getGroups()) {
+					if (group.getShapes().size()>0) {
+						for (Shape shape : group.getShapes()) {
+							averageConfidence += shape.getConfidence();
+							shapeCount += 1;
+						}
+					}
+				}
+				averageConfidence = averageConfidence / shapeCount;
+
+				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+					junk = true;
+				else
+					junk = false;
+			} else {
+				junk = true;
+			}
+		}
+		return junk;
 	}
 	
 }

@@ -19,10 +19,10 @@
 package com.joliciel.jochre.letterGuesser;
 
 import java.util.List;
-
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.talismane.machineLearning.Solution;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
  * A sequence of weighted outcomes with an attached score.
@@ -73,6 +73,13 @@ public interface LetterSequence extends List<Letter>, Solution<Letter> {
 	 */
 	public int getFrequency();
 	public void setFrequency(int frequency);
+	
+	/**
+	 * After breaking this letter sequence up into individual words,
+	 * gives the frequency for each word as found in the lexicon.
+	 * @return
+	 */
+	public List<WeightedOutcome<String>> getWordFrequencies();
 	
 	/**
 	 * The guessed word.

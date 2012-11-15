@@ -40,6 +40,7 @@ import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
+import com.joliciel.jochre.lexicon.UnknownWordListWriter;
 import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.output.OutputService;
@@ -168,17 +169,6 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 	        	wordChooser = lexiconService.getMostLikelyWordChooser(yiddishLexicon, wordSplitter);
 	        	wordChooser.setAdditiveSmoothing(smoothing);
 	        	wordChooser.setFrequencyLogBase(frequencyLogBase);
-	        	
-	        	Writer unknownWordWriter = null;
-	        	if (outputDirPath!=null) {
-	        		File outputDir = new File(outputDirPath);
-	        		outputDir.mkdirs();
-					File unknownWordFile = new File(outputDir, "unknownWords.txt");
-					unknownWordFile.delete();
-					unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true),"UTF8"));
-
-	        	}
-	        	wordChooser.setUnknownWordWriter(unknownWordWriter);
 			}
         	
 			Jochre jochre = new Jochre();
@@ -228,14 +218,18 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 				
 				DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, yiddishLexicon);
 				observers.add(textGetter);
+				
+				if (yiddishLexicon!=null) {
+					File unknownWordFile = new File(outputDir, "unknownWords.txt");
+					unknownWordFile.delete();
+					Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true),"UTF8"));
+
+					UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
+					observers.add(unknownWordListWriter);
+				}
 				jochre.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, observers, firstPage, lastPage);
 			} else if (command.equals("buildLexicon")) {
 				jochre.doCommandBuildLexicon(outputDirPath, wordSplitter);
-			}
-			
-			if (wordChooser!=null&&wordChooser.getUnknownWordWriter()!=null) {
-				wordChooser.getUnknownWordWriter().flush();
-				wordChooser.getUnknownWordWriter().close();
 			}
 			
 		} catch (Exception e) {

@@ -44,7 +44,6 @@ public class SplitCandidateFinderImplTest {
 	@Test
 	public void testFindSplitCanidates(@NonStrict final JochrePage page) throws Exception {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
-		locator.setDataSourcePropertiesResource("jdbc-live.properties");
 		
 		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
 		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();

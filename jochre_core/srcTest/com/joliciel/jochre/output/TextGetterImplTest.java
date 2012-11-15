@@ -164,7 +164,7 @@ public class TextGetterImplTest {
 		textGetter.onImageComplete(jochreImage);
 		String result = writer.toString();
 		LOG.debug(result);
-		assertEquals("<P>A <BIG>B </BIG>C <SMALL>D </SMALL></P>", result);
+		assertEquals("<p dir=\"rtl\">A <big>B </big>C <small>D </small></p>", result);
     }
     
 	public void testAppendBidiText() {

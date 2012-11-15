@@ -41,7 +41,9 @@ import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
- * This Text Getter is specific to Yiddish - may need other ones for other languages.
+ * Converts Jochre's analysis to human-readable text, either in plain or xhtml format.
+ * Note that the current implementation has some Yiddish-specific rules (around Yiddish-style
+ * double-quotes) which will need to be generalised.
  * @author Assaf Urieli
  *
  */
@@ -104,10 +106,12 @@ class TextGetterImpl implements DocumentObserver {
 			if (textFormat.equals(TextFormat.XHTML)) {
 				Mean xHeightMean = new Mean();
 				for (Paragraph paragraph : image.getParagraphs()) {
-					for (RowOfShapes row : paragraph.getRows()) {
-						for (GroupOfShapes group : row.getGroups()) {
-							for (Shape shape : group.getShapes()) {
-								xHeightMean.increment(shape.getXHeight());
+					if (!paragraph.isJunk()) {
+						for (RowOfShapes row : paragraph.getRows()) {
+							for (GroupOfShapes group : row.getGroups()) {
+								for (Shape shape : group.getShapes()) {
+									xHeightMean.increment(shape.getXHeight());
+								}
 							}
 						}
 					}
@@ -118,178 +122,183 @@ class TextGetterImpl implements DocumentObserver {
 			if (!image.isLeftToRight())
 				paragraphString = "<p dir=\"rtl\">";
 			for (Paragraph paragraph : image.getParagraphs()) {
-				if (textFormat.equals(TextFormat.XHTML))
-					writer.append(paragraphString);
-				
-				Map<Integer, Boolean> fontSizeChanges = new TreeMap<Integer, Boolean>();
-				int currentFontSize = 0;
-				StringBuilder paragraphText = new StringBuilder();
-				
-				String lastWord = "";
-				boolean lastRowEndedWithHyphen = false;
-				for (RowOfShapes row : paragraph.getRows()) {
-					for (GroupOfShapes group : row.getGroups()) {
-						boolean endOfRowHyphen = false;
-						if (textFormat.equals(TextFormat.XHTML)) {
-							double ratio = (double) group.getXHeight() /  meanXHeight;
-							if (ratio>=minRatioBiggerFont) {
-								if (currentFontSize<=0)
-									fontSizeChanges.put(paragraphText.length(), true);
-								currentFontSize = 1;
-							} else if (ratio<=maxRatioSmallerFont) {
-								if (currentFontSize>=0)
-									fontSizeChanges.put(paragraphText.length(), false);
-								currentFontSize = -1;
-							} else if (currentFontSize!=0) {
-								if (currentFontSize>0)
-									fontSizeChanges.put(paragraphText.length(), false);
-								else if (currentFontSize<0)
-									fontSizeChanges.put(paragraphText.length(), true);
-								currentFontSize = 0;
+				if (!paragraph.isJunk()){
+					if (textFormat.equals(TextFormat.XHTML))
+						writer.append(paragraphString);
+					
+					Map<Integer, Boolean> fontSizeChanges = new TreeMap<Integer, Boolean>();
+					int currentFontSize = 0;
+					StringBuilder paragraphText = new StringBuilder();
+					
+					String lastWord = "";
+					boolean lastRowEndedWithHyphen = false;
+					for (RowOfShapes row : paragraph.getRows()) {
+						for (GroupOfShapes group : row.getGroups()) {
+							boolean endOfRowHyphen = false;
+							if (textFormat.equals(TextFormat.XHTML)) {
+								double ratio = (double) group.getXHeight() /  meanXHeight;
+								if (ratio>=minRatioBiggerFont) {
+									if (currentFontSize<=0)
+										fontSizeChanges.put(paragraphText.length(), true);
+									currentFontSize = 1;
+								} else if (ratio<=maxRatioSmallerFont) {
+									if (currentFontSize>=0)
+										fontSizeChanges.put(paragraphText.length(), false);
+									currentFontSize = -1;
+								} else if (currentFontSize!=0) {
+									if (currentFontSize>0)
+										fontSizeChanges.put(paragraphText.length(), false);
+									else if (currentFontSize<0)
+										fontSizeChanges.put(paragraphText.length(), true);
+									currentFontSize = 0;
+								}
 							}
-						}
-						StringBuilder sb = new StringBuilder();
-						StringBuilder currentSequence = new StringBuilder();
-						for (Shape shape : group.getShapes()) {
-							String letter = shape.getLetter();
-							
-							if (letter.startsWith("|")) {
-								// beginning of a gehakte letter
-								currentSequence.append(shape.getLetter());
-								continue;
-							} else if (letter.endsWith("|")) {
-								// end of a gehakte letter
-								if (currentSequence.length()>0&&currentSequence.charAt(0)=='|') {
-									String letter1 = currentSequence.toString().substring(1);
-									String letter2 = letter.substring(0, letter.length()-1);
-									if (letter1.equals(letter2)) {
-										letter = letter1;
-									} else {
-										letter = currentSequence.toString() + letter;
+							StringBuilder sb = new StringBuilder();
+							StringBuilder currentSequence = new StringBuilder();
+							for (Shape shape : group.getShapes()) {
+								String letter = shape.getLetter();
+								
+								if (letter.startsWith("|")) {
+									// beginning of a gehakte letter
+									currentSequence.append(shape.getLetter());
+									continue;
+								} else if (letter.endsWith("|")) {
+									// end of a gehakte letter
+									if (currentSequence.length()>0&&currentSequence.charAt(0)=='|') {
+										String letter1 = currentSequence.toString().substring(1);
+										String letter2 = letter.substring(0, letter.length()-1);
+										if (letter1.equals(letter2)) {
+											letter = letter1;
+										} else {
+											letter = currentSequence.toString() + letter;
+										}
+										currentSequence = new StringBuilder();
 									}
-									currentSequence = new StringBuilder();
 								}
-							}
+								
+								if (letter.equals(",")) {
+									//TODO: for Yiddish, need a way to generalise this
+									// could be ",," = "„"
+									if (currentSequence.length()>0&&currentSequence.charAt(0)==',') {
+										sb.append("„");
+										currentSequence = new StringBuilder();
+									} else {
+										currentSequence.append(shape.getLetter());
+									}
+								} else if (letter.equals("'")) {
+									//TODO: for Yiddish, need a way to generalise this
+									// could be "''" = "“"
+									if (currentSequence.length()>0&&currentSequence.charAt(0)=='\'') {
+										sb.append("“");
+										currentSequence = new StringBuilder();
+									} else {
+										currentSequence.append(shape.getLetter());
+									}
+								} else if (letter.equals("-")) {
+									if (shape.getIndex()==group.getShapes().size()-1
+											&& group.getIndex()==row.getGroups().size()-1
+											&& row.getIndex()!=paragraph.getRows().size()-1) {
+										// do nothing - dash at the end of the line
+										// we'll assume for now these dashes are always supposed to disappear
+										// though of course they could be used in the place of a real mid-word dash
+										endOfRowHyphen = true;
+									} else {
+										sb.append(shape.getLetter());									
+									}
+								} else {
+									sb.append(currentSequence);
+									currentSequence = new StringBuilder();
+									//TODO: for Yiddish, need a way to generalise this
+									if (letter.equals(",,")) {
+										sb.append("„");
+									} else if (letter.equals("''")) {
+										sb.append("“");
+									} else {
+										sb.append(letter);									
+									}
+								}
+							} // next shape
+							sb.append(currentSequence);
 							
-							if (letter.equals(",")) {
-								// could be ",," = "„"
-								if (currentSequence.length()>0&&currentSequence.charAt(0)==',') {
-									sb.append("„");
-									currentSequence = new StringBuilder();
-								} else {
-									currentSequence.append(shape.getLetter());
+							String word = sb.toString();
+							if (endOfRowHyphen) {
+								lastRowEndedWithHyphen = true;
+								endOfRowHyphen = false;
+							} else if (lastRowEndedWithHyphen) {
+								if (lexicon!=null) {
+									String hyphenatedWord = lastWord + "-" + word;
+									int frequency = lexicon.getFrequency(hyphenatedWord);
+									LOG.debug("hyphenatedWord: " + hyphenatedWord + ", Frequency: " + frequency);
+									if (frequency > 0) {
+										paragraphText.append("-");
+									}
 								}
-							} else if (letter.equals("'")) {
-								// could be "''" = "“"
-								if (currentSequence.length()>0&&currentSequence.charAt(0)=='\'') {
-									sb.append("“");
-									currentSequence = new StringBuilder();
-								} else {
-									currentSequence.append(shape.getLetter());
-								}
-							} else if (letter.equals("-")) {
-								if (shape.getIndex()==group.getShapes().size()-1
-										&& group.getIndex()==row.getGroups().size()-1
-										&& row.getIndex()!=paragraph.getRows().size()-1) {
-									// do nothing - dash at the end of the line
-									// we'll assume for now these dashes are always supposed to disappear
-									// though of course they could be used in the place of a real mid-word dash
-									endOfRowHyphen = true;
-								} else {
-									sb.append(shape.getLetter());									
+								lastRowEndedWithHyphen = false;
+							}
+							lastWord = word;
+							paragraphText.append(word);
+							if (!lastRowEndedWithHyphen)
+								paragraphText.append(' ');
+						} // next group
+					} // next row
+					String paragraphStr = paragraphText.toString();
+					
+					Writer currentWriter = writer;
+					boolean haveFontSizes = fontSizeChanges.size()>0;
+					if (haveFontSizes) {
+						currentWriter = new StringWriter();
+					}
+					
+					if (image.getPage().getDocument().isLeftToRight()) {
+						currentWriter.append(paragraphText);					
+					} else {
+						this.appendBidiText(paragraphStr, currentWriter);
+					}
+					
+					if (haveFontSizes) {
+						currentFontSize = 0;
+	
+						String text = currentWriter.toString();
+						int currentIndex = 0;
+						
+						for (int fontSizeChange : fontSizeChanges.keySet()) {
+							boolean isBigger = fontSizeChanges.get(fontSizeChange);
+							writer.append(text.substring(currentIndex, fontSizeChange));
+							if (isBigger) {
+								if (currentFontSize==0) {
+									writer.append("<big>"); 
+									currentFontSize++;
+								} else if (currentFontSize<0) {
+									writer.append("</small>");
+									currentFontSize++;
 								}
 							} else {
-								sb.append(currentSequence);
-								currentSequence = new StringBuilder();
-								if (letter.equals(",,")) {
-									sb.append("„");
-								} else if (letter.equals("''")) {
-									sb.append("“");
-								} else {
-									sb.append(letter);									
+								if (currentFontSize==0) {
+									writer.append("<small>");
+									currentFontSize--;
+								} else if (currentFontSize>0) {
+									writer.append("</big>");
+									currentFontSize--;
 								}
 							}
-						} // next shape
-						sb.append(currentSequence);
+							currentIndex = fontSizeChange;
+						}
+						writer.append(text.substring(currentIndex));
 						
-						String word = sb.toString();
-						if (endOfRowHyphen) {
-							lastRowEndedWithHyphen = true;
-							endOfRowHyphen = false;
-						} else if (lastRowEndedWithHyphen) {
-							if (lexicon!=null) {
-								String hyphenatedWord = lastWord + "-" + word;
-								int frequency = lexicon.getFrequency(hyphenatedWord);
-								LOG.debug("hyphenatedWord: " + hyphenatedWord + ", Frequency: " + frequency);
-								if (frequency > 0) {
-									paragraphText.append("-");
-								}
-							}
-							lastRowEndedWithHyphen = false;
+						if (currentFontSize>0) {
+							writer.append("</big>");
+						} else if (currentFontSize<0) {
+							writer.append("</small>");
 						}
-						lastWord = word;
-						paragraphText.append(word);
-						if (!lastRowEndedWithHyphen)
-							paragraphText.append(' ');
-					} // next group
-				} // next row
-				String paragraphStr = paragraphText.toString();
-				
-				Writer currentWriter = writer;
-				boolean haveFontSizes = fontSizeChanges.size()>0;
-				if (haveFontSizes) {
-					currentWriter = new StringWriter();
-				}
-				
-				if (image.getPage().getDocument().isLeftToRight()) {
-					currentWriter.append(paragraphText);					
-				} else {
-					this.appendBidiText(paragraphStr, currentWriter);
-				}
-				
-				if (haveFontSizes) {
-					currentFontSize = 0;
-
-					String text = currentWriter.toString();
-					int currentIndex = 0;
-					
-					for (int fontSizeChange : fontSizeChanges.keySet()) {
-						boolean isBigger = fontSizeChanges.get(fontSizeChange);
-						writer.append(text.substring(currentIndex, fontSizeChange));
-						if (isBigger) {
-							if (currentFontSize==0) {
-								writer.append("<big>"); 
-								currentFontSize++;
-							} else if (currentFontSize<0) {
-								writer.append("</small>");
-								currentFontSize++;
-							}
-						} else {
-							if (currentFontSize==0) {
-								writer.append("<small>");
-								currentFontSize--;
-							} else if (currentFontSize>0) {
-								writer.append("</big>");
-								currentFontSize--;
-							}
-						}
-						currentIndex = fontSizeChange;
-					}
-					writer.append(text.substring(currentIndex));
-					
-					if (currentFontSize>0) {
-						writer.append("</big>");
-					} else if (currentFontSize<0) {
-						writer.append("</small>");
-					}
-				} // haveFontSizes?
-
-				if (textFormat.equals(TextFormat.XHTML))
-					writer.append("</p>");
-				else
-					writer.append('\n');
-				writer.flush();
-			}
+					} // haveFontSizes?
+	
+					if (textFormat.equals(TextFormat.XHTML))
+						writer.append("</p>");
+					else
+						writer.append('\n');
+					writer.flush();
+				} //paragraph.isJunk()?
+			} // next paragraph
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.joliciel.jochre.EntityImpl;
+import com.joliciel.jochre.JochreSession;
 
 public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 	List<RowOfShapes> rows;
@@ -19,7 +20,8 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 	private int right;
 	private int bottom;
 	
-
+	private Boolean junk = null;
+	
 	@Override
 	public JochreImage getImage() {
 		if (this.imageId!=0 && this.image==null) {
@@ -145,5 +147,33 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 			coordinatesFound = true;
 		}
 	}
-	
+
+	@Override
+	public boolean isJunk() {
+		if (junk==null) {
+			if (this.getRows().size()>0) {
+				double averageConfidence = 0;
+				double shapeCount = 0;
+				for (RowOfShapes row : this.getRows()) {
+					for (GroupOfShapes group : row.getGroups()) {
+						if (group.getShapes().size()>0) {
+							for (Shape shape : group.getShapes()) {
+								averageConfidence += shape.getConfidence();
+								shapeCount += 1;
+							}
+						}
+					}
+				}
+				averageConfidence = averageConfidence / shapeCount;
+
+				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+					junk = true;
+				else
+					junk = false;
+			} else {
+				junk = true;
+			}
+		}
+		return junk;
+	}
 }

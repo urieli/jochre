@@ -23,7 +23,6 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.utils.WeightedOutcome;
 
 public class RecursiveShapeSplitterTest {
 	private static final Log LOG = LogFactory.getLog(RecursiveShapeSplitterTest.class);
@@ -51,6 +50,7 @@ public class RecursiveShapeSplitterTest {
 			Shape shape1, shape2;
 			Split split1, split2;
 			Shape shape11, shape12, shape21, shape22;
+			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);
@@ -66,10 +66,15 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				List<WeightedOutcome<String>> decisions = new ArrayList<WeightedOutcome<String>>();
-				decisions.add(new WeightedOutcome<String>("YES", 0.5));
-				decisions.add(new WeightedOutcome<String>("NO", 0.5));
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getProbability(); returns(0.5);
+				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getProbability(); returns(0.5);
 				
+				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				decisions.add(yesDecision);
+				decisions.add(noDecision);
+
 				decisionMaker.decide((List<FeatureResult<?>>) any); returns(decisions); maxTimes=500;
 				
 				jochreImage.getShape(0, 0, 31, 15); returns (shape1);
@@ -175,6 +180,7 @@ public class RecursiveShapeSplitterTest {
 			Shape shape1, shape2;
 			Split split1, split2;
 			Shape shape11, shape12, shape21, shape22;
+			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);
@@ -190,9 +196,14 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				List<WeightedOutcome<String>> decisions = new ArrayList<WeightedOutcome<String>>();
-				decisions.add(new WeightedOutcome<String>("YES", 0.4));
-				decisions.add(new WeightedOutcome<String>("NO", 0.6));
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getProbability(); returns(0.4);
+				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getProbability(); returns(0.6);
+				
+				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				decisions.add(yesDecision);
+				decisions.add(noDecision);
 				
 				decisionMaker.decide((List<FeatureResult<?>>) any); returns(decisions); maxTimes=500;
 				
@@ -338,6 +349,7 @@ public class RecursiveShapeSplitterTest {
 			Shape shape1, shape2;
 			Split split1, split2;
 			Shape shape11, shape12, shape21, shape22;
+			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);
@@ -353,9 +365,14 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				List<WeightedOutcome<String>> decisions = new ArrayList<WeightedOutcome<String>>();
-				decisions.add(new WeightedOutcome<String>("YES", 0.6));
-				decisions.add(new WeightedOutcome<String>("NO", 0.4));
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getProbability(); returns(0.6);
+				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getProbability(); returns(0.4);
+				
+				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				decisions.add(yesDecision);
+				decisions.add(noDecision);
 				
 				decisionMaker.decide((List<FeatureResult<?>>) any); returns(decisions); maxTimes=500;
 				

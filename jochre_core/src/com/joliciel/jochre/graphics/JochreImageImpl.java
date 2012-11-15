@@ -68,7 +68,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal {
 	ImageStatus imageStatus;
 	
 	private Map<String, Shape> shapeMap = null;
-
+	
 	JochreImageImpl() {	
 	}
 	

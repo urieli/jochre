@@ -185,5 +185,4 @@ public interface JochreImage extends Entity, ImageGrid {
 	 * @return
 	 */
 	public boolean isLeftToRight();
-
 }

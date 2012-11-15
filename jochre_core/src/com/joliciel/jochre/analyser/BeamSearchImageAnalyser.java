@@ -278,7 +278,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								observer.onStartSequence(bestSequence);
 							}
 	
-							group.setFrequency(bestSequence.getFrequency());
+							group.setBestLetterSequence(bestSequence);
 							
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
