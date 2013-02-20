@@ -305,6 +305,8 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 				split.save();
 			}
 		}
+		
+		((JochreImageInternal)this.getJochreImage()).onSaveShape(this);
 	}
 
 	public GraphicsServiceInternal getGraphicsService() {
@@ -1780,10 +1782,12 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	public double getConfidence() {
 		if (confidence==null) {
 			confidence = 1.0;
-			for (Decision<Letter> guess : this.letterGuesses) {
-				if (guess.getOutcome().getString().equals(this.letter)) {
-					confidence = guess.getProbability();
-					break;
+			if (this.letterGuesses!=null) {
+				for (Decision<Letter> guess : this.letterGuesses) {
+					if (guess.getOutcome().getString().equals(this.letter)) {
+						confidence = guess.getProbability();
+						break;
+					}
 				}
 			}
 		}

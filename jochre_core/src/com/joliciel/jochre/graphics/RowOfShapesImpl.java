@@ -399,6 +399,12 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 			int buffer = 5;
 			int width = this.container.getOriginalImage().getWidth();
 			int height = this.getBottom() - this.getTop() + 1 + (buffer * 2);
+			int bottom = (this.getTop() - buffer) + height;
+			
+			if (bottom > this.container.getOriginalImage().getHeight()) {
+				int overlap = bottom - this.container.getOriginalImage().getHeight();
+				height = height - overlap;
+			}
 			BufferedImage rowImage = this.container.getOriginalImage().getSubimage(0, this.getTop() - buffer, width, height);
 
 			double scale = (double) ROW_IMAGE_WIDTH / (double) width;

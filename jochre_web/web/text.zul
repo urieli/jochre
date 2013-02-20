@@ -52,8 +52,11 @@
 	<label id="lblErrorMessage" />
 	</vlayout>
 	</groupbox>
-   <button id="btnDone" label="${c:l('button.done')}" />
-  <div id="htmlContent" sclass="rightToLeft"></div>
+	<hlayout>
+	<button id="btnInterrupt" label="${c:l('button.interrupt')}" visible="false" />
+	<button id="btnDone" label="${c:l('button.done')}" />
+	</hlayout>
+  <div id="htmlContent"></div>
   </vlayout>
 </window>
 </zk>

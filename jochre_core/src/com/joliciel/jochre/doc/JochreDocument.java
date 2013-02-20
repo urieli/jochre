@@ -127,4 +127,5 @@ public interface JochreDocument extends Entity {
 	
 	public int getTotalPageCount();
 	public void setTotalPageCount(int totalPageCount);
+	public void deletePage(JochrePage page);
 }

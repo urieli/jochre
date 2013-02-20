@@ -29,4 +29,11 @@ public interface ImageDocumentExtractor extends Monitorable, Runnable {
 
 	public abstract JochreDocument extractDocument();
 
+	/**
+	 * The page number to assign to this image.
+	 * @param pageNumber
+	 */
+	public abstract void setPageNumber(int pageNumber);
+	public abstract int getPageNumber();
+
 }

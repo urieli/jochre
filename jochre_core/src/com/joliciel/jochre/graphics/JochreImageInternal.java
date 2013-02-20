@@ -27,4 +27,10 @@ interface JochreImageInternal extends JochreImage, EntityInternal {
 	public void setPage(JochrePage page);
 	public void setOriginalImageDB(BufferedImage originalImage);
 	public abstract void setOwnerId(int ownerId);
+	
+	/**
+	 * Called whenever a shape is finished saving.
+	 * @param shape
+	 */
+	public void onSaveShape(Shape shape);
 }

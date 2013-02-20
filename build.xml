@@ -17,6 +17,11 @@
 				<include name="jochre_yiddish/build.xml"/>
 			</fileset>
 		</subant>
+		<subant target="clean">
+			<fileset dir=".">
+				<include name="jochre_occitan/build.xml"/>
+			</fileset>
+		</subant>
 	</target>
 
 	<target name="build">
@@ -35,6 +40,11 @@
 				<include name="jochre_yiddish/build.xml"/>
 			</fileset>
 		</subant>
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_occitan/build.xml"/>
+			</fileset>
+		</subant>
 	</target>
 	
 	<target name="webapp" depends="build">
@@ -46,6 +56,11 @@
 		<subant target="webapp">
 			<fileset dir=".">
 				<include name="jochre_yiddish/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="webapp">
+			<fileset dir=".">
+				<include name="jochre_occitan/build.xml"/>
 			</fileset>
 		</subant>
 	</target>

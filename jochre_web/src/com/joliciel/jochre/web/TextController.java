@@ -4,13 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Locale;
 import java.util.ArrayList;
-import java.util.Properties;
-
-
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
@@ -51,7 +46,6 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconService;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.TextFormat;
@@ -83,8 +77,6 @@ public class TextController extends GenericForwardComposer<Window> {
 	private DocumentHtmlGenerator documentHtmlGenerator;
 	private ProgressMonitor progressMonitor;
 	
-	private Properties jochreProperties;
-	
 	private int currentHtmlIndex = 0;
 	
 	AnnotateDataBinder binder;
@@ -103,6 +95,7 @@ public class TextController extends GenericForwardComposer<Window> {
 	Textbox txtEndPage;
 	Button btnAnalyse;
 	Button btnDone;
+	Button btnInterrupt;
 	Button btnUpload;
 	Label lblAwaitingFile;
 	Label lblFileName;
@@ -111,6 +104,8 @@ public class TextController extends GenericForwardComposer<Window> {
 	Groupbox errorBox;
 	Label lblErrorMessage;
 
+	Thread currentThread = null;
+	
 	int currentPageIndex = 0;
 
 	public TextController() {
@@ -133,10 +128,6 @@ public class TextController extends GenericForwardComposer<Window> {
 			textService = locator.getTextServiceLocator().getTextService();
 			documentService = locator.getDocumentServiceLocator().getDocumentService();
 			lexiconService = locator.getLexiconServiceLocator().getLexiconService();
-
-			String jochrePropertiesPath = "/jochre.properties";
-			jochreProperties = new Properties();
-			jochreProperties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
 			
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 			if (request.getParameter("imageId")!=null) {
@@ -248,8 +239,9 @@ public class TextController extends GenericForwardComposer<Window> {
 		    lblFileName.setValue(media.getName());
 			btnAnalyse.setDisabled(false);
 			btnUpload.setDisabled(true);
-			if (media.getName().endsWith(".pdf"))
-				gridPages.setVisible(true);
+//			if (media.getName().endsWith(".pdf"))
+//				gridPages.setVisible(true);
+			gridPages.setVisible(true);
 		} catch (Exception e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
@@ -262,53 +254,10 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentFile!=null) {
 				progressBox.setVisible(true);
 				lblAwaitingFile.setVisible(false);
+				JochreProperties jochreProperties = JochreProperties.getInstance();
+
 				int startPage = txtStartPage.getValue().length()==0 ? -1 : Integer.parseInt(txtStartPage.getValue());
 				int endPage = txtEndPage.getValue().length()==0 ? -1 : Integer.parseInt(txtEndPage.getValue());
-				
-				ServletContext servletContext = (ServletContext) Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-				String letterModelPath = jochreProperties.getProperty("letterModelPath");
-				LOG.debug("letterModelPath: " + letterModelPath);
-				String letterModelRealPath = servletContext.getRealPath(letterModelPath);
-				File letterModelFile = new File(letterModelRealPath);
-
-				String splitModelPath = jochreProperties.getProperty("splitModelPath");
-				File splitModelFile = null;
-				LOG.debug("splitModelPath: " + splitModelPath);
-				if (splitModelPath!=null) {
-					String splitModelRealPath = servletContext.getRealPath(splitModelPath);
-					splitModelFile = new File(splitModelRealPath);
-				}
-
-				String mergeModelPath = jochreProperties.getProperty("mergeModelPath");
-				LOG.debug("mergeModelPath: " + mergeModelPath);
-				File mergeModelFile = null;
-				if (mergeModelPath!=null) {
-					String mergeModelRealPath = servletContext.getRealPath(mergeModelPath);
-					mergeModelFile = new File(mergeModelRealPath);
-				}
-				
-				String lexiconServiceClassName = jochreProperties.getProperty("lexiconService");
-				LOG.debug("lexiconServiceClassName: " + lexiconServiceClassName);
-				@SuppressWarnings("rawtypes")
-				Class lexiconServiceClass = Class.forName(lexiconServiceClassName);
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				Constructor constructor =
-					lexiconServiceClass.getConstructor(new Class[]{});
-				LocaleSpecificLexiconService localeSpecificLexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
-
-				String lexiconDirPath = jochreProperties.getProperty("lexiconDirPath");
-				LOG.debug("lexiconDirPath: " + lexiconDirPath);
-				String lexiconDirRealPath = servletContext.getRealPath(lexiconDirPath);
-
-				localeSpecificLexiconService.setLexiconDirPath(lexiconDirRealPath);
-				
-				Locale locale = localeSpecificLexiconService.getLocale();
-				Lexicon lexicon = localeSpecificLexiconService.getLexicon();
-				WordSplitter wordSplitter = localeSpecificLexiconService.getWordSplitter();
-				
-				MostLikelyWordChooser wordChooser = lexiconService.getMostLikelyWordChooser(lexicon, wordSplitter);
-
-				this.documentHtmlGenerator = new DocumentHtmlGenerator();
 				
 				if (this.currentDoc!=null) {
 					this.currentDoc.setFileName(currentFile.getName());
@@ -316,9 +265,21 @@ public class TextController extends GenericForwardComposer<Window> {
 					this.documentGenerator = this.documentService.getJochreDocumentGenerator(this.currentDoc);
 					this.documentGenerator.requestSave(currentUser);
 				} else {
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", locale);
+					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", jochreProperties.getLocale());
 				}
-				documentGenerator.requestAnalysis(splitModelFile, mergeModelFile, letterModelFile, wordChooser);
+				
+				File letterModelFile = jochreProperties.getLetterModelFile();
+				if (letterModelFile!=null) {
+
+					
+					Lexicon lexicon = jochreProperties.getLexiconService().getLexicon();
+					WordSplitter wordSplitter = jochreProperties.getLexiconService().getWordSplitter();
+					
+					MostLikelyWordChooser wordChooser = lexiconService.getMostLikelyWordChooser(lexicon, wordSplitter);
+					documentGenerator.requestAnalysis(jochreProperties.getSplitModelFile(), jochreProperties.getMergeModelFile(), letterModelFile, wordChooser);
+				}
+				this.documentHtmlGenerator = new DocumentHtmlGenerator();
+				
 				documentGenerator.addDocumentObserver(this.documentHtmlGenerator);
 				
 				String lowerCaseFileName = currentFile.getName().toLowerCase();
@@ -336,6 +297,8 @@ public class TextController extends GenericForwardComposer<Window> {
 						|| lowerCaseFileName.endsWith(".jpeg")
 						|| lowerCaseFileName.endsWith(".gif")) {
 					ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(currentFile, documentGenerator);
+					if (startPage>=0)
+						extractor.setPageNumber(startPage);
 					this.progressMonitor = extractor.monitorTask();
 					this.currentHtmlIndex = 0;
 					thread = new Thread(extractor);
@@ -344,8 +307,11 @@ public class TextController extends GenericForwardComposer<Window> {
 					throw new RuntimeException("Unrecognised file extension");
 				}
 				thread.start();
+				currentThread = thread;
 				progressTimer.setRunning(true);
 				btnAnalyse.setDisabled(true);
+				btnInterrupt.setVisible(true);
+				btnInterrupt.setDisabled(false);
 			}
 		} catch (Exception e) {
 			LogUtils.logError(LOG, e);
@@ -362,7 +328,11 @@ public class TextController extends GenericForwardComposer<Window> {
 					currentHtmlIndex++;
 				}
 			}
-			if (this.progressMonitor.isFinished()) {
+			if (currentThread!=null && (currentThread.isInterrupted() || !currentThread.isAlive())) {
+				progressMeter1.setValue(100);
+				progressTimer.setRunning(false);
+				btnInterrupt.setDisabled(true);
+			} else if (this.progressMonitor.isFinished()) {
 				if (this.progressMonitor.getException()!=null) {
 					lblCurrentAction.setValue(Labels.getLabel("imageMonitor.error"));
 					errorBox.setVisible(true);
@@ -372,6 +342,7 @@ public class TextController extends GenericForwardComposer<Window> {
 				}
 				progressMeter1.setValue(100);
 				progressTimer.setRunning(false);
+				btnInterrupt.setDisabled(true);
 			} else {
 				double progress = progressMonitor.getPercentComplete()*100;
 				if (progress>100) progress = 100;
@@ -392,6 +363,25 @@ public class TextController extends GenericForwardComposer<Window> {
 			}
 		}
 		
+	}
+	
+	public void onClick$btnInterrupt(Event event) {
+		try {
+			LOG.debug("onClick$btnInterrupt");
+			if (currentThread!=null) {
+				currentThread.interrupt();
+				LOG.debug("Is interrupted? " + currentThread.isInterrupted());
+			}
+			btnInterrupt.setDisabled(true);
+			lblCurrentAction.setValue(Labels.getLabel("imageMonitor.error"));
+			errorBox.setVisible(true);
+			lblErrorMessage.setValue("Analysis interrupted by user - database may not be in clean state - contact administrator for help.");
+			progressMeter1.setValue(100);
+			progressTimer.setRunning(false);
+		} catch (Exception e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public void onClick$btnDone(Event event) {

@@ -7,7 +7,7 @@
 	  -->
 	<context-param>
 		<param-name>webAppRootKey</param-name>
-		<param-value>jochreWeb.root</param-value>
+		<param-value>jochreYiddish.root</param-value>
 	</context-param>
 	<!--
 	  - Location of the Log4J config file, for initialization and refresh checks.

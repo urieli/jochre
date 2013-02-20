@@ -1,22 +1,4 @@
-///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2012 Assaf Urieli
-//
-//This file is part of Jochre.
-//
-//Jochre is free software: you can redistribute it and/or modify
-//it under the terms of the GNU Affero General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
-//
-//Jochre is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU Affero General Public License for more details.
-//
-//You should have received a copy of the GNU Affero General Public License
-//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
-//////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.yiddish;
+package com.joliciel.jochre.occitan;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,23 +17,19 @@ import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LexiconMerger;
 import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
-import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.UnknownWordListWriter;
 import com.joliciel.jochre.lexicon.WordSplitter;
-import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.output.OutputService;
+import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.talismane.utils.LogUtils;
 
-public class JochreYiddish implements LocaleSpecificLexiconService {
-	private static final Log LOG = LogFactory.getLog(JochreYiddish.class);
-
-	String lexiconDirPath = "";
-	WordSplitter yiddishWordSplitter = null;
-	Lexicon yiddishLexicon = null;
+public class JochreOccitan implements LocaleSpecificLexiconService {
+	private static final Log LOG = LogFactory.getLog(JochreOccitan.class);
+	private String lexiconDirPath;
+	
 	/**
 	 * @param args
 	 */
@@ -59,7 +37,7 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 		try {
 			if (args.length==0) {
 				System.out.println("Usage (* indicates optional):");
-				System.out.println("JochreYiddish load file=[filename] name=[userFriendlyName] lang=[isoLanguageCode] first=[firstPage]* last=[lastPage]* outputDir=[outputDirectory]* showSeg=[true/false]");
+				System.out.println("JochreOccitan load file=[filename] name=[userFriendlyName] lang=[isoLanguageCode] first=[firstPage]* last=[lastPage]* outputDir=[outputDirectory]* showSeg=[true/false]");
 				return;
 			}
 			String command = args[0];
@@ -153,12 +131,12 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			String dataSourcePropertiesPath = "jdbc-live.properties";
 			jochreServiceLocator.setDataSourcePropertiesResource(dataSourcePropertiesPath);
 			
-			String isoLanguage = "yi";
+			String isoLanguage = "oc";
 
-			JochreYiddish jochreYiddish = new JochreYiddish();
-			jochreYiddish.setLexiconDirPath(lexiconDirPath);
+			JochreOccitan jochreOccitan = new JochreOccitan();
+			jochreOccitan.setLexiconDirPath(lexiconDirPath);
 			
-			WordSplitter wordSplitter = jochreYiddish.getWordSplitter();
+			WordSplitter wordSplitter = jochreOccitan.getWordSplitter();
 			
 			MostLikelyWordChooser wordChooser = null;
 			
@@ -166,7 +144,7 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 			
 			Lexicon yiddishLexicon = null;
 			if (lexiconDirPath.length()>0) {
-				yiddishLexicon = jochreYiddish.getLexicon();
+				yiddishLexicon = jochreOccitan.getLexicon();
 				LexiconService lexiconService = jochreServiceLocator.getLexiconServiceLocator().getLexiconService();
 
 	        	wordChooser = lexiconService.getMostLikelyWordChooser(yiddishLexicon, wordSplitter);
@@ -240,42 +218,30 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 				jochre.doCommandBuildLexicon(outputDirPath, wordSplitter);
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
-			}			
+			}
+			
 		} catch (Exception e) {
 			LogUtils.logError(LOG, e);
 			throw e;
 		}
 		LOG.debug("#### finished #####");
 	}
-
+	
 	@Override
 	public Locale getLocale() {
-		return new Locale("yi");
+		return new Locale("oc");
 	}
 
 	@Override
 	public Lexicon getLexicon() {
-		if (yiddishLexicon == null && lexiconDirPath!=null && lexiconDirPath.length()>0) {
-			LexiconMerger lexiconMerger = new LexiconMerger();
-			File lexiconDir = new File(lexiconDirPath);
-		
-			File[] lexiconFiles = lexiconDir.listFiles();
-			for (File lexiconFile : lexiconFiles) {
-				TextFileLexicon lexicon = TextFileLexicon.deserialize(lexiconFile);
-				lexiconMerger.addLexicon(lexicon);
-			}
-	
-			yiddishLexicon = new YiddishWordFrequencyFinder(lexiconMerger);
-		}
-		return yiddishLexicon;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public WordSplitter getWordSplitter() {
-		if (yiddishWordSplitter==null) {
-			yiddishWordSplitter = new YiddishWordSplitter();
-		}
-		return yiddishWordSplitter;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public String getLexiconDirPath() {
@@ -285,5 +251,6 @@ public class JochreYiddish implements LocaleSpecificLexiconService {
 	public void setLexiconDirPath(String lexiconDirPath) {
 		this.lexiconDirPath = lexiconDirPath;
 	}
+
 
 }

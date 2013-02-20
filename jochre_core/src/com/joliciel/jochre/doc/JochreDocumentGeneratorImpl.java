@@ -138,6 +138,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			this.doc.setName(userFriendlyName);
 			this.doc.setLocale(locale);
 			if (save) {
+				LOG.debug("saving document");
 				if (this.currentUser==null) {
 					throw new JochreException("Cannot save a document without an owner - please specify the user.");
 				}
@@ -155,6 +156,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 
 	@Override
 	public void onDocumentComplete(JochreDocument doc) {
+		LOG.debug("JochreDocumentGeneratorImpl.onDocumentComplete");
 		for (DocumentObserver observer : documentObservers)
 			observer.onDocumentComplete(doc);
 	}
@@ -167,6 +169,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 
 	@Override
 	public JochrePage onPageStart(int pageIndex) {
+		LOG.debug("JochreDocumentGeneratorImpl.onPageStart(" + pageIndex + ")");
 		JochrePage jochrePage = this.doc.newPage();
 		jochrePage.setIndex(pageIndex);
 		if (save)
@@ -178,6 +181,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	
 	@Override
 	public void onPageComplete(JochrePage jochrePage) {
+		LOG.debug("JochreDocumentGeneratorImpl.onPageComplete(" + jochrePage.getIndex() + ")");
 		for (DocumentObserver observer : documentObservers)
 			observer.onPageComplete(jochrePage);
 		jochrePage.clearMemory();
@@ -186,17 +190,21 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	@Override
 	public JochreImage onImageFound(JochrePage jochrePage, BufferedImage image, String imageName,
 			int imageIndex) {
+		LOG.debug("JochreDocumentGeneratorImpl.onImageFound");
 		try {
 			if (currentMonitor != null) {
 				currentMonitor.setCurrentAction("imageMonitor.segmentingImage", new Object[] {jochrePage.getIndex()});
 			}
+			LOG.debug("Creating source image object");
 			SourceImage sourceImage = jochrePage.newJochreImage(image, imageName+ '.' +SUFFIX);
 			if (currentUser!=null)
 				sourceImage.setOwner(currentUser);
 			
+			LOG.debug("Running observers onImageStart");
 			for (DocumentObserver observer : documentObservers)
 				observer.onImageStart(sourceImage);
 			
+			LOG.debug("Segmenting image");
 			Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
 			segmenter.setDrawSegmentation(showSegmentation);
 			if (currentMonitor!=null) {
@@ -216,6 +224,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				currentMonitor.endTask();
 			
 			if (showSegmentation) {
+				LOG.debug("Writing segmentation file");
 				BufferedImage segmentedImage = segmenter.getSegmentedImage();
 				File imageFile = new File(outputDirectory, imageName + "_seg.png");
 				LOG.debug("Writing segmented image to " + imageFile.getAbsolutePath());
@@ -228,6 +237,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			}
 
 			if (save) {
+				LOG.debug("Saving image");
 				if (currentMonitor != null) {
 					SimpleProgressMonitor monitor = new SimpleProgressMonitor();
 					monitor.setCurrentAction("imageMonitor.savingImage", new Object[] {jochrePage.getIndex()});
@@ -243,7 +253,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			}
 			
 			if (analyse) {
-
+				LOG.debug("Analysing image");
 					
 				if (currentMonitor!=null&&analyser instanceof Monitorable) {
 					ProgressMonitor monitor = ((Monitorable)analyser).monitorTask();
@@ -257,6 +267,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				}
 			}
 			
+			LOG.debug("Running observers onImageComplete");
 			for (DocumentObserver observer : documentObservers) {
 				observer.onImageComplete(sourceImage);
 			}
@@ -264,6 +275,8 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
+		} finally {
+			LOG.debug("Exit JochreDocumentGeneratorImpl.onImageFound");
 		}
 	}
 

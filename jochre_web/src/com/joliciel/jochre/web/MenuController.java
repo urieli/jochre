@@ -25,6 +25,7 @@ public class MenuController extends GenericForwardComposer<Panel> {
 
 	Panel panelMenu;
 	Label lblName;
+	Label lblCorpusName;
 	Toolbar toolbar1;
 	
 	public MenuController() {
@@ -32,6 +33,7 @@ public class MenuController extends GenericForwardComposer<Panel> {
 	
 	public void doAfterCompose(Panel panel) throws Exception {
 		super.doAfterCompose(panel);
+		LOG.debug("MenuController");
 		Session session = Sessions.getCurrent();
 		User currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
 		if (currentUser!=null) {
@@ -41,6 +43,7 @@ public class MenuController extends GenericForwardComposer<Panel> {
 			lblName.setValue("");
 			toolbar1.setVisible(false);
 		}
+		lblCorpusName.setValue(JochreProperties.getInstance().getProperties().getProperty("corpusName"));
 	}
 	
     public void onClick$btnLogout(Event event) {

@@ -35,8 +35,11 @@ import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
 import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
+import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.ProgressMonitor;
+import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
-class JochreImageImpl extends EntityImpl implements JochreImageInternal {
+class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitorable {
     private static final Log LOG = LogFactory.getLog(JochreImageImpl.class);
 	int blackThreshold;
 	int separationThreshold;
@@ -68,6 +71,8 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal {
 	ImageStatus imageStatus;
 	
 	private Map<String, Shape> shapeMap = null;
+	SimpleProgressMonitor currentMonitor = null;
+	int shapesSaved = 0;
 	
 	JochreImageImpl() {	
 	}
@@ -163,6 +168,8 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal {
 	
 	@Override
 	public void saveInternal() {
+		if (this.currentMonitor!=null)
+			this.currentMonitor.setCurrentAction("imageMonitor.savingImage");
 		if (this.pageId==0 && this.page!=null) this.pageId = this.page.getId();
 		this.graphicsService.saveJochreImage(this);
 		if (this.paragraphs!=null) {
@@ -391,6 +398,24 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal {
 	@Override
 	public boolean isLeftToRight() {
 		return this.getPage().getDocument().isLeftToRight();
+	}
+
+	@Override
+	public ProgressMonitor monitorTask() {
+		currentMonitor = new SimpleProgressMonitor();
+		shapesSaved = 0;
+		return currentMonitor;
+	}
+
+	@Override
+	public void onSaveShape(Shape shape) {
+		if (this.currentMonitor!=null) {
+			shapesSaved++;
+			int shapeCount = this.getShapeCount();
+			if (shapeCount==0)
+				shapeCount = 1;
+			this.currentMonitor.setPercentComplete((double)shapesSaved / (double) shapeCount);
+		}
 	}
 
 }

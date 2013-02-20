@@ -65,6 +65,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	List<Rectangle> whiteAreasAroundLargeShapes = null;
 	List<Rectangle> columnSeparators = null;
 	
+	int myShapeCount = -1;
+	
 	public SourceImageImpl(GraphicsServiceInternal graphicsService, String name, BufferedImage image) {
 		super(image);
 		this.name = name;
@@ -77,60 +79,54 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		// to normalise the image, we need to figure out where black and white are
 		// we want to leave out anomalies (ink blots!)
 		int[] pixelSpread = new int[256];
-		Mean mean = new Mean();
-		StandardDeviation stdDev = new StandardDeviation();
 		
+		// To save on memory
 		for (int y = 0; y < this.getHeight(); y++)
 			for (int x = 0; x < this.getWidth(); x++){
 				int pixel = this.getPixelGrabber().getPixelBrightness(x, y);
 				pixelSpread[pixel]++;
-				mean.increment(pixel);
-				stdDev.increment(pixel);
 			}
-		LOG.debug("mean: " + mean.getResult());
-		LOG.debug("std dev: " + stdDev.getResult());
 		
-//		if (LOG.isDebugEnabled()) {
-//			for (int i = 0; i<256; i++)
-//				LOG.debug("Brightness " + i + ": " + pixelSpread[i]);
-//		}
+		if (LOG.isTraceEnabled()) {
+			for (int i = 0; i<256; i++)
+				LOG.trace("Brightness " + i + ": " + pixelSpread[i]);
+		}
 		
-		Mean meanCounts = new Mean();
-		StandardDeviation stdDevCounts = new StandardDeviation();
-
+		DescriptiveStatistics countStats = new DescriptiveStatistics();
 		for (int i = 0; i<256; i++) {
-			meanCounts.increment(pixelSpread[i]);
-			stdDevCounts.increment(pixelSpread[i]);
+			countStats.addValue(pixelSpread[i]);
 		}
 		
 		int startWhite = -1;
 		int endWhite = -1;
 		for (int i = 255; i>=0; i--) {
-			if (startWhite < 0 && pixelSpread[i]>meanCounts.getResult())
+			if (startWhite < 0 && pixelSpread[i]>countStats.getMean())
 				startWhite = i;
-			if (startWhite >= 0 && endWhite < 0 && pixelSpread[i]<meanCounts.getResult()) {
+			if (startWhite >= 0 && endWhite < 0 && pixelSpread[i]<countStats.getMean()) {
 				endWhite = i;
 				break;
 			}
 		}
-		
-		Mean meanBlackCounts = new Mean();
-		StandardDeviation stdDevBlackCounts = new StandardDeviation();
-		for (int i = 0; i<=endWhite; i++) {
-			meanBlackCounts.increment(pixelSpread[i]);
-			stdDevBlackCounts.increment(pixelSpread[i]);
-		}
 
 		LOG.debug("Start white: " + startWhite);
 		LOG.debug("End white: " + endWhite);
+		
+		DescriptiveStatistics blackCountStats = new DescriptiveStatistics();
+		DescriptiveStatistics blackSpread = new DescriptiveStatistics();
+		for (int i = 0; i<=endWhite; i++) {
+			blackCountStats.addValue(pixelSpread[i]);
+			for (int j = 0; j<pixelSpread[i]; j++) {
+				blackSpread.addValue(i);
+			}
+		}
 
-		LOG.debug("mean counts: " + meanCounts.getResult());
-		LOG.debug("mean black counts: " + meanBlackCounts.getResult());
-		LOG.debug("std dev black counts: " + stdDevBlackCounts.getResult());
+		LOG.debug("mean counts: " + countStats.getMean());
+		LOG.debug("mean black counts: " + blackCountStats.getMean());
+		LOG.debug("std dev black counts: " + blackCountStats.getStandardDeviation());
 		
 		int startBlack = -1;
 		for (int i = 0; i < 256; i++) {
-			if (pixelSpread[i] > meanBlackCounts.getResult()) {
+			if (pixelSpread[i] > blackCountStats.getMean()) {
 				startBlack = i;
 				break;
 			}
@@ -144,9 +140,9 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		
 		// use mean + 2 sigma to find the black threshold
 		// we make the threshold high (darker) to put more pixels in the letter when analysing
-		double blackthresholdCount = meanBlackCounts.getResult() + (2.0 * stdDevBlackCounts.getResult());
-		LOG.debug("Black threshold value: " + blackthresholdCount);
-		
+		double blackthresholdCount = blackCountStats.getMean() + (2.0 * blackCountStats.getStandardDeviation());
+		LOG.debug("blackthresholdCount: " + blackthresholdCount);
+				
 		int blackThresholdValue = endWhite;
 		for (int i = endWhite; i >= startBlack; i--) {
 			if (pixelSpread[i] < blackthresholdCount) {
@@ -154,13 +150,22 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 				break;
 			}
 		}
-		
+		LOG.debug("Black threshold value (old): " + blackThresholdValue);
 		blackThreshold = (int) Math.round((blackThresholdValue - blackLimit) * greyscaleMultiplier);
-		LOG.debug("Black threshold: " + blackThreshold);
+		LOG.debug("Black threshold (old): " + blackThreshold);
+		
+		blackThresholdValue = (int) Math.round(blackSpread.getPercentile(60.0));
+		LOG.debug("Black threshold value (new): " + blackThresholdValue);
+		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
+		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
+		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
+
+		blackThreshold = (int) Math.round((blackThresholdValue - blackLimit) * greyscaleMultiplier);
+		LOG.debug("Black threshold (new): " + blackThreshold);
 		
 		// use mean + 1 sigma to find the separation threshold
 		// we keep threshold low (1 sigma) to encourage letter breaks
-		double separationthresholdCount = meanBlackCounts.getResult() + (1.0 * stdDevBlackCounts.getResult());
+		double separationthresholdCount =  blackCountStats.getMean() + (1.0 * blackCountStats.getStandardDeviation());
 		LOG.debug("Separation threshold value: " + separationthresholdCount);
 		
 		int separationThresholdValue = endWhite;
@@ -170,48 +175,60 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 				break;
 			}
 		}
+		LOG.debug("Separation threshold value (old): " + separationThresholdValue);
+		
+		separationThresholdValue = (int) Math.round(blackSpread.getPercentile(75.0));
+		LOG.debug("Separation threshold value (new): " + blackThresholdValue);
+		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
+		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
+		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
 		
 		separationThreshold = (int) Math.round((separationThresholdValue - blackLimit) * greyscaleMultiplier);
 		LOG.debug("Separation threshold: " + separationThreshold);
 		
 //		if (LOG.isDebugEnabled())
-//			this.drawChart(pixelSpread, mean, stdDev, meanCounts, stdDevCounts, meanBlackCounts, stdDevBlackCounts, startWhite, endWhite, startBlack, blackThresholdValue);
+//			this.drawChart(pixelSpread, brightnessStats, countStats, blackCountStats, blackSpread, startWhite, endWhite, startBlack, blackThresholdValue);
 	}
 	
 	@SuppressWarnings("unused")
 	private void drawChart(int[] pixelSpread,
-			Mean mean, StandardDeviation stdDev,
-			Mean meanCounts, StandardDeviation stdDevCounts,
-			Mean meanBlackCounts, StandardDeviation stdDevBlackCounts,
+			DescriptiveStatistics brightnessStats,
+			DescriptiveStatistics countStats,
+			DescriptiveStatistics blackCountStats,
+			DescriptiveStatistics blackSpread,
 			int startWhite, int endWhite, int startBlack, int blackThresholdValue) {
 		XYSeries xySeries = new XYSeries("Brightness data");
-		for (int i = 0; i<256; i++)
+		double maxSpread = 0;
+		for (int i = 0; i<256; i++) {
 			xySeries.add(i, pixelSpread[i]);
+			if (pixelSpread[i]>maxSpread)
+				maxSpread = pixelSpread[i];
+		}
 		
 		XYSeries keyValues = new XYSeries("Key values");
 
 		
 		XYSeries counts = new XYSeries("Counts");
 		
-		counts.add(10.0, meanCounts.getResult());
-		counts.add(100.0, meanBlackCounts.getResult());
-		counts.add(125.0, meanBlackCounts.getResult() + stdDevBlackCounts.getResult());
-		counts.add(150.0, meanBlackCounts.getResult() + stdDevBlackCounts.getResult() + stdDevBlackCounts.getResult());
-		counts.add(175.0, meanBlackCounts.getResult() + stdDevBlackCounts.getResult() + stdDevBlackCounts.getResult() + stdDevBlackCounts.getResult());
-		counts.add(75.0, meanBlackCounts.getResult() - stdDevBlackCounts.getResult());
-		counts.add(50.0, meanBlackCounts.getResult() - stdDevBlackCounts.getResult() - stdDevBlackCounts.getResult());
-		counts.add(25.0, meanBlackCounts.getResult() - stdDevBlackCounts.getResult() - stdDevBlackCounts.getResult()  - stdDevBlackCounts.getResult());
-		keyValues.add(startWhite, 100.0);
-		keyValues.add(endWhite, 100.0);
-		keyValues.add(startBlack, 100.0);
-		keyValues.add(blackThresholdValue, 100.0);
+		counts.add(10.0, countStats.getMean());
+		counts.add(100.0, blackCountStats.getMean());
+		counts.add(125.0, blackCountStats.getMean() + (1.0 * blackCountStats.getStandardDeviation()));
+		counts.add(150.0, blackCountStats.getMean() + (2.0 * blackCountStats.getStandardDeviation()));
+		counts.add(175.0, blackCountStats.getMean() + (3.0 * blackCountStats.getStandardDeviation()));
+		counts.add(75.0, blackCountStats.getMean() - (1.0 * blackCountStats.getStandardDeviation()));
+		counts.add(50.0, blackCountStats.getMean() - (2.0 * blackCountStats.getStandardDeviation()));
+		counts.add(25.0, blackCountStats.getMean() - (3.0 * blackCountStats.getStandardDeviation()));
+		keyValues.add(startWhite, maxSpread/4.0);
+		keyValues.add(endWhite, maxSpread/4.0);
+		keyValues.add(startBlack, maxSpread/4.0);
+		keyValues.add(blackThresholdValue, maxSpread/2.0);
 		
 		XYSeriesCollection dataset = new XYSeriesCollection(xySeries); 
 		dataset.addSeries(keyValues);
 		dataset.addSeries(counts);	
 		final ValueAxis xAxis = new NumberAxis("Brightness");
 		final ValueAxis yAxis = new NumberAxis("Count");
-		yAxis.setUpperBound(100.0);
+		yAxis.setUpperBound(maxSpread);
 		xAxis.setUpperBound(255.0);	
 		
         //final XYItemRenderer  renderer = new XYBarRenderer();
@@ -741,7 +758,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 					if (slopeAdjustedTop>=mainTextTop && slopeAdjustedTop <= mainTextBottom
 							&& slopeAdjustedLeft >=0 && slopeAdjustedLeft < this.getWidth()) {
 						for (int i = 0; i<shape.getWidth(); i++) {
-							verticalCounts[slopeAdjustedLeft+i] += shape.getHeight();
+							if (slopeAdjustedLeft+i<this.getWidth())
+								verticalCounts[slopeAdjustedLeft+i] += shape.getHeight();
 						}
 					}
 				}
@@ -857,6 +875,19 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 			xAdjustment = yCoordinate / meanVerticalSlope;
 		}
 		return xAdjustment;
+	}
+
+	@Override
+	public int getShapeCount() {
+		if (myShapeCount<0) {
+			myShapeCount = 0;
+			for (RowOfShapes row : this.getRows()) {
+				for (GroupOfShapes group : row.getGroups()) {
+					myShapeCount += group.getShapes().size();
+				}
+			}
+		}
+		return myShapeCount;
 	}
 	
 	

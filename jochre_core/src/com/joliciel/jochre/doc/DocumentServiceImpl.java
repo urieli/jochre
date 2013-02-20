@@ -155,7 +155,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	@Override
 	public ImageDocumentExtractor getImageDocumentExtractor(File imageFile,
 			SourceFileProcessor documentProcessor) {
-		ImageDocumentExtractorImpl extractor = new ImageDocumentExtractorImpl(imageFile, documentProcessor);
+		ImageDocumentExtractor extractor = new ImageDocumentExtractorImpl(imageFile, documentProcessor);
 		return extractor;
 	}
 
@@ -262,6 +262,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		generator.setGraphicsService(this.getGraphicsService());
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
+		generator.setMachineLearningService(this.getMachineLearningService());
 		return generator;
 	}
 

@@ -1,30 +1,27 @@
 <!-- this file uses Apache Ant 1.5.3 beta 1 -->
-<project name="jochre-web" default="about" basedir=".">
+<project name="jochre-occitan" default="about" basedir=".">
 	<import file="../ant/global.xml"/>
+	
 	<target name="about">
-		<echo message="try targets clean, etc." />
+		<echo message="try targets jar, etc." />
 	</target>
 	
 	<target name="init" description="Initializes properties that are used by other targets.">
 		<property name="project" value="${ant.project.name}" />
+		<property name="prettyName" value="Jochre Occitan" />
+		<property name="dist" value="../dist"/>
 		<property name="src" value="src"/>
 		<property name="build" value="build"/>
-		<property name="dist" value="../dist"/>
 		<property name="classes" location="${build}/classes" />
-		<property name="lib" value="lib"/>
 		<property name="doc" location="${build}/doc" />
-		<property name="web" location="web" />
-		<property name="weblib" value="${web}/WEB-INF/lib"/>
 		<property name="jochreLib" location="../lib" />
+		<property name="jochre-web" location="../jochre_web" />
+		<property name="web" location="web" />
 		<property name="webapp" location="../webapp" />
+		<property name="myWebApp" location="webapp" />
+		<property name="jochre.web.conf" value="conf/localhost"/>   
 		<path id="classpath">
 			<fileset dir="${jochreLib}">
-				<include name="**/*.jar" />
-			</fileset>
-			<fileset dir="${lib}">
-				<include name="**/*.jar" />
-			</fileset>
-			<fileset dir="${weblib}">
 				<include name="**/*.jar" />
 			</fileset>
 			<fileset file="${dist}/jochre-${jochre.version}.jar" />
@@ -35,31 +32,53 @@
 		<mkdir dir="${classes}" />
 		<mkdir dir="${doc}" />
 		<mkdir dir="${dist}" />
-		<mkdir dir="${webapp}" />
+		<mkdir dir="${myWebApp}" />
 	</target>
 	
 	<target name="clean" depends="init" description="removes all directories related to this build">
 		<delete dir="${build}"/>
-		<delete dir="${webapp}"/>
 	</target>
-			
+		
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${classes}" deprecation="on" debug="on" encoding="utf-8">
 			<classpath><path refid="classpath" /></classpath>
 		</javac>
+		<copy todir="${classes}">
+			<fileset dir="${src}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="jar" depends="compile">
 		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}" />
 	</target>
 	
+	<target name="javadoc" depends="compile">
+	  <javadoc packagenames="com.joliciel.*"
+	           sourcepath="${src}"
+	           defaultexcludes="yes"
+	           destdir="${doc}"
+	           author="true"
+	           version="true"
+	  			encoding="UTF-8"
+	           use="true"
+	           windowtitle="${prettyName} API">
+	    <doctitle><![CDATA[<h1>${prettyName} API</h1>]]></doctitle>
+	    <bottom><![CDATA[<i>Copyright &#169; 2012 Joliciel Informatique SARL. All Rights Reserved.</i>]]></bottom>
+	    <tag name="todo" scope="all" description="To do:"/>
+	  </javadoc>
+	</target>
+	
 	<target name="webapp" depends="compile,jar">
-		<copy todir="${webapp}">
-			<fileset dir="${web}" />
+		<copy todir="${myWebApp}">
+			<fileset dir="${webapp}" />
 		</copy>
-		<copy todir="${webapp}/WEB-INF/lib">
-			<fileset dir="${jochreLib}" />
-			<fileset file="${dist}/jochre-${jochre.version}.jar" />
+		<copy todir="${myWebApp}">
+			<fileset dir="${web}" />
+			<fileset dir="${jochre.web.conf}" />
+		</copy>
+		<copy todir="${myWebApp}/WEB-INF/lib">
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 		</copy>
 	</target>

@@ -1,7 +1,6 @@
 package com.joliciel.jochre.web;
 
 import java.util.List;
-import java.util.Locale;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.zkoss.image.Images;
@@ -78,8 +77,7 @@ public class SplitController extends GenericForwardComposer<Window> {
 		binder = new AnnotateDataBinder(window);
 		binder.loadAll();
 		
-		Locale yiddish = new Locale("yi");
-		shapesToSplit = graphicsService.findShapesToSplit(yiddish);
+		shapesToSplit = graphicsService.findShapesToSplit(JochreProperties.getInstance().getLocale());
 		for (Shape shape : shapesToSplit) {
 			Row shapeRow = new Row();
 

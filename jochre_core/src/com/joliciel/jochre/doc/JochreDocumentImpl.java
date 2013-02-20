@@ -321,6 +321,21 @@ class JochreDocumentImpl extends EntityImpl implements
 			this.getDocumentServiceInternal().deleteJochrePage(page);
 		this.getPages().remove(page);
 	}
+	
+
+	@Override
+	public void deletePage(JochrePage page) {
+		if (!page.getDocument().equals(this)) {
+			throw new RuntimeException("Cannot delete page from document - page is on another document");
+		}
+
+		for (JochreImage image : page.getImages()) {
+			this.getGraphicsService().deleteJochreImage(image);
+		}
+		
+		this.getDocumentServiceInternal().deleteJochrePage(page);
+		this.getPages().remove(page);
+	}
 
 	public GraphicsService getGraphicsService() {
 		return graphicsService;
@@ -347,5 +362,6 @@ class JochreDocumentImpl extends EntityImpl implements
 	public void setTotalPageCount(int totalPageCount) {
 		this.totalPageCount = totalPageCount;
 	}
+
 	
 }

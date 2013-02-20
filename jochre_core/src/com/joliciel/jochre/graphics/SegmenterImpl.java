@@ -749,6 +749,7 @@ class SegmenterImpl implements Segmenter {
 			shapeWidthStats.addValue(shape.getWidth());
 		}
 		double averageShapeWidth = shapeWidthStats.getPercentile(50);
+		LOG.debug("averageShapeWidth: " + averageShapeWidth);
 		
 		// now, arrange the shapes in rows
 		// we're guaranteed that no two shapes overlap at this point.
@@ -762,6 +763,8 @@ class SegmenterImpl implements Segmenter {
 		int i = 0;
 		int j = 0;
 		int numberOfMeanWidthsForSearch = 8;
+		LOG.debug("numberOfMeanWidthsForSearch: " + numberOfMeanWidthsForSearch);
+		LOG.debug("search distance: " + averageShapeWidth * numberOfMeanWidthsForSearch);
 
 		for (Shape shape : shapes) {
 			if (shape.getRow()==null) {
@@ -815,15 +818,17 @@ class SegmenterImpl implements Segmenter {
 					} else {
 						LOG.trace("Partial, starting at " + whiteArea.getRight());
 						for (int k=whiteArea.getRight()-searchLeft;k>=0;k--) {
-							if (whiteArea.getBottom()<shape.getBottom() && leftSearchArea[k][0]<whiteArea.getBottom())
-								leftSearchArea[k][0] = whiteArea.getBottom() + 1;
-							else if (whiteArea.getTop()>shape.getTop() && leftSearchArea[k][1]>whiteArea.getTop())
-								leftSearchArea[k][1] = whiteArea.getTop() - 1;
-							
-							if (leftSearchArea[k][0]>=leftSearchArea[k][1] && searchLeft + k > newSearchLeft) {
-								newSearchLeft = searchLeft + k;
-								LOG.trace("Complete from " + newSearchLeft);
-								break;
+							if (k<leftSearchArea.length) {
+								if (whiteArea.getBottom()<shape.getBottom() && leftSearchArea[k][0]<whiteArea.getBottom())
+									leftSearchArea[k][0] = whiteArea.getBottom() + 1;
+								else if (whiteArea.getTop()>shape.getTop() && leftSearchArea[k][1]>whiteArea.getTop())
+									leftSearchArea[k][1] = whiteArea.getTop() - 1;
+								
+								if (leftSearchArea[k][0]>=leftSearchArea[k][1] && searchLeft + k > newSearchLeft) {
+									newSearchLeft = searchLeft + k;
+									LOG.trace("Complete from " + newSearchLeft);
+									break;
+								}
 							}
 						}
 //						if (LOG.isTraceEnabled()) {

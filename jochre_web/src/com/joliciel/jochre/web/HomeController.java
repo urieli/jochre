@@ -7,6 +7,7 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Button;
+import org.zkoss.zul.Html;
 import org.zkoss.zul.Window;
 
 import com.joliciel.talismane.utils.LogUtils;
@@ -22,12 +23,15 @@ public class HomeController extends GenericForwardComposer<Window> {
 
 	Window winJochreHome;
 	Button btnLogin;
+	Html htmlContent;
 	
 	public HomeController() {
 	}
 	
 	public void doAfterCompose(Window comp) throws Exception {
+		LOG.debug("HomeController.doAfterCompose");
 		super.doAfterCompose(comp);
+		htmlContent.setContent(JochreProperties.getInstance().getWelcomeText());
 	}
 	
     public void onClick$btnLogin(Event event) {

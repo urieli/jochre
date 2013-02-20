@@ -39,6 +39,7 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	SourceFileProcessor documentProcessor;
 	MultiTaskProgressMonitor currentMonitor;
 	File imageFile;
+	int pageNumber = 1;
 
 	public ImageDocumentExtractorImpl(File imageFile,
 			SourceFileProcessor documentProcessor) {
@@ -58,9 +59,10 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	 */
 	@Override
 	public JochreDocument extractDocument() {
+		LOG.debug("ImageDocumentExtractorImpl.extractDocument");
 		try {
 			JochreDocument doc = this.documentProcessor.onDocumentStart();
-			JochrePage page = this.documentProcessor.onPageStart(1);
+			JochrePage page = this.documentProcessor.onPageStart(pageNumber);
 			
 			BufferedImage image = ImageIO.read(imageFile);
 			String imageName = imageFile.getName();
@@ -80,10 +82,13 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 				currentMonitor.setFinished(true);
 			return doc;
 		} catch (Exception e) {
+			LOG.debug("Exception occurred. Have monitor? " + currentMonitor);
 			if (currentMonitor!=null)
 				currentMonitor.setException(e);
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
+		} finally {
+			LOG.debug("Exit ImageDocumentExtractorImpl.extractDocument");
 		}
 	}
 
@@ -92,6 +97,16 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 		currentMonitor = new MultiTaskProgressMonitor();
 		
 		return currentMonitor;
+	}
+
+	@Override
+	public int getPageNumber() {
+		return pageNumber;
+	}
+
+	@Override
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
 	}
 
     

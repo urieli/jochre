@@ -9,7 +9,7 @@
   	<center border="0">
   	<vlayout>
 	  	<div>Java Optical CHaracter REcognition</div>
-	  	<div>Yiddish Corpus</div>
+	  	<div><label id="lblCorpusName" /></div>
   	</vlayout>
   	</center>
 	<east border="0" width="250px">

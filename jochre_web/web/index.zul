@@ -5,38 +5,7 @@
 <include src="menu.zul" />
 <window id="winJochreHome" title="${c:l('home.title')}" apply="com.joliciel.jochre.web.HomeController"
   border="normal" width="840px">
-  <html>
-  <attribute name="content">
-  <p>Welcome to Jochre, an open-source Java OCR application.
-   Jochre allows you to perform optical character recognition (OCR) on PDF or image files.
-  </p>
-  <p>Jochre is a statistical OCR analyser, and bases its analysis on a training corpus.
-  The version of Jochre on the present web application has been trained for Yiddish.  The 
-  training corpus contains a number of extracts from documents in the
-  <a href="http://www.yiddishbookcenter.org/yiddish-books">Yiddish Book Center's archive</a>. 
-  This means it is optimised for books within this archive (all of whose scans are black-and-white 600dpi).
-  Other document types (e.g. grayscale, lower resolution) may or may not analyse well, although the software
-  has been written to be as document and language neutral as possible.
-  The training corpus has been broken up into 3 sections: for each document, we typically have 4 pages of training,
-  1 page held-out for model optimisation, and 1 page for final testing.
-  Currently, the Jochre Yiddish model has a measured accuracy of 98.5%, that is,
-  on the held-out corpus, an average of 98.5 out of every 100 characters have been correctly recognised.
-  The analysis is performed using the <a href="http://maxent.sourceforge.net/howto.html">OpenNLP Maxent</a>
-  Maximum Entropy package.
-  </p>
-  <p>If you encounter a document which scans particularly badly, please send it to the Jochre Yiddish team,
-  as it's a good candidate for diversifying the training corpus. This usually occurs because
-  the document has either an unusual font, or an unusual spelling convention (e.g. aleph tsere instead of ayin),
-  or an unusual page layout which the pre-processor doesn't yet handle very well.</p>
-  <p>You can either use Jochre simply to analyse files and download the results, or you can help
-  build the Yiddish corpus, thus ensuring more accurate results for the entire user community,
-  by correcting the results directly on the web application.</p>
-  <p>If you would like to setup a Jochre corpus for another language, you may download the source code
-  or contact me for help.</p>
-  <p>If you would like to use Jochre, please contact me for a login at <a href="mailto:assaf.urieli@gmail.com">assaf.urieli@gmail.com</a></p>
-  <p>- Assaf Urieli, Joliciel Informatique, PhD student in Natural Language Processing
-  at Université de Toulouse le Mirail</p>
-  </attribute>
+  <html id="htmlContent">
   </html>
   <button id="btnLogin" label="${c:l('home.login')}" />
 </window>

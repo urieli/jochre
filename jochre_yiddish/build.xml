@@ -14,12 +14,14 @@
 		<property name="build" value="build"/>
 		<property name="classes" location="${build}/classes" />
 		<property name="doc" location="${build}/doc" />
-		<property name="jochre" location="../jochre_core" />
+		<property name="jochreLib" location="../lib" />
 		<property name="jochre-web" location="../jochre_web" />
 		<property name="web" location="web" />
 		<property name="webapp" location="../webapp" />
+		<property name="myWebApp" location="webapp" />
+		<property name="jochre.web.conf" value="conf/localhost"/>   
 		<path id="classpath">
-			<fileset dir="${jochre}/lib">
+			<fileset dir="${jochreLib}">
 				<include name="**/*.jar" />
 			</fileset>
 			<fileset file="${dist}/jochre-${jochre.version}.jar" />
@@ -30,6 +32,7 @@
 		<mkdir dir="${classes}" />
 		<mkdir dir="${doc}" />
 		<mkdir dir="${dist}" />
+		<mkdir dir="${myWebApp}" />
 	</target>
 	
 	<target name="clean" depends="init" description="removes all directories related to this build">
@@ -68,11 +71,12 @@
 	</target>
 	
 	<target name="webapp" depends="compile,jar">
-		<copy todir="${webapp}">
-			<fileset dir="${web}">
-			</fileset>
+		<copy todir="${myWebApp}">
+			<fileset dir="${webapp}" />
+			<fileset dir="${web}" />
+			<fileset dir="${jochre.web.conf}" />
 		</copy>
-		<copy todir="${webapp}/WEB-INF/lib">
+		<copy todir="${myWebApp}/WEB-INF/lib">
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 		</copy>
 	</target>

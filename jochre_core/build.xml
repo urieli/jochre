@@ -10,7 +10,7 @@
 		<property name="project" value="${ant.project.name}" />
 		<property name="prettyName" value="Jochre Core" />
 		<property name="dist" value="../dist"/>
-		<property name="lib" value="lib"/>
+		<property name="lib" value="../lib"/>
 		<property name="src" value="src"/>
 		<property name="build" value="build"/>
 		<property name="classes" location="${build}/classes" />
