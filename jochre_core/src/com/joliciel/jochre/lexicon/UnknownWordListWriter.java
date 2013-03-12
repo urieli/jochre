@@ -33,9 +33,7 @@ import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
- * Converts Jochre's analysis to human-readable text, either in plain or xhtml format.
- * Note that the current implementation has some Yiddish-specific rules (around Yiddish-style
- * double-quotes) which will need to be generalised.
+ * Lists all unknown words.
  * @author Assaf Urieli
  *
  */

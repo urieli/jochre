@@ -21,6 +21,7 @@ package com.joliciel.jochre.letterGuesser;
 import java.util.List;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
+import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.talismane.machineLearning.Solution;
 import com.joliciel.talismane.utils.WeightedOutcome;
 
@@ -107,4 +108,10 @@ public interface LetterSequence extends List<Letter>, Solution<Letter> {
 	 * @return
 	 */
 	public String getGuessedSequence();
+	
+	/**
+	 * The first group of shapes underlying this letter sequence.
+	 * @return
+	 */
+	public GroupOfShapes getFirstGroup();
 }

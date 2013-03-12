@@ -26,9 +26,8 @@ abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 	private GraphicsService graphicsService;
 	
 	private List<JochreImage> images = null;
-	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
-	private int imageCount = 0;
-	private int imageId = 0;
+
+	private CorpusSelectionCriteria selectionCriteria = null;
 	
 	public JochreCorpusReaderImpl() {
 		super();
@@ -37,17 +36,34 @@ abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 	protected void initialiseStream() {
 		if (images==null) {
 			images = new ArrayList<JochreImage>();
-			if (imageId!=0) {
-				JochreImage jochreImage = this.graphicsService.loadJochreImage(imageId);
+			if (selectionCriteria.getImageId()!=0) {
+				JochreImage jochreImage = this.graphicsService.loadJochreImage(selectionCriteria.getImageId());
 				images.add(jochreImage);
 			} else {
-				List<JochreImage> myImages = this.graphicsService.findImages(this.imageStatusesToInclude);
+				List<JochreImage> myImages = this.graphicsService.findImages(selectionCriteria.getImageStatusesToInclude());
 				int i = 0;
 				for (JochreImage image : myImages) {
-					if (imageCount>0 && i>=imageCount)
+					if (selectionCriteria.getImageCount()>0 && images.size()>=selectionCriteria.getImageCount())
 						break;
+					if (image.getId()==selectionCriteria.getExcludeImageId())
+						continue;
+					if (selectionCriteria.getDocumentId()>0 && image.getPage().getDocumentId()!=selectionCriteria.getDocumentId())
+						continue;
+					if (selectionCriteria.getDocumentIds()!=null && !selectionCriteria.getDocumentIds().contains(image.getPage().getDocumentId()))
+						continue;
+					if (selectionCriteria.getCrossValidationSize()>0) {
+						i++;
+						if (selectionCriteria.getIncludeIndex()>=0) {
+							if (i % selectionCriteria.getCrossValidationSize() != selectionCriteria.getIncludeIndex()) {
+								continue;
+							}
+						} else if (selectionCriteria.getExcludeIndex()>=0) {
+							if (i % selectionCriteria.getCrossValidationSize() == selectionCriteria.getExcludeIndex()) {
+								continue;
+							}
+						}
+					}
 					images.add(image);
-					i++;
 				}
 			}
 		}
@@ -60,37 +76,19 @@ abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 	public void setGraphicsService(GraphicsService graphicsService) {
 		this.graphicsService = graphicsService;
 	}
-
-	public int getImageCount() {
-		return imageCount;
-	}
-
-	public void setImageCount(int imageCount) {
-		this.imageCount = imageCount;
-	}
-
-	@Override
-	public ImageStatus[] getImageStatusesToInclude() {
-		return imageStatusesToInclude;
-	}
-
-	@Override
-	public void setImageStatusesToInclude(ImageStatus[] imageStatusesToInclude) {
-		this.imageStatusesToInclude = imageStatusesToInclude;
-	}
-
-	@Override
-	public int getImageId() {
-		return imageId;
-	}
-
-	@Override
-	public void setImageId(int imageId) {
-		this.imageId = imageId;
-	}
-
+	
 	public List<JochreImage> getImages() {
 		return images;
+	}
+
+	@Override
+	public CorpusSelectionCriteria getSelectionCriteria() {
+		return selectionCriteria;
+	}
+
+	@Override
+	public void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria) {
+		this.selectionCriteria = selectionCriteria;
 	}
 	
 	

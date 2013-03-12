@@ -27,13 +27,4 @@ package com.joliciel.jochre.graphics;
 public interface JochreCorpusImageReader extends JochreCorpusReader {
 	public JochreImage next();
 	public boolean hasNext();
-	
-	/**
-	 * The max number of images to return. 0 means all images.
-	 * @return
-	 */
-	public int getImageCount();
-	public void setImageCount(int imageCount);
-	int getImageId();
-	void setImageId(int imageId);
 }

@@ -32,9 +32,9 @@ import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
-import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
 
@@ -47,7 +47,6 @@ class JochreMergeEventStream implements CorpusEventStream {
 	private SplitCandidateFinder splitCandidateFinder;
 	
 	private Set<MergeFeature<?>> mergeFeatures = null;
-	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED };
 	private double maxWidthRatio = 1.2;
 	private double maxDistanceRatio = 0.15;
 	
@@ -60,11 +59,11 @@ class JochreMergeEventStream implements CorpusEventStream {
 	
 	private ShapePair mergeCandidate;
 	
-	private int imageCount = 0;
-	
 	private JochreCorpusGroupReader groupReader;
 	GroupOfShapes group = null;
 
+	CorpusSelectionCriteria criteria;
+	
 	/**
 	 * Constructor.
 	 * @param mergeFeatures the features to analyse when training
@@ -179,8 +178,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 	void initialiseStream() {
 		if (groupReader==null) {
 			groupReader = this.graphicsService.getJochreCorpusGroupReader();
-			groupReader.setImageStatusesToInclude(imageStatusesToInclude);
-			groupReader.setImageCount(imageCount);
+			groupReader.setSelectionCriteria(criteria);
 			if (groupReader.hasNext())
 				group = groupReader.next();
 		}
@@ -194,28 +192,12 @@ class JochreMergeEventStream implements CorpusEventStream {
 		this.graphicsService = graphicsService;
 	}
 
-	public int getImageCount() {
-		return imageCount;
-	}
-
-	public void setImageCount(int imageCount) {
-		this.imageCount = imageCount;
-	}
-
 	public BoundaryServiceInternal getBoundaryService() {
 		return boundaryService;
 	}
 
 	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
 		this.boundaryService = boundaryService;
-	}
-
-	public ImageStatus[] getImageStatusesToInclude() {
-		return imageStatusesToInclude;
-	}
-
-	public void setImageStatusesToInclude(ImageStatus[] imageStatusesToInclude) {
-		this.imageStatusesToInclude = imageStatusesToInclude;
 	}
 
 	public SplitCandidateFinder getSplitCandidateFinder() {
@@ -255,11 +237,10 @@ class JochreMergeEventStream implements CorpusEventStream {
 	@Override
 	public Map<String, Object> getAttributes() {
 		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
-		attributes.put("eventStream", this.getClass().getSimpleName());		
-		attributes.put("imageCount", imageCount);		
-		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
+		attributes.put("eventStream", this.getClass().getSimpleName());				
 		attributes.put("maxDistanceRatio", maxDistanceRatio);		
-		attributes.put("maxWidthRatio", maxWidthRatio);		
+		attributes.put("maxWidthRatio", maxWidthRatio);
+		attributes.putAll(this.criteria.getAttributes());
 		
 		return attributes;
 	}
@@ -273,4 +254,13 @@ class JochreMergeEventStream implements CorpusEventStream {
 		this.machineLearningService = machineLearningService;
 	}
 
+	public CorpusSelectionCriteria getCriteria() {
+		return criteria;
+	}
+
+	public void setCriteria(CorpusSelectionCriteria criteria) {
+		this.criteria = criteria;
+	}
+
+	
 }

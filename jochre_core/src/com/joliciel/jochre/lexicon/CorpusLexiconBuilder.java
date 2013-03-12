@@ -18,8 +18,10 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
+
 /**
- * Builds a lexicon from all words found in the validated training portion
+ * Builds a lexicon from all words found in a particular portion
  * of the corpus.
  * @author Assaf Urieli
  *
@@ -36,4 +38,11 @@ public interface CorpusLexiconBuilder {
 	 */
 	public WordSplitter getWordSplitter();
 	public void setWordSplitter(WordSplitter wordSplitter);
+	
+	/**
+	 * Selection criteria for selecting the images to be processed.
+	 * @return
+	 */
+	public CorpusSelectionCriteria getCriteria();
+	public void setCriteria(CorpusSelectionCriteria criteria);
 }

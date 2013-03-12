@@ -221,10 +221,10 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	 * Basically, we take a square with the following boundaries:
 	 * top = meanline, bottom = baseline, right = right, left = right - xHeight.
 	 * To this, we add at the top and the bottom a margin, each with a height of xHeight * topBottomMarginWidth.
-	 * We add on the left a margin with a width of xHeight * leftMarginWidth.
+	 * We add on the right (or on the left, if lang is right-to-left) a margin with a width of xHeight * horizontalMarginWidth.
 	 * Any pixels outside the shape's original boundaries are assumed to be white.
 	 * Any pixels inside the shape's original boundaries, but outside the rectangle's boundaries are ignored
-	 * (in the case where the shaper is wider than xHeight * (1+leftMarginWidth), or taller than xHeight * (1+2*topBottomMarginWidth)).
+	 * (in the case where the shape is wider than xHeight * (1+horizontalMarginWidth), or taller than xHeight * (1+2*topBottomMarginWidth)).
 	 * The resulting rectangle is divided into verticalSectionCount equally spaced vertical sections,
 	 * and horizontalSectionCount equally spaced horizontal sections.
 	 * If a section break occurs inside a pixel, the pixel's brightness count
@@ -232,10 +232,10 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	 * @param verticalSectionCount the number of vertical sections
 	 * @param horizontalSectionCount the number of horizontal sections
 	 * @param topBottomMarginWidth the width of the top magin
-	 * @param leftMarginWidth
+	 * @param horizontalMarginWidth
 	 * @return double[verticalSectionCount][horizontalSectionCount]
 	 */
-	public double[][] getBrightnessBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double leftMarginWidth, SectionBrightnessMeasurementMethod measurementMethod);
+	public double[][] getBrightnessBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double horizontalMarginWidth, SectionBrightnessMeasurementMethod measurementMethod);
 
 	/**
 	 * Similar to the other getBrightnessTotalsBySector methods, except that the base rectangle is taken to be exactly the shape's rectangle,
@@ -260,7 +260,7 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	/**
 	 * Mean brightness for the sections defined above.
 	 */
-	public double getBrightnessMeanBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double leftMarginWidth, SectionBrightnessMeasurementMethod measurementMethod);
+	public double getBrightnessMeanBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double horizontalMarginWidth, SectionBrightnessMeasurementMethod measurementMethod);
 	
 	/**
 	 * Find outline of the shape as a BitSet.

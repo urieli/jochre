@@ -74,6 +74,7 @@ public class JochreServiceLocator {
 	
     private DataSource dataSource;
     private String dataSourcePropertiesResource;
+    private String dataSourcePropertiesFile;
     private Properties dataSourceProperties;
     private ObjectCache objectCache;
     private static JochreServiceLocator instance = null;
@@ -112,13 +113,19 @@ public class JochreServiceLocator {
     }
     
     private Properties getDataSourceProperties() {
-        if (dataSourceProperties==null && this.getDataSourcePropertiesResource()!=null) {
+        if (dataSourceProperties==null && 
+        		(this.getDataSourcePropertiesResource()!=null||this.getDataSourcePropertiesFile()!=null)) {
             dataSourceProperties = new Properties();
             try {
-            	LOG.debug("Loading database properties from: " + this.getDataSourcePropertiesResource());
-                URL url =  ClassLoader.getSystemResource(this.getDataSourcePropertiesResource());
-                String file = url.getFile();
-                FileInputStream fis = new FileInputStream(file);
+            	String filePath = null;
+            	if (this.getDataSourcePropertiesFile()!=null) {
+            		filePath = this.getDataSourcePropertiesFile();
+            	} else if (this.getDataSourcePropertiesResource()!=null) {
+	            	LOG.debug("Loading database properties from: " + this.getDataSourcePropertiesResource());
+	                URL url =  ClassLoader.getSystemResource(this.getDataSourcePropertiesResource());
+	                filePath = url.getFile();
+            	}
+                FileInputStream fis = new FileInputStream(filePath);
                 dataSourceProperties.load(fis);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -260,6 +267,14 @@ public class JochreServiceLocator {
 		if (machineLearningServiceLocator==null)
 			machineLearningServiceLocator = MachineLearningServiceLocator.getInstance();
 		return machineLearningServiceLocator;
+	}
+
+	public String getDataSourcePropertiesFile() {
+		return dataSourcePropertiesFile;
+	}
+
+	public void setDataSourcePropertiesFile(String dataSourcePropertiesFile) {
+		this.dataSourcePropertiesFile = dataSourcePropertiesFile;
 	}
 	
 }

@@ -124,5 +124,7 @@ public interface GraphicsService {
 	public JochreCorpusGroupReader getJochreCorpusGroupReader();
 
 	public JochreCorpusImageReader getJochreCorpusImageReader();
+	
+	public CorpusSelectionCriteria getCorpusSelectionCriteria();
 
 }

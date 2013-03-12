@@ -23,8 +23,8 @@ import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
@@ -94,15 +94,14 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	}
 
 	@Override
-	public CorpusEventStream getJochreLetterEventStream(ImageStatus[] imageStatusesToInclude, Set<LetterFeature<?>> features, 
-			BoundaryDetector boundaryDetector, LetterValidator letterValidator, int imageCount) {
+	public CorpusEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features, 
+			BoundaryDetector boundaryDetector, LetterValidator letterValidator) {
 		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator);
-		eventStream.setImageStatusesToInclude(imageStatusesToInclude);
+		eventStream.setCriteria(criteria);
 		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setLetterGuesserServiceInternal(this);
 		eventStream.setBoundaryService(this.getBoundaryService());
 		eventStream.setMachineLearningService(this.getMachineLearningService());
-		eventStream.setImageCount(imageCount);
 		
 		eventStream.setBoundaryDetector(boundaryDetector);
 		return eventStream;

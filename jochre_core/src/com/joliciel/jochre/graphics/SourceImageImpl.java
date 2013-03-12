@@ -67,6 +67,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	
 	int myShapeCount = -1;
 	
+	boolean drawPixelSpread = false;
+	
 	public SourceImageImpl(GraphicsServiceInternal graphicsService, String name, BufferedImage image) {
 		super(image);
 		this.name = name;
@@ -178,7 +180,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		LOG.debug("Separation threshold value (old): " + separationThresholdValue);
 		
 		separationThresholdValue = (int) Math.round(blackSpread.getPercentile(75.0));
-		LOG.debug("Separation threshold value (new): " + blackThresholdValue);
+		LOG.debug("Separation threshold value (new): " + separationThresholdValue);
 		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
 		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
 		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
@@ -186,13 +188,11 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		separationThreshold = (int) Math.round((separationThresholdValue - blackLimit) * greyscaleMultiplier);
 		LOG.debug("Separation threshold: " + separationThreshold);
 		
-//		if (LOG.isDebugEnabled())
-//			this.drawChart(pixelSpread, brightnessStats, countStats, blackCountStats, blackSpread, startWhite, endWhite, startBlack, blackThresholdValue);
+		if (drawPixelSpread)
+			this.drawChart(pixelSpread, countStats, blackCountStats, blackSpread, startWhite, endWhite, startBlack, blackThresholdValue);
 	}
 	
-	@SuppressWarnings("unused")
 	private void drawChart(int[] pixelSpread,
-			DescriptiveStatistics brightnessStats,
 			DescriptiveStatistics countStats,
 			DescriptiveStatistics blackCountStats,
 			DescriptiveStatistics blackSpread,
@@ -648,7 +648,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 					int slopeAdjustedTop = (int) Math.round(shape.getTop() + (slope * (shapeMidPointX - imageMidPointX)));	
 					if (slopeAdjustedTop>=0 && slopeAdjustedTop < this.getHeight()) {
 						for (int i = 0; i<shape.getHeight(); i++) {
-							horizontalCounts[slopeAdjustedTop+i] += shape.getWidth();
+							if (slopeAdjustedTop+i < horizontalCounts.length)
+								horizontalCounts[slopeAdjustedTop+i] += shape.getWidth();
 						}
 					}
 				}
@@ -888,6 +889,16 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 			}
 		}
 		return myShapeCount;
+	}
+
+	@Override
+	public boolean isDrawPixelSpread() {
+		return drawPixelSpread;
+	}
+
+	@Override
+	public void setDrawPixelSpread(boolean drawPixelSpread) {
+		this.drawPixelSpread = drawPixelSpread;
 	}
 	
 	

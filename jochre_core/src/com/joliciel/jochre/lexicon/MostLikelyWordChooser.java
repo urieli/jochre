@@ -52,6 +52,14 @@ public interface MostLikelyWordChooser {
 	public void setWordSplitter(WordSplitter wordSplitter);
 	
 	/**
+	 * Should we adjust at all with respect to word frequency,
+	 * or should we simply give one score for known words and another for unknown words.
+	 * @return
+	 */
+	public boolean isFrequencyAdjusted();
+	public void setFrequencyAdjusted(boolean frequencyAdjusted);
+	
+	/**
 	 * The log base indicating how much more weight to give to a frequent word than a rare word.
 	 * The score = ln(frequency + 1) / ln(frequencyLogBase) + additiveSmoothing;
 	 * Default value is 2.0, so that a word with a frequency of 2 has twice the weight of frequency of 1,
@@ -77,4 +85,12 @@ public interface MostLikelyWordChooser {
 	 */
 	public Lexicon getLexicon();
 	public void setLexicon(Lexicon lexicon);
+	
+	/**
+	 * Get the lexicon's frequency for a particular word (or minimum word frequency
+	 * for a set of words with no spaces).
+	 * @param wordText
+	 * @return
+	 */
+	public int getFrequency(String wordText);
 }

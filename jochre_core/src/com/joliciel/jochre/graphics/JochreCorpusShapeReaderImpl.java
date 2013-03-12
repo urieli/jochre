@@ -68,9 +68,7 @@ class JochreCorpusShapeReaderImpl extends JochreCorpusReaderImpl implements Joch
 	protected void initialiseStream() {
 		if (groupReader==null) {
 			groupReader = this.getGraphicsService().getJochreCorpusGroupReader();
-			groupReader.setImageCount(this.getImageCount());
-			groupReader.setImageId(this.getImageId());
-			groupReader.setImageStatusesToInclude(this.getImageStatusesToInclude());
+			groupReader.setSelectionCriteria(this.getSelectionCriteria());
 			
 			if (groupReader.hasNext())
 				group = groupReader.next();

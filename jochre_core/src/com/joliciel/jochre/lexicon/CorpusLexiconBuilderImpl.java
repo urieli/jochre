@@ -20,9 +20,10 @@ package com.joliciel.jochre.lexicon;
 
 import java.util.List;
 
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
-import com.joliciel.jochre.graphics.ImageStatus;
+import com.joliciel.jochre.graphics.JochreCorpusImageReader;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
@@ -33,16 +34,16 @@ public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
 	private LexiconServiceInternal lexiconService;
 	private WordSplitter wordSplitter;
 	
-	
+	CorpusSelectionCriteria criteria = null;
+
 	@Override
 	public TextFileLexicon buildLexicon() {
 		TextFileLexicon lexicon = new TextFileLexicon();
-		
-		ImageStatus imageStatus = ImageStatus.TRAINING_VALIDATED;
-		
-		List<JochreImage> images = this.graphicsService.findImages(new ImageStatus[] {imageStatus});
+		JochreCorpusImageReader imageReader = this.graphicsService.getJochreCorpusImageReader();
+		imageReader.setSelectionCriteria(criteria);
 		String wordText = "";
-		for (JochreImage image : images) {
+		while (imageReader.hasNext()) {
+			JochreImage image = imageReader.next();
 			for (Paragraph paragraph : image.getParagraphs()) {
 				// rows ending in dashes can only be held-over within the same paragraph.
 				// to avoid strange things like a page number getting added to the word,
@@ -125,6 +126,14 @@ public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
 
 	public void setWordSplitter(WordSplitter wordSplitter) {
 		this.wordSplitter = wordSplitter;
+	}
+
+	public CorpusSelectionCriteria getCriteria() {
+		return criteria;
+	}
+
+	public void setCriteria(CorpusSelectionCriteria criteria) {
+		this.criteria = criteria;
 	}
 
 }

@@ -109,4 +109,9 @@ public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorabl
 	 * @return
 	 */
 	public abstract File getOutputDirectory();
+	
+
+	public abstract void setDrawPixelSpread(boolean drawPixelSpread);
+
+	public abstract boolean isDrawPixelSpread();
 }

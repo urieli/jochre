@@ -15,12 +15,22 @@
 		<property name="build" value="build"/>
 		<property name="classes" location="${build}/classes" />
 		<property name="doc" location="${build}/doc" />
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
 		<path id="classpath">
 			<fileset dir="${lib}">
 				<include name="**/*.jar" />
 			</fileset>
 			<!-- build output path -->
 			<pathelement location="${classes}"/>
+		</path>
+		<path id="classpath.jar">
+			<fileset dir="${dist}/lib">
+				<include name="**/*.jar" />
+			</fileset>
 		</path>
 		<mkdir dir="${build}" />
 		<mkdir dir="${classes}" />
@@ -44,7 +54,21 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}" />
+	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${talismane.version}.jar">
+	      <classpath refid="classpath.jar"/>
+	    </manifestclasspath>
+		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">
+			<manifest>
+	    		<attribute name="Main-Class" value="com.joliciel.jochre.Jochre"/>
+	    		<attribute name="Class-Path" value="${jar.classpath}"/>
+	    	</manifest>
+		</jar>
+		<zip destfile="${dist}/${project}-${jochre.version}.zip">
+			<fileset file="${dist}/${project}-${jochre.version}.jar" />
+			<fileset dir="${dist}">
+				<include name="lib/*.jar" />
+			</fileset>
+		</zip>
 	</target>
 	
 	<target name="javadoc" depends="compile">

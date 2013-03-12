@@ -136,4 +136,8 @@ public interface SourceImage extends JochreImage, ImageGrid {
 	 * @return
 	 */
 	public double getXAdjustment(double yCoordinate);
+
+	public abstract void setDrawPixelSpread(boolean drawPixelSpread);
+
+	public abstract boolean isDrawPixelSpread();
 }

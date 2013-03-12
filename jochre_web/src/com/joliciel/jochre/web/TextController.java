@@ -328,11 +328,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					currentHtmlIndex++;
 				}
 			}
-			if (currentThread!=null && (currentThread.isInterrupted() || !currentThread.isAlive())) {
-				progressMeter1.setValue(100);
-				progressTimer.setRunning(false);
-				btnInterrupt.setDisabled(true);
-			} else if (this.progressMonitor.isFinished()) {
+			if (this.progressMonitor.isFinished() || (currentThread!=null && (currentThread.isInterrupted() || !currentThread.isAlive()))) {
 				if (this.progressMonitor.getException()!=null) {
 					lblCurrentAction.setValue(Labels.getLabel("imageMonitor.error"));
 					errorBox.setVisible(true);

@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Set;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
@@ -172,14 +172,13 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 	@Override
 	public CorpusEventStream getJochreSplitEventStream(
-			ImageStatus[] imageStatusesToInclude,
-			Set<SplitFeature<?>> splitFeatures, int imageCount, double minWidthRatio, double minHeightRatio) {
+			CorpusSelectionCriteria criteria,
+			Set<SplitFeature<?>> splitFeatures, double minWidthRatio, double minHeightRatio) {
 		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setMachineLearningService(this.getMachineLearningService());
-		eventStream.setImageStatusesToInclude(imageStatusesToInclude);
-		eventStream.setImageCount(imageCount);
+		eventStream.setCriteria(criteria);
 		eventStream.setMinWidthRatio(minWidthRatio);
 		eventStream.setMinHeightRatio(minHeightRatio);
 		
@@ -190,14 +189,13 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 	@Override
 	public CorpusEventStream getJochreMergeEventStream(
-			ImageStatus[] imageStatusesToInclude, Set<MergeFeature<?>> mergeFeatures, int imageCount,
+			CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures,
 			double maxWidthRatio, double maxDistanceRatio) {
 		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setMachineLearningService(this.getMachineLearningService());
-		eventStream.setImageStatusesToInclude(imageStatusesToInclude);
-		eventStream.setImageCount(imageCount);
+		eventStream.setCriteria(criteria);
 		eventStream.setMaxWidthRatio(maxWidthRatio);
 		eventStream.setMaxDistanceRatio(maxDistanceRatio);
 

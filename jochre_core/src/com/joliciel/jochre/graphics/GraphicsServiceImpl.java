@@ -420,5 +420,11 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		return jochreCorpusReader;
 	}
 
+	@Override
+	public CorpusSelectionCriteria getCorpusSelectionCriteria() {
+		CorpusSelectionCriteria criteria = new CorpusSelectionCriteriaImpl();
+		return criteria;
+	}
+
 	
 }

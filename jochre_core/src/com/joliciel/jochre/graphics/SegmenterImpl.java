@@ -859,15 +859,17 @@ class SegmenterImpl implements Segmenter {
 					} else {
 						LOG.trace("Partial, starting at " + whiteArea.getLeft());
 						for (int k=whiteArea.getLeft()-shape.getRight(); k<rightSearchArea.length; k++) {
-							if (whiteArea.getBottom()<shape.getBottom() && leftSearchArea[k][0]<whiteArea.getBottom())
-								rightSearchArea[k][0] = whiteArea.getBottom() + 1;
-							else if (whiteArea.getTop()>shape.getTop() && leftSearchArea[k][1]>whiteArea.getTop())
-								rightSearchArea[k][1] = whiteArea.getTop() - 1;
-							
-							if (rightSearchArea[k][0]>=rightSearchArea[k][1] && newSearchRight > shape.getRight() + k) {
-								newSearchRight = shape.getRight() + k;
-								LOG.trace("Complete from " + newSearchRight);
-								break;
+							if (k > 0 && k < leftSearchArea.length && k < rightSearchArea.length) {
+								if (whiteArea.getBottom()<shape.getBottom() && leftSearchArea[k][0]<whiteArea.getBottom())
+									rightSearchArea[k][0] = whiteArea.getBottom() + 1;
+								else if (whiteArea.getTop()>shape.getTop() && leftSearchArea[k][1]>whiteArea.getTop())
+									rightSearchArea[k][1] = whiteArea.getTop() - 1;
+								
+								if (rightSearchArea[k][0]>=rightSearchArea[k][1] && newSearchRight > shape.getRight() + k) {
+									newSearchRight = shape.getRight() + k;
+									LOG.trace("Complete from " + newSearchRight);
+									break;
+								}
 							}
 						}
 //						if (LOG.isTraceEnabled()) {

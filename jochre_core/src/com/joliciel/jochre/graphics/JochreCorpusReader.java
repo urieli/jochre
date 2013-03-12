@@ -19,18 +19,11 @@
 package com.joliciel.jochre.graphics;
 
 public interface JochreCorpusReader {
-
 	/**
-	 * The max number of images to return. 0 means all images.
-	 * @return
+	 * The selection criteria driving the choice of images in this reader.
+	 * @param selectionCriteria
 	 */
-	public int getImageCount();
-	public void setImageCount(int imageCount);
-	
-	public int getImageId();
-	public void setImageId(int imageId);
-	
-	public abstract void setImageStatusesToInclude(ImageStatus[] imageStatusesToInclude);
-	public abstract ImageStatus[] getImageStatusesToInclude();
+	public abstract void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria);
+	public abstract CorpusSelectionCriteria getSelectionCriteria();
 
 }

@@ -358,8 +358,8 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	}
 	
 	@Override
-	public double[][] getBrightnessBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double leftMarginWidth, SectionBrightnessMeasurementMethod measurementMethod) {
-		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + topBottomMarginWidth + "|" + leftMarginWidth;
+	public double[][] getBrightnessBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double horizontalMarginWidth, SectionBrightnessMeasurementMethod measurementMethod) {
+		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + topBottomMarginWidth + "|" + horizontalMarginWidth;
 		
 		Map<SectionBrightnessMeasurementMethod, double[][]> brightnessBySector = this.brightnessBySectorMap.get(key);
 		if (brightnessBySector==null) {
@@ -373,8 +373,10 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 			if (LOG.isTraceEnabled())
 				LOG.trace("xHeight: " + xHeight);
 
-			double totalWidth = xHeight + ((double)xHeight * leftMarginWidth);
-			double leftOffset = this.getWidth() - totalWidth;
+			double totalWidth = xHeight + ((double)xHeight * horizontalMarginWidth);
+			double leftOffset = 0.0;
+			if (this.getJochreImage().isLeftToRight())
+				leftOffset = this.getWidth() - totalWidth;
 			double verticalSectionWidth = totalWidth / ((double) verticalSectionCount);
 			
 			verticalBreaks[0] = leftOffset;
@@ -402,12 +404,12 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 		return brightnessBySector.get(measurementMethod);
 	}
 	
-	public double[][] getBrightnessBySector(int verticalSectionCount, int horizontalSectionCount, int marginSectionCount, boolean includeLeftMargin, SectionBrightnessMeasurementMethod measurementMethod) {
-		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + marginSectionCount + "|" + includeLeftMargin;
+	public double[][] getBrightnessBySector(int verticalSectionCount, int horizontalSectionCount, int marginSectionCount, boolean includeHorizontalMargin, SectionBrightnessMeasurementMethod measurementMethod) {
+		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + marginSectionCount + "|" + includeHorizontalMargin;
 		Map<SectionBrightnessMeasurementMethod, double[][]> brightnessBySector = this.brightnessBySectorMap.get(key);
 		if (brightnessBySector==null) {
 			int xSectorCount = verticalSectionCount;
-			if (includeLeftMargin)
+			if (includeHorizontalMargin)
 				xSectorCount += marginSectionCount;
 			int ySectorCount = horizontalSectionCount + (2 * marginSectionCount);
 			
@@ -419,14 +421,15 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 				LOG.trace("xHeight: " + xHeight);
 
 			double verticalSectorWidth = 0.0;
-			double leftMarginSectorWidth = 0.0;
+			double horizontalMarginSectorWidth = 0.0;
 			double leftOffset = 0;
-			double leftMarginWidthPixels = 0;
-			if (includeLeftMargin) {
+			double horizontalMarginWidthPixels = 0;
+			if (includeHorizontalMargin) {
 				double totalWidth = xHeight * 1.5;
-				leftOffset = this.getWidth() - totalWidth;
-				leftMarginWidthPixels = totalWidth - xHeight;
-				leftMarginSectorWidth = (double) (leftMarginWidthPixels) / (double) marginSectionCount;
+				if (!this.getJochreImage().isLeftToRight())
+					leftOffset = this.getWidth() - totalWidth;
+				horizontalMarginWidthPixels = totalWidth - xHeight;
+				horizontalMarginSectorWidth = (double) (horizontalMarginWidthPixels) / (double) marginSectionCount;
 				verticalSectorWidth = xHeight / ((double) verticalSectionCount);
 			} else {
 				verticalSectorWidth = (double) this.getWidth() / (double) xSectorCount;
@@ -434,12 +437,24 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 			
 			int xIndex = 0;
 			verticalBreaks[xIndex++] = leftOffset;
-			for (int i=0; i<xSectorCount-verticalSectionCount;i++) {
-				verticalBreaks[xIndex++] = leftOffset + leftMarginSectorWidth * (i+1);				
-			}
 			
-			for (int i = 0; i < verticalSectionCount; i++) {
-				verticalBreaks[xIndex++] = leftOffset + leftMarginWidthPixels + verticalSectorWidth * (i+1);
+			if (this.jochreImage.isLeftToRight()) {
+				for (int i = 0; i < verticalSectionCount; i++) {
+					verticalBreaks[xIndex++] = verticalSectorWidth * (i+1);
+				}
+				
+				for (int i=0; i<xSectorCount-verticalSectionCount;i++) {
+					verticalBreaks[xIndex++] = (verticalSectorWidth * verticalSectionCount) + (horizontalMarginSectorWidth * (i+1));				
+				}
+				
+			} else {
+				for (int i=0; i<xSectorCount-verticalSectionCount;i++) {
+					verticalBreaks[xIndex++] = leftOffset + horizontalMarginSectorWidth * (i+1);				
+				}
+				
+				for (int i = 0; i < verticalSectionCount; i++) {
+					verticalBreaks[xIndex++] = leftOffset + horizontalMarginWidthPixels + verticalSectorWidth * (i+1);
+				}
 			}
 			verticalBreaks[xSectorCount] = this.getWidth();
 			
@@ -702,9 +717,9 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	@Override
 	public double getBrightnessMeanBySection(int verticalSectionCount,
 			int horizontalSectionCount, double topBottomMarginWidth,
-			double leftMarginWidth,
+			double horizontalMarginWidth,
 			SectionBrightnessMeasurementMethod measurementMethod) {
-		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + topBottomMarginWidth + "|" + leftMarginWidth;
+		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + topBottomMarginWidth + "|" + horizontalMarginWidth;
 		return this.getBrightnessMeanBySector(key, measurementMethod);
 	}
 	

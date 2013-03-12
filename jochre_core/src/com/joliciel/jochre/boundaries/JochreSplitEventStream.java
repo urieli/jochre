@@ -32,8 +32,8 @@ import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusShapeReader;
 import com.joliciel.jochre.graphics.Shape;
 
@@ -45,7 +45,6 @@ class JochreSplitEventStream implements CorpusEventStream {
 	private SplitCandidateFinder splitCandidateFinder;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
-	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED };
 	private double minWidthRatio = 1.1;
 	private double minHeightRatio = 1.0;
 	
@@ -55,13 +54,14 @@ class JochreSplitEventStream implements CorpusEventStream {
 	private int aboveRatioCount = 0;
 	private int yesCount = 0;
 	private int noCount = 0;
-	private int imageCount = 0;
 
 	List<Split> splitCandidates = null;
 	private Split splitCandidate = null;
 
 	private JochreCorpusShapeReader shapeReader;
 	private Shape shape;
+	
+	private CorpusSelectionCriteria criteria;
 	
 	/**
 	 * Constructor.
@@ -183,8 +183,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 	void initialiseStream() {
 		if (shapeReader==null) {
 			shapeReader = this.graphicsService.getJochreCorpusShapeReader();
-			shapeReader.setImageStatusesToInclude(imageStatusesToInclude);
-			shapeReader.setImageCount(imageCount);
+			shapeReader.setSelectionCriteria(criteria);
 			this.getNextShape();
 		}
 	}
@@ -197,28 +196,12 @@ class JochreSplitEventStream implements CorpusEventStream {
 		this.graphicsService = graphicsService;
 	}
 
-	public int getImageCount() {
-		return imageCount;
-	}
-
-	public void setImageCount(int imageCount) {
-		this.imageCount = imageCount;
-	}
-
 	public BoundaryServiceInternal getBoundaryService() {
 		return boundaryService;
 	}
 
 	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
 		this.boundaryService = boundaryService;
-	}
-
-	public ImageStatus[] getImageStatusesToInclude() {
-		return imageStatusesToInclude;
-	}
-
-	public void setImageStatusesToInclude(ImageStatus[] imageStatusesToInclude) {
-		this.imageStatusesToInclude = imageStatusesToInclude;
 	}
 
 	public SplitCandidateFinder getSplitCandidateFinder() {
@@ -253,11 +236,10 @@ class JochreSplitEventStream implements CorpusEventStream {
 	@Override
 	public Map<String, Object> getAttributes() {
 		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
-		attributes.put("eventStream", this.getClass().getSimpleName());		
-		attributes.put("imageCount", imageCount);		
-		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
+		attributes.put("eventStream", this.getClass().getSimpleName());			
 		attributes.put("minHeightRatio", minHeightRatio);		
-		attributes.put("minWidthRatio", minWidthRatio);			
+		attributes.put("minWidthRatio", minWidthRatio);
+		attributes.putAll(this.criteria.getAttributes());
 		
 		return attributes;
 	}
@@ -269,6 +251,14 @@ class JochreSplitEventStream implements CorpusEventStream {
 	public void setMachineLearningService(
 			MachineLearningService machineLearningService) {
 		this.machineLearningService = machineLearningService;
+	}
+
+	public CorpusSelectionCriteria getCriteria() {
+		return criteria;
+	}
+
+	public void setCriteria(CorpusSelectionCriteria criteria) {
+		this.criteria = criteria;
 	}
 
 	

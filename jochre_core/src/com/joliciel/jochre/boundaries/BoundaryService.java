@@ -23,15 +23,19 @@ import java.util.Set;
 
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
-import com.joliciel.jochre.graphics.ImageStatus;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 public interface BoundaryService {	
-	public CorpusEventStream getJochreSplitEventStream(ImageStatus[] imageStatusesToInclude, Set<SplitFeature<?>> splitFeatures, int imageCount, double minWidthRatio, double minHeightRatio);
-	public CorpusEventStream getJochreMergeEventStream(ImageStatus[] imageStatusesToInclude, Set<MergeFeature<?>> mergeFeatures, int imageCount, double maxWidthRatio, double maxDistanceRatio);
+	public CorpusEventStream getJochreSplitEventStream(
+			CorpusSelectionCriteria criteria,
+			Set<SplitFeature<?>> splitFeatures, double minWidthRatio,
+			double minHeightRatio);
+	
+	public CorpusEventStream getJochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, double maxWidthRatio, double maxDistanceRatio);
 
 	/**
 	 * Returns the single "most likely" shape sequence, as long as each decision has a score >= minProbabilityForDecision.
@@ -115,4 +119,5 @@ public interface BoundaryService {
 	public DecisionFactory<SplitOutcome> getSplitDecisionFactory();
 	
 	public DecisionFactory<MergeOutcome> getMergeDecisionFactory();
+
 }

@@ -34,7 +34,8 @@ import com.joliciel.talismane.utils.WeightedOutcome;
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
 	private double additiveSmoothing = 0.5;
-	private double frequencyLogBase = 2.0;
+	private double frequencyLogBase = 100.0;
+	private boolean frequencyAdjusted = true;
 	
 	Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
 	LexiconServiceInternal lexiconServiceInternal = null;
@@ -134,6 +135,121 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		return bestSequence;
 	}
 	
+	public int getFrequency(String wordText) {
+		return this.getFrequency(wordText, null);
+	}
+
+	public int getFrequency(String wordText, LetterSequence sequence) {
+		int minFrequency = Integer.MAX_VALUE;
+
+		List<String> words = null;
+		if (this.getWordSplitter()!=null) {
+			words = this.getWordSplitter().splitText(wordText);
+		} else {
+			words = new ArrayList<String>();
+			words.add(wordText);
+		}
+		
+		for (String word : words) {
+			// More intelligent handling of dashes:
+			// If a word contains a dash, we should analyse both sides of the dash separately
+			// as well as the whole thing together
+			int frequency = 0;
+			
+			if (word.contains("-")&&word.length()>1) {
+				String[] parts = word.split("-");
+
+				frequency = this.lexicon.getFrequency(word);
+				
+				List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
+				int minPartFrequency = Integer.MAX_VALUE;
+				boolean firstPart = true;
+				for (String part : parts) {
+					part = part.trim();
+					if (part.length()>0) {
+						int partFrequency = 0;
+						if (!firstPart)
+							partFrequency = this.lexicon.getFrequency("-" + part);
+						
+						if (partFrequency==0)
+							partFrequency  = this.lexicon.getFrequency(part);
+						
+						partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
+						if (partFrequency < minPartFrequency)
+							minPartFrequency = partFrequency;
+					}
+					firstPart = false;
+				}
+				if (minPartFrequency==Integer.MAX_VALUE)
+					minPartFrequency = 0;
+				if (frequency>minPartFrequency) {
+					if (sequence!=null)
+						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+				} else {
+					if (sequence!=null)
+						sequence.getWordFrequencies().addAll(partFrequencies);
+					frequency = minPartFrequency;
+				}
+			} else if (word.contains("'") && !word.startsWith("'") && !word.endsWith("'") && word.length()>0) {
+				//TODO: combine ' and - into something a bit more generic
+				// the apostrophe can either be attached to the first or second part, but not to both (?)
+				String[] parts = word.split("'");
+				
+				frequency = this.lexicon.getFrequency(word);
+
+				List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
+				int minPartFrequency = Integer.MAX_VALUE;
+				boolean prevApostropheAttached = false;
+				int i = 0;
+				for (String part : parts) {
+					boolean firstPart = i==0;
+					boolean lastPart = i==parts.length-1;
+					part = part.trim();
+					if (part.length()>0) {
+						int partFrequency = 0;
+						if (!firstPart && !prevApostropheAttached)
+							partFrequency = this.lexicon.getFrequency("'" + part);
+
+						prevApostropheAttached = false;
+						if (!lastPart && partFrequency==0) {
+							partFrequency = this.lexicon.getFrequency(part + "'");
+							if (partFrequency>0)
+								prevApostropheAttached = true;
+						}
+						
+						if (partFrequency==0)
+							partFrequency  = this.lexicon.getFrequency(part);
+						
+						partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
+						if (partFrequency < minPartFrequency)
+							minPartFrequency = partFrequency;
+					}
+					i++;
+				}
+				if (minPartFrequency==Integer.MAX_VALUE)
+					minPartFrequency = 0;
+				if (frequency>minPartFrequency) {
+					if (sequence!=null)
+						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+				} else {
+					if (sequence!=null)
+						sequence.getWordFrequencies().addAll(partFrequencies);
+					frequency = minPartFrequency;
+				}
+
+
+			} else {
+				frequency = this.lexicon.getFrequency(word);
+				if (sequence!=null)
+					sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
+			}
+			if (frequency < minFrequency)
+				minFrequency = frequency;
+
+		}
+		return minFrequency;
+	}
+	
 	@Override
 	public LetterSequence chooseMostLikelyWord(
 			List<LetterSequence> heap, int n) {
@@ -156,61 +272,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 				j++;
 			}
 			String wordText = sb.toString();
-			int minFrequency = Integer.MAX_VALUE;
-
-			List<String> words = this.getWordSplitter().splitText(wordText);
-			
-			for (String word : words) {
-				// More intelligent handling of dashes:
-				// If a word contains a dash, we should analyse both sides of the dash separately
-				// as well as the whole thing together
-				int frequency = 0;
-				
-				if (word.contains("-")) {
-					String[] parts = word.split("-");
-					boolean trySplit = true;
-					// only try to split if all parts have at least 2 characters
-					for (String part : parts) {
-						part = part.trim();
-						if (part.length()>0 & !part.equals("-")) {
-							if (part.length()<=2) {
-								trySplit = false;
-								break;
-							}
-						}
-					}
-					if (trySplit) {
-						frequency = this.lexicon.getFrequency(word);
-
-						List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
-						int minPartFrequency = Integer.MAX_VALUE;
-						for (String part : parts) {
-							part = part.trim();
-							if (part.length()>0) {
-								int partFrequency  = this.lexicon.getFrequency(part);
-								partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
-								if (!part.equals("-") && partFrequency < minPartFrequency)
-									minPartFrequency = partFrequency;
-							}
-						}
-						if (frequency>minPartFrequency) {
-							sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-						} else {
-							sequence.getWordFrequencies().addAll(partFrequencies);
-							frequency = minPartFrequency;
-						}
-					} else {
-						frequency = this.lexicon.getFrequency(word);
-						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-					}
-				} else {
-					frequency = this.lexicon.getFrequency(word);
-					sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-				}
-				if (frequency < minFrequency)
-					minFrequency = frequency;
-
-			}
+			int minFrequency = this.getFrequency(wordText, sequence);
 			
 			sequence.setFrequency(minFrequency);
 			double freqLog = this.getFrequencyAdjustment(minFrequency);
@@ -232,25 +294,32 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	}
 	
 	double getFrequencyAdjustment(int minFrequency) {
-		Double freqLogObj = this.frequencyLogs.get(minFrequency);
-		double freqLog = 0;
-		if (freqLogObj!=null)
-			freqLog = freqLogObj.doubleValue();
-		else {
-			// The base is log2 of the frequency + 1
-			// 0 = log2(1) = 0
-			// 1 = log2(2) = 1
-			// 3 = log2(4) = 2
-			// 7 = log2(8) = 3
-			// etc.
-			// To this we add additive smoothing to allow for unknown words
-			double minFreq = minFrequency;
-			if (minFreq<0)
-				minFreq = -0.9;
-			freqLog = (Math.log(minFreq + 1.0) / Math.log(frequencyLogBase)) + additiveSmoothing;
-			this.frequencyLogs.put(minFrequency, freqLog);
+		if (frequencyAdjusted) {
+			Double freqLogObj = this.frequencyLogs.get(minFrequency);
+			double freqLog = 0;
+			if (freqLogObj!=null)
+				freqLog = freqLogObj.doubleValue();
+			else {
+				// The base is log2 of the frequency + 1
+				// 0 = log2(1) = 0
+				// 1 = log2(2) = 1
+				// 3 = log2(4) = 2
+				// 7 = log2(8) = 3
+				// etc.
+				// To this we add additive smoothing to allow for unknown words
+				double minFreq = minFrequency;
+				if (minFreq<0)
+					minFreq = -0.9;
+				freqLog = (Math.log(minFreq + 1.0) / Math.log(frequencyLogBase)) + additiveSmoothing;
+				this.frequencyLogs.put(minFrequency, freqLog);
+			}
+			return freqLog;
+		} else {
+			if (minFrequency==0)
+				return additiveSmoothing;
+			else
+				return 1 + additiveSmoothing;
 		}
-		return freqLog;
 	}
 
 
@@ -301,5 +370,13 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 
 	public void setLexicon(Lexicon lexicon) {
 		this.lexicon = lexicon;
+	}
+
+	public boolean isFrequencyAdjusted() {
+		return frequencyAdjusted;
+	}
+
+	public void setFrequencyAdjusted(boolean frequencyAdjusted) {
+		this.frequencyAdjusted = frequencyAdjusted;
 	}
 }

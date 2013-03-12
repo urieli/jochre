@@ -23,6 +23,7 @@ import java.util.List;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
+import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
@@ -283,6 +284,11 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 
 	public List<WeightedOutcome<String>> getWordFrequencies() {
 		return wordFrequencies;
+	}
+
+	@Override
+	public GroupOfShapes getFirstGroup() {
+		return this.getUnderlyingShapeSequence().get(0).getShape().getGroup();
 	}
 
 

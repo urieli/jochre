@@ -102,6 +102,8 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	ImageAnalyser analyser = null;
 	
 	boolean showSegmentation = false;
+	boolean drawPixelSpread = false;
+
 	MultiTaskProgressMonitor currentMonitor;
 	
 	List<DocumentObserver> documentObservers = new ArrayList<DocumentObserver>();
@@ -197,6 +199,8 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			}
 			LOG.debug("Creating source image object");
 			SourceImage sourceImage = jochrePage.newJochreImage(image, imageName+ '.' +SUFFIX);
+			sourceImage.setDrawPixelSpread(drawPixelSpread);
+			
 			if (currentUser!=null)
 				sourceImage.setOwner(currentUser);
 			
@@ -521,4 +525,14 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.machineLearningService = machineLearningService;
 	}
 	
+
+	@Override
+	public boolean isDrawPixelSpread() {
+		return drawPixelSpread;
+	}
+
+	@Override
+	public void setDrawPixelSpread(boolean drawPixelSpread) {
+		this.drawPixelSpread = drawPixelSpread;
+	}
 }

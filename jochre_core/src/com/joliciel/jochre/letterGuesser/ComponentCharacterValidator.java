@@ -42,12 +42,14 @@ public class ComponentCharacterValidator implements LetterValidator {
 	public boolean validate(String letter) {
 		if (letter.length()==0)
 			return true;
-		for (int i=0; i<letter.length(); i++) {
-			char c = letter.charAt(i);
-			if (c=='|')
-				continue;
-			if (!linguistics.getValidCharacters().contains(c)) {
-				return false;
+		if (locale.getLanguage().equals("yi")||locale.getLanguage().equals("ji")) {
+			for (int i=0; i<letter.length(); i++) {
+				char c = letter.charAt(i);
+				if (c=='|')
+					continue;
+				if (!linguistics.getValidCharacters().contains(c)) {
+					return false;
+				}
 			}
 		}
 		return true;

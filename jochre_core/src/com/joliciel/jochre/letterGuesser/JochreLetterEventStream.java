@@ -32,10 +32,11 @@ import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
+import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
-import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
+import com.joliciel.jochre.graphics.JochreCorpusReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.CorpusEvent;
@@ -54,10 +55,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 	private BoundaryDetector boundaryDetector;
 	
 	private Set<LetterFeature<?>> features = null;
-	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED };
 	private int shapeIndex = 0;
-	
-	private int imageCount = 0;
 	
 	private ShapeInSequence shapeInSequence = null;
 
@@ -69,6 +67,9 @@ class JochreLetterEventStream implements CorpusEventStream {
 	
 	private long totalTimeDatabaseRead = 0;
 	private int invalidLetterCount = 0;
+	
+	JochreCorpusReader corpusReader = null;
+	CorpusSelectionCriteria criteria = null;
 
 	/**
 	 * Constructor.
@@ -190,8 +191,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 	void initialiseStream() {
 		if (groupReader==null) {
 			groupReader = this.graphicsService.getJochreCorpusGroupReader();
-			groupReader.setImageStatusesToInclude(imageStatusesToInclude);
-			groupReader.setImageCount(imageCount);
+			groupReader.setSelectionCriteria(criteria);
 			this.getNextGroup();
 		}
 
@@ -214,14 +214,6 @@ class JochreLetterEventStream implements CorpusEventStream {
 		this.letterGuesserServiceInternal = letterGuesserServiceInternal;
 	}
 
-	public int getImageCount() {
-		return imageCount;
-	}
-
-	public void setImageCount(int imageCount) {
-		this.imageCount = imageCount;
-	}
-
 	public BoundaryService getBoundaryService() {
 		return boundaryService;
 	}
@@ -238,20 +230,11 @@ class JochreLetterEventStream implements CorpusEventStream {
 		this.boundaryDetector = boundaryDetector;
 	}
 
-	public ImageStatus[] getImageStatusesToInclude() {
-		return imageStatusesToInclude;
-	}
-
-	public void setImageStatusesToInclude(ImageStatus[] imageStatusesToInclude) {
-		this.imageStatusesToInclude = imageStatusesToInclude;
-	}
-
 	@Override
 	public Map<String, Object> getAttributes() {
 		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
 		attributes.put("eventStream", this.getClass().getSimpleName());		
-		attributes.put("imageCount", imageCount);		
-		attributes.put("imageStatusesToInclude", imageStatusesToInclude);		
+		attributes.putAll(this.criteria.getAttributes());	
 		
 		return attributes;
 	}
@@ -263,6 +246,14 @@ class JochreLetterEventStream implements CorpusEventStream {
 	public void setMachineLearningService(
 			MachineLearningService machineLearningService) {
 		this.machineLearningService = machineLearningService;
+	}
+
+	public CorpusSelectionCriteria getCriteria() {
+		return criteria;
+	}
+
+	public void setCriteria(CorpusSelectionCriteria criteria) {
+		this.criteria = criteria;
 	}
 
 }
