@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.Split;
 
 /**
@@ -40,8 +41,8 @@ public class InverseSplitFeature extends AbstractSplitFeature<Double> implements
 
 	
 	@Override
-	public FeatureResult<Double> checkInternal(Split split) {
-		FeatureResult<Double> rawOutcome = feature.check(split);
+	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+		FeatureResult<Double> rawOutcome = feature.check(split, env);
 		FeatureResult<Double> outcome = null;
 		if (rawOutcome!=null) {
 			double weight = rawOutcome.getOutcome();

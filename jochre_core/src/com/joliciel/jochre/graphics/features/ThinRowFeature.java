@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
@@ -36,7 +37,7 @@ public class ThinRowFeature extends AbstractShapeFeature<Boolean> implements Boo
 	private static final Log LOG = LogFactory.getLog(ThinRowFeature.class);
 
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		double threshold = 0.75;
 		JochreImage image = shape.getJochreImage();

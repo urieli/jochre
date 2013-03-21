@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
+import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
@@ -31,6 +32,22 @@ class ShapeInSequenceFeatureParserImpl extends AbstractFeatureParser<ShapeInSequ
 			FunctionDescriptor functionDescriptor) {
 		return null;
 	}
+	
+	@Override
+	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		// no dependencies to inject
+	}
 
+	@Override
+	protected boolean canConvert(Class<?> parameterType,
+			Class<?> originalArgumentType) {
+		return false;
+	}
+
+	@Override
+	protected Feature<ShapeInSequence, ?> convertArgument(
+			Class<?> parameterType, Feature<ShapeInSequence, ?> originalArgument) {
+		return null;
+	}
 
 }

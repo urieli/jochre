@@ -24,7 +24,7 @@
 		</subant>
 	</target>
 
-	<target name="build">
+	<target name="jar">
 		<subant target="jar">
 			<fileset dir=".">
 				<include name="jochre_core/build.xml"/>
@@ -47,7 +47,7 @@
 		</subant>
 	</target>
 	
-	<target name="webapp" depends="build">
+	<target name="webapp" depends="jar">
 		<subant target="webapp">
 			<fileset dir=".">
 				<include name="jochre_web/build.xml"/>

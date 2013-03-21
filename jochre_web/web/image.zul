@@ -259,10 +259,10 @@ function pushLetters(pushDirection, startIndex, textBoxArray) {
 	visible="false" sizable="true" apply="com.joliciel.jochre.web.FixTextWindowController">
 	<vbox>
 	<hbox>
+		<checkbox id="chkSkip" label="${c:l('image.skip')}" />
 		<checkbox id="chkHardHyphen" label="${c:l('image.hardHyphen')}" />
 		<checkbox id="chkBrokenWord" label="${c:l('image.brokenWord')}" />
 		<checkbox id="chkSegmentProblem" label="${c:l('image.segmentProblem')}" />
-		<label id="lblWord" value="Hello"></label>
 	</hbox>
 	<hbox>
 		<grid id="letterGrid">

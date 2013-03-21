@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.Split;
 
 /**
@@ -33,7 +34,7 @@ import com.joliciel.jochre.boundaries.Split;
 public class BridgeWidthFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
 
 	@Override
-	public FeatureResult<Double> checkInternal(Split split) {
+	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
 		int[] verticalCounts = split.getShape().getVerticalCounts();
 		double verticalCount = (double) verticalCounts[split.getPosition()] / 255;

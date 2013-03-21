@@ -33,6 +33,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
@@ -100,8 +101,8 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 		}
 		
 		@Override
-		public FeatureResult<T> check(Split context) {
-			return wrappedFeature.check(context);
+		public FeatureResult<T> check(Split context, RuntimeEnvironment env) {
+			return wrappedFeature.check(context, env);
 		}
 		
 		@Override
@@ -142,5 +143,22 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 				Feature<Split, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}
+	}
+
+	@Override
+	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		// no dependencies to inject
+	}
+
+	@Override
+	protected boolean canConvert(Class<?> parameterType,
+			Class<?> originalArgumentType) {
+		return false;
+	}
+
+	@Override
+	protected Feature<Split, ?> convertArgument(Class<?> parameterType,
+			Feature<Split, ?> originalArgument) {
+		return null;
 	}
 }

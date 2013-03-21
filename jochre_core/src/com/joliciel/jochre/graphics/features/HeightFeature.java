@@ -22,6 +22,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Returns height / (baseline - meanline).
@@ -30,7 +31,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
  */
 public final class HeightFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {
 	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
 		

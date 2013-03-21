@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
@@ -50,7 +51,7 @@ public class SectionBrightnessRatioFeature extends AbstractShapeFeature<Double> 
 	}
 	
 	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		double[][] totals = shape.getBrightnessBySection(5, 5, 1, SectionBrightnessMeasurementMethod.RAW);
 		

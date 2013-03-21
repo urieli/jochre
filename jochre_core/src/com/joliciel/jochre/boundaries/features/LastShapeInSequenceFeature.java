@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**
@@ -29,7 +30,7 @@ import com.joliciel.jochre.boundaries.ShapeInSequence;
  */
 public final class LastShapeInSequenceFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequence> {
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeInSequence shapeInSequence) {
+	public FeatureResult<Boolean> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
 		boolean result = (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex()+1));
 		FeatureResult<Boolean> outcome = this.generateResult(result);
 

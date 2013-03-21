@@ -121,7 +121,7 @@ public interface GroupOfShapes extends Entity {
 	/**
 	 * Set to true if this group represents a broken word, which is only partially
 	 * formed by the shapes visible on the page.
-	 * Broken words will be ignored for measuring word frequency.
+	 * Broken words will not be added to the internal glossary.
 	 * @return
 	 */
 	public boolean isBrokenWord();
@@ -133,6 +133,13 @@ public interface GroupOfShapes extends Entity {
 	 */
 	public boolean isSegmentationProblem();
 	public void setSegmentationProblem(boolean segmentationProblem);
+	
+	/**
+	 * Should this group be skipped for training and evaluation?
+	 * @return
+	 */
+	public boolean isSkip();
+	public void setSkip(boolean skip);
 	
 	/**
 	 * The frequency of the word represented by this letter sequence.

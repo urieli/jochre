@@ -40,6 +40,7 @@ public class BoundaryServiceLocator {
 			boundaryService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			boundaryService.setBoundaryDao(this.getBoundaryDao());
 			boundaryService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
+			boundaryService.setFeatureService(this.jochreServiceLocator.getFeatureService());
 		}
 		return boundaryService;
 	}

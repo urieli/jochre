@@ -23,6 +23,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Is the lower-right corner full?
@@ -32,7 +33,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
  */
 public class LowerRightCornerFullFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper>  {
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int xSectors = 5;
 		int centreSectors = 7;

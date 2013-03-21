@@ -25,16 +25,15 @@ import java.util.Set;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.HasFeatureCache;
 
 /**
  * A rectangle containing a shape that needs to be identified as a grapheme.
  * @author Assaf Urieli
  */
-public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
+public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper, HasFeatureCache {
 	
 	/**
 	 * Different methods for measuring the brightness of various sections of the shape,
@@ -292,19 +291,6 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper {
 	 * @return
 	 */
 	public double[] getCentrePoint();
-	
-	/**
-	 * Get a feature result from the cache.
-	 * @param feature
-	 * @return
-	 */
-	public <T> FeatureResult<T> getResultFromCache(ShapeFeature<T> shapeFeature);
-	
-	/**
-	 * Get a feature result from the cache.
-	 * @return
-	 */
-	public <T> void putResultInCache(ShapeFeature<T> shapeFeature, FeatureResult<T> featureResult);
 	
 	/**
 	 * An ordered set of letter guesses for the current shape.

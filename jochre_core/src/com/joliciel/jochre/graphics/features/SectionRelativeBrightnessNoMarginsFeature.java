@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
@@ -62,13 +63,13 @@ public class SectionRelativeBrightnessNoMarginsFeature extends AbstractShapeFeat
 	}
 	
 	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
 
-		FeatureResult<Integer> xResult = xFeature.check(shapeWrapper);
-		FeatureResult<Integer> yResult = yFeature.check(shapeWrapper);
-		FeatureResult<Integer> verticalSectionsResult = verticalSectionsFeature.check(shapeWrapper);
-		FeatureResult<Integer> horizontalSectionsResult = horizontalSectionsFeature.check(shapeWrapper);
+		FeatureResult<Integer> xResult = xFeature.check(shapeWrapper, env);
+		FeatureResult<Integer> yResult = yFeature.check(shapeWrapper, env);
+		FeatureResult<Integer> verticalSectionsResult = verticalSectionsFeature.check(shapeWrapper, env);
+		FeatureResult<Integer> horizontalSectionsResult = horizontalSectionsFeature.check(shapeWrapper, env);
 		
 		if (xResult!=null && yResult!=null && verticalSectionsResult!=null && horizontalSectionsResult!=null) {
 			int x = xResult.getOutcome();

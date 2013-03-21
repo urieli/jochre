@@ -30,6 +30,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class ShapeMergerImpl implements ShapeMerger {
@@ -37,6 +39,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 	DecisionMaker<MergeOutcome> decisionMaker;
 	Set<MergeFeature<?>> mergeFeatures;
 	BoundaryServiceInternal boundaryServiceInternal;
+	FeatureService featureService;
 	
 	public ShapeMergerImpl(DecisionMaker<MergeOutcome> decisionMaker,
 			Set<MergeFeature<?>> mergeFeatures) {
@@ -60,7 +63,8 @@ public class ShapeMergerImpl implements ShapeMerger {
 				for (MergeFeature<?> feature : mergeFeatures) {
 					PerformanceMonitor.startTask(feature.getName());
 					try {
-						FeatureResult<?> featureResult = feature.check(mergeCandidate);
+						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+						FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
 						if (featureResult!=null) {
 							featureResults.add(featureResult);
 							if (LOG.isTraceEnabled()) {
@@ -114,6 +118,14 @@ public class ShapeMergerImpl implements ShapeMerger {
 	public void setBoundaryServiceInternal(
 			BoundaryServiceInternal boundaryServiceInternal) {
 		this.boundaryServiceInternal = boundaryServiceInternal;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 }

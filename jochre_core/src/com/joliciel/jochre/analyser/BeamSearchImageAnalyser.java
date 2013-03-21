@@ -136,6 +136,10 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 			for (RowOfShapes row: paragraph.getRows()) {
 				LOG.debug("Analysing row " + row.getIndex() + " (id=" + row.getId() + ")");
 				for (GroupOfShapes group : row.getGroups()) {
+					if (group.isSkip()) {
+						LOG.debug("Skipping group " + group.getIndex() + " (id=" + group.getId() + ")");
+						continue;
+					}
 					LOG.debug("Analysing group " + group.getIndex() + " (id=" + group.getId() + ")");
 					
 					int width = group.getRight() - group.getLeft() + 1;

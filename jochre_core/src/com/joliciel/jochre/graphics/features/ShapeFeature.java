@@ -21,6 +21,7 @@ package com.joliciel.jochre.graphics.features;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * A feature which only uses intrinsic features of the shape or the image containing it.
@@ -32,5 +33,5 @@ public interface ShapeFeature<Y> extends Feature<ShapeWrapper,Y> {
 	 * @param shape
 	 * @return
 	 */
-	public FeatureResult<Y> check(ShapeWrapper shapeWrapper);
+	public FeatureResult<Y> check(ShapeWrapper shapeWrapper, RuntimeEnvironment env);
 }

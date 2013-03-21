@@ -31,6 +31,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.talismane.utils.WeightedOutcome;
 
@@ -62,6 +64,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 	private static final Log LOG = LogFactory.getLog(RecursiveShapeSplitter.class);
 	private SplitCandidateFinder splitCandidateFinder;
 	private BoundaryServiceInternal boundaryServiceInternal;
+	private FeatureService featureService;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
 	private DecisionMaker<SplitOutcome> decisionMaker;
@@ -256,7 +259,8 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 				for (SplitFeature<?> feature : splitFeatures) {
 					PerformanceMonitor.startTask(feature.getName());
 					try {
-						FeatureResult<?> featureResult = feature.check(splitCandidate);
+						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+						FeatureResult<?> featureResult = feature.check(splitCandidate, env);
 						if (featureResult!=null) {
 							featureResults.add(featureResult);
 							if (LOG.isTraceEnabled()) {
@@ -353,6 +357,14 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 
 	public void setMaxDepth(int maxDepth) {
 		this.maxDepth = maxDepth;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 }

@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapePair;
 
 /**
@@ -37,9 +38,9 @@ public class MergedWidthFeature extends AbstractMergeFeature<Double> implements 
 
 
 	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair) {
+	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
-		FeatureResult<Double> maxWidthResult = maxWidthFeature.check(pair);
+		FeatureResult<Double> maxWidthResult = maxWidthFeature.check(pair, env);
 		if (maxWidthResult!=null) {
 			double maxWidth = maxWidthResult.getOutcome();
 			double width = pair.getWidth();

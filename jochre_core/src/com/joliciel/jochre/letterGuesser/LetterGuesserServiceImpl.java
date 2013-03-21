@@ -30,6 +30,7 @@ import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
@@ -37,6 +38,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
 	private MachineLearningService machineLearningService;
+	private FeatureService featureService;
 	
 	public LetterGuesserServiceImpl() {
 	}
@@ -52,6 +54,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
 		LetterGuesserImpl letterGuesser = new LetterGuesserImpl(features, decisionMaker);
 		letterGuesser.setLetterGuesserServiceInternal(this);
+		letterGuesser.setFeatureService(this.getFeatureService());
 		return letterGuesser;
 	}
 
@@ -102,6 +105,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		eventStream.setLetterGuesserServiceInternal(this);
 		eventStream.setBoundaryService(this.getBoundaryService());
 		eventStream.setMachineLearningService(this.getMachineLearningService());
+		eventStream.setFeatureService(this.getFeatureService());
 		
 		eventStream.setBoundaryDetector(boundaryDetector);
 		return eventStream;
@@ -123,6 +127,14 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	public void setMachineLearningService(
 			MachineLearningService machineLearningService) {
 		this.machineLearningService = machineLearningService;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 	
 }

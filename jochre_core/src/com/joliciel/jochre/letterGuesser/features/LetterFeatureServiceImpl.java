@@ -52,6 +52,7 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 		featureTester.setGraphicsService(this.getGraphicsService());
 		featureTester.setBoundaryService(this.getBoundaryService());
 		featureTester.setLetterGuesserService(this.getLetterGuesserService());
+		featureTester.setFeatureService(this.getFeatureService());
 		
 		return featureTester;
 	}

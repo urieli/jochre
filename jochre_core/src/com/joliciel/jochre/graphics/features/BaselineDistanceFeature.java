@@ -22,6 +22,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Gives the relative bottom of the shape from the baseline, where 0 is baseline
@@ -32,7 +33,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 public final class BaselineDistanceFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
 	
 	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int lineHeight = shape.getBaseLine() - shape.getMeanLine();
 		int zeroPoint = (shape.getTop() + shape.getBaseLine());

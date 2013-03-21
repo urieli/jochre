@@ -27,6 +27,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Check whether a set of brightness sectors is relatively empty.
@@ -52,7 +53,7 @@ public class EmptySectorsBinaryFeature extends AbstractShapeFeature<Boolean> imp
 	}
 	
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		double[][] totals = shape.getBrightnessBySection(5, 5, 1, SectionBrightnessMeasurementMethod.RAW);
 		

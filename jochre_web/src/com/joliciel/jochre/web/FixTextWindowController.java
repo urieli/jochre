@@ -39,6 +39,7 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
 	Button btnCancel;
 	Row shapeRow;
 	Row letterBoxRow;
+	Checkbox chkSkip;
 	Checkbox chkHardHyphen;
 	Checkbox chkBrokenWord;
 	Checkbox chkSegmentProblem;
@@ -67,6 +68,7 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
     	Textbox rowTextBox = (Textbox) winFixText.getAttribute(FixTextWindowController.ATTR_ROW_TEXTBOX);
     	LetterLabelUpdater updater = (LetterLabelUpdater) winFixText.getAttribute(FixTextWindowController.ATTR_LETTER_UPDATER);
     	GroupOfShapes group = (GroupOfShapes) winFixText.getAttribute(FixTextWindowController.ATTR_GROUP);
+    	group.setSkip(chkSkip.isChecked());
     	group.setHardHyphen(chkHardHyphen.isChecked());
     	group.setBrokenWord(chkBrokenWord.isChecked());
     	group.setSegmentationProblem(chkSegmentProblem.isChecked());

@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
+import java.util.Iterator;
+
 /**
  * An interface giving a frequency of occurrence for each word.
  * If it's a corpus-based lexicon, it can give a real occurrence frequency.
@@ -34,4 +36,6 @@ public interface Lexicon {
 	 * @return
 	 */
 	public int getFrequency(String word);
+	
+	public Iterator<String> getWords();
 }

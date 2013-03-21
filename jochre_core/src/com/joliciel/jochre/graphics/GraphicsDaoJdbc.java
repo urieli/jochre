@@ -56,7 +56,8 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		", image_white_gap_fill_factor, image_imgstatus_id, image_owner_id";
 	private static final String SELECT_PARAGRAPH = "paragraph_id, paragraph_image_id, paragraph_index";
 	private static final String SELECT_ROW = "row_id, row_paragraph_id, row_index, row_image, row_height";
-	private static final String SELECT_GROUP= "group_id, group_row_id, group_index, group_hard_hyphen, group_broken_word, group_segment_problem";
+	private static final String SELECT_GROUP= "group_id, group_row_id, group_index, group_hard_hyphen" +
+			", group_broken_word, group_segment_problem, group_skip";
 	private static final String SELECT_SHAPE = "shape_id, shape_top, shape_left, shape_bottom, shape_right" +
 		", shape_cap_line, shape_mean_line, shape_base_line, shape_pixels, shape_letter, shape_group_id, shape_index" +
 		", shape_original_guess";
@@ -469,6 +470,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			group.setHardHyphen(rs.getBoolean("group_hard_hyphen"));
 			group.setBrokenWord(rs.getBoolean("group_broken_word"));
 			group.setSegmentationProblem(rs.getBoolean("group_segment_problem"));
+			group.setSkip(rs.getBoolean("group_skip"));
 
 			return group;
 		}
@@ -750,6 +752,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		paramSource.addValue("group_hard_hyphen", group.isHardHyphen());
 		paramSource.addValue("group_broken_word", group.isBrokenWord());
 		paramSource.addValue("group_segment_problem", group.isSegmentationProblem());
+		paramSource.addValue("group_skip", group.isSkip());
 		String sql = null;
 
 		if (group.isNew()) {
@@ -758,8 +761,8 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			int groupId = jt.queryForInt(sql, paramSource);
 			paramSource.addValue("group_id", groupId);
 
-			sql = "INSERT INTO ocr_group (group_id, group_row_id, group_index, group_hard_hyphen, group_broken_word, group_segment_problem) " +
-			"VALUES (:group_id, :group_row_id, :group_index, :group_hard_hyphen, :group_broken_word, :group_segment_problem)";
+			sql = "INSERT INTO ocr_group (group_id, group_row_id, group_index, group_hard_hyphen, group_broken_word, group_segment_problem, group_skip) " +
+			"VALUES (:group_id, :group_row_id, :group_index, :group_hard_hyphen, :group_broken_word, :group_segment_problem, :group_skip)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -775,6 +778,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			", group_hard_hyphen = :group_hard_hyphen" +
 			", group_broken_word = :group_broken_word" +
 			", group_segment_problem = :group_segment_problem" +
+			", group_skip = :group_skip" +
 			" WHERE group_id = :group_id";
 
 			LOG.debug(sql);

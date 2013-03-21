@@ -426,11 +426,11 @@ public class ImageController extends GenericForwardComposer<Window> {
 					
 					winFixWord.setAttribute(FixTextWindowController.ATTR_GROUP, clickedGroup);
 					
-					Label lblWord = (Label) winFixWord.getFellow("lblWord");
-					lblWord.setValue(clickedGroup.getWord());
-					if (!leftToRight)
-						lblWord.setSclass("rightToLeft");
+					winFixWord.setTitle(Labels.getLabel("image.title") + ": " + clickedGroup.getWord());
 					
+					Checkbox chkSkip = (Checkbox) winFixWord.getFellow("chkSkip");
+					chkSkip.setChecked(clickedGroup.isSkip());
+
 					Checkbox chkHardHyphen = (Checkbox) winFixWord.getFellow("chkHardHyphen");
 					chkHardHyphen.setChecked(clickedGroup.isHardHyphen());
 					
@@ -543,9 +543,9 @@ public class ImageController extends GenericForwardComposer<Window> {
 						}
 					}
 					
-					totalWidth = (int) (totalWidth * 1.4);
+					totalWidth = (int) (totalWidth * 1.6);
 					letterGrid.setWidth(totalWidth + "px");
-					int windowWidth = totalWidth + 30;
+					int windowWidth = totalWidth + 60;
 					winFixWord.setWidth(windowWidth+ "px");
 					shapeRow.setHeight((clickedGroup.getBottom()-clickedGroup.getTop()) + "px");
 					winFixWord.setVisible(true);

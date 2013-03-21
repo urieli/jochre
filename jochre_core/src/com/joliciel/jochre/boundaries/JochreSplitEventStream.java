@@ -30,6 +30,8 @@ import com.joliciel.talismane.machineLearning.CorpusEvent;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
@@ -42,6 +44,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 	private MachineLearningService machineLearningService;
+	private FeatureService featureService;
 	private SplitCandidateFinder splitCandidateFinder;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
@@ -87,7 +90,8 @@ class JochreSplitEventStream implements CorpusEventStream {
 					for (SplitFeature<?> feature : splitFeatures) {
 						PerformanceMonitor.startTask(feature.getName());
 						try {
-							FeatureResult<?> featureResult = feature.check(splitCandidate);
+							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+							FeatureResult<?> featureResult = feature.check(splitCandidate, env);
 							if (featureResult!=null) {
 								featureResults.add(featureResult);
 								if (LOG.isTraceEnabled()) {
@@ -259,6 +263,14 @@ class JochreSplitEventStream implements CorpusEventStream {
 
 	public void setCriteria(CorpusSelectionCriteria criteria) {
 		this.criteria = criteria;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 	

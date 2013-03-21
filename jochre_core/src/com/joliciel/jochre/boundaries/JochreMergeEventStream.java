@@ -30,6 +30,8 @@ import com.joliciel.talismane.machineLearning.CorpusEvent;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
@@ -43,6 +45,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 	private MachineLearningService machineLearningService;
+	private FeatureService featureService;
 
 	private SplitCandidateFinder splitCandidateFinder;
 	
@@ -87,7 +90,8 @@ class JochreMergeEventStream implements CorpusEventStream {
 					for (MergeFeature<?> feature : mergeFeatures) {
 						PerformanceMonitor.startTask(feature.getName());
 						try {
-							FeatureResult<?> featureResult = feature.check(mergeCandidate);
+							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+							FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
 							if (featureResult!=null) {
 								featureResults.add(featureResult);
 								if (LOG.isTraceEnabled()) {
@@ -260,6 +264,14 @@ class JochreMergeEventStream implements CorpusEventStream {
 
 	public void setCriteria(CorpusSelectionCriteria criteria) {
 		this.criteria = criteria;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 	

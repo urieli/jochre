@@ -35,6 +35,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
@@ -121,8 +122,8 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 		}
 		
 		@Override
-		public FeatureResult<T> check(LetterGuesserContext context) {
-			return wrappedFeature.check(context);
+		public FeatureResult<T> check(LetterGuesserContext context, RuntimeEnvironment env) {
+			return wrappedFeature.check(context, env);
 		}
 		
 		@Override
@@ -163,5 +164,23 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 				Feature<LetterGuesserContext, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}
+	}
+	
+	@Override
+	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		// no dependencies to inject
+	}
+
+	@Override
+	protected boolean canConvert(Class<?> parameterType,
+			Class<?> originalArgumentType) {
+		return false;
+	}
+
+	@Override
+	protected Feature<LetterGuesserContext, ?> convertArgument(
+			Class<?> parameterType,
+			Feature<LetterGuesserContext, ?> originalArgument) {
+		return null;
 	}
 }

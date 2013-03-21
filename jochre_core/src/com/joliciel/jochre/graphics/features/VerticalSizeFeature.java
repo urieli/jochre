@@ -20,6 +20,7 @@ package com.joliciel.jochre.graphics.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 
@@ -31,7 +32,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 public final class VerticalSizeFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {
 	
 	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
 		

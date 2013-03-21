@@ -20,11 +20,14 @@ package com.joliciel.jochre.letterGuesser;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
 import com.joliciel.talismane.machineLearning.ScoringStrategy;
@@ -174,6 +177,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	@Override
 	public String getRealSequence() {
 		if (realSequence==null) {
+			Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
 			StringBuilder realWordBuilder = new StringBuilder();
 			Shape lastShape = null;
 			for (ShapeInSequence shapeInSequence : this.getUnderlyingShapeSequence()) {
@@ -182,6 +186,8 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 						String letter = originalShape.getLetter();
 						if (letter.length()==0)
 							realWordBuilder.append("[]");
+						else if (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter))
+							realWordBuilder.append("[" + letter + "]");
 						else
 							realWordBuilder.append(letter);
 					}
@@ -196,10 +202,13 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	@Override
 	public String getGuessedSequence() {
 		if (guessedSequence==null) {
+			Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
 			StringBuilder builder = new StringBuilder();
 			for (Letter letter : this) {
 				if (letter.getString().length()==0)
 					builder.append("[]");
+				else if (letter.getString().length()>1 && !linguistics.getDualCharacterLetters().contains(letter.getString()))
+					builder.append("[" + letter + "]");
 				else
 					builder.append(letter.getString());
 			}

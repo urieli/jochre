@@ -21,6 +21,7 @@ package com.joliciel.jochre.letterGuesser.features;
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * A single feature that checks a given shape and returns a result.
@@ -35,5 +36,5 @@ public interface LetterFeature<Y> extends Feature<LetterGuesserContext,Y> {
 	 * @param history the letter sequence assigned during the current analysis to shapes preceding the current shape within the same word
 	 * @return
 	 */
-	public FeatureResult<Y> check(LetterGuesserContext context);
+	public FeatureResult<Y> check(LetterGuesserContext context, RuntimeEnvironment env);
 }

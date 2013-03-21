@@ -33,8 +33,8 @@ import com.joliciel.talismane.utils.WeightedOutcome;
 
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
-	private double additiveSmoothing = 0.5;
-	private double frequencyLogBase = 100.0;
+	private double additiveSmoothing = 0.3;
+	private double frequencyLogBase = 10.0;
 	private boolean frequencyAdjusted = true;
 	
 	Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
@@ -300,25 +300,31 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			if (freqLogObj!=null)
 				freqLog = freqLogObj.doubleValue();
 			else {
-				// The base is log2 of the frequency + 1
-				// 0 = log2(1) = 0
-				// 1 = log2(2) = 1
-				// 3 = log2(4) = 2
-				// 7 = log2(8) = 3
+				// Assume the base is 2, and additive smoothing = 0.4.
+				// -1 = 0.04
+				// 0 = 0.4
+				// 1 = 1
+				// 2 = 1 + log2(2) = 2
+				// 4 = 1 + log2(4) = 3
 				// etc.
-				// To this we add additive smoothing to allow for unknown words
 				double minFreq = minFrequency;
-				if (minFreq<0)
-					minFreq = -0.9;
-				freqLog = (Math.log(minFreq + 1.0) / Math.log(frequencyLogBase)) + additiveSmoothing;
+				if (minFrequency<0)
+					freqLog = additiveSmoothing / 10.0;
+				else if (minFrequency==0)
+					freqLog = additiveSmoothing;
+				else
+					freqLog = 1 + (Math.log(minFreq) / Math.log(frequencyLogBase));
+
 				this.frequencyLogs.put(minFrequency, freqLog);
 			}
 			return freqLog;
 		} else {
-			if (minFrequency==0)
+			if (minFrequency<0)
+				return additiveSmoothing / 10.0;
+			else if (minFrequency==0)
 				return additiveSmoothing;
 			else
-				return 1 + additiveSmoothing;
+				return 1;
 		}
 	}
 

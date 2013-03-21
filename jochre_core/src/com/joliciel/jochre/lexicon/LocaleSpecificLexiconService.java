@@ -45,9 +45,9 @@ public interface LocaleSpecificLexiconService {
 	public WordSplitter getWordSplitter();
 	
 	/**
-	 * The path to a directory containing lexical resources.
+	 * The path to the lexical resources - if a directory, all lexicons in the directory will be included.
 	 * @return
 	 */
-	public String getLexiconDirPath();
-	public void setLexiconDirPath(String lexiconDirPath);
+	public String getLexiconPath();
+	public void setLexiconPath(String lexiconPath);
 }

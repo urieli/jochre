@@ -25,6 +25,7 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.Shape;
 
@@ -49,9 +50,9 @@ public class TrueContourSlopeDifferenceFeature extends AbstractSplitFeature<Doub
 	}
 
 	@Override
-	public FeatureResult<Double> checkInternal(Split split) {
+	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
-		FeatureResult<Integer> contourDistanceResult = contourDistanceFeature.check(split);
+		FeatureResult<Integer> contourDistanceResult = contourDistanceFeature.check(split, env);
 		if (contourDistanceResult!=null) {
 			int contourDistance = contourDistanceResult.getOutcome();
 

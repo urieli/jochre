@@ -65,7 +65,7 @@ public class JochreProperties {
 				LOG.debug("lexiconDirPath: " + lexiconDirPath);
 				String lexiconDirRealPath = servletContext.getRealPath(lexiconDirPath);
 		
-				lexiconService.setLexiconDirPath(lexiconDirRealPath);	
+				lexiconService.setLexiconPath(lexiconDirRealPath);	
 			}
 			return lexiconService;
 		} catch (ClassNotFoundException e) {

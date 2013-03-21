@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**
@@ -30,7 +31,7 @@ import com.joliciel.jochre.boundaries.ShapeInSequence;
  */
 public final class ShapeReverseIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequence> {
 	@Override
-	public FeatureResult<Integer> checkInternal(ShapeInSequence shapeInSequence) {
+	public FeatureResult<Integer> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
 		FeatureResult<Integer> outcome = null;
 		int reverseIndex = shapeInSequence.getShapeSequence().size() - (shapeInSequence.getIndex()+1);
 		if (reverseIndex<=1) {

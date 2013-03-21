@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapePair;
 
 /**
@@ -39,9 +40,9 @@ public class MergeDistanceFeature extends AbstractMergeFeature<Double> implement
 
 
 	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair) {
+	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
-		FeatureResult<Double> maxDistanceResult = maxDistanceFeature.check(pair);
+		FeatureResult<Double> maxDistanceResult = maxDistanceFeature.check(pair, env);
 		if (maxDistanceResult!=null) {
 			double maxDistance = maxDistanceResult.getOutcome();
 			double distance = pair.getInnerDistance();

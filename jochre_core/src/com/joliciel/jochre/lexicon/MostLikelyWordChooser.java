@@ -60,10 +60,11 @@ public interface MostLikelyWordChooser {
 	public void setFrequencyAdjusted(boolean frequencyAdjusted);
 	
 	/**
-	 * The log base indicating how much more weight to give to a frequent word than a rare word.
-	 * The score = ln(frequency + 1) / ln(frequencyLogBase) + additiveSmoothing;
-	 * Default value is 2.0, so that a word with a frequency of 2 has twice the weight of frequency of 1,
-	 * 4 has 3 times the weight, etc.
+	 * The log base indicating how much more weight to give to a common word than a rare word,
+	 * if {@link #isFrequencyAdjusted()} is true.
+	 * The score = 1 + (ln(1) / ln(frequencyLogBase));
+	 * Default value is 10.0, so that a word with a frequency of 10 has twice the weight of frequency of 1,
+	 * 100 has 3 times the weight, etc.
 	 * @return
 	 */
 	public double getFrequencyLogBase();

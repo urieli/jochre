@@ -25,6 +25,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Is there an opening on the bottom of the shape.
@@ -36,7 +37,7 @@ public class OpeningOnBottomFeature extends AbstractShapeFeature<Boolean> implem
 	private static final Log LOG = LogFactory.getLog(OpeningOnBottomFeature.class);
 
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int leftPoint = (int) ((double) shape.getWidth() * (1.0 / 20.0));
 		int rightPoint = (int) ((double) shape.getWidth() * (7.0 / 8.0));

@@ -63,6 +63,8 @@ class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements Joch
 						RowOfShapes row = paragraph.getRows().get(rowIndex);
 						while (group==null && groupIndex < row.getGroups().size()) {
 							group = row.getGroups().get(groupIndex);
+							if (group.isSkip())
+								group = null;
 							groupIndex++;
 						}
 						if (group==null) {

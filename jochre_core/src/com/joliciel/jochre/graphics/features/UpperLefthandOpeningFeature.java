@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 
@@ -36,7 +37,7 @@ public class UpperLefthandOpeningFeature extends AbstractShapeFeature<Boolean> i
 	private static final Log LOG = LogFactory.getLog(UpperLefthandOpeningFeature.class);
 
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int lowerPoint = (int) ((double) shape.getHeight() * (2.0 / 3.0));
 		int upperPoint = shape.getHeight() / 8;

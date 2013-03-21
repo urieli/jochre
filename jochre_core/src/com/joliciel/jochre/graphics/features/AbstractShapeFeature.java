@@ -22,6 +22,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * An Abstract base class for shape features.
@@ -31,15 +32,15 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 abstract class AbstractShapeFeature<Y> extends AbstractCachableFeature<ShapeWrapper,Y> implements ShapeFeature<Y> {
 
 	@Override
-	protected FeatureResult<Y> checkInCache(ShapeWrapper shapeWrapper) {
+	protected FeatureResult<Y> checkInCache(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
-		return shape.getResultFromCache(this);
+		return shape.getResultFromCache(this, env);
 	}
 
 	@Override
-	protected void putInCache(ShapeWrapper shapeWrapper, FeatureResult<Y> featureResult) {
+	protected void putInCache(ShapeWrapper shapeWrapper, FeatureResult<Y> featureResult, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
-		shape.putResultInCache(this, featureResult);
+		shape.putResultInCache(this, featureResult, env);
 	}
 	
 }

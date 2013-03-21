@@ -39,13 +39,14 @@ import org.apache.commons.math.stat.descriptive.moment.Mean;
 import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
 import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PersistentList;
 import com.joliciel.talismane.utils.PersistentListImpl;
 
@@ -78,7 +79,7 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	private Map<String,Map<SectionBrightnessMeasurementMethod,double[][]>> brightnessBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,double[][]>>();
 	private Map<String,Map<SectionBrightnessMeasurementMethod,Double>> brightnessMeanBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod,Double>>();
 	
-	private Map<String,FeatureResult<?>> staticFeatureResults = new HashMap<String, FeatureResult<?>>();
+	private Map<String,FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
 	
 	private Dictionary<String, BitSet> bitsets = new Hashtable<String, BitSet>();
 	private Dictionary<Integer, BitSet> outlines = new Hashtable<Integer, BitSet>();
@@ -946,24 +947,6 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 		this.dirty = dirty;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> FeatureResult<T> getResultFromCache(ShapeFeature<T> shapeFeature) {
-		FeatureResult<T> result = null;
-	
-		if (this.staticFeatureResults.containsKey(shapeFeature.getName())) {
-			result = (FeatureResult<T>) this.staticFeatureResults.get(shapeFeature.getName());
-		}
-
-		return result;
-	}
-
-	
-	@Override
-	public <T> void putResultInCache(ShapeFeature<T> shapeFeature, FeatureResult<T> featureResult) {
-		this.staticFeatureResults.put(shapeFeature.getName(), featureResult);		
-	}
-
 	@Override
 	public Set<Decision<Letter>> getLetterGuesses() {
 		if (this.letterGuesses==null) {
@@ -1811,5 +1794,24 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	
 	public void setConfidence(double confidence) {
 		this.confidence = confidence;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T, Y> FeatureResult<Y> getResultFromCache(Feature<T, Y> feature, RuntimeEnvironment env) {
+		FeatureResult<Y> result = null;
+		
+		String key = feature.getName() + env.getKey();
+		if (this.featureResults.containsKey(key)) {
+			result = (FeatureResult<Y>) this.featureResults.get(key);
+		}
+		return result;
+	}
+
+	@Override
+	public <T, Y> void putResultInCache(Feature<T, Y> feature,
+			FeatureResult<Y> featureResult, RuntimeEnvironment env) {
+		String key = feature.getName() + env.getKey();
+		this.featureResults.put(key, featureResult);	
 	}
 }

@@ -43,6 +43,8 @@ import com.joliciel.talismane.machineLearning.CorpusEvent;
 import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreLetterEventStream implements CorpusEventStream {
@@ -51,6 +53,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
 	private BoundaryService boundaryService;
 	private MachineLearningService machineLearningService;
+	private FeatureService featureService;
 
 	private BoundaryDetector boundaryDetector;
 	
@@ -99,7 +102,8 @@ class JochreLetterEventStream implements CorpusEventStream {
 					for (LetterFeature<?> feature : features) {
 						PerformanceMonitor.startTask(feature.getName());
 						try {
-							FeatureResult<?> featureResult = feature.check(context);
+							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+							FeatureResult<?> featureResult = feature.check(context, env);
 							if (featureResult!=null) {
 								featureResults.add(featureResult);
 								if (LOG.isTraceEnabled()) {
@@ -254,6 +258,14 @@ class JochreLetterEventStream implements CorpusEventStream {
 
 	public void setCriteria(CorpusSelectionCriteria criteria) {
 		this.criteria = criteria;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 }

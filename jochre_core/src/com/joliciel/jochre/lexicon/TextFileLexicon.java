@@ -28,6 +28,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -59,11 +60,15 @@ public class TextFileLexicon implements Lexicon, Serializable {
 	public TextFileLexicon(Map<String,Integer> entries) {
 		this.entries = entries;
 	}
-	
+
 	public TextFileLexicon(File textFile) {
+		this(textFile, null);
+	}
+	
+	public TextFileLexicon(File textFile, String charset) {
 		Scanner scanner;
 		try {
-			scanner = new Scanner(textFile);
+			scanner = new Scanner(textFile, charset);
 
 			try {
 				while (scanner.hasNextLine()) {
@@ -203,5 +208,10 @@ public class TextFileLexicon implements Lexicon, Serializable {
 		}
 		
 		return memoryBase;
+	}
+
+	@Override
+	public Iterator<String> getWords() {
+		return entries.keySet().iterator();
 	}
 }

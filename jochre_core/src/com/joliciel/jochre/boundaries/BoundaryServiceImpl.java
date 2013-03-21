@@ -29,11 +29,13 @@ import com.joliciel.talismane.machineLearning.CorpusEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
 
 class BoundaryServiceImpl implements BoundaryServiceInternal {
 	private MachineLearningService machineLearningService;
-	GraphicsService graphicsService;
-	BoundaryDao boundaryDao;
+	private GraphicsService graphicsService;
+	private FeatureService featureService;
+	private BoundaryDao boundaryDao;
 	
 	public BoundaryServiceImpl() {
 	}
@@ -181,6 +183,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		eventStream.setCriteria(criteria);
 		eventStream.setMinWidthRatio(minWidthRatio);
 		eventStream.setMinHeightRatio(minHeightRatio);
+		eventStream.setFeatureService(this.getFeatureService());
 		
 		SplitCandidateFinder splitCandidateFinder = this.getSplitCandidateFinder();
 		eventStream.setSplitCandidateFinder(splitCandidateFinder);
@@ -198,6 +201,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		eventStream.setCriteria(criteria);
 		eventStream.setMaxWidthRatio(maxWidthRatio);
 		eventStream.setMaxDistanceRatio(maxDistanceRatio);
+		eventStream.setFeatureService(this.getFeatureService());
 
 		return eventStream;
 	}
@@ -212,6 +216,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		shapeSplitter.setBeamWidth(beamWidth);
 		shapeSplitter.setMaxDepth(maxDepth);
 		shapeSplitter.setBoundaryServiceInternal(this);
+		shapeSplitter.setFeatureService(this.getFeatureService());
 		
 		return shapeSplitter;
 	}
@@ -259,6 +264,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 			DecisionMaker<MergeOutcome> decisionMaker) {
 		ShapeMergerImpl merger = new ShapeMergerImpl(decisionMaker, mergeFeatures);
 		merger.setBoundaryServiceInternal(this);
+		merger.setFeatureService(this.getFeatureService());
 		return merger;
 	}
 
@@ -281,6 +287,14 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	public void setMachineLearningService(
 			MachineLearningService machineLearningService) {
 		this.machineLearningService = machineLearningService;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 }

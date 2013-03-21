@@ -30,6 +30,8 @@ import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 final class LetterGuesserImpl implements LetterGuesser {
@@ -41,6 +43,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 	Set<LetterFeature<?>> features = null;
 	
 	LetterGuesserServiceInternal letterGuesserServiceInternal;
+	FeatureService featureService;
 	
 	public LetterGuesserImpl(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
 		this.decisionMaker = decisionMaker;
@@ -69,7 +72,8 @@ final class LetterGuesserImpl implements LetterGuesser {
 					PerformanceMonitor.startTask(feature.getName());
 					try {
 						LetterGuesserContext context = this.letterGuesserServiceInternal.getContext(shapeInSequence, history);
-						FeatureResult<?> featureResult = feature.check(context);
+						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+						FeatureResult<?> featureResult = feature.check(context, env);
 						if (featureResult!=null) {
 							featureResults.add(featureResult);
 							if (LOG.isTraceEnabled()) {
@@ -127,6 +131,14 @@ final class LetterGuesserImpl implements LetterGuesser {
 	public void setLetterGuesserServiceInternal(
 			LetterGuesserServiceInternal letterGuesserServiceInternal) {
 		this.letterGuesserServiceInternal = letterGuesserServiceInternal;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 	
 }

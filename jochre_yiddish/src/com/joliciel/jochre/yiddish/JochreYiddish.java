@@ -60,9 +60,9 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 
 	@Override
 	public Lexicon getLexicon() {
-		if (yiddishLexicon == null && this.getLexiconDirPath()!=null && this.getLexiconDirPath().length()>0) {
+		if (yiddishLexicon == null && this.getLexiconPath()!=null && this.getLexiconPath().length()>0) {
 			LexiconMerger lexiconMerger = new LexiconMerger();
-			File lexiconDir = new File(this.getLexiconDirPath());
+			File lexiconDir = new File(this.getLexiconPath());
 		
 			File[] lexiconFiles = lexiconDir.listFiles();
 			for (File lexiconFile : lexiconFiles) {

@@ -26,6 +26,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Is there a noticeable chupchik at the lower right?
@@ -37,7 +38,7 @@ public class ChupchikLowerRightFeature extends AbstractShapeFeature<Boolean> imp
 	private static final Log LOG = LogFactory.getLog(ChupchikLowerRightFeature.class);
 
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int xSectors = 11;
 		int centreSectors = 13;

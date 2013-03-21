@@ -304,6 +304,8 @@ class JochreDocumentImpl extends EntityImpl implements
 		if (this.isNew()) {
 			return super.equals(obj);
 		} else {
+			if (obj==null)
+				return false;
 			JochreDocument other = (JochreDocument) obj;
 			return (this.getId()==other.getId());
 		}

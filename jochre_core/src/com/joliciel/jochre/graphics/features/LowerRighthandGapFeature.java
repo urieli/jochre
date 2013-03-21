@@ -26,6 +26,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * Is there a noticeable gap at the lower right?
@@ -37,7 +38,7 @@ public class LowerRighthandGapFeature extends AbstractShapeFeature<Boolean> impl
 	private static final Log LOG = LogFactory.getLog(LowerRighthandGapFeature.class);
 
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		int xSectors = 7;
 		int centreSectors = 21;

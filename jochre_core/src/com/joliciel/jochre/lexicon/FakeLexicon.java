@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2012 Assaf Urieli
+//Copyright (C) 2013 Assaf Urieli
 //
 //This file is part of Jochre.
 //
@@ -23,54 +23,21 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Merges lexicons by returning the maximum frequency that any single lexicon gives for a given word.
+ * A fake lexicon, which returns a frequency of 1 for every word queried.
  * @author Assaf Urieli
  *
  */
-public class LexiconMerger implements Lexicon {
-	private List<Lexicon> lexicons = new ArrayList<Lexicon>();
+public class FakeLexicon implements Lexicon {
+
 	@Override
 	public int getFrequency(String word) {
-		int maxFrequency = 0;
-		for (Lexicon lexicon : this.lexicons) {
-			int frequency = lexicon.getFrequency(word);
-			if (frequency > maxFrequency)
-				maxFrequency = frequency;
-		}
-		return maxFrequency;
+		return 1;
 	}
-	public List<Lexicon> getLexicons() {
-		return lexicons;
-	}
-	public void addLexicon(Lexicon lexicon) {
-		this.lexicons.add(lexicon);
-	}
+
 	@Override
 	public Iterator<String> getWords() {
-		final List<Lexicon> myLexicons = lexicons;
-		return new Iterator<String>() {
-			int i = 0;
-			Iterator<String> iterator = lexicons.get(0).getWords();
-			
-			@Override
-			public boolean hasNext() {
-				while (!iterator.hasNext() && i<lexicons.size()) {
-					i++;
-					iterator = myLexicons.get(i).getWords();
-				}
-				return iterator.hasNext();
-			}
-
-			@Override
-			public String next() {
-				return iterator.next();
-			}
-
-			@Override
-			public void remove() {
-			}
-		};
+		List<String> words = new ArrayList<String>();
+		return words.iterator();
 	}
-
 
 }

@@ -62,13 +62,13 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 		
 		if (functionName.equalsIgnoreCase("SectionRelativeBrightnessGrid")) {	
 			if (!(functionDescriptor.getArguments().get(0).getObject() instanceof Integer))
-				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(1).getObject() instanceof Integer))
-				throw new FeatureSyntaxException(functionName + " argument 2 must be a whole number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 2 must be a whole number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(2).getObject() instanceof Double))
-				throw new FeatureSyntaxException(functionName + " argument 3 must be a decimal number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 3 must be a decimal number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(3).getObject() instanceof Double))
-				throw new FeatureSyntaxException(functionName + " argument 4 must be a decimal number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 4 must be a decimal number", functionDescriptor, functionDescriptor);
 			
 			int verticalSections = ((Integer)functionDescriptor.getArguments().get(0).getObject()).intValue();
 			int horizontalSections = ((Integer)functionDescriptor.getArguments().get(1).getObject()).intValue();
@@ -87,9 +87,9 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	        }
 		} else if (functionName.equalsIgnoreCase("SectionRelativeBrightnessNoMarginsGrid")) {		
 			if (!(functionDescriptor.getArguments().get(0).getObject() instanceof Integer))
-				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(1).getObject() instanceof Integer))
-				throw new FeatureSyntaxException(functionName + " argument 2 must be a whole number", functionDescriptor);
+				throw new FeatureSyntaxException(functionName + " argument 2 must be a whole number", functionDescriptor, functionDescriptor);
 			
 			int verticalSections = ((Integer)functionDescriptor.getArguments().get(0).getObject()).intValue();
 			int horizontalSections = ((Integer)functionDescriptor.getArguments().get(1).getObject()).intValue();
@@ -124,6 +124,22 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	public void setGraphicsService(GraphicsService graphicsService) {
 		this.graphicsService = graphicsService;
 	}
+	
+	@Override
+	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		// no dependencies to inject
+	}
 
+	@Override
+	protected boolean canConvert(Class<?> parameterType,
+			Class<?> originalArgumentType) {
+		return false;
+	}
+
+	@Override
+	protected Feature<ShapeWrapper, ?> convertArgument(Class<?> parameterType,
+			Feature<ShapeWrapper, ?> originalArgument) {
+		return null;
+	}
 
 }

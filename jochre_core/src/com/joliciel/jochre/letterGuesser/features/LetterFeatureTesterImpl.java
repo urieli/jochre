@@ -36,6 +36,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
+import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 class LetterFeatureTesterImpl implements LetterFeatureTester {
 	@SuppressWarnings("unused")
@@ -43,6 +45,7 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;
+	private FeatureService featureService;
 
 	@Override
 	public void applyFeatures(Set<LetterFeature<?>> features, Set<String> letters, int minImageId, int minShapeId) {	
@@ -76,7 +79,8 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 		LetterSequence history = null;
 		LetterGuesserContext context = this.letterGuesserService.getContext(shapeInSequence, history);
 		for (LetterFeature<?> feature : features) {
-			feature.check(context);
+			RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+			feature.check(context, env);
 		}
 	}
 
@@ -103,6 +107,14 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 
 	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
+	}
+
+	public FeatureService getFeatureService() {
+		return featureService;
+	}
+
+	public void setFeatureService(FeatureService featureService) {
+		this.featureService = featureService;
 	}
 
 }

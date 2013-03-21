@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapePair;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
@@ -51,11 +52,11 @@ public class BorderlineNeighboursFeature extends AbstractMergeFeature<Double> im
 
 
 	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair) {
+	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
 		FeatureResult<Double> result = null;
 	
-		FeatureResult<Integer> horizontalToleranceResult = horizontalToleranceFeature.check(pair);
-		FeatureResult<Integer> verticalToleranceResult = verticalToleranceFeature.check(pair);
+		FeatureResult<Integer> horizontalToleranceResult = horizontalToleranceFeature.check(pair, env);
+		FeatureResult<Integer> verticalToleranceResult = verticalToleranceFeature.check(pair, env);
 		
 		if (horizontalToleranceResult!=null && verticalToleranceResult!=null) {
 			int horizontalTolerance = horizontalToleranceResult.getOutcome();

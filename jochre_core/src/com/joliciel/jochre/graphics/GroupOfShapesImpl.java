@@ -39,6 +39,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 	private boolean hardHyphen = false;
 	private boolean brokenWord = false;
 	private boolean segmentationProblem = false;
+	private boolean skip = false;
 	
 	private boolean coordinatesFound = false;
 	private int left;
@@ -347,6 +348,17 @@ class GroupOfShapesImpl extends EntityImpl implements
 			dirty = true;
 		}		
 	}
+	
+	public boolean isSkip() {
+		return skip;
+	}
+
+	public void setSkip(boolean skip) {
+		if (this.skip!=skip) {
+			this.skip = skip;
+			dirty = true;
+		}		
+	}	
 
 	public int getFrequency() {
 		if (this.bestLetterSequence!=null)

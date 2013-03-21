@@ -35,6 +35,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.jochre.graphics.WritableImageGrid;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 /**
  * If we view the empty space at the centre of the shape, does it's lower-left extremety
@@ -52,7 +53,7 @@ public class InnerEmptyChupchikLowerLeftFeature extends AbstractShapeFeature<Boo
 	}
 	
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper) {
+	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
 		Shape shape = shapeWrapper.getShape();
 		BitSet bitset = shape.getBlackAndWhiteBitSet(shape.getJochreImage().getBlackThreshold());
 		boolean[][] grid = new boolean[shape.getWidth()][shape.getHeight()];

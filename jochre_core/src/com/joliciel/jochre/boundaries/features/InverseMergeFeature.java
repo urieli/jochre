@@ -20,6 +20,7 @@ package com.joliciel.jochre.boundaries.features;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.jochre.boundaries.ShapePair;
 
 /**
@@ -40,8 +41,8 @@ public class InverseMergeFeature extends AbstractMergeFeature<Double> implements
 
 	
 	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair) {
-		FeatureResult<Double> rawOutcome = feature.check(pair);
+	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
+		FeatureResult<Double> rawOutcome = feature.check(pair, env);
 		FeatureResult<Double> outcome = null;
 		if (rawOutcome!=null) {
 			double weight = rawOutcome.getOutcome();
