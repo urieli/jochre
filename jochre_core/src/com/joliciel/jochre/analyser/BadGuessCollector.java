@@ -106,6 +106,12 @@ public class BadGuessCollector implements LetterGuessObserver {
 	public void onStartSequence(LetterSequence letterSequence) {
 		
 	}
+
+	@Override
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
+	}
 	
 	
 }

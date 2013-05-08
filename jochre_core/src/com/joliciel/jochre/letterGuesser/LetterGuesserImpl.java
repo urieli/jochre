@@ -36,6 +36,7 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 
 final class LetterGuesserImpl implements LetterGuesser {
 	private static final Log LOG = LogFactory.getLog(LetterGuesserImpl.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterGuesserImpl.class);
 	
 	private static final double MIN_PROB_TO_STORE = 0.001;
 	
@@ -57,7 +58,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 
 	@Override
 	public String guessLetter(ShapeInSequence shapeInSequence, LetterSequence history) {
-		PerformanceMonitor.startTask("LetterGuesserImpl.guessLetter");
+		MONITOR.startTask("guessLetter");
 		try {
 			Shape shape = shapeInSequence.getShape();
 			if (LOG.isTraceEnabled())
@@ -66,10 +67,10 @@ final class LetterGuesserImpl implements LetterGuesser {
 			
 			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 			
-			PerformanceMonitor.startTask("analyse features");
+			MONITOR.startTask("analyse features");
 			try {
 				for (LetterFeature<?> feature : features) {
-					PerformanceMonitor.startTask(feature.getName());
+					MONITOR.startTask(feature.getName());
 					try {
 						LetterGuesserContext context = this.letterGuesserServiceInternal.getContext(shapeInSequence, history);
 						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
@@ -81,23 +82,23 @@ final class LetterGuesserImpl implements LetterGuesser {
 							}
 						}
 					} finally {
-						PerformanceMonitor.endTask(feature.getName());
+						MONITOR.endTask(feature.getName());
 					}
 				}
 			} finally {
-				PerformanceMonitor.endTask("analyse features");
+				MONITOR.endTask("analyse features");
 			}
 			
 			List<Decision<Letter>> letterGuesses = null;
-			PerformanceMonitor.startTask("decision maker");
+			MONITOR.startTask("decision maker");
 			try {
 				letterGuesses = decisionMaker.decide(featureResults);
 			} finally {
-				PerformanceMonitor.endTask("decision maker");
+				MONITOR.endTask("decision maker");
 			}
 			
 			Letter bestOutcome = null;
-			PerformanceMonitor.startTask("store outcomes");
+			MONITOR.startTask("store outcomes");
 			try {
 				shape.getLetterGuesses().clear();
 		
@@ -109,7 +110,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 				
 				bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
 			} finally {
-				PerformanceMonitor.endTask("store outcomes");
+				MONITOR.endTask("store outcomes");
 			}
 			
 			if (LOG.isTraceEnabled()) {
@@ -120,7 +121,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 
 			return bestOutcome.getString();
 		} finally {
-			PerformanceMonitor.endTask("LetterGuesserImpl.guessLetter");
+			MONITOR.endTask("guessLetter");
 		}
 	}
 

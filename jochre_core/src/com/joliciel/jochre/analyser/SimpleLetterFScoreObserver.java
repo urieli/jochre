@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
+import java.util.List;
+
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
@@ -108,6 +110,12 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 	public void onStartSequence(LetterSequence letterSequence) {
 		hasError = false;
 		stillValid = true;
+	}
+
+	@Override
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
 	}
 
 }

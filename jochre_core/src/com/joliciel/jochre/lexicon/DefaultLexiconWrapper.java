@@ -46,14 +46,16 @@ public class DefaultLexiconWrapper implements Lexicon {
 		Iterator<String> words = baseLexicon.getWords();
 		while (words.hasNext()) {
 			String word = words.next();
-			String firstLetter = word.substring(0,1);
-		    
-		    if (word.length()==1)
-		    	upperCaseLexicon.add(this.toUpperCaseNoAccents(firstLetter));
-		    else
-		    	upperCaseLexicon.add(this.toUpperCaseNoAccents(firstLetter) + word.substring(1));
-		    
-		    upperCaseLexicon.add(this.toUpperCaseNoAccents(word));
+			if (word.length()>0) {
+				String firstLetter = word.substring(0,1);
+			    
+			    if (word.length()==1)
+			    	upperCaseLexicon.add(this.toUpperCaseNoAccents(firstLetter));
+			    else
+			    	upperCaseLexicon.add(this.toUpperCaseNoAccents(firstLetter) + word.substring(1));
+			    
+			    upperCaseLexicon.add(this.toUpperCaseNoAccents(word));
+			}
 		}
 	}
 	

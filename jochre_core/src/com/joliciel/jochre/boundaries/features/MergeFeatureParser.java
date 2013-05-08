@@ -38,6 +38,7 @@ import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(MergeFeatureParser.class);
 
 	public MergeFeatureParser(FeatureService featureService) {
 		super(featureService);
@@ -59,7 +60,7 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<MergeFeature<?>> parseDescriptor(
 			FunctionDescriptor functionDescriptor) {
-		PerformanceMonitor.startTask("MergeFeatureParser.parseDescriptor");
+		MONITOR.startTask("parseDescriptor");
 		try {
 			List<Feature<ShapePair, ?>> mergeFeatures = this.parse(functionDescriptor);
 			List<MergeFeature<?>> wrappedFeatures = new ArrayList<MergeFeature<?>>();
@@ -82,7 +83,7 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 			}
 			return wrappedFeatures;
 		} finally {
-			PerformanceMonitor.endTask("MergeFeatureParser.parseDescriptor");
+			MONITOR.endTask("parseDescriptor");
 		}
 	}
 

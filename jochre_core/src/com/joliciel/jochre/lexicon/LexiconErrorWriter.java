@@ -74,6 +74,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 	
 	Map<String,ErrorStatistics> errorMap = new LinkedHashMap<String, ErrorStatistics>();
 	private JochreDocument currentDoc = null;
+	private boolean beamContainsRightWord = false;
 	
 	private static DecimalFormat df = new DecimalFormat("0.##");
 	
@@ -157,16 +158,40 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 	public void onStartSequence(LetterSequence letterSequence) {
 		
 	}
+	
 
 	@Override
-	public void onGuessSequence(LetterSequence letterSequence) {
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
+		beamContainsRightWord = false;
+		for (LetterSequence letterSequence : finalSequences) {
+			if (letterSequence.getRealWord().equals(letterSequence.getGuessedWord())) {
+				beamContainsRightWord = true;
+				break;
+			}
+		}
+		if (beamContainsRightWord && holdoverSequences!=null && holdoverSequences.size()>0) {
+			beamContainsRightWord = false;
+			for (LetterSequence letterSequence : holdoverSequences) {
+				if (letterSequence.getRealWord().equals(letterSequence.getGuessedWord())) {
+					beamContainsRightWord = true;
+					break;
+				}
+			}
+		}
+		
+	}
+	
+	@Override
+	public void onGuessSequence(LetterSequence bestSequence) {
 		try  {
 			int realFrequency = 0;
 			if (wordChooser!=null)
-				realFrequency = wordChooser.getFrequency(letterSequence.getRealWord());
-			boolean error = !letterSequence.getRealWord().equals(letterSequence.getGuessedWord());
+				realFrequency = wordChooser.getFrequency(bestSequence.getRealWord());
+			boolean error = !bestSequence.getRealWord().equals(bestSequence.getGuessedWord());
 			boolean known = realFrequency>0;
-			boolean badSeg = letterSequence.getRealSequence().contains("[") || letterSequence.getRealSequence().contains("|");
+			boolean badSeg = bestSequence.getRealSequence().contains("[") || bestSequence.getRealSequence().contains("|");
 			
 			for (int i=0;i<3;i++) {
 				Writer writer = null;
@@ -186,9 +211,21 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						if (documentGroups.get(docGroupName).contains(currentDoc.getId()))
 							statList.add(errorMap.get(docGroupName));
 					}
+					
+					if (beamContainsRightWord) {
+						if (error) {
+							for (ErrorStatistics stats : statList)
+								stats.answerInBeamErrorCount++;
+						} else {
+							for (ErrorStatistics stats : statList)
+								stats.answerInBeamCorrectCount++;
+						}
+						beamContainsRightWord = false;
+					}
+					
 					Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
-					for (ShapeInSequence shapeInSequence : letterSequence.getUnderlyingShapeSequence()) {
-						String letterGuess = letterSequence.get(j++).getString();
+					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
+						String letterGuess = bestSequence.get(j++).getString();
 						String letter = shapeInSequence.getShape().getLetter();
 						boolean badSegLetter = letter.contains("|") || letter.length()==0 || (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter));
 						if (letter.equals(letterGuess)) {
@@ -260,10 +297,10 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 					}
 				}
 				
-				writer.write(CSVFormatter.format(letterSequence.getRealSequence()));
-				writer.write(CSVFormatter.format(letterSequence.getRealWord()));
-				writer.write(CSVFormatter.format(letterSequence.getGuessedSequence()));
-				writer.write(CSVFormatter.format(letterSequence.getGuessedWord()));
+				writer.write(CSVFormatter.format(bestSequence.getRealSequence()));
+				writer.write(CSVFormatter.format(bestSequence.getRealWord()));
+				writer.write(CSVFormatter.format(bestSequence.getGuessedSequence()));
+				writer.write(CSVFormatter.format(bestSequence.getGuessedWord()));
 				
 				if (i<2) {
 					writer.write(CSVFormatter.format(known ? 1 : 0));
@@ -271,13 +308,13 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 				}
 				
 				writer.write(CSVFormatter.format(realFrequency));
-				writer.write(CSVFormatter.format(letterSequence.getFrequency()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getDocument().getName()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getIndex()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getRow().getParagraph().getIndex()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getRow().getIndex()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getIndex()));
-				writer.write(CSVFormatter.format(letterSequence.getFirstGroup().getId()));
+				writer.write(CSVFormatter.format(bestSequence.getFrequency()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getDocument().getName()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getIndex()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getRow().getParagraph().getIndex()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getRow().getIndex()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getIndex()));
+				writer.write(CSVFormatter.format(bestSequence.getFirstGroup().getId()));
 				writer.write("\n");
 				writer.flush();
 			}
@@ -352,6 +389,12 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
+				statsWriter.write(CSVFormatter.format("inBeam") + CSVFormatter.format(stats.answerInBeamCorrectCount) + CSVFormatter.format(stats.answerInBeamErrorCount) + CSVFormatter.format(stats.getAnswerInBeamCount()) + CSVFormatter.getCsvSeparator());
+			}
+			statsWriter.write("\n");
+
+			for (String statName : errorMap.keySet()) {
+				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSVFormatter.format("total") + CSVFormatter.format(stats.knownWordCorrectCount + stats.unknownWordCorrectCount) + CSVFormatter.format(stats.knownWordErrorCount + stats.unknownWordErrorCount) + CSVFormatter.format(stats.knownWordCorrectCount+stats.knownWordErrorCount+stats.unknownWordCorrectCount+stats.unknownWordErrorCount) + CSVFormatter.getCsvSeparator());
 			}
 			statsWriter.write("\n");
@@ -377,6 +420,12 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSVFormatter.format("badSeg%") + CSVFormatter.format(stats.getBadSegCount()==0 ? "0" : df.format((double)stats.badSegCorrectCount/stats.getBadSegCount()*100)) + CSVFormatter.format(stats.getBadSegCount()==0 ? "0" : df.format((double)stats.badSegErrorCount/stats.getBadSegCount()*100)) + CSVFormatter.format(stats.getTotalCount()==0 ? "0" : df.format(stats.getBadSegCount()/stats.getTotalCount()*100)) + CSVFormatter.getCsvSeparator());
+			}
+			statsWriter.write("\n");
+
+			for (String statName : errorMap.keySet()) {
+				ErrorStatistics stats = errorMap.get(statName);
+				statsWriter.write(CSVFormatter.format("inBeam%") + CSVFormatter.format(stats.getAnswerInBeamCount()==0 ? "0" : df.format((double)stats.answerInBeamCorrectCount/stats.getAnswerInBeamCount()*100)) + CSVFormatter.format(stats.getAnswerInBeamCount()==0 ? "0" : df.format((double)stats.answerInBeamErrorCount/stats.getAnswerInBeamCount()*100)) + CSVFormatter.format(stats.getTotalCount()==0 ? "0" : df.format(stats.getAnswerInBeamCount()/stats.getTotalCount()*100)) + CSVFormatter.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
@@ -499,6 +548,9 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 		public int badSegCorrectLetterCount;
 		public int badSegErrorLetterCount;
 		
+		public int answerInBeamCorrectCount;
+		public int answerInBeamErrorCount;
+		
 		public double getTotalCount() {
 			return knownWordCorrectCount+unknownWordCorrectCount+knownWordErrorCount+unknownWordErrorCount;
 		}
@@ -533,7 +585,10 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 		public double getBadSegLetterCount() {
 			return badSegCorrectLetterCount+badSegErrorLetterCount;
 		}
-
+		
+		public double getAnswerInBeamCount() {
+			return answerInBeamCorrectCount + answerInBeamErrorCount;
+		}
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -629,6 +684,9 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 								} else if (rowName.equals("badSegLetters")) {
 									errorStats.badSegCorrectLetterCount += correctCount;
 									errorStats.badSegErrorLetterCount += errorCount;
+								} else if (rowName.equals("inBeam")) {
+									errorStats.answerInBeamCorrectCount += correctCount;
+									errorStats.answerInBeamErrorCount += errorCount;
 								} else if (rowName.equals("total")) {
 									haveCountMap.put(groupName, totalCount>0);
 								} else if (rowName.endsWith("%")) {
@@ -683,7 +741,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			Writer statsWriter = writers.get("KEMatrix");
 			writeStats(statsWriter, errorMap);
 			statsWriter.write("\n");
-			String[] statTypes = new String[] { "known", "unknown", "goodSeg", "badSeg", "total", "knownLetter", "unknownLetter", "goodSegLetter", "badSegLetter", "totalLetter" };
+			String[] statTypes = new String[] { "known", "unknown", "goodSeg", "badSeg", "inBeam", "total", "knownLetter", "unknownLetter", "goodSegLetter", "badSegLetter", "totalLetter" };
 			for (String statType : statTypes) {
 				for (String groupName : groupNames) {
 					Map<String,DescriptiveStatistics> statsMap = statMap.get(groupName);
@@ -714,4 +772,6 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			throw new RuntimeException(e);
 		}
 	}
+
+
 }

@@ -439,7 +439,7 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 			int xIndex = 0;
 			verticalBreaks[xIndex++] = leftOffset;
 			
-			if (this.jochreImage.isLeftToRight()) {
+			if (this.getJochreImage().isLeftToRight()) {
 				for (int i = 0; i < verticalSectionCount; i++) {
 					verticalBreaks[xIndex++] = verticalSectorWidth * (i+1);
 				}

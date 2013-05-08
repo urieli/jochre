@@ -211,172 +211,178 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param args
 	 */
 	public void execute(Map<String, String> argMap) throws Exception {
-		PerformanceMonitor.start();
-		try {
-			if (argMap.size()==0) {
-				System.out.println("Usage (* indicates optional):");
-				System.out.println("Jochre command=load file=[filename] name=[userFriendlyName] lang=[isoLanguageCode] first=[firstPage]* last=[lastPage]* outputDir=[outputDirectory]* showSeg=[true/false]");
-				System.out.println("Jochre command=extract file=[filename] outputDir=[outputDirectory] first=[firstPage]* last=[lastPage]*");
-				System.out.println("Jochre command=analyse");
-				System.out.println("Jochre command=train file=[filename] outputDir=[outputDirectory] iterations=[iterations] cutoff=[cutoff]");
-				return;
-			}
-			
-			String logConfigPath = argMap.get("logConfigFile");
-			if (logConfigPath!=null) {
-				argMap.remove("logConfigFile");
-				Properties props = new Properties();
-				props.load(new FileInputStream(logConfigPath));
-				PropertyConfigurator.configure(props);
-			}
-			
-			String command = "";
-			String filename = "";
-			String userFriendlyName = "";
-			String outputDirPath = null;
-			int firstPage = -1;
-			int lastPage = -1;
-			int shapeId = -1;
-			int docId = -1;
-			int imageId = 0;
-			int iterations = 100;
-			int cutoff = 0;
-			int userId = -1;
-			int imageCount = 0;
-			int multiplier = 0;
-			int beamWidth = 5;
-			boolean showSegmentation = false;
-			boolean drawPixelSpread = false;
-			boolean save = false;
-			String letterModelPath = "";
-			String splitModelPath = "";
-			String mergeModelPath = "";
-			ImageStatus testSet = ImageStatus.TRAINING_HELD_OUT;
-			String letterFeatureFilePath = "";
-			String splitFeatureFilePath = "";
-			String mergeFeatureFilePath = "";
-			boolean reconstructLetters = false;
-			double minProbForDecision = 0.5;
-			BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
-			int excludeImageId = 0;
-			int crossValidationSize = -1;
-			int includeIndex = -1;
-			int excludeIndex = -1;
-			Set<Integer> documentSet = null;
-			boolean frequencyAdjusted = false;
-			double smoothing = 0.3;
-			double frequencyLogBase = 10.0;
-			String suffix = "";
-			String dataSourcePath = null;
-			String docGroupPath = null;
+		if (argMap.size()==0) {
+			System.out.println("Usage (* indicates optional):");
+			System.out.println("Jochre command=load file=[filename] name=[userFriendlyName] lang=[isoLanguageCode] first=[firstPage]* last=[lastPage]* outputDir=[outputDirectory]* showSeg=[true/false]");
+			System.out.println("Jochre command=extract file=[filename] outputDir=[outputDirectory] first=[firstPage]* last=[lastPage]*");
+			System.out.println("Jochre command=analyse");
+			System.out.println("Jochre command=train file=[filename] outputDir=[outputDirectory] iterations=[iterations] cutoff=[cutoff]");
+			return;
+		}
+		
+		String logConfigPath = argMap.get("logConfigFile");
+		if (logConfigPath!=null) {
+			argMap.remove("logConfigFile");
+			Properties props = new Properties();
+			props.load(new FileInputStream(logConfigPath));
+			PropertyConfigurator.configure(props);
+		}
+		
+		File performanceConfigFile = null;
 
-			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
-				String argName = argMapEntry.getKey();
-				String argValue = argMapEntry.getValue();
-				if (argName.equals("command"))
-					command = argValue;
-				else if (argName.equals("file"))
-					filename = argValue;
-				else if (argName.equals("name"))
-					userFriendlyName = argValue;
-				else if (argName.equals("lang"))
-					locale = new Locale(argValue);
-				else if (argName.equals("first"))
-					firstPage = Integer.parseInt(argValue);
-				else if (argName.equals("last"))
-					lastPage = Integer.parseInt(argValue);
-				else if (argName.equals("outputDir"))
-					outputDirPath = argValue;
-				else if (argName.equals("showSeg"))
-					showSegmentation = (argValue.equals("true"));
-				else if (argName.equals("drawPixelSpread"))
-					drawPixelSpread = (argValue.equals("true"));
-				else if (argName.equals("save"))
-					save = (argValue.equals("true"));
-				else if (argName.equals("shapeId"))
-					shapeId = Integer.parseInt(argValue);
-				else if (argName.equals("imageId"))
-					imageId = Integer.parseInt(argValue);
-				else if (argName.equals("docId"))
-					docId = Integer.parseInt(argValue);
-				else if (argName.equals("userId"))
-					userId = Integer.parseInt(argValue);
-				else if (argName.equals("iterations"))
-					iterations = Integer.parseInt(argValue);
-				else if (argName.equals("cutoff"))
-					cutoff = Integer.parseInt(argValue);
-				else if (argName.equals("imageCount"))
-					imageCount = Integer.parseInt(argValue);
-				else if (argName.equals("beamWidth"))
-					beamWidth = Integer.parseInt(argValue);
-				else if (argName.equals("multiplier"))
-					multiplier = Integer.parseInt(argValue);
-				else if (argName.equals("letterModel"))
-					letterModelPath = argValue;
-				else if (argName.equals("splitModel"))
-					splitModelPath = argValue;
-				else if (argName.equals("mergeModel"))
-					mergeModelPath = argValue;
-				else if (argName.equals("letterFeatures"))
-					letterFeatureFilePath = argValue;
-				else if (argName.equals("splitFeatures"))
-					splitFeatureFilePath = argValue;
-				else if (argName.equals("mergeFeatures"))
-					mergeFeatureFilePath = argValue;
-				else if (argName.equals("testSet")) {
-					if (argValue.equals("heldOut"))
-						testSet = ImageStatus.TRAINING_HELD_OUT;
-					else if (argValue.equals("test"))
-						testSet = ImageStatus.TRAINING_TEST;
-					else if (argValue.equals("training"))
-						testSet = ImageStatus.TRAINING_VALIDATED;
-					else
-						throw new RuntimeException("Unknown testSet: " + argValue);
-				}
-				else if (argName.equals("reconstructLetters"))
-					reconstructLetters = (argValue.equals("true"));
-				else if (argName.equals("minProbForDecision"))
-					minProbForDecision = Double.parseDouble(argValue);
-				else if (argName.equals("boundaryDetector")) 
-					boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
-				else if (argName.equals("lexicon"))
-					lexiconPath = argValue;
-				else if (argName.equals("freqLogBase")) {
-					frequencyLogBase = Double.parseDouble(argValue);
-					frequencyAdjusted = true;
-				} else if (argName.equals("smoothing"))
-					smoothing = Double.parseDouble(argValue);
-				else if (argName.equals("excludeImageId"))
-					excludeImageId = Integer.parseInt(argValue);
-				else if (argName.equals("crossValidationSize"))
-					crossValidationSize = Integer.parseInt(argValue);
-				else if (argName.equals("includeIndex"))
-					includeIndex = Integer.parseInt(argValue);
-				else if (argName.equals("excludeIndex"))
-					excludeIndex = Integer.parseInt(argValue);
-				else if (argName.equals("docSet")) {
-					String[] docIdArray = argValue.split(",");
-					documentSet = new HashSet<Integer>();
-					for (String docIdString : docIdArray) {
-						int oneId = Integer.parseInt(docIdString);
-						documentSet.add(oneId);
-					}
-				}
-				else if (argName.equals("docGroupFile")) {
-					docGroupPath = argValue;
-				}
-				else if (argName.equals("frequencyAdjusted"))
-					frequencyAdjusted = argValue.equalsIgnoreCase("true");
-				else if (argName.equals("suffix"))
-					suffix = argValue;
-				else if (argName.equals("dataSource"))
-					dataSourcePath = argValue;
-				else if (argName.equals("encoding"))
-					encoding = argValue;
+		String command = "";
+		String filename = "";
+		String userFriendlyName = "";
+		String outputDirPath = null;
+		int firstPage = -1;
+		int lastPage = -1;
+		int shapeId = -1;
+		int docId = -1;
+		int imageId = 0;
+		int iterations = 100;
+		int cutoff = 0;
+		int userId = -1;
+		int imageCount = 0;
+		int multiplier = 0;
+		int beamWidth = 5;
+		boolean showSegmentation = false;
+		boolean drawPixelSpread = false;
+		boolean save = false;
+		String letterModelPath = "";
+		String splitModelPath = "";
+		String mergeModelPath = "";
+		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
+		String letterFeatureFilePath = "";
+		String splitFeatureFilePath = "";
+		String mergeFeatureFilePath = "";
+		boolean reconstructLetters = false;
+		double minProbForDecision = 0.5;
+		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
+		int excludeImageId = 0;
+		int crossValidationSize = -1;
+		int includeIndex = -1;
+		int excludeIndex = -1;
+		Set<Integer> documentSet = null;
+		boolean frequencyAdjusted = false;
+		double smoothing = 0.3;
+		double frequencyLogBase = 10.0;
+		String suffix = "";
+		String dataSourcePath = null;
+		String docGroupPath = null;
+
+		for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+			String argName = argMapEntry.getKey();
+			String argValue = argMapEntry.getValue();
+			if (argName.equals("command"))
+				command = argValue;
+			else if (argName.equals("file"))
+				filename = argValue;
+			else if (argName.equals("name"))
+				userFriendlyName = argValue;
+			else if (argName.equals("lang"))
+				locale = new Locale(argValue);
+			else if (argName.equals("first"))
+				firstPage = Integer.parseInt(argValue);
+			else if (argName.equals("last"))
+				lastPage = Integer.parseInt(argValue);
+			else if (argName.equals("outputDir"))
+				outputDirPath = argValue;
+			else if (argName.equals("showSeg"))
+				showSegmentation = (argValue.equals("true"));
+			else if (argName.equals("drawPixelSpread"))
+				drawPixelSpread = (argValue.equals("true"));
+			else if (argName.equals("save"))
+				save = (argValue.equals("true"));
+			else if (argName.equals("shapeId"))
+				shapeId = Integer.parseInt(argValue);
+			else if (argName.equals("imageId"))
+				imageId = Integer.parseInt(argValue);
+			else if (argName.equals("docId"))
+				docId = Integer.parseInt(argValue);
+			else if (argName.equals("userId"))
+				userId = Integer.parseInt(argValue);
+			else if (argName.equals("iterations"))
+				iterations = Integer.parseInt(argValue);
+			else if (argName.equals("cutoff"))
+				cutoff = Integer.parseInt(argValue);
+			else if (argName.equals("imageCount"))
+				imageCount = Integer.parseInt(argValue);
+			else if (argName.equals("beamWidth"))
+				beamWidth = Integer.parseInt(argValue);
+			else if (argName.equals("multiplier"))
+				multiplier = Integer.parseInt(argValue);
+			else if (argName.equals("letterModel"))
+				letterModelPath = argValue;
+			else if (argName.equals("splitModel"))
+				splitModelPath = argValue;
+			else if (argName.equals("mergeModel"))
+				mergeModelPath = argValue;
+			else if (argName.equals("letterFeatures"))
+				letterFeatureFilePath = argValue;
+			else if (argName.equals("splitFeatures"))
+				splitFeatureFilePath = argValue;
+			else if (argName.equals("mergeFeatures"))
+				mergeFeatureFilePath = argValue;
+			else if (argName.equals("imageStatus")) {
+				if (argValue.equals("heldOut"))
+					imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
+				else if (argValue.equals("test"))
+					imageSet = new ImageStatus[] { ImageStatus.TRAINING_TEST };
+				else if (argValue.equals("training"))
+					imageSet = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED };
+				else if (argValue.equals("all"))
+					imageSet = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED , ImageStatus.TRAINING_HELD_OUT, ImageStatus.TRAINING_TEST };
 				else
-					throw new RuntimeException("Unknown argument: " + argName);
+					throw new RuntimeException("Unknown imageSet: " + argValue);
 			}
-			
+			else if (argName.equals("reconstructLetters"))
+				reconstructLetters = (argValue.equals("true"));
+			else if (argName.equals("minProbForDecision"))
+				minProbForDecision = Double.parseDouble(argValue);
+			else if (argName.equals("boundaryDetector")) 
+				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
+			else if (argName.equals("lexicon"))
+				lexiconPath = argValue;
+			else if (argName.equals("freqLogBase")) {
+				frequencyLogBase = Double.parseDouble(argValue);
+				frequencyAdjusted = true;
+			} else if (argName.equals("smoothing"))
+				smoothing = Double.parseDouble(argValue);
+			else if (argName.equals("excludeImageId"))
+				excludeImageId = Integer.parseInt(argValue);
+			else if (argName.equals("crossValidationSize"))
+				crossValidationSize = Integer.parseInt(argValue);
+			else if (argName.equals("includeIndex"))
+				includeIndex = Integer.parseInt(argValue);
+			else if (argName.equals("excludeIndex"))
+				excludeIndex = Integer.parseInt(argValue);
+			else if (argName.equals("docSet")) {
+				String[] docIdArray = argValue.split(",");
+				documentSet = new HashSet<Integer>();
+				for (String docIdString : docIdArray) {
+					int oneId = Integer.parseInt(docIdString);
+					documentSet.add(oneId);
+				}
+			}
+			else if (argName.equals("docGroupFile")) {
+				docGroupPath = argValue;
+			}
+			else if (argName.equals("frequencyAdjusted"))
+				frequencyAdjusted = argValue.equalsIgnoreCase("true");
+			else if (argName.equals("suffix"))
+				suffix = argValue;
+			else if (argName.equals("dataSource"))
+				dataSourcePath = argValue;
+			else if (argName.equals("encoding"))
+				encoding = argValue;
+			else if (argName.equals("performanceConfigFile"))
+				performanceConfigFile = new File(argValue);
+			else
+				throw new RuntimeException("Unknown argument: " + argName);
+		}
+		
+		PerformanceMonitor.start(performanceConfigFile);
+		try {
 			if (userFriendlyName.length()==0)
 				userFriendlyName = filename;
 			
@@ -399,7 +405,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			CorpusSelectionCriteria criteria = this.getGraphicsService().getCorpusSelectionCriteria();
 			criteria.setImageId(imageId);
 			criteria.setImageCount(imageCount);
-			criteria.setImageStatusesToInclude(new ImageStatus[] {testSet});
+			criteria.setImageStatusesToInclude(imageSet);
 			criteria.setExcludeImageId(excludeImageId);
 			criteria.setCrossValidationSize(crossValidationSize);
 			criteria.setIncludeIndex(includeIndex);
@@ -1477,36 +1483,42 @@ public class Jochre implements LocaleSpecificLexiconService {
 	public void setGraphicsService(GraphicsService graphicsService) {
 		this.graphicsService = graphicsService;
 	}
+	
+	protected Lexicon readLexicon(File lexiconDir) {
+		Lexicon myLexicon = null;
+		
+		if (lexiconDir.isDirectory()) {
+			LexiconMerger lexiconMerger = new LexiconMerger();
+			File[] lexiconFiles = lexiconDir.listFiles();
+			for (File lexiconFile : lexiconFiles) {
+				if (lexiconFile.getName().endsWith(".txt")) {
+					TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, encoding);
+					lexiconMerger.addLexicon(textFileLexicon);
+				} else {
+					TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
+					lexiconMerger.addLexicon(textFileLexicon);
+				}
+			}
+			
+			myLexicon = lexiconMerger;
+		} else {
+			if (lexiconDir.getName().endsWith(".txt")) {
+				TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, encoding);
+				myLexicon = textFileLexicon;
+			} else {
+				TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
+				myLexicon = textFileLexicon;
+			}
+		}
+		return myLexicon;
+	}
+	
 	@Override
 	public Lexicon getLexicon() {
 		if (lexicon == null) {
 			if (lexiconPath!=null && lexiconPath.length()>0) {
 				File lexiconDir = new File(lexiconPath);
-				Lexicon myLexicon = null;
-				
-				if (lexiconDir.isDirectory()) {
-					LexiconMerger lexiconMerger = new LexiconMerger();
-					File[] lexiconFiles = lexiconDir.listFiles();
-					for (File lexiconFile : lexiconFiles) {
-						if (lexiconFile.getName().endsWith(".obj")) {
-							TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
-							lexiconMerger.addLexicon(textFileLexicon);
-						} else if (lexiconFile.getName().endsWith(".txt")) {
-							TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, encoding);
-							lexiconMerger.addLexicon(textFileLexicon);
-						}
-					}
-					
-					myLexicon = lexiconMerger;
-				} else {
-					if (lexiconDir.getName().endsWith(".obj")) {
-						TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
-						myLexicon = textFileLexicon;
-					} else if (lexiconDir.getName().endsWith(".txt")) {
-						TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, encoding);
-						myLexicon = textFileLexicon;
-					}
-				}
+				Lexicon myLexicon = this.readLexicon(lexiconDir);
 				this.lexicon = new DefaultLexiconWrapper(myLexicon);
 			} else {
 				this.lexicon = new FakeLexicon();

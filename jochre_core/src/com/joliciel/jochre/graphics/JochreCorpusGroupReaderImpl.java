@@ -26,6 +26,8 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements JochreCorpusGroupReader {
     private static final Log LOG = LogFactory.getLog(JochreCorpusGroupReaderImpl.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreCorpusGroupReaderImpl.class);
+
 	private int imageIndex = 0;
 	private int paragraphIndex = 0;
 	private int rowIndex = 0;
@@ -52,7 +54,7 @@ class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements Joch
 
 	@Override
 	public boolean hasNext()  {
-		PerformanceMonitor.startTask("JochreCorpusGroupReaderImpl.hasNext");
+		MONITOR.startTask("hasNext");
 		try {
 			this.initialiseStream();
 			while (group==null && imageIndex < this.getImages().size()) {
@@ -89,7 +91,7 @@ class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements Joch
 	
 			return group!=null;
 		} finally {
-			PerformanceMonitor.endTask("JochreCorpusGroupReaderImpl.hasNext");
+			MONITOR.endTask("hasNext");
 		}
 	}
 

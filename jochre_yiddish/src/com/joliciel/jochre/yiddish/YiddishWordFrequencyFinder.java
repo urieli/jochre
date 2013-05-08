@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.yiddish;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -177,6 +178,11 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 
 	public void setBaseLexicon(Lexicon baseLexicon) {
 		this.baseLexicon = baseLexicon;
+	}
+
+	@Override
+	public Iterator<String> getWords() {
+		return this.baseLexicon.getWords();
 	}
 	
 	

@@ -58,6 +58,7 @@ import com.joliciel.talismane.utils.SimpleProgressMonitor;
  */
 class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
     private static final Log LOG = LogFactory.getLog(BeamSearchImageAnalyser.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
     
     private static final int DEFAULT_BEAM_WIDTH = 5;
     
@@ -88,7 +89,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	
 	@Override
 	public void analyse(JochreCorpusImageReader imageReader) {
-		PerformanceMonitor.startTask("BeamSearchImageAnalyser.analyseAll");
+		MONITOR.startTask("analyse(JochreCorpusImageReader)");
 		try {
 			
 			while (imageReader.hasNext()) {
@@ -101,13 +102,13 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 				observer.onFinish();
 			}
 		} finally {
-			PerformanceMonitor.endTask("BeamSearchImageAnalyser.analyseAll");
+			MONITOR.endTask("analyse(JochreCorpusImageReader)");
 		}
 	}
 	
 	@Override
 	public void analyse(JochreImage image) {
-		PerformanceMonitor.startTask("BeamSearchImageAnalyser.analyse");
+		MONITOR.startTask("analyse");
 		try {
 			this.analyseInternal(image);
 			
@@ -115,7 +116,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 				observer.onFinish();
 			}
 		} finally {
-			PerformanceMonitor.endTask("BeamSearchImageAnalyser.analyse");
+			MONITOR.endTask("analyse");
 		}
 	}
 	
@@ -202,14 +203,14 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								heaps.put(position, heap);
 							}
 							
-							PerformanceMonitor.startTask("guess letter");
+							MONITOR.startTask("guess letter");
 							try {
 								letterGuesser.guessLetter(shapeInSequence, history);
 							} finally {
-								PerformanceMonitor.endTask("guess letter");
+								MONITOR.endTask("guess letter");
 							}
 							
-							PerformanceMonitor.startTask("heap sort");
+							MONITOR.startTask("heap sort");
 							try {
 								for (Decision<Letter> letterGuess : shape.getLetterGuesses()) {
 									// leave out very low probability outcomes
@@ -221,7 +222,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									} // weight big enough to include
 								} // next letter guess for this shape
 							} finally {
-								PerformanceMonitor.endTask("heap sort");
+								MONITOR.endTask("heap sort");
 							}
 						} // next history in heap
 					} // any more heaps?
@@ -229,20 +230,20 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					LetterSequence bestSequence = null;
 					boolean shouldCombineWithHoldover = false;
 					boolean isHoldover = false;
-					PerformanceMonitor.startTask("best sequence");
+					MONITOR.startTask("best sequence");
 					try {
+						List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
+						for (int i=0;i<this.beamWidth;i++) {
+							if (finalHeap.isEmpty())
+								break;
+							finalSequences.add(finalHeap.poll());
+						}
+
 						if (this.getMostLikelyWordChooser()==null) {
 							// most likely sequence is on top of the last heap
-							bestSequence = finalHeap.peek();
+							bestSequence = finalSequences.get(0);
 						} else {
-							// get most likely sequence as adjusted for word frequencies
-							List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
-							for (int i=0;i<this.beamWidth;i++) {
-								if (finalHeap.isEmpty())
-									break;
-								finalSequences.add(finalHeap.poll());
-							}
-							
+							// get most likely sequence using lexicon
 							if (holdoverSequences!=null) {
 								// we have a holdover from the previous row ending with a dash
 								bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
@@ -266,13 +267,19 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									// simplest case: no holdover
 									bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, this.beamWidth);
 								}
+							} // have we holdover sequences?
+						} // have we a most likely word chooser?
+						
+						if (!isHoldover) {
+							for (LetterGuessObserver observer : observers) {
+								observer.onBeamSearchEnd(bestSequence, finalSequences, holdoverSequences);
 							}
 						}
 					} finally {
-						PerformanceMonitor.endTask("best sequence");
+						MONITOR.endTask("best sequence");
 					}
 					
-					PerformanceMonitor.startTask("assign letter");
+					MONITOR.startTask("assign letter");
 					try {
 						if (shouldCombineWithHoldover) {
 							holdoverSequences = null;
@@ -303,7 +310,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							currentMonitor.setPercentComplete(progress);
 						}
 					} finally {
-						PerformanceMonitor.endTask("assign letter");
+						MONITOR.endTask("assign letter");
 					}
 				} // next group
 			} // next row

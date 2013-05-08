@@ -62,6 +62,8 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  */
 class RecursiveShapeSplitter implements ShapeSplitter {
 	private static final Log LOG = LogFactory.getLog(RecursiveShapeSplitter.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
+
 	private SplitCandidateFinder splitCandidateFinder;
 	private BoundaryServiceInternal boundaryServiceInternal;
 	private FeatureService featureService;
@@ -249,15 +251,15 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 
 
 	public double shouldSplit(Split splitCandidate) {
-		PerformanceMonitor.startTask("RecursiveShapeSplitter.shouldSplit");
+		MONITOR.startTask("shouldSplit");
 		try {
 			
 			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 			
-			PerformanceMonitor.startTask("analyse features");
+			MONITOR.startTask("analyse features");
 			try {
 				for (SplitFeature<?> feature : splitFeatures) {
-					PerformanceMonitor.startTask(feature.getName());
+					MONITOR.startTask(feature.getName());
 					try {
 						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
 						FeatureResult<?> featureResult = feature.check(splitCandidate, env);
@@ -268,19 +270,19 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 							}
 						}
 					} finally {
-						PerformanceMonitor.endTask(feature.getName());
+						MONITOR.endTask(feature.getName());
 					}
 				}
 			} finally {
-				PerformanceMonitor.endTask("analyse features");
+				MONITOR.endTask("analyse features");
 			}
 			
 			List<Decision<SplitOutcome>> decisions = null;
-			PerformanceMonitor.startTask("decision maker");
+			MONITOR.startTask("decision maker");
 			try {
 				decisions = decisionMaker.decide(featureResults);
 			} finally {
-				PerformanceMonitor.endTask("decision maker");
+				MONITOR.endTask("decision maker");
 			}
 			
 			double yesProb = 0.0;
@@ -298,7 +300,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 	
 			return yesProb;
 		} finally {
-			PerformanceMonitor.endTask("RecursiveShapeSplitter.shouldSplit");
+			MONITOR.endTask("shouldSplit");
 		}
 	}
 	

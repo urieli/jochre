@@ -40,6 +40,8 @@ import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterFeatureParser.class);
+
 	private ShapeFeatureParser shapeFeatureParser;
 	private ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
 	
@@ -57,7 +59,7 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<LetterFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
-		PerformanceMonitor.startTask("LetterFeatureParser.parseDescriptor");
+		MONITOR.startTask("parseDescriptor");
 		try {
 			List<Feature<LetterGuesserContext, ?>> letterFeatures = this.parse(functionDescriptor);
 			List<LetterFeature<?>> wrappedFeatures = new ArrayList<LetterFeature<?>>();
@@ -80,7 +82,7 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 			}
 			return wrappedFeatures;
 		} finally {
-			PerformanceMonitor.endTask("LetterFeatureParser.parseDescriptor");
+			MONITOR.endTask("parseDescriptor");
 		}
 	}
 

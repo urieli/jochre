@@ -33,9 +33,9 @@ import com.joliciel.talismane.utils.WeightedOutcome;
 
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
-	private double additiveSmoothing = 0.3;
-	private double frequencyLogBase = 10.0;
-	private boolean frequencyAdjusted = true;
+	private double additiveSmoothing = 0.75;
+	private double frequencyLogBase = 100.0;
+	private boolean frequencyAdjusted = false;
 	
 	Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
 	LexiconServiceInternal lexiconServiceInternal = null;

@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
+import java.util.List;
+
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.ImageStatus;
@@ -81,6 +83,12 @@ public class LetterAssigner implements LetterGuessObserver {
 
 	public void setSave(boolean save) {
 		this.save = save;
+	}
+
+	@Override
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
 	}
 
 }

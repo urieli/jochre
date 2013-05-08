@@ -42,6 +42,8 @@ import com.joliciel.jochre.graphics.Shape;
 
 class JochreMergeEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreMergeEventStream.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
+
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 	private MachineLearningService machineLearningService;
@@ -77,7 +79,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 	
 	@Override
 	public CorpusEvent next() {
-		PerformanceMonitor.startTask("JochreMergeEventStream.next");
+		MONITOR.startTask("next");
 		try {
 			CorpusEvent event = null;
 			if (this.hasNext()) {
@@ -85,10 +87,10 @@ class JochreMergeEventStream implements CorpusEventStream {
 	
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 	
-				PerformanceMonitor.startTask("analyse features");
+				MONITOR.startTask("analyse features");
 				try {
 					for (MergeFeature<?> feature : mergeFeatures) {
-						PerformanceMonitor.startTask(feature.getName());
+						MONITOR.startTask(feature.getName());
 						try {
 							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
 							FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
@@ -99,11 +101,11 @@ class JochreMergeEventStream implements CorpusEventStream {
 								}
 							}
 						} finally {
-							PerformanceMonitor.endTask(feature.getName());
+							MONITOR.endTask(feature.getName());
 						}
 					}
 				} finally {
-					PerformanceMonitor.endTask("analyse features");
+					MONITOR.endTask("analyse features");
 				}
 				
 				MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
@@ -131,13 +133,13 @@ class JochreMergeEventStream implements CorpusEventStream {
 			}
 			return event;
 		} finally {
-			PerformanceMonitor.endTask("JochreMergeEventStream.next");
+			MONITOR.endTask("next");
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
-		PerformanceMonitor.startTask("JochreMergeEventStream.hasNext");
+		MONITOR.startTask("hasNext");
 		try {
 			this.initialiseStream();
 			
@@ -175,7 +177,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 			
 			return mergeCandidate!=null;
 		} finally {
-			PerformanceMonitor.endTask("JochreMergeEventStream.hasNext");
+			MONITOR.endTask("hasNext");
 		}
 	}
 	

@@ -27,10 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.Jochre;
+import com.joliciel.jochre.lexicon.FakeLexicon;
 import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LexiconMerger;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
-import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.WordSplitter;
 
 public class JochreYiddish extends Jochre implements LocaleSpecificLexiconService {
@@ -60,17 +59,14 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 
 	@Override
 	public Lexicon getLexicon() {
-		if (yiddishLexicon == null && this.getLexiconPath()!=null && this.getLexiconPath().length()>0) {
-			LexiconMerger lexiconMerger = new LexiconMerger();
-			File lexiconDir = new File(this.getLexiconPath());
-		
-			File[] lexiconFiles = lexiconDir.listFiles();
-			for (File lexiconFile : lexiconFiles) {
-				TextFileLexicon lexicon = TextFileLexicon.deserialize(lexiconFile);
-				lexiconMerger.addLexicon(lexicon);
+		if (yiddishLexicon == null) {
+			if (this.getLexiconPath()!=null && this.getLexiconPath().length()>0) {
+				File lexiconDir = new File(this.getLexiconPath());
+				Lexicon myLexicon = this.readLexicon(lexiconDir);
+				yiddishLexicon = new YiddishWordFrequencyFinder(myLexicon);
+			} else {
+				yiddishLexicon = new FakeLexicon();
 			}
-	
-			yiddishLexicon = new YiddishWordFrequencyFinder(lexiconMerger);
 		}
 		return yiddishLexicon;
 	}

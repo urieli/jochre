@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
+import java.util.List;
+
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
@@ -48,10 +50,18 @@ public interface LetterGuessObserver {
 	public void onStartSequence(LetterSequence letterSequence);
 
 	/**
+	 * Called when the beam search has completed and we have the n most likely sequences,
+	 * as well as the best sequence selected from among them.
+	 * @param finalSequences
+	 * @param holdoverSequences
+	 */
+	public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences);
+	
+	/**
 	 * Called when the best letter sequence has been chosen for a given group, after all calls to onGuessLetter.
 	 * @param letterSequence
 	 */
-	public void onGuessSequence(LetterSequence letterSequence);
+	public void onGuessSequence(LetterSequence bestSequence);
 	
 	/**
 	 * Called whenever processing ends for the previous image.

@@ -146,7 +146,8 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 		if (realWord==null) {
 			realWord = this.getRealSequence();
 			
-			realWord = realWord.replace("[]", "");
+			realWord = realWord.replace("[", "");
+			realWord = realWord.replace("]", "");
 			
 			// split letters are joined back together
 			realWord = realWord.replaceAll("\\|(.){2}\\|", "$1");
@@ -163,7 +164,8 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 		if (guessedWord==null) {
 			guessedWord = this.getGuessedSequence();
 			
-			guessedWord = guessedWord.replace("[]", "");
+			guessedWord = guessedWord.replace("[", "");
+			guessedWord = guessedWord.replace("]", "");
 			
 			// split letters are joined back together
 			guessedWord = guessedWord.replaceAll("\\|(.){2}\\|", "$1");

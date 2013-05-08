@@ -49,6 +49,8 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreLetterEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreLetterEventStream.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
+
 	private GraphicsService graphicsService;
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
 	private BoundaryService boundaryService;
@@ -88,7 +90,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 	
 	@Override
 	public CorpusEvent next() {
-		PerformanceMonitor.startTask("JochreLetterEventStream.next");
+		MONITOR.startTask("next");
 		try {
 			CorpusEvent event = null;
 			if (this.hasNext()) {
@@ -97,10 +99,10 @@ class JochreLetterEventStream implements CorpusEventStream {
 				LetterGuesserContext context = this.letterGuesserServiceInternal.getContext(shapeInSequence, history);
 				
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
-				PerformanceMonitor.startTask("analyse features");
+				MONITOR.startTask("analyse features");
 				try {
 					for (LetterFeature<?> feature : features) {
-						PerformanceMonitor.startTask(feature.getName());
+						MONITOR.startTask(feature.getName());
 						try {
 							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
 							FeatureResult<?> featureResult = feature.check(context, env);
@@ -111,11 +113,11 @@ class JochreLetterEventStream implements CorpusEventStream {
 								}
 							}
 						} finally {
-							PerformanceMonitor.endTask(feature.getName());
+							MONITOR.endTask(feature.getName());
 						}
 					}
 				} finally {
-					PerformanceMonitor.endTask("analyse features");
+					MONITOR.endTask("analyse features");
 				}
 				
 				String outcome = shape.getLetter();
@@ -129,13 +131,13 @@ class JochreLetterEventStream implements CorpusEventStream {
 			}
 			return event;
 		} finally {
-			PerformanceMonitor.endTask("JochreLetterEventStream.next");
+			MONITOR.endTask("next");
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
-		PerformanceMonitor.startTask("JochreLetterEventStream.hasNext");
+		MONITOR.startTask("hasNext");
 		try {
 			long startTimeDatabaseRead = (new Date()).getTime();
 			this.initialiseStream();
@@ -168,7 +170,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 			}
 			return shapeInSequence!=null;
 		} finally {
-			PerformanceMonitor.endTask("JochreLetterEventStream.hasNext");			
+			MONITOR.endTask("hasNext");			
 		}
 	}
 	

@@ -94,4 +94,10 @@ public class ErrorLogger implements LetterGuessObserver {
 		this.errorWriter = errorWriter;
 	}
 
+	@Override
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
+	}
+
 }

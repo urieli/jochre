@@ -36,6 +36,8 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class ShapeMergerImpl implements ShapeMerger {
 	private static final Log LOG = LogFactory.getLog(ShapeMergerImpl.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
+
 	DecisionMaker<MergeOutcome> decisionMaker;
 	Set<MergeFeature<?>> mergeFeatures;
 	BoundaryServiceInternal boundaryServiceInternal;
@@ -50,7 +52,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 
 	@Override
 	public double checkMerge(Shape shape1, Shape shape2) {
-		PerformanceMonitor.startTask("ShapeMergerImpl.checkMerge");
+		MONITOR.startTask("checkMerge");
 		try {
 			ShapePair mergeCandidate = this.boundaryServiceInternal.getShapePair(shape1, shape2);		
 			if (LOG.isTraceEnabled())
@@ -58,10 +60,10 @@ public class ShapeMergerImpl implements ShapeMerger {
 			
 			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 			
-			PerformanceMonitor.startTask("analyse features");
+			MONITOR.startTask("analyse features");
 			try {
 				for (MergeFeature<?> feature : mergeFeatures) {
-					PerformanceMonitor.startTask(feature.getName());
+					MONITOR.startTask(feature.getName());
 					try {
 						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
 						FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
@@ -72,19 +74,19 @@ public class ShapeMergerImpl implements ShapeMerger {
 							}
 						}
 					} finally {
-						PerformanceMonitor.endTask(feature.getName());
+						MONITOR.endTask(feature.getName());
 					}
 				}
 			} finally {
-				PerformanceMonitor.endTask("analyse features");
+				MONITOR.endTask("analyse features");
 			}
 			
 			List<Decision<MergeOutcome>> decisions = null;
-			PerformanceMonitor.startTask("decision maker");
+			MONITOR.startTask("decision maker");
 			try {
 				decisions = decisionMaker.decide(featureResults);
 			} finally {
-				PerformanceMonitor.endTask("decision maker");
+				MONITOR.endTask("decision maker");
 			}
 			
 			double yesProb = 0.0;
@@ -100,7 +102,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			}
 			return yesProb;
 		} finally {
-			PerformanceMonitor.endTask("ShapeMergerImpl.checkMerge");
+			MONITOR.endTask("checkMerge");
 		}
 	}
 

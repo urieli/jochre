@@ -350,5 +350,11 @@ public class OriginalShapeLetterAssigner implements FScoreObserver {
 		this.letterValidator = letterValidator;
 	}
 
+	@Override
+	public void onBeamSearchEnd(LetterSequence bestSequence,
+			List<LetterSequence> finalSequences,
+			List<LetterSequence> holdoverSequences) {
+	}
+
 
 }

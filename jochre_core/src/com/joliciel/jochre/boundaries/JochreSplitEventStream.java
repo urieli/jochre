@@ -41,6 +41,8 @@ import com.joliciel.jochre.graphics.Shape;
 
 class JochreSplitEventStream implements CorpusEventStream {
     private static final Log LOG = LogFactory.getLog(JochreSplitEventStream.class);
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
+
 	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 	private MachineLearningService machineLearningService;
@@ -77,7 +79,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 	
 	@Override
 	public CorpusEvent next() {
-		PerformanceMonitor.startTask("JochreSplitEventStream.next");
+		MONITOR.startTask("next");
 		try {
 			CorpusEvent event = null;
 			if (this.hasNext()) {
@@ -85,10 +87,10 @@ class JochreSplitEventStream implements CorpusEventStream {
 	
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 	
-				PerformanceMonitor.startTask("analyse features");
+				MONITOR.startTask("analyse features");
 				try {
 					for (SplitFeature<?> feature : splitFeatures) {
-						PerformanceMonitor.startTask(feature.getName());
+						MONITOR.startTask(feature.getName());
 						try {
 							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
 							FeatureResult<?> featureResult = feature.check(splitCandidate, env);
@@ -99,11 +101,11 @@ class JochreSplitEventStream implements CorpusEventStream {
 								}
 							}
 						} finally {
-							PerformanceMonitor.endTask(feature.getName());
+							MONITOR.endTask(feature.getName());
 						}
 					}
 				} finally {
-					PerformanceMonitor.endTask("analyse features");
+					MONITOR.endTask("analyse features");
 				}
 
 				SplitOutcome outcome = SplitOutcome.DO_NOT_SPLIT;
@@ -134,13 +136,13 @@ class JochreSplitEventStream implements CorpusEventStream {
 			}
 			return event;
 		} finally {
-			PerformanceMonitor.endTask("JochreSplitEventStream.next");
+			MONITOR.endTask("next");
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
-		PerformanceMonitor.startTask("JochreSplitEventStream.hasNext");
+		MONITOR.startTask("hasNext");
 		try {
 			this.initialiseStream();
 			
@@ -162,7 +164,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 			
 			return splitCandidate!=null;
 		} finally {
-			PerformanceMonitor.endTask("JochreSplitEventStream.hasNext");
+			MONITOR.endTask("hasNext");
 		}
 	}
 	

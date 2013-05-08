@@ -37,8 +37,7 @@ import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
  * The section with the highest brightness will always be given 1.
  * 
  * Includes a top/bottom margin = topBottomMarginWidth * x-height above and below the meanline/baseline.
- * Includes a left-margin = leftMarginWidth * x-height to the left of right-margin + x-height.
- * Therefore, only really useful for right-to-left languages.
+ * Includes a horizontal-margin after the shape = the total horizontal width, starting at the left margin for left-to-right languages = (1+horizontalMarginWidth) * x-height.
  * @author Assaf Urieli
  *
  */

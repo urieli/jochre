@@ -38,6 +38,7 @@ import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class SplitFeatureParser extends AbstractFeatureParser<Split> {
+	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(SplitFeatureParser.class);
 
 	public SplitFeatureParser(FeatureService featureService) {
 		super(featureService);
@@ -62,7 +63,7 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<SplitFeature<?>> parseDescriptor(
 			FunctionDescriptor functionDescriptor) {
-		PerformanceMonitor.startTask("SplitFeatureParser.parseDescriptor");
+		MONITOR.startTask("parseDescriptor");
 		try {
 			List<Feature<Split, ?>> mergeFeatures = this.parse(functionDescriptor);
 			List<SplitFeature<?>> wrappedFeatures = new ArrayList<SplitFeature<?>>();
@@ -85,7 +86,7 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 			}
 			return wrappedFeatures;
 		} finally {
-			PerformanceMonitor.endTask("SplitFeatureParser.parseDescriptor");
+			MONITOR.endTask("parseDescriptor");
 		}
 	}
 
