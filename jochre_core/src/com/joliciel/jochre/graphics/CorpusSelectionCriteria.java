@@ -98,5 +98,5 @@ public interface CorpusSelectionCriteria {
 	public void setDocumentIds(Set<Integer> documentIds);
 	public Set<Integer> getDocumentIds();
 	
-	public Map<String, Object> getAttributes();
+	public Map<String, String> getAttributes();
 }

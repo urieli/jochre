@@ -236,7 +236,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 						sequence.getWordFrequencies().addAll(partFrequencies);
 					frequency = minPartFrequency;
 				}
-
+				
 
 			} else {
 				frequency = this.lexicon.getFrequency(word);

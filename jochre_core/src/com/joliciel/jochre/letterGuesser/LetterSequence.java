@@ -22,7 +22,7 @@ import java.util.List;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
-import com.joliciel.talismane.machineLearning.Solution;
+import com.joliciel.talismane.machineLearning.ClassificationSolution;
 import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
@@ -30,7 +30,7 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  * @author Assaf Urieli
  *
  */
-public interface LetterSequence extends List<Letter>, Solution<Letter> {
+public interface LetterSequence extends List<Letter>, ClassificationSolution<Letter> {
 
 	/**
 	 * Get the sum of logs of the weights.
@@ -114,4 +114,10 @@ public interface LetterSequence extends List<Letter>, Solution<Letter> {
 	 * @return
 	 */
 	public GroupOfShapes getFirstGroup();
+
+	/**
+	 * Whether or not this letter sequence is split across two lines.
+	 * @return
+	 */
+	public abstract boolean isSplit();
 }

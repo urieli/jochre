@@ -44,6 +44,7 @@ import com.joliciel.talismane.utils.CSVFormatter;
  */
 public class FScoreCalculator<E> {
 	private static final Log LOG = LogFactory.getLog(FScoreCalculator.class);
+	private static final CSVFormatter CSV = new CSVFormatter();
 	Map<E,Map<E,Integer>> falsePositives = new TreeMap<E,Map<E,Integer>>();
 	Map<E,Map<E,Integer>> falseNegatives = new TreeMap<E,Map<E,Integer>>();
 	Map<E,Integer> truePositiveCounts = new TreeMap<E, Integer>();
@@ -416,16 +417,16 @@ public class FScoreCalculator<E> {
 		try {
 			Set<E> outcomeSet = new TreeSet<E>();
 			outcomeSet.addAll(this.getOutcomeSet());
-			fscoreFileWriter.write(CSVFormatter.format("outcome"));
+			fscoreFileWriter.write(CSV.format("outcome"));
 			for (E outcome : outcomeSet) {
-				fscoreFileWriter.write(CSVFormatter.format(outcome.toString()));
+				fscoreFileWriter.write(CSV.format(outcome.toString()));
 			}
-			fscoreFileWriter.write(CSVFormatter.format("true+")
-					+ CSVFormatter.format("false+")
-					+ CSVFormatter.format("false-")
-					+ CSVFormatter.format("precision")
-					+ CSVFormatter.format("recall")
-					+ CSVFormatter.format("f-score"));
+			fscoreFileWriter.write(CSV.format("true+")
+					+ CSV.format("false+")
+					+ CSV.format("false-")
+					+ CSV.format("precision")
+					+ CSV.format("recall")
+					+ CSV.format("f-score"));
 			fscoreFileWriter.write("\n");
 			
 			DecimalFormat df = (DecimalFormat) DecimalFormat.getNumberInstance(Locale.US);
@@ -435,21 +436,21 @@ public class FScoreCalculator<E> {
 			double totalRecallSum = 0;
 			double totalFscoreSum = 0;
 			for (E outcome : outcomeSet) {
-				fscoreFileWriter.write(CSVFormatter.format(outcome.toString()));
+				fscoreFileWriter.write(CSV.format(outcome.toString()));
 				for (E outcome2 : outcomeSet) {
 					int falseNegativeCount = 0;
 					Map<E,Integer> falseNegatives = this.getFalseNegatives(outcome);
 					if (falseNegatives!=null&&falseNegatives.containsKey(outcome2)) {
 						falseNegativeCount = this.getFalseNegatives(outcome).get(outcome2);
 					}
-					fscoreFileWriter.write(CSVFormatter.format(falseNegativeCount));
+					fscoreFileWriter.write(CSV.format(falseNegativeCount));
 				}
-				fscoreFileWriter.write(CSVFormatter.format(this.getTruePositiveCount(outcome)));
-				fscoreFileWriter.write(CSVFormatter.format(this.getFalsePositiveCount(outcome)));
-				fscoreFileWriter.write(CSVFormatter.format(this.getFalseNegativeCount(outcome)));
-				fscoreFileWriter.write(CSVFormatter.format(this.getPrecision(outcome)*100));
-				fscoreFileWriter.write(CSVFormatter.format(this.getRecall(outcome)*100));
-				fscoreFileWriter.write(CSVFormatter.format(this.getFScore(outcome)*100));
+				fscoreFileWriter.write(CSV.format(this.getTruePositiveCount(outcome)));
+				fscoreFileWriter.write(CSV.format(this.getFalsePositiveCount(outcome)));
+				fscoreFileWriter.write(CSV.format(this.getFalseNegativeCount(outcome)));
+				fscoreFileWriter.write(CSV.format(this.getPrecision(outcome)*100));
+				fscoreFileWriter.write(CSV.format(this.getRecall(outcome)*100));
+				fscoreFileWriter.write(CSV.format(this.getFScore(outcome)*100));
 				fscoreFileWriter.write("\n");
 				
 				totalPrecisionSum += this.getPrecision(outcome);
@@ -457,30 +458,30 @@ public class FScoreCalculator<E> {
 				totalFscoreSum += this.getFScore(outcome);
 			}
 			
-			fscoreFileWriter.write(CSVFormatter.format("TOTAL"));
+			fscoreFileWriter.write(CSV.format("TOTAL"));
 			for (E outcome : outcomeSet) {
 				outcome.hashCode();
-				fscoreFileWriter.write(CSVFormatter.getCsvSeparator());
+				fscoreFileWriter.write(CSV.getCsvSeparator());
 			}
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalTruePositiveCount()));
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalFalsePositiveCount()));
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalFalseNegativeCount()));
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalPrecision()*100));
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalRecall()*100));
-			fscoreFileWriter.write(CSVFormatter.format(this.getTotalFScore()*100));
+			fscoreFileWriter.write(CSV.format(this.getTotalTruePositiveCount()));
+			fscoreFileWriter.write(CSV.format(this.getTotalFalsePositiveCount()));
+			fscoreFileWriter.write(CSV.format(this.getTotalFalseNegativeCount()));
+			fscoreFileWriter.write(CSV.format(this.getTotalPrecision()*100));
+			fscoreFileWriter.write(CSV.format(this.getTotalRecall()*100));
+			fscoreFileWriter.write(CSV.format(this.getTotalFScore()*100));
 			fscoreFileWriter.write("\n");
 			
-			fscoreFileWriter.write(CSVFormatter.format("AVERAGE"));
+			fscoreFileWriter.write(CSV.format("AVERAGE"));
 			for (E outcome : outcomeSet) {
 				outcome.hashCode();
-				fscoreFileWriter.write(CSVFormatter.getCsvSeparator());
+				fscoreFileWriter.write(CSV.getCsvSeparator());
 			}
-			fscoreFileWriter.write(CSVFormatter.getCsvSeparator());
-			fscoreFileWriter.write(CSVFormatter.getCsvSeparator());
-			fscoreFileWriter.write(CSVFormatter.getCsvSeparator());
-			fscoreFileWriter.write(CSVFormatter.format((totalPrecisionSum/outcomeSet.size())*100));
-			fscoreFileWriter.write(CSVFormatter.format((totalRecallSum/outcomeSet.size())*100));
-			fscoreFileWriter.write(CSVFormatter.format((totalFscoreSum/outcomeSet.size())*100));
+			fscoreFileWriter.write(CSV.getCsvSeparator());
+			fscoreFileWriter.write(CSV.getCsvSeparator());
+			fscoreFileWriter.write(CSV.getCsvSeparator());
+			fscoreFileWriter.write(CSV.format((totalPrecisionSum/outcomeSet.size())*100));
+			fscoreFileWriter.write(CSV.format((totalRecallSum/outcomeSet.size())*100));
+			fscoreFileWriter.write(CSV.format((totalFscoreSum/outcomeSet.size())*100));
 			fscoreFileWriter.write("\n");
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);

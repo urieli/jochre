@@ -48,8 +48,7 @@ public class InnerEmptyChupchikLowerLeftFeature extends AbstractShapeFeature<Boo
 	private static final Log LOG = LogFactory.getLog(InnerEmptyChupchikLowerLeftFeature.class);
 	private GraphicsService graphicsService;
 	
-	public InnerEmptyChupchikLowerLeftFeature(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
+	public InnerEmptyChupchikLowerLeftFeature() {
 	}
 	
 	@Override
@@ -238,6 +237,15 @@ public class InnerEmptyChupchikLowerLeftFeature extends AbstractShapeFeature<Boo
 			return "line, y=" + this.y + ", left=" + this.xLeft + ",right=" + this.xRight;
 		}
 		
-		
 	}
+
+	public GraphicsService getGraphicsService() {
+		return graphicsService;
+	}
+
+	public void setGraphicsService(GraphicsService graphicsService) {
+		this.graphicsService = graphicsService;
+	}
+	
+	
 }

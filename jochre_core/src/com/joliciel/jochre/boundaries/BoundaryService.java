@@ -25,17 +25,17 @@ import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 public interface BoundaryService {	
-	public CorpusEventStream getJochreSplitEventStream(
+	public ClassificationEventStream getJochreSplitEventStream(
 			CorpusSelectionCriteria criteria,
 			Set<SplitFeature<?>> splitFeatures, double minWidthRatio,
 			double minHeightRatio);
 	
-	public CorpusEventStream getJochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, double maxWidthRatio, double maxDistanceRatio);
+	public ClassificationEventStream getJochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, double maxWidthRatio, double maxDistanceRatio);
 
 	/**
 	 * Returns the single "most likely" shape sequence, as long as each decision has a score >= minProbabilityForDecision.

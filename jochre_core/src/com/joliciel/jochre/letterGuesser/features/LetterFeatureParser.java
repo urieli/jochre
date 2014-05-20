@@ -169,8 +169,9 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 	}
 	
 	@Override
-	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
-		// no dependencies to inject
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		this.shapeFeatureParser.injectDependencies(feature);
+		this.shapeInSequenceFeatureParser.injectDependencies(feature);
 	}
 
 	@Override
@@ -183,6 +184,12 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 	protected Feature<LetterGuesserContext, ?> convertArgument(
 			Class<?> parameterType,
 			Feature<LetterGuesserContext, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<LetterGuesserContext, ?> convertFeatureCustomType(
+			Feature<LetterGuesserContext, ?> feature) {
 		return null;
 	}
 }

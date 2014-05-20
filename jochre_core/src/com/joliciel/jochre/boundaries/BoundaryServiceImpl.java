@@ -25,7 +25,7 @@ import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
@@ -173,7 +173,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 
 	@Override
-	public CorpusEventStream getJochreSplitEventStream(
+	public ClassificationEventStream getJochreSplitEventStream(
 			CorpusSelectionCriteria criteria,
 			Set<SplitFeature<?>> splitFeatures, double minWidthRatio, double minHeightRatio) {
 		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures);
@@ -191,7 +191,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	}
 
 	@Override
-	public CorpusEventStream getJochreMergeEventStream(
+	public ClassificationEventStream getJochreMergeEventStream(
 			CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures,
 			double maxWidthRatio, double maxDistanceRatio) {
 		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures);

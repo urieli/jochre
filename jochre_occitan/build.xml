@@ -57,7 +57,7 @@
 	</target>
 
 	<target name="jar" depends="compile">
-	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${talismane.version}.jar">
+	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${jochre.version}.jar">
 	      <classpath refid="classpath.jar"/>
 	    </manifestclasspath>
 		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">

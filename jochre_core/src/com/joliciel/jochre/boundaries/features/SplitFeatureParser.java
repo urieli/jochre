@@ -147,7 +147,7 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	}
 
 	@Override
-	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
 		// no dependencies to inject
 	}
 
@@ -160,6 +160,11 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	@Override
 	protected Feature<Split, ?> convertArgument(Class<?> parameterType,
 			Feature<Split, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<Split, ?> convertFeatureCustomType(Feature<Split, ?> feature) {
 		return null;
 	}
 }

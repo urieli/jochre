@@ -42,6 +42,7 @@ public class Linguistics {
 	private Set<Character> validCharacters = null;
 	private Set<Character> diacritics = null;
 	private Set<Character> singleCharacterLetters = null;
+	private Set<Character> punctuation = null;
 	
 	private boolean leftToRight = false;
 	private boolean leftToRightChecked = false;
@@ -121,6 +122,19 @@ public class Linguistics {
 			}
 		}
 		return diacritics;
+	}
+	
+	public Set<Character> getPunctuation() {
+		if (punctuation==null) {
+			punctuation = new TreeSet<Character>();
+			if (locale.getLanguage().equals("yi")||locale.getLanguage().equals("ji")) {
+				char[] punctuationArray = new char[] {',','.','\'','!','?',')','(','*',';',':','-','—','%','/','\\','„','“','\'','"'};
+				for (char letter : punctuationArray) {
+					punctuation.add(letter);
+				}
+			}
+		}
+		return punctuation;
 	}
 	
 	public boolean isLeftToRight() {

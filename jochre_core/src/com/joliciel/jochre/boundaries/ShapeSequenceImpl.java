@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
+import com.joliciel.talismane.machineLearning.GeometricMeanScoringStrategy;
 import com.joliciel.talismane.machineLearning.ScoringStrategy;
 import com.joliciel.talismane.machineLearning.Solution;
 
@@ -17,8 +17,9 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	private BoundaryServiceInternal boundaryServiceInternal;
 	
 	private List<Decision<SplitMergeOutcome>> decisions = new ArrayList<Decision<SplitMergeOutcome>>();
-	private List<Solution<?>> underlyingSolutions = new ArrayList<Solution<?>>();
-	private ScoringStrategy scoringStrategy = new HarmonicMeanScoringStrategy();
+	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
+	@SuppressWarnings("rawtypes")
+	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy<SplitMergeOutcome>();
 	
 	ShapeSequenceImpl() {
 		super();
@@ -59,6 +60,7 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public double getScore() {
 		if (!scoreCalculated) {
@@ -134,7 +136,7 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	}
 
 	@Override
-	public List<Solution<?>> getUnderlyingSolutions() {
+	public List<Solution> getUnderlyingSolutions() {
 		return underlyingSolutions;
 	}
 
@@ -143,11 +145,12 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 		this.decisions.add(decision);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public ScoringStrategy getScoringStrategy() {
 		return scoringStrategy;
 	}
 
-	public void setScoringStrategy(ScoringStrategy scoringStrategy) {
+	public void setScoringStrategy(@SuppressWarnings("rawtypes") ScoringStrategy scoringStrategy) {
 		this.scoringStrategy = scoringStrategy;
 	}
 

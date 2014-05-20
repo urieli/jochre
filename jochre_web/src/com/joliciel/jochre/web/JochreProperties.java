@@ -1,7 +1,10 @@
 package com.joliciel.jochre.web;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
@@ -135,7 +138,8 @@ public class JochreProperties {
 			String welcomeTextPath = servletContext.getRealPath("/resources/welcome.txt");
 			LOG.debug("Resource path: " + welcomeTextPath);
 			File welcomeTextFile = new File(welcomeTextPath);
-			Scanner scanner = new Scanner(welcomeTextFile, "UTF-8");
+			Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(welcomeTextFile), "UTF-8")));
+
 			StringBuilder sb = new StringBuilder();
 			while (scanner.hasNextLine()) {
 				sb.append(scanner.nextLine() + "\n");

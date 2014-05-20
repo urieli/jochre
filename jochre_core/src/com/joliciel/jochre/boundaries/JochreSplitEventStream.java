@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.machineLearning.CorpusEvent;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEvent;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
@@ -39,7 +39,7 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreCorpusShapeReader;
 import com.joliciel.jochre.graphics.Shape;
 
-class JochreSplitEventStream implements CorpusEventStream {
+class JochreSplitEventStream implements ClassificationEventStream {
     private static final Log LOG = LogFactory.getLog(JochreSplitEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
@@ -78,10 +78,10 @@ class JochreSplitEventStream implements CorpusEventStream {
 	}
 	
 	@Override
-	public CorpusEvent next() {
+	public ClassificationEvent next() {
 		MONITOR.startTask("next");
 		try {
-			CorpusEvent event = null;
+			ClassificationEvent event = null;
 			if (this.hasNext()) {
 				LOG.debug("next event, " + splitCandidate.getShape() + ", split: " + splitCandidate.getPosition());
 	
@@ -129,7 +129,7 @@ class JochreSplitEventStream implements CorpusEventStream {
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = this.machineLearningService.getCorpusEvent(featureResults, outcome.getCode());
+				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.getCode());
 	
 				// set splitCandidate to null so that hasNext can retrieve the next one.
 				this.splitCandidate = null;
@@ -240,11 +240,11 @@ class JochreSplitEventStream implements CorpusEventStream {
 	}
 
 	@Override
-	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
+	public Map<String, String> getAttributes() {
+		Map<String,String> attributes = new LinkedHashMap<String, String>();
 		attributes.put("eventStream", this.getClass().getSimpleName());			
-		attributes.put("minHeightRatio", minHeightRatio);		
-		attributes.put("minWidthRatio", minWidthRatio);
+		attributes.put("minHeightRatio", "" + minHeightRatio);		
+		attributes.put("minWidthRatio", "" + minWidthRatio);
 		attributes.putAll(this.criteria.getAttributes());
 		
 		return attributes;

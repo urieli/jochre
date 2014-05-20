@@ -77,17 +77,18 @@ class CorpusSelectionCriteriaImpl implements CorpusSelectionCriteria {
 	}
 	
 	@Override
-	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
-		attributes.put("imageCount", imageCount);
-		attributes.put("imageStatusesToInclude", imageStatusesToInclude);
-		attributes.put("imageId", imageId);
-		attributes.put("excludeImageId", excludeImageId);
-		attributes.put("crossValidationSize", crossValidationSize);
-		attributes.put("includeIndex", includeIndex);
-		attributes.put("excludeIndex", excludeIndex);
-		attributes.put("documentId", documentId);
-		attributes.put("documentIds", documentIds);
+	public Map<String, String> getAttributes() {
+		Map<String,String> attributes = new LinkedHashMap<String, String>();
+		attributes.put("imageCount", "" + imageCount);
+		attributes.put("imageStatusesToInclude", imageStatusesToInclude.toString());
+		attributes.put("imageId", "" + imageId);
+		attributes.put("excludeImageId", "" + excludeImageId);
+		attributes.put("crossValidationSize", "" + crossValidationSize);
+		attributes.put("includeIndex", "" + includeIndex);
+		attributes.put("excludeIndex", "" + excludeIndex);
+		attributes.put("documentId", "" + documentId);
+		if (documentIds!=null)
+			attributes.put("documentIds", documentIds.toString());
 		
 		return attributes;
 	}

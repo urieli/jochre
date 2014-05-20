@@ -26,7 +26,7 @@ import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
@@ -97,7 +97,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	}
 
 	@Override
-	public CorpusEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features, 
+	public ClassificationEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features, 
 			BoundaryDetector boundaryDetector, LetterValidator letterValidator) {
 		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator);
 		eventStream.setCriteria(criteria);

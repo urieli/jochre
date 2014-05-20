@@ -2092,20 +2092,22 @@ class SegmenterImpl implements Segmenter {
 			} // have previous columns
 			columnsInPrevArea = columnsPerArea;
 		} // next area
-		for (Column prevColumn : columnsInPrevArea) {
-			// find the column group containing the previous column
-			List<Column> myColumnGroup = null;
-			for (List<Column> columnGroup : columnGroups) {
-				if (columnGroup.contains(prevColumn)) {
-					myColumnGroup = columnGroup;
-					break;
+		if (columnsInPrevArea!=null) {
+			for (Column prevColumn : columnsInPrevArea) {
+				// find the column group containing the previous column
+				List<Column> myColumnGroup = null;
+				for (List<Column> columnGroup : columnGroups) {
+					if (columnGroup.contains(prevColumn)) {
+						myColumnGroup = columnGroup;
+						break;
+					}
 				}
-			}
-			if (myColumnGroup==null) {
-				myColumnGroup = new ArrayList<SegmenterImpl.Column>();
-				LOG.debug("Creating column group for column " + prevColumn.toString());
-				columnGroups.add(myColumnGroup);
-				myColumnGroup.add(prevColumn);
+				if (myColumnGroup==null) {
+					myColumnGroup = new ArrayList<SegmenterImpl.Column>();
+					LOG.debug("Creating column group for column " + prevColumn.toString());
+					columnGroups.add(myColumnGroup);
+					myColumnGroup.add(prevColumn);
+				}
 			}
 		}
 		

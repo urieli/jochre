@@ -18,11 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -68,7 +69,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 	public TextFileLexicon(File textFile, String charset) {
 		Scanner scanner;
 		try {
-			scanner = new Scanner(textFile, charset);
+			scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(textFile), charset)));
 
 			try {
 				while (scanner.hasNextLine()) {
@@ -90,7 +91,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			} finally {
 				scanner.close();
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -144,7 +144,7 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 	}
 	
 	@Override
-	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
 		// no dependencies to inject
 	}
 
@@ -157,6 +157,12 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 	@Override
 	protected Feature<ShapePair, ?> convertArgument(Class<?> parameterType,
 			Feature<ShapePair, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<ShapePair, ?> convertFeatureCustomType(
+			Feature<ShapePair, ?> feature) {
 		return null;
 	}
 }

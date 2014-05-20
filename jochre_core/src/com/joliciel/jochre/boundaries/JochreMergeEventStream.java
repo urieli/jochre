@@ -26,8 +26,8 @@ import java.util.ArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.machineLearning.CorpusEvent;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEvent;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
@@ -40,7 +40,7 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
 
-class JochreMergeEventStream implements CorpusEventStream {
+class JochreMergeEventStream implements ClassificationEventStream {
     private static final Log LOG = LogFactory.getLog(JochreMergeEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
 
@@ -78,10 +78,10 @@ class JochreMergeEventStream implements CorpusEventStream {
 	}
 	
 	@Override
-	public CorpusEvent next() {
+	public ClassificationEvent next() {
 		MONITOR.startTask("next");
 		try {
-			CorpusEvent event = null;
+			ClassificationEvent event = null;
 			if (this.hasNext()) {
 				LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
 	
@@ -126,7 +126,7 @@ class JochreMergeEventStream implements CorpusEventStream {
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = this.machineLearningService.getCorpusEvent(featureResults, outcome.getCode());
+				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.getCode());
 	
 				// set mergeCandidate to null so that hasNext can retrieve the next one.
 				this.mergeCandidate = null;
@@ -241,11 +241,11 @@ class JochreMergeEventStream implements CorpusEventStream {
 	}
 
 	@Override
-	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
+	public Map<String, String> getAttributes() {
+		Map<String,String> attributes = new LinkedHashMap<String, String>();
 		attributes.put("eventStream", this.getClass().getSimpleName());				
-		attributes.put("maxDistanceRatio", maxDistanceRatio);		
-		attributes.put("maxWidthRatio", maxWidthRatio);
+		attributes.put("maxDistanceRatio", "" + maxDistanceRatio);		
+		attributes.put("maxWidthRatio", "" + maxWidthRatio);
 		attributes.putAll(this.criteria.getAttributes());
 		
 		return attributes;

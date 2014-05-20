@@ -29,7 +29,7 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.HarmonicMeanScoringStrategy;
+import com.joliciel.talismane.machineLearning.GeometricMeanScoringStrategy;
 import com.joliciel.talismane.machineLearning.ScoringStrategy;
 import com.joliciel.talismane.machineLearning.Solution;
 import com.joliciel.talismane.utils.WeightedOutcome;
@@ -50,6 +50,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	private String guessedWord = null;
 	private String realSequence = null;
 	private String guessedSequence = null;
+	private boolean split = false;
 	
 	private int dashToSkip = -1;
 	private ShapeSequence underlyingShapeSequence;
@@ -58,8 +59,9 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	private List<WeightedOutcome<String>> wordFrequencies = new ArrayList<WeightedOutcome<String>>();
 	
 	private List<Decision<Letter>> decisions = new ArrayList<Decision<Letter>>();
-	private List<Solution<?>> underlyingSolutions = new ArrayList<Solution<?>>();
-	private ScoringStrategy scoringStrategy = new HarmonicMeanScoringStrategy();
+	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
+	@SuppressWarnings("rawtypes")
+	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy<Letter>();
 	
 	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence) {
 		super();
@@ -90,6 +92,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	 */
 	public LetterSequenceImpl(LetterSequence sequence1, LetterSequence sequence2, BoundaryService boundaryService) {
 		super(sequence1.size() + sequence2.size());
+		this.setSplit(true);
 		this.addAll(sequence1);
 		this.addAll(sequence2);
 		this.decisions.addAll(sequence1.getDecisions());
@@ -105,10 +108,11 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	/* (non-Javadoc)
 	 * @see com.joliciel.jochre.training.LetterSequence#getScore()
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public double getScore() {
 		if (!scoreCalculated) {
-			score = this.scoringStrategy.calculateScore(this);
+			score = this.getScoringStrategy().calculateScore(this);
 			scoreCalculated = true;
 		}
 		return score;
@@ -276,7 +280,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	}
 
 	@Override
-	public List<Solution<?>> getUnderlyingSolutions() {
+	public List<Solution> getUnderlyingSolutions() {
 		return this.underlyingSolutions;
 	}
 
@@ -285,11 +289,12 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 		this.decisions.add(decision);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public ScoringStrategy getScoringStrategy() {
 		return scoringStrategy;
 	}
 
-	public void setScoringStrategy(ScoringStrategy scoringStrategy) {
+	public void setScoringStrategy(@SuppressWarnings("rawtypes") ScoringStrategy scoringStrategy) {
 		this.scoringStrategy = scoringStrategy;
 	}
 
@@ -300,6 +305,15 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	@Override
 	public GroupOfShapes getFirstGroup() {
 		return this.getUnderlyingShapeSequence().get(0).getShape().getGroup();
+	}
+
+	@Override
+	public boolean isSplit() {
+		return split;
+	}
+
+	public void setSplit(boolean split) {
+		this.split = split;
 	}
 
 

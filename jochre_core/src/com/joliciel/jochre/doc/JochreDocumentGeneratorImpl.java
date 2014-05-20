@@ -60,7 +60,7 @@ import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.machineLearning.MachineLearningModel;
+import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
@@ -439,7 +439,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		
 		try {
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
-			MachineLearningModel<Letter> letterModel = machineLearningService.getModel(zis);
+			ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
 
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -460,13 +460,13 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				splitCandidateFinder.setMinDistanceBetweenSplits(5);
 				
 				ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
-				MachineLearningModel<SplitOutcome> splitModel = machineLearningService.getModel(splitZis);
+				ClassificationModel<SplitOutcome> splitModel = machineLearningService.getClassificationModel(splitZis);
 				List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 				Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 				ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
 			
 				ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
-				MachineLearningModel<MergeOutcome> mergeModel = machineLearningService.getModel(mergeZis);
+				ClassificationModel<MergeOutcome> mergeModel = machineLearningService.getClassificationModel(mergeZis);
 				List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 				Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 				double maxWidthRatioForMerge = 1.2;

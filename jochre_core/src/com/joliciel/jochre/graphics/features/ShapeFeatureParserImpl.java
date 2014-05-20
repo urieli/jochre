@@ -106,12 +106,6 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	        }
 		} else if (featureClass==null) {
 			// do nothing
-		} else if (featureClass.equals(InnerEmptyChupchikLowerLeftFeature.class)) {
-			FunctionDescriptor descriptor = this.getFeatureService().getFunctionDescriptor(functionName);
-			descriptor.addArgument(this.getGraphicsService());
-			for (FunctionDescriptor argument : functionDescriptor.getArguments())
-				descriptor.addArgument(argument);
-			descriptors.add(descriptor);
 		}
 		
 		return descriptors;
@@ -126,8 +120,10 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	}
 	
 	@Override
-	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
-		// no dependencies to inject
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		if (feature instanceof InnerEmptyChupchikLowerLeftFeature) {
+			((InnerEmptyChupchikLowerLeftFeature) feature).setGraphicsService(this.getGraphicsService());
+		}
 	}
 
 	@Override
@@ -139,6 +135,12 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	@Override
 	protected Feature<ShapeWrapper, ?> convertArgument(Class<?> parameterType,
 			Feature<ShapeWrapper, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<ShapeWrapper, ?> convertFeatureCustomType(
+			Feature<ShapeWrapper, ?> feature) {
 		return null;
 	}
 

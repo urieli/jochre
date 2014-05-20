@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
-import com.joliciel.talismane.machineLearning.features.FeatureParser;
+import com.joliciel.talismane.machineLearning.features.FeatureParserInternal;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 /**
@@ -30,7 +30,7 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
  * @author Assaf Urieli
  *
  */
-public interface ShapeFeatureParser extends FeatureParser<ShapeWrapper> {
+public interface ShapeFeatureParser extends FeatureParserInternal<ShapeWrapper> {
 	public void addFeatureClasses(FeatureClassContainer container);
 
 	public List<FunctionDescriptor> getModifiedDescriptors(

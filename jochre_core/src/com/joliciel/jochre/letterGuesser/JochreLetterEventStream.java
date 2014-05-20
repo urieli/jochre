@@ -39,15 +39,15 @@ import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.JochreCorpusReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.machineLearning.CorpusEvent;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEvent;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
-class JochreLetterEventStream implements CorpusEventStream {
+class JochreLetterEventStream implements ClassificationEventStream {
     private static final Log LOG = LogFactory.getLog(JochreLetterEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
@@ -89,10 +89,10 @@ class JochreLetterEventStream implements CorpusEventStream {
 	}
 	
 	@Override
-	public CorpusEvent next() {
+	public ClassificationEvent next() {
 		MONITOR.startTask("next");
 		try {
-			CorpusEvent event = null;
+			ClassificationEvent event = null;
 			if (this.hasNext()) {
 				Shape shape = shapeInSequence.getShape();
 				LOG.debug("next event, shape: " + shape);
@@ -122,7 +122,7 @@ class JochreLetterEventStream implements CorpusEventStream {
 				
 				String outcome = shape.getLetter();
 				
-				event = this.machineLearningService.getCorpusEvent(featureResults, outcome);
+				event = this.machineLearningService.getClassificationEvent(featureResults, outcome);
 				
 				Letter letter = new Letter(outcome);
 				history.add(letter);
@@ -237,8 +237,8 @@ class JochreLetterEventStream implements CorpusEventStream {
 	}
 
 	@Override
-	public Map<String, Object> getAttributes() {
-		Map<String,Object> attributes = new LinkedHashMap<String, Object>();
+	public Map<String, String> getAttributes() {
+		Map<String,String> attributes = new LinkedHashMap<String, String>();
 		attributes.put("eventStream", this.getClass().getSimpleName());		
 		attributes.putAll(this.criteria.getAttributes());	
 		

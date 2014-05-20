@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.output;
 
+import java.io.File;
 import java.io.Writer;
 
 import com.joliciel.jochre.doc.DocumentObserver;
@@ -47,6 +48,19 @@ public interface OutputService {
 	 * @return
 	 */
 	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat, Lexicon lexicon);
+	
+	/**
+	 * Outputs to Jochre's lossless XML format on a page-by-page basis, along with the image.
+	 * @return
+	 */
+	public DocumentObserver getJochrePageByPageExporter(File outputDir, String baseName);
+
+	/**
+	 * Outputs Jochre's analysis to a lossless XML format
+	 * @param writer
+	 * @return
+	 */
+	public DocumentObserver getJochreXMLExporter(Writer writer);
 	
 	/**
 	 * Outputs Jochre's analysis to an XML format as per the XML spec indicated by http://finereader.abbyy.com/

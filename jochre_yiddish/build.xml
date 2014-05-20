@@ -1,6 +1,7 @@
 <!-- this file uses Apache Ant 1.5.3 beta 1 -->
 <project name="jochre-yiddish" default="about" basedir=".">
 	<import file="../ant/global.xml"/>
+    <import file="../ant/one-jar-ant-task.xml"/>
 	
 	<target name="about">
 		<echo message="try targets jar, etc." />
@@ -57,7 +58,7 @@
 	</target>
 
 	<target name="jar" depends="compile">
-	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${talismane.version}.jar">
+	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${jochre.version}.jar">
 	      <classpath refid="classpath.jar"/>
 	    </manifestclasspath>
 		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">
@@ -74,6 +75,28 @@
 			</fileset>
 		</zip>
 	</target>
+	
+	
+	<target name="one-jar" depends="jar">
+        <!-- Construct the One-JAR file -->   
+        <one-jar destfile="${dist}/${project}-${jochre.version}-allDeps.jar">
+        	<manifest>
+        		<attribute name="One-Jar-Main-Class" value="com.joliciel.jochre.yiddish.JochreYiddish" />
+        	</manifest>
+            <main>
+                <!-- Construct main.jar from classes and source code -->
+                <fileset dir="${classes}"/>
+            </main>
+            <lib>
+		<fileset dir="${jochreLib}">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dist}">
+			<include name="jochre-${jochre.version}.jar" />
+		</fileset>
+            </lib>
+        </one-jar>
+    </target>
 	
 	<target name="javadoc" depends="compile">
 	  <javadoc packagenames="com.joliciel.*"

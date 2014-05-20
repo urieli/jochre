@@ -23,7 +23,9 @@ import java.util.ArrayList;
 
 import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 class GroupOfShapesImpl extends EntityImpl implements
 		GroupOfShapesInternal {
@@ -215,7 +217,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 	@Override
 	public String getWord() {
 		StringBuilder sb = new StringBuilder();
-		for (Shape shape : this.getShapes()) {
+		for (Shape shape : this.getCorrectedShapes()) {
 			if (shape.getLetter()!=null)
 				sb.append(shape.getLetter());
 		}
@@ -366,6 +368,13 @@ class GroupOfShapesImpl extends EntityImpl implements
 		return -1;
 	}
 
+	@Override
+	public boolean isSplit() {
+		if (this.bestLetterSequence!=null)
+			return this.bestLetterSequence.isSplit();
+		return false;
+	}
+	
 	public List<Shape> getCorrectedShapes() {
 		if (this.correctedShapes==null) {
 			correctedShapes = new ArrayList<Shape>(shapes.size());
@@ -505,5 +514,40 @@ class GroupOfShapesImpl extends EntityImpl implements
 	}
 	public void setBestLetterSequence(LetterSequence bestLetterSequence) {
 		this.bestLetterSequence = bestLetterSequence;
+	}
+
+	@Override
+	public String getWordForIndex() {
+		Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
+		String word = this.getWord();
+		int wordStart = 0;
+		for (int i=0; i<word.length(); i++) {
+			wordStart = i;
+			char c = word.charAt(i);
+			if (linguistics.getPunctuation().contains(c)) {
+				continue;
+			}
+			break;
+		}
+		int wordEnd = word.length()-1;
+		for (int i=word.length()-1; i>=0; i--) {
+			wordEnd = i;
+			char c = word.charAt(i);
+			if (linguistics.getPunctuation().contains(c)) {
+				continue;
+			}
+			break;
+		}
+		wordEnd+=1;
+		if (wordStart>wordEnd)
+			wordStart=wordEnd;
+		String wordForIndex = word.substring(wordStart, wordEnd);
+		return wordForIndex;
+	}
+
+	public List<WeightedOutcome<String>> getWordFrequencies() {
+		if (bestLetterSequence!=null)
+			return bestLetterSequence.getWordFrequencies();
+		return null;
 	}
 }

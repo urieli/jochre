@@ -21,14 +21,14 @@ package com.joliciel.jochre.boundaries;
 import java.util.List;
 
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.talismane.machineLearning.Solution;
+import com.joliciel.talismane.machineLearning.ClassificationSolution;
 
 /**
  * A sequence of shapes resulting from a shape split or merge, with a score.
  * @author Assaf Urieli
  *
  */
-public interface ShapeSequence extends List<ShapeInSequence>, Solution<SplitMergeOutcome> {
+public interface ShapeSequence extends List<ShapeInSequence>, ClassificationSolution<SplitMergeOutcome> {
 	/**
 	 * The score attached to this particular sequence.
 	 * @return

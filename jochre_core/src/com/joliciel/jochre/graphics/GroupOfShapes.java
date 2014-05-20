@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
+import com.joliciel.talismane.utils.WeightedOutcome;
 
 /**
  * A group of shapes within a row, corresponding a single orthographic word.
@@ -80,7 +81,13 @@ public interface GroupOfShapes extends Entity {
 	 * The letters of the shapes comprising this group combined into a single word.
 	 * @return
 	 */
-	public String getWord();
+	public String getWord();	
+	
+	/**
+	 * Returns the word excluding opening and closing punctuation.
+	 * @return
+	 */
+	public String getWordForIndex();
 	
 	/**
 	 * Recalculate the various statistical measurements for this group.
@@ -160,4 +167,15 @@ public interface GroupOfShapes extends Entity {
 	public LetterSequence getBestLetterSequence();
 	public void setBestLetterSequence(LetterSequence bestLetterSequence);
 
+	/**
+	 * Whether or not the best letter sequence for this group is split across two lines.
+	 * @return
+	 */
+	public boolean isSplit();
+	
+	/**
+	 * The word frequencies for the best letter sequence.
+	 * @return
+	 */
+	public List<WeightedOutcome<String>> getWordFrequencies();
 }

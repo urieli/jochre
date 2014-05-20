@@ -25,12 +25,12 @@ import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.talismane.machineLearning.CorpusEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 public interface LetterGuesserService {
-	public CorpusEventStream getJochreLetterEventStream(
+	public ClassificationEventStream getJochreLetterEventStream(
 			CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features,
 			BoundaryDetector boundaryDetector, LetterValidator letterValidator);	
 	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker);

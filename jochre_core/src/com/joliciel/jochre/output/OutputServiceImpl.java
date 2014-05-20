@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.output;
 
+import java.io.File;
 import java.io.Writer;
 
 import com.joliciel.jochre.doc.DocumentObserver;
@@ -39,6 +40,19 @@ class OutputServiceImpl implements OutputService {
 	@Override
 	public DocumentObserver getAbbyyFineReader8Exporter(Writer writer) {
 		AbbyyFineReader8Exporter exporter = new AbbyyFineReader8Exporter(writer);
+		return exporter;
+	}
+
+	@Override
+	public DocumentObserver getJochreXMLExporter(Writer writer) {
+		JochreXMLExporter exporter = new JochreXMLExporter(writer);
+		return exporter;
+	}
+
+	@Override
+	public DocumentObserver getJochrePageByPageExporter(File outputDir,
+			String baseName) {
+		JochrePageByPageExporter exporter = new JochrePageByPageExporter(outputDir, baseName);
 		return exporter;
 	}
 

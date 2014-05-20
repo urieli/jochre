@@ -34,7 +34,7 @@ class ShapeInSequenceFeatureParserImpl extends AbstractFeatureParser<ShapeInSequ
 	}
 	
 	@Override
-	protected void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
 		// no dependencies to inject
 	}
 
@@ -47,6 +47,12 @@ class ShapeInSequenceFeatureParserImpl extends AbstractFeatureParser<ShapeInSequ
 	@Override
 	protected Feature<ShapeInSequence, ?> convertArgument(
 			Class<?> parameterType, Feature<ShapeInSequence, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<ShapeInSequence, ?> convertFeatureCustomType(
+			Feature<ShapeInSequence, ?> feature) {
 		return null;
 	}
 
