@@ -6,14 +6,14 @@
 	[#list paragraph.rows as row]
 		<row l="${row.left?c}" t="${row.top?c}" r="${row.right?c}" b="${row.bottom?c}">
 		[#list row.groups as group]
-			<word l="${group.left?c}" t="${group.top?c}" r="${group.right?c}" b="${group.bottom?c}" text="${group.word}" known="[#if group.frequency > 0][#if group.split]split[#else]true[/#if][#else]false[/#if]">
+			<word l="${group.left?c}" t="${group.top?c}" r="${group.right?c}" b="${group.bottom?c}" text="${group.word?replace("\"", "&quot;")}" known="[#if group.frequency > 0][#if group.split]split[#else]true[/#if][#else]false[/#if]">
 			[#if group.wordFrequencies??]
 			[#list group.wordFrequencies as wordFrequency]
-				<freq text="${wordFrequency.outcome}" weight="${wordFrequency.weight?c}"/>
+				<freq text="${wordFrequency.outcome?replace("\"", "&quot;")}" weight="${wordFrequency.weight?c}"/>
 			[/#list]
 			[/#if]
 			[#list group.correctedShapes as shape]
-				<char l="${shape.left?c}" t="${shape.top?c}" r="${shape.right?c}" b="${shape.bottom?c}" charConfidence="${(shape.confidence * 100.0)?round?c}" letter="${shape.letter}" />
+				<char l="${shape.left?c}" t="${shape.top?c}" r="${shape.right?c}" b="${shape.bottom?c}" charConfidence="${(shape.confidence * 100.0)?round?c}" letter="${shape.letter?replace("\"", "&quot;")}" />
 			[/#list]
 			</word>
 		[/#list]
