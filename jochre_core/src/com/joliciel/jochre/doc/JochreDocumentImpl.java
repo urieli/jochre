@@ -5,6 +5,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -51,6 +53,7 @@ class JochreDocumentImpl extends EntityImpl implements
 	private PersistentList<Author> authors;
 	
 	private int totalPageCount;
+	private Map<String,String> fields = new TreeMap<String, String>();
 
 	@Override
 	public List<JochrePage> getPages() {
@@ -365,5 +368,7 @@ class JochreDocumentImpl extends EntityImpl implements
 		this.totalPageCount = totalPageCount;
 	}
 
-	
+	public Map<String, String> getFields() {
+		return fields;
+	}
 }

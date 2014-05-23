@@ -19,9 +19,7 @@
 package com.joliciel.jochre.search.highlight;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -38,7 +36,9 @@ import org.apache.lucene.search.IndexSearcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.CoordinateStorage;
+import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.Rectangle;
+import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
 
@@ -58,6 +58,9 @@ class HighlightManagerImpl implements HighlightManager {
 	private int titleSnippetCount = 1;
 	private int snippetCount = 3;
 	private int snippetSize = 80;
+	
+	private SearchService searchService;
+	private HighlightService highlightService;
 	
 	public HighlightManagerImpl(IndexSearcher indexSearcher) {
 		super();
@@ -87,6 +90,7 @@ class HighlightManagerImpl implements HighlightManager {
 					jsonGen.writeStringField("field", term.getField());
 					jsonGen.writeNumberField("start", term.getStartOffset());
 					jsonGen.writeNumberField("end", term.getEndOffset());
+					jsonGen.writeNumberField("pageIndex", term.getPageIndex());
 					double roundedWeight = df.parse(df.format(term.getWeight())).doubleValue();
 					jsonGen.writeNumberField("weight", roundedWeight);
 					jsonGen.writeEndObject();
@@ -202,60 +206,18 @@ class HighlightManagerImpl implements HighlightManager {
 	
 	@Override
 	public String displayHighlights(int docId, String field, Set<HighlightTerm> terms) {
-		try {
-			Document doc = indexSearcher.doc(docId);
-				
-			String content = doc.get(field);
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Displaying highlights for doc " + docId + ", field " + field);
-				LOG.trace("Contents: " + content);
-			}
-			StringBuilder sb = new StringBuilder();
-	
-			int currentPos = 0;
-	
-			for (HighlightTerm term : terms) {
-				if (field.equals(term.getField())) {
-					if (LOG.isTraceEnabled()) {
-						LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
-					}
-					sb.append(content.substring(currentPos, term.getStartOffset()));
-					String termText = content.substring(term.getStartOffset(), term.getEndOffset());
-					if (term.getWeight()>=minWeight)
-						sb.append(this.getDecorator().decorate(termText));
-					else
-						sb.append(termText);
-					currentPos = term.getEndOffset();
-				}
-			}
-			sb.append(content.substring(currentPos, content.length()));
-			
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(sb.toString());
-			}
-			return sb.toString();
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
+		String content = jochreDoc.getContents();
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Displaying highlights for doc " + docId + ", field " + field);
+			LOG.trace("Contents: " + content);
 		}
+		StringBuilder sb = new StringBuilder();
 
-	}
-	
-	@Override
-	public String displaySnippet(int docId, Snippet snippet) {
-		try {
-			Document doc = indexSearcher.doc(docId);
-			String content = doc.get(snippet.getField());
+		int currentPos = 0;
 
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Displaying snippet for doc " + docId + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
-				LOG.trace("Contents: " + content);
-			}
-
-			StringBuilder sb = new StringBuilder();
-			int currentPos = snippet.getStartOffset();
-	
-			for (HighlightTerm term : snippet.getHighlightTerms()) {
+		for (HighlightTerm term : terms) {
+			if (field.equals(term.getField())) {
 				if (LOG.isTraceEnabled()) {
 					LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
 				}
@@ -267,17 +229,47 @@ class HighlightManagerImpl implements HighlightManager {
 					sb.append(termText);
 				currentPos = term.getEndOffset();
 			}
-			sb.append(content.substring(currentPos, snippet.getEndOffset()));
-			
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(sb.toString());
-			}
-	
-			return sb.toString();
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
 		}
+		sb.append(content.substring(currentPos, content.length()));
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(sb.toString());
+		}
+		return sb.toString();
+	}
+	
+	@Override
+	public String displaySnippet(int docId, Snippet snippet) {
+		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
+		String content = jochreDoc.getContents();
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Displaying snippet for doc " + docId + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
+			LOG.trace("Contents: " + content);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		int currentPos = snippet.getStartOffset();
+
+		for (HighlightTerm term : snippet.getHighlightTerms()) {
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
+			}
+			sb.append(content.substring(currentPos, term.getStartOffset()));
+			String termText = content.substring(term.getStartOffset(), term.getEndOffset());
+			if (term.getWeight()>=minWeight)
+				sb.append(this.getDecorator().decorate(termText));
+			else
+				sb.append(termText);
+			currentPos = term.getEndOffset();
+		}
+		sb.append(content.substring(currentPos, snippet.getEndOffset()));
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(sb.toString());
+		}
+
+		return sb.toString();
 	}
 
 	@Override
@@ -300,7 +292,7 @@ class HighlightManagerImpl implements HighlightManager {
 	@Override
 	public SnippetFinder getSnippetFinder() {
 		if (snippetFinder==null) {
-			snippetFinder = new FixedSizeSnippetFinder(indexSearcher);
+			snippetFinder = highlightService.getSnippetFinder(indexSearcher);
 		}
 		return snippetFinder;
 	}
@@ -371,22 +363,31 @@ class HighlightManagerImpl implements HighlightManager {
 
 	@Override
 	public ImageSnippet getImageSnippet(Snippet snippet) {
-		try {
-			Document doc = indexSearcher.doc(snippet.getDocId());
-			File directory = new File(doc.get("path"));
-			String baseName = doc.get("id");
-			CoordinateStorage coordinateStorage = null;
-			File coordinateFile = new File(directory, baseName + "_offsets.obj");
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(coordinateFile));
-			coordinateStorage = (CoordinateStorage) ois.readObject();
-			ImageSnippet imageSnippet = new ImageSnippet(coordinateStorage, snippet, directory, baseName);
-			return imageSnippet;
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
-		} catch (ClassNotFoundException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
-		}
+		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
+		CoordinateStorage coordinateStorage = jochreDoc.getCoordinateStorage();
+		
+		int pageIndex = coordinateStorage.getPageIndex(snippet.getStartOffset());
+		String imageFileName = coordinateStorage.getImageName(pageIndex);
+		File imageFile = new File(jochreDoc.getDirectory(), imageFileName);
+		ImageSnippet imageSnippet = new ImageSnippet(coordinateStorage, snippet, imageFile);
+		return imageSnippet;
 	}
+
+	public SearchService getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchService searchService) {
+		this.searchService = searchService;
+	}
+
+	public HighlightService getHighlightService() {
+		return highlightService;
+	}
+
+	public void setHighlightService(HighlightService highlightService) {
+		this.highlightService = highlightService;
+	}
+	
+	
 }

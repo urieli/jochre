@@ -19,6 +19,7 @@
 package com.joliciel.jochre.search;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,10 +32,12 @@ import org.apache.commons.logging.LogFactory;
 
 class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 	private static final Log LOG = LogFactory.getLog(CoordinateStorageImpl.class);
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 	private Map<Integer, List<Rectangle>> coordinates = new HashMap<Integer, List<Rectangle>>();
 	private SortedSet<Integer> offsets = new TreeSet<Integer>();
 	private Map<Integer, Rectangle> rowCoordinates = new TreeMap<Integer, Rectangle>();
+	private List<Integer> pageOffsets = new ArrayList<Integer>();
+	private Map<Integer, String> pageImageNames = new HashMap<Integer, String>();
 	
 	@Override
 	public List<Rectangle> getRectangles(int offset) {
@@ -78,5 +81,28 @@ class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 		if (LOG.isDebugEnabled())
 			LOG.debug("Adding row " + startOffset + ": " + rectangle.toString());
 		this.rowCoordinates.put(startOffset, rectangle);
+	}
+	
+	public void addPage(int startOffset, String imageName) {
+		if (LOG.isDebugEnabled())
+			LOG.debug("Adding page " + pageOffsets.size() + " at offset "+ startOffset + ": " + imageName);
+		pageImageNames.put(pageOffsets.size(), imageName);
+		pageOffsets.add(startOffset);
+	}
+	
+	public int getPageIndex(int offset) {
+		int myPageIndex = 0;
+		for (int i=0; i<pageOffsets.size(); i++) {
+			int pageStart = pageOffsets.get(i);
+			if (pageStart > offset) {
+				break;
+			}
+			myPageIndex = i;
+		}
+		return myPageIndex;
+	}
+	
+	public String getImageName(int pageIndex) {
+		return pageImageNames.get(pageIndex);
 	}
 }

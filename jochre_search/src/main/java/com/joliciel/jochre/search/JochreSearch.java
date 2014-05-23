@@ -119,6 +119,9 @@ public class JochreSearch {
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
+		} catch (RuntimeException e) {
+			LogUtils.logError(LOG, e);
+			throw e;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);

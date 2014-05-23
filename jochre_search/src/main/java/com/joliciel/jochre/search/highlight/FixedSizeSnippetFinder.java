@@ -29,12 +29,16 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
+import com.joliciel.jochre.search.JochreIndexDocument;
+import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
 
 class FixedSizeSnippetFinder implements SnippetFinder {
 	private static final Log LOG = LogFactory.getLog(FixedSizeSnippetFinder.class);
 	IndexSearcher indexSearcher;
+	
+	private SearchService searchService;
 	
 	public FixedSizeSnippetFinder(IndexSearcher indexSearcher) {
 		super();
@@ -46,12 +50,26 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets, int snippetSize) {
 		try {
 			Document doc = indexSearcher.doc(docId);
+			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
 			// find best snippet for each term		
 			PriorityQueue<Snippet> heap = new PriorityQueue<Snippet>();
 			
 			int i=-1;
 			for (HighlightTerm term : highlightTerms) {
 				i++;
+				String content = jochreDoc.getContents();
+				if (term.getStartOffset()>=content.length()) {
+					String title = doc.get("title");
+					String startPage = doc.get("startPage");
+					String endPage = doc.get("endPage");
+					if (content.length()>100) {
+						LOG.debug("Content start: " + content.substring(0, 100));
+						LOG.debug("Content end: " + content.substring(content.length()-100));
+					} else {
+						LOG.debug("Content: " + content);
+					}
+					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage + ", length: " + content.length());
+				}
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
 				int j=-1;
@@ -83,7 +101,6 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				if (end < lastTerm.getEndOffset())
 					end = lastTerm.getEndOffset();
 				
-				String content = doc.get(term.getField());
 				if (start<0)
 					start=0;
 				if (end > content.length())
@@ -108,19 +125,17 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 			
 			// if we have no snippets, add one per field type
 			if (heap.isEmpty()) {
-				for (String field : fields) {
-					String content = doc.get(field);
-					int end = snippetSize * maxSnippets;
-					if (end>content.length()) end = content.length();
-					for (int k=end; k<content.length(); k++) {
-						if (Character.isWhitespace(content.charAt(k))) {
-							end = k;
-							break;
-						}
+				String content = jochreDoc.getContents();
+				int end = snippetSize * maxSnippets;
+				if (end>content.length()) end = content.length();
+				for (int k=end; k<content.length(); k++) {
+					if (Character.isWhitespace(content.charAt(k))) {
+						end = k;
+						break;
 					}
-					Snippet snippet = new Snippet(docId, field, 0, end);
-					heap.add(snippet);
 				}
+				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end);
+				heap.add(snippet);
 			}
 			
 			List<Snippet> snippets = new ArrayList<Snippet>(maxSnippets);
@@ -139,6 +154,14 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	public SearchService getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchService searchService) {
+		this.searchService = searchService;
 	}
 
 }

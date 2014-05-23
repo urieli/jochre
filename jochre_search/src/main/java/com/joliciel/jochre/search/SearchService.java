@@ -21,7 +21,10 @@ package com.joliciel.jochre.search;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.lucene.search.IndexSearcher;
+
 public interface SearchService {
+	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
 	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
 	public JochreQuery getJochreQuery(Map<String,String> argMap);
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File documentDir);

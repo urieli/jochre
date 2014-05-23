@@ -22,4 +22,15 @@ public interface JochreIndexBuilder {
 
 	public void buildIndex();
 
+	/**
+	 * The approximate number of words to include in each Lucene document -
+	 * although the document will always include entire pages.
+	 * We split documents by an arbitrary number of parts, since
+	 * we cannot hope to recognise chapter headings.
+	 * If &lt;= 0, all pages will go in single document.
+	 * Default is 3000.
+	 * @return
+	 */
+	public int getWordsPerDoc();
+	public void setWordsPerDoc(int pagesPerDoc);
 }

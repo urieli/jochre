@@ -2,6 +2,7 @@ package com.joliciel.jochre.pdf;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +53,10 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 			
 			JochreDocument jochreDocument = this.documentProcessor.onDocumentStart();
 			jochreDocument.setTotalPageCount(this.getPageCount());
+			
+			for (Entry<String, String> field : this.getFields().entrySet()) {
+				jochreDocument.getFields().put(field.getKey(), field.getValue());
+			}
 			
 			this.visitImages(firstPage, lastPage);
 			

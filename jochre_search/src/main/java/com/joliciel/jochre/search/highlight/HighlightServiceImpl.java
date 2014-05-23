@@ -21,12 +21,16 @@ package com.joliciel.jochre.search.highlight;
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.JochreQuery;
+import com.joliciel.jochre.search.SearchService;
 
 class HighlightServiceImpl implements HighlightService {
-
+	private SearchService searchService;
+	
 	@Override
 	public HighlightManager getHighlightManager(IndexSearcher indexSearcher) {
 		HighlightManagerImpl manager = new HighlightManagerImpl(indexSearcher);
+		manager.setSearchService(this.getSearchService());
+		manager.setHighlightService(this);
 		return manager;
 	}
 
@@ -34,6 +38,24 @@ class HighlightServiceImpl implements HighlightService {
 	public Highlighter getHighlighter(JochreQuery query,
 			IndexSearcher indexSearcher) {
 		LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher);
+		highlighter.setSearchService(this.getSearchService());
 		return highlighter;
 	}
+
+	public SearchService getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchService searchService) {
+		this.searchService = searchService;
+	}
+
+	@Override
+	public SnippetFinder getSnippetFinder(IndexSearcher indexSearcher) {
+		FixedSizeSnippetFinder snippetFinder = new FixedSizeSnippetFinder(indexSearcher);
+		snippetFinder.setSearchService(searchService);
+		return snippetFinder;
+	}
+	
+	
 }

@@ -29,13 +29,15 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	private double weight;
 	private int docId;
 	private String field;
+	private int pageIndex;
 
-	public HighlightTerm(int docId, String field, int startOffset, int endOffset) {
+	public HighlightTerm(int docId, String field, int startOffset, int endOffset, int pageIndex) {
 		super();
 		this.docId = docId;
 		this.field = field;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
+		this.pageIndex = pageIndex;
 	}
 
 	/**
@@ -82,6 +84,10 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 		this.weight = weight;
 	}
 
+	public int getPageIndex() {
+		return pageIndex;
+	}
+
 	@Override
 	public int compareTo(HighlightTerm o) {
 		if (this==o)
@@ -101,4 +107,13 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 		
 		return this.hashCode() - o.hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return "HighlightTerm [startOffset=" + startOffset + ", endOffset="
+				+ endOffset + ", weight=" + weight + ", docId=" + docId
+				+ ", field=" + field + ", pageIndex=" + pageIndex + "]";
+	}
+	
+	
 }

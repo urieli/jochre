@@ -1,5 +1,5 @@
 [#ftl]
-<image width="${image.width?c}" height="${image.height?c}" lang="${image.page.document.locale.language}">
+<image pageIndex="${image.page.index?c}" imageIndex="${image.index?c}" width="${image.width?c}" height="${image.height?c}" lang="${image.page.document.locale.language}">
 [#list image.paragraphs as paragraph]
 [#if !paragraph.junk]
 <paragraph l="${paragraph.left?c}" t="${paragraph.top?c}" r="${paragraph.right?c}" b="${paragraph.bottom?c}">
@@ -13,7 +13,7 @@
 			[/#list]
 			[/#if]
 			[#list group.correctedShapes as shape]
-				<char l="${shape.left?c}" t="${shape.top?c}" r="${shape.right?c}" b="${shape.bottom?c}" charConfidence="${(shape.confidence * 100.0)?round?c}" letter="${shape.letter?replace("\"", "&quot;")}" />
+				<char l="${shape.left?c}" t="${shape.top?c}" r="${shape.right?c}" b="${shape.bottom?c}" confidence="${(shape.confidence * 100.0)?round?c}" letter="${shape.letter?replace("\"", "&quot;")}" />
 			[/#list]
 			</word>
 		[/#list]

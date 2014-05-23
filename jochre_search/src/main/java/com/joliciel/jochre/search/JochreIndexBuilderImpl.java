@@ -18,15 +18,25 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.TreeMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,11 +45,13 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
@@ -48,10 +60,12 @@ import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver {
 	private static final Log LOG = LogFactory.getLog(JochreIndexBuilderImpl.class);
+	private static String[] imageExtensions = new String[] {"png","jpg","jpeg","gif","tiff"};
 	private File indexDir;
 	private File documentDir;
 	private Map<Integer, SearchLetter> offsetLetterMap;
 	private CoordinateStorage coordinateStorage;
+	private int wordsPerDoc=3000;
 	
 	private SearchServiceInternal searchService;
 
@@ -103,39 +117,90 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			JochreAnalyzer analyzer = new JochreAnalyzer(Version.LUCENE_46);
 			analyzer.setObserver(this);
 			IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46, analyzer);
-			iwc.setOpenMode(OpenMode.CREATE);
+			iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			IndexWriter indexWriter = new IndexWriter(directory, iwc);
+			
+			Term term = new Term("id", documentDir.getName());
+			indexWriter.deleteDocuments(term);
 
 			int i = 0;
+			
+			Map<String,String> fields = new TreeMap<String, String>();
+			File metaDataFile = new File(documentDir, "metadata.txt");
+			Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(metaDataFile), "UTF-8")));
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				String key = line.substring(0, line.indexOf('\t'));
+				String value = line.substring(line.indexOf('\t'));
+				fields.put(key, value);
+			}
+			scanner.close();
 			
 			SearchDocument jochreDoc = this.searchService.newDocument();
 			JochreXmlReader reader = this.searchService.getJochreXmlReader(jochreDoc);
 			
-			File[] xmlFiles = documentDir.listFiles(new FilenameFilter() {
+			File[] zipFiles = documentDir.listFiles(new FilenameFilter() {
 				
 				@Override
 				public boolean accept(File dir, String name) {
-					return name.endsWith(".xml");
+					return name.endsWith(".zip");
 				}
 			});
 			
-			for (File xmlFile : xmlFiles) {
-				LOG.debug("Adding xmlFile " + i + ": " + xmlFile.getName());
-				reader.parseFile(xmlFile);
-			}
+			File zipFile = zipFiles[0];
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+			ZipEntry ze = null;
+		    while ((ze = zis.getNextEntry()) != null) {
+				LOG.debug("Adding zipEntry " + i + ": " + ze.getName());
+				String baseName = ze.getName().substring(0, ze.getName().lastIndexOf('.'));
+				UnclosableInputStream uis = new UnclosableInputStream(zis);
+				reader.parseFile(uis, baseName);
+		    	i++;
+		    }
+		    zis.close();
 			
+			i = 0;
+			StringBuilder sb = new StringBuilder();
+			coordinateStorage = searchService.getCoordinateStorage();
+			offsetLetterMap = new HashMap<Integer, SearchLetter>();
+			int startPage = -1;
+			int endPage = -1;
+			int docCount = 0;
+			int wordCount = 0;
 			for (SearchPage page : jochreDoc.getPages()) {
-				LOG.debug("Processing page: " + page.getFileNameBase());
-				Document doc = new Document();
+				if (startPage<0) startPage = page.getPageIndex();
+				endPage = page.getPageIndex();
+				if (wordsPerDoc>0 && wordCount >= wordsPerDoc) {
+					this.addDocument(indexWriter, docCount, sb, startPage, endPage, fields);
+					docCount++;
+					
+					sb = new StringBuilder();
+					coordinateStorage = searchService.getCoordinateStorage();
+					startPage = page.getPageIndex();
+					offsetLetterMap = new HashMap<Integer, SearchLetter>();
+					wordCount = 0;
+				}
 				
-				offsetLetterMap = new HashMap<Integer, SearchLetter>();
-				coordinateStorage = searchService.getCoordinateStorage();
-				StringBuilder sb = new StringBuilder();
+				LOG.debug("Processing page: " + page.getFileNameBase());
+				
+				File imageFile = null;
+				for (String imageExtension : imageExtensions) {
+					imageFile = new File(documentDir, page.getFileNameBase() + "." + imageExtension);
+					if (imageFile.exists())
+						break;
+					imageFile = null;
+				}
+				if (imageFile==null)
+					throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + page.getFileNameBase());
+
+				coordinateStorage.addPage(sb.length(), imageFile.getName());
+				
 				for (SearchParagraph par : page.getParagraphs()) {
 					for (SearchRow row : par.getRows()) {
 						coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
 						int k=0;
 						for (SearchWord word : row.getWords()) {
+							wordCount++;
 							for (SearchLetter letter : word.getLetters()) {
 								offsetLetterMap.put(sb.length(), letter);
 								if (letter.getText().length()>1) {
@@ -153,23 +218,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 								sb.append(" ");
 						}
 					}
+					sb.append("\n");
 				}
-				
-				String contents = sb.toString();
-				doc.add(new Field("text", contents, TYPE_STORED));
-
-				doc.add(new StringField("id", page.getFileNameBase(), Field.Store.YES));
-				doc.add(new Field("path", documentDir.getAbsolutePath(), TYPE_NOT_INDEXED));
-				
-				indexWriter.addDocument(doc);
-				
-				File offsetPositionFile = new File(documentDir, page.getFileNameBase() + "_offsets.obj");
-				ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(offsetPositionFile, false));
-				oos.writeObject(coordinateStorage);
-				oos.flush();
-				oos.close();
 				i++;
 			}
+			this.addDocument(indexWriter, docCount, sb, startPage, endPage, fields);
+			indexWriter.commit();
 			indexWriter.close();
 			
 		} catch (IOException ioe) {
@@ -180,6 +234,48 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			long totalTime = endTime - startTime;
 			LOG.info("Total time (ms): " + totalTime);
 
+		}
+	}
+	
+	private void addDocument(IndexWriter indexWriter, int docCount, StringBuilder sb, int startPage, int endPage, Map<String,String> fields) {
+		try {
+			String contents = sb.toString();
+			LOG.trace(contents);
+			Document doc = new Document();
+			doc.add(new StringField("id", documentDir.getName(), Field.Store.YES));
+			doc.add(new IntField("startPage", startPage, Field.Store.YES));
+			doc.add(new IntField("endPage", endPage, Field.Store.YES));
+			doc.add(new IntField("index", docCount, Field.Store.YES));
+			doc.add(new Field("text", contents, TYPE_NOT_STORED));
+			doc.add(new Field("path", documentDir.getAbsolutePath(), TYPE_NOT_INDEXED));
+			
+			String author = fields.get("Author");
+			String title = fields.get("Title");
+			String keywords = fields.get("Keywords");
+			
+			if (author!=null)
+				doc.add(new StringField("author", author, Field.Store.YES));
+			if (title!=null)
+				doc.add(new StringField("title", title, Field.Store.YES));
+			if (keywords!=null)
+				doc.add(new StringField("keywords", keywords, Field.Store.YES));
+			
+			indexWriter.addDocument(doc);
+			
+			File offsetPositionFile = new File(documentDir, "offsets" + docCount + ".obj");
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(offsetPositionFile, false));
+			oos.writeObject(coordinateStorage);
+			oos.flush();
+			oos.close();
+			
+			File metaDataFile = new File(documentDir, "text" + docCount + ".txt");
+			Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaDataFile, false),"UTF8"));
+			writer.write(sb.toString());
+			writer.flush();
+			writer.close();
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
 		}
 	}
 	
@@ -217,6 +313,13 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		
 		coordinateStorage.setRectangles(offsetAtt.startOffset(), rectangles);
 	}
-	
-	
+
+	public int getWordsPerDoc() {
+		return wordsPerDoc;
+	}
+
+	public void setWordsPerDoc(int wordsPerDoc) {
+		this.wordsPerDoc = wordsPerDoc;
+	}
+
 }

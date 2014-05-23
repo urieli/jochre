@@ -26,4 +26,8 @@ public interface CoordinateStorage {
 	public List<Rectangle> getNearestRectangles(int offset);
 	public void addRow(int startOffset, Rectangle rectangle);
 	public Rectangle getRowCoordinates(int offset);
+	
+	public void addPage(int startOffset, String imageName);
+	public int getPageIndex(int offset);
+	public String getImageName(int pageIndex);
 }

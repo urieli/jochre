@@ -23,7 +23,6 @@ import com.joliciel.jochre.search.SearchServiceLocator;
 public class HighlightServiceLocator {
 	private static HighlightServiceLocator instance;
 	private HighlightServiceImpl highlightService;
-	@SuppressWarnings("unused")
 	private SearchServiceLocator searchServiceLocator;
 	
 	private HighlightServiceLocator(SearchServiceLocator searchServiceLocator) {
@@ -40,6 +39,7 @@ public class HighlightServiceLocator {
 	public HighlightService getHighlightService() {
 		if (highlightService==null) {
 			highlightService = new HighlightServiceImpl();
+			highlightService.setSearchService(searchServiceLocator.getSearchService());
 		}
 		return highlightService;
 	}

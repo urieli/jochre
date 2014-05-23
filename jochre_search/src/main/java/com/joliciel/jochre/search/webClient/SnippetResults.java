@@ -20,7 +20,7 @@ import com.joliciel.jochre.search.highlight.Snippet;
 public class SnippetResults {
 	private static final Log LOG = LogFactory.getLog(SearchResults.class);
 	
-	private Map<SearchDocument,List<Snippet>> snippetMap = new HashMap<SearchDocument, List<Snippet>>();
+	private Map<Integer,List<Snippet>> snippetMap = new HashMap<Integer, List<Snippet>>();
 	
 	public SnippetResults(String json) {
 		try {
@@ -38,15 +38,12 @@ public class SnippetResults {
 					throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
 	
 				int docId = 0;
-				String path = "";
 				List<Snippet> snippets = new ArrayList<Snippet>();
 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 					String fieldName = jsonParser.getCurrentName();
 				
 					if (fieldName.equals("docId")) {
 						docId = jsonParser.nextIntValue(0);
-					} else if (fieldName.equals("path")) {
-						path = jsonParser.nextTextValue();
 					} else if (fieldName.equals("snippets")) {
 						if (jsonParser.nextToken() != JsonToken.START_ARRAY)
 							throw new RuntimeException("Expected START_ARRAY, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
@@ -56,11 +53,8 @@ public class SnippetResults {
 						}
 					}
 				}
-				SearchDocument doc = new SearchDocument();
-				doc.setBaseName(baseName);
-				doc.setDocId(docId);
-				doc.setPath(path);
-				snippetMap.put(doc, snippets);
+				
+				snippetMap.put(docId, snippets);
 			} // next scoreDoc
 		} catch (JsonParseException e) {
 			LOG.error(e);
@@ -71,7 +65,7 @@ public class SnippetResults {
 		}
 	}
 
-	public Map<SearchDocument, List<Snippet>> getSnippetMap() {
+	public Map<Integer, List<Snippet>> getSnippetMap() {
 		return snippetMap;
 	}
 }

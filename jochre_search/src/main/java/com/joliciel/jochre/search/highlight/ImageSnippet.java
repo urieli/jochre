@@ -37,19 +37,16 @@ import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageSnippet {
 	private static final Log LOG = LogFactory.getLog(ImageSnippet.class);
-	private static String[] imageExtensions = new String[] {"png","jpg","jpeg","gif","tiff"};
-	private File directory;
-	private String baseName;
 	private CoordinateStorage coordinateStorage;
 	private Snippet snippet;
 	private Rectangle rectangle;
 	private List<Rectangle> highlights;
+	private File imageFile;
 	
-	public ImageSnippet(CoordinateStorage coordinateStorage, Snippet snippet, File directory, String baseName) {
+	public ImageSnippet(CoordinateStorage coordinateStorage, Snippet snippet, File imageFile) {
 		this.coordinateStorage = coordinateStorage;
 		this.snippet = snippet;
-		this.directory = directory;
-		this.baseName = baseName;
+		this.imageFile = imageFile;
 		this.initialize();
 	}
 	
@@ -91,16 +88,6 @@ public class ImageSnippet {
 
 	public BufferedImage getImage() {
 		try {
-			File imageFile = null;
-			for (String imageExtension : imageExtensions) {
-				imageFile = new File(directory, baseName + "." + imageExtension);
-				if (imageFile.exists())
-					break;
-				imageFile = null;
-			}
-			if (imageFile==null)
-				throw new RuntimeException("No image found in directory " + directory.getAbsolutePath() + ", baseName " + baseName);
-			
 			BufferedImage originalImage = ImageIO.read(imageFile);
 			BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());

@@ -107,6 +107,7 @@ public class Snippet implements Comparable<Snippet> {
 		 	 			String termField = field;
 		 				int termStart = 0;
 		 	 			int termEnd = 0;
+		 	 			int pageIndex = 0;
 		 	 			double weight = 0.0;
 		 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 			 				String termFieldName = jsonParser.getCurrentName();
@@ -118,6 +119,8 @@ public class Snippet implements Comparable<Snippet> {
 			 					termStart = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("end")) {
 			 					termEnd = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("pageIndex")) {
+			 					pageIndex = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("weight")) {
 								jsonParser.nextValue();
 								weight = jsonParser.getDoubleValue();
@@ -125,7 +128,7 @@ public class Snippet implements Comparable<Snippet> {
 								throw new RuntimeException("Unexpected term field name: " + termFieldName + " at " + jsonParser.getCurrentLocation());
 							}
 			 			}
-	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd);
+	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, pageIndex);
 	 	 				highlightTerm.setWeight(weight);
 	 	 				this.highlightTerms.add(highlightTerm);
 		 			}
@@ -173,6 +176,7 @@ public class Snippet implements Comparable<Snippet> {
 				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("start", term.getStartOffset());
 				jsonGen.writeNumberField("end", term.getEndOffset());
+				jsonGen.writeNumberField("pageIndex", term.getPageIndex());
 				double roundedWeight = df.parse(df.format(term.getWeight())).doubleValue();
 				jsonGen.writeNumberField("weight", roundedWeight);
 				jsonGen.writeEndObject();
@@ -265,6 +269,12 @@ public class Snippet implements Comparable<Snippet> {
 	}
 	public void setHighlightTerms(List<HighlightTerm> highlightTerms) {
 		this.highlightTerms = highlightTerms;
+	}
+
+	public int getPageIndex() {
+		if (this.highlightTerms.size()>0)
+			return this.highlightTerms.get(0).getPageIndex();
+		return 0;
 	}
 	
 	

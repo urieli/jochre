@@ -21,6 +21,7 @@ package com.joliciel.jochre.doc;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -128,4 +129,10 @@ public interface JochreDocument extends Entity {
 	public int getTotalPageCount();
 	public void setTotalPageCount(int totalPageCount);
 	public void deletePage(JochrePage page);
+	
+	/**
+	 * Any fields associated with this document.
+	 * @return
+	 */
+	public Map<String,String> getFields();
 }

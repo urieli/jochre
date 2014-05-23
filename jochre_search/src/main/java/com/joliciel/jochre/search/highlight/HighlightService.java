@@ -26,4 +26,6 @@ public interface HighlightService {
 	HighlightManager getHighlightManager(IndexSearcher indexSearcher);
 
 	Highlighter getHighlighter(JochreQuery query, IndexSearcher indexSearcher);
+	
+	SnippetFinder getSnippetFinder(IndexSearcher indexSearcher);
 }

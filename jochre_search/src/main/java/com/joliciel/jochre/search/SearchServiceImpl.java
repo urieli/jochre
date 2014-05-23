@@ -21,6 +21,8 @@ package com.joliciel.jochre.search;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.lucene.search.IndexSearcher;
+
 class SearchServiceImpl implements SearchServiceInternal {
 	public SearchLetter newLetter(SearchWord word, String text, int left, int top, int right, int bottom) {
 		SearchLetterImpl letter = new SearchLetterImpl(word, text, left, top, right, bottom);
@@ -38,8 +40,8 @@ class SearchServiceImpl implements SearchServiceInternal {
 		SearchParagraphImpl paragraph = new SearchParagraphImpl(page, left, top, right, bottom);
 		return paragraph;
 	}
-	public SearchPage newPage(String fileNameBase, int width, int height) {
-		SearchPageImpl page = new SearchPageImpl(fileNameBase, width, height);
+	public SearchPage newPage(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
+		SearchPageImpl page = new SearchPageImpl(fileNameBase, pageIndex, imageIndex, width, height);
 		return page;
 	}
 	public SearchDocument newDocument() {
@@ -74,5 +76,11 @@ class SearchServiceImpl implements SearchServiceInternal {
 		JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir);
 		searcher.setSearchService(this);
 		return searcher;
+	}
+	@Override
+	public JochreIndexDocument getJochreIndexDocument(
+			IndexSearcher indexSearcher, int docId) {
+		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(indexSearcher, docId);
+		return doc;
 	}
 }

@@ -24,12 +24,16 @@ import java.util.List;
 public class SearchPageImpl implements SearchPage {
 	private String fileNameBase;
 	private List<SearchParagraph> paragraphs = new ArrayList<SearchParagraph>();
+	private int pageIndex;
+	private int imageIndex;
 	private int width;
 	private int height;
 	
-	public SearchPageImpl(String fileNameBase, int width, int height) {
+	public SearchPageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
 		super();
 		this.fileNameBase = fileNameBase;
+		this.pageIndex = pageIndex;
+		this.imageIndex = imageIndex;
 		this.width = width;
 		this.height = height;
 	}
@@ -50,6 +54,14 @@ public class SearchPageImpl implements SearchPage {
 
 	public int getHeight() {
 		return height;
+	}
+
+	public int getPageIndex() {
+		return pageIndex;
+	}
+
+	public int getImageIndex() {
+		return imageIndex;
 	}
 
 }

@@ -25,4 +25,6 @@ public interface SearchPage {
 	public List<SearchParagraph> getParagraphs();
 	public int getWidth();
 	public int getHeight();
+	public int getPageIndex();
+	public int getImageIndex();
 }

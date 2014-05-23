@@ -19,7 +19,9 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -45,23 +47,28 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
     
     @Override
 	public void parseFile(File xmlFile) {
-    	this.fileNameBase = xmlFile.getName().substring(0, xmlFile.getName().lastIndexOf('.'));
+    	try {
+	    	String fileNameBase = xmlFile.getName().substring(0, xmlFile.getName().lastIndexOf('.'));
+	    	InputStream inputStream = new FileInputStream(xmlFile);
+	    	this.parseFile(inputStream, fileNameBase);
+        } catch (IOException ie) {
+            ie.printStackTrace();
+        }
+    }
     	
-        //get a factory
+    public void parseFile(InputStream inputStream, String fileNameBase) {
+    	this.fileNameBase = fileNameBase;
+    
         SAXParserFactory spf = SAXParserFactory.newInstance();
         try {
-        	
-            //get a new instance of parser
             SAXParser sp = spf.newSAXParser();
+            sp.parse(inputStream, this);
             
-            //parse the file and also register this class for call backs
-            sp.parse(xmlFile, this);
-            
-        }catch(SAXException se) {
+        } catch(SAXException se) {
             se.printStackTrace();
-        }catch(ParserConfigurationException pce) {
+        } catch(ParserConfigurationException pce) {
             pce.printStackTrace();
-        }catch (IOException ie) {
+        } catch (IOException ie) {
             ie.printStackTrace();
         }
     }
@@ -72,8 +79,10 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         if (qName.equals("image")) {
         	int width = Integer.parseInt(attributes.getValue("width"));
         	int height = Integer.parseInt(attributes.getValue("height"));
+        	int pageIndex = Integer.parseInt(attributes.getValue("pageIndex"));
+        	int imageIndex = Integer.parseInt(attributes.getValue("imageIndex"));
 //        	String lang = attributes.getValue("lang");
-        	currentPage = searchService.newPage(fileNameBase, width, height);
+        	currentPage = searchService.newPage(fileNameBase, pageIndex, imageIndex, width, height);
         	this.doc.getPages().add(currentPage);
         } else if (qName.equals("paragraph")) {
         	int left = Integer.parseInt(attributes.getValue("l"));
@@ -105,7 +114,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int right = Integer.parseInt(attributes.getValue("r"));
         	int bottom = Integer.parseInt(attributes.getValue("b"));
         	String text = attributes.getValue("letter").replace("&quot;", "\"");
-        	int confidence = Integer.parseInt(attributes.getValue("charConfidence"));
+        	int confidence = Integer.parseInt(attributes.getValue("confidence"));
         	SearchLetter letter = searchService.newLetter(currentWord, text, left, top, right, bottom);
         	letter.setConfidence(confidence);
         	currentWord.getLetters().add(letter);

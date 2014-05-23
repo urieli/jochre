@@ -45,7 +45,10 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
 
+import com.joliciel.jochre.search.CoordinateStorage;
+import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreQuery;
+import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
 class LuceneQueryHighlighter implements Highlighter {
@@ -63,6 +66,8 @@ class LuceneQueryHighlighter implements Highlighter {
 	List<Term> queryTermList;
 	List<AtomicReaderContext> leaves;
 	Set<BytesRef> terms;
+	
+	SearchService searchService;
 
 	public LuceneQueryHighlighter(JochreQuery jochreQuery, IndexSearcher indexSearcher) {
 		try {
@@ -75,7 +80,8 @@ class LuceneQueryHighlighter implements Highlighter {
 				queryTermList = new ArrayList<Term>(queryTerms);
 
 			final IndexReader reader = indexSearcher.getIndexReader();
-			docCountLog = Math.log(reader.numDocs());
+			// add 1 to doc count to ensure even terms in all docs get a very small weight
+			docCountLog = Math.log(reader.numDocs()+1);
 
 			IndexReaderContext readerContext = reader.getContext();
 			leaves = readerContext.leaves();
@@ -109,11 +115,14 @@ class LuceneQueryHighlighter implements Highlighter {
 		try {
 			Map<Integer,Set<HighlightTerm>> termMap = new HashMap<Integer, Set<HighlightTerm>>();
 			Map<Integer,Document> idToDocMap = new HashMap<Integer, Document>();
+			Map<Integer,CoordinateStorage> idToCoordinateStorageMap = new HashMap<Integer, CoordinateStorage>();
 
 			Set<Integer> myLeaves = new HashSet<Integer>();
 			for (int docId : docIds) {
 				Document luceneDoc = indexSearcher.doc(docId);
 				idToDocMap.put(docId, luceneDoc);
+				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
+				idToCoordinateStorageMap.put(docId, jochreDoc.getCoordinateStorage());
 				termMap.put(docId, new TreeSet<HighlightTerm>());
 				int leaf = ReaderUtil.subIndex(docId, leaves);
 				myLeaves.add(leaf);
@@ -166,9 +175,11 @@ class LuceneQueryHighlighter implements Highlighter {
 			
 				                    if (LOG.isTraceEnabled())
 				                    	LOG.trace("Found match " + position + " at docId " + docId + ", field " + field + " start=" + start + ", end=" + end);
-
 				                    
-									HighlightTerm highlightTerm = new HighlightTerm(docId, field, start, end);
+				                    CoordinateStorage coordinateStorage = idToCoordinateStorageMap.get(docId);
+				                    int pageIndex = coordinateStorage.getPageIndex(start);
+				                    
+									HighlightTerm highlightTerm = new HighlightTerm(docId, field, start, end, pageIndex);
 									highlightTerm.setWeight(this.weigh(term));
 									if (highlightTerm.getWeight()>0)
 										highlightTerms.add(highlightTerm);
@@ -213,4 +224,14 @@ class LuceneQueryHighlighter implements Highlighter {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public SearchService getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchService searchService) {
+		this.searchService = searchService;
+	}
+	
+	
 }

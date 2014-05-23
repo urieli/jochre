@@ -31,15 +31,14 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.joliciel.talismane.utils.WeightedOutcome;
 
 public class SearchResults {
 	private static final Log LOG = LogFactory.getLog(SearchResults.class);
-	private List<WeightedOutcome<SearchDocument>> scoreDocs;
+	private List<SearchDocument> scoreDocs;
 	
 	public SearchResults(String json) {
 		try {
-			scoreDocs = new ArrayList<WeightedOutcome<SearchDocument>>();
+			scoreDocs = new ArrayList<SearchDocument>();
 			Reader reader = new StringReader(json);
 			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
 			JsonParser jsonParser = jsonFactory.createJsonParser(reader); 
@@ -53,27 +52,9 @@ public class SearchResults {
 				if (jsonParser.nextToken() != JsonToken.START_OBJECT)
 					throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
 
-				int docId = 0;
-				String path = "";
-				double score = 0.0;
-				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-					String fieldName = jsonParser.getCurrentName();
-				
-					if (fieldName.equals("docId")) {
-						docId = jsonParser.nextIntValue(0);
-					} else if (fieldName.equals("path")) {
-						path = jsonParser.nextTextValue();
-					} else if (fieldName.equals("score")) {
-						jsonParser.nextValue();
-						score = jsonParser.getDoubleValue();
-					}
-				}
-				SearchDocument doc = new SearchDocument();
-				doc.setBaseName(baseName);
-				doc.setDocId(docId);
-				doc.setPath(path);
-				WeightedOutcome<SearchDocument> scoreDoc = new WeightedOutcome<SearchDocument>(doc, score);
-				scoreDocs.add(scoreDoc);
+
+				SearchDocument doc = new SearchDocument(baseName, jsonParser);
+				scoreDocs.add(doc);
 				
 			} // next scoreDoc
 		} catch (JsonParseException e) {
@@ -85,7 +66,7 @@ public class SearchResults {
 		}
 	}
 
-	public List<WeightedOutcome<SearchDocument>> getScoreDocs() {
+	public List<SearchDocument> getScoreDocs() {
 		return scoreDocs;
 	}
 	

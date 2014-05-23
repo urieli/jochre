@@ -19,9 +19,10 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
+import java.io.InputStream;
 
 interface JochreXmlReader {
-
+	public void parseFile(InputStream inputStream, String fileNameBase);
 	public void parseFile(File xmlFile);
 
 }

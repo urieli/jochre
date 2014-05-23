@@ -85,7 +85,19 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeObjectFieldStart(doc.get("id"));
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
+				jsonGen.writeNumberField("startPage", Integer.parseInt(doc.get("startPage")));
+				jsonGen.writeNumberField("endPage", Integer.parseInt(doc.get("endPage")));
+				jsonGen.writeNumberField("index", Integer.parseInt(doc.get("index")));
 				jsonGen.writeStringField("path", doc.get("path"));
+				String author = doc.get("author");
+				if (author!=null)
+					jsonGen.writeStringField("author", doc.get("author"));
+				String title = doc.get("title");
+				if (title!=null)
+					jsonGen.writeStringField("title", doc.get("title"));
+				String keywords = doc.get("keywords");
+				if (keywords!=null)
+					jsonGen.writeStringField("keywords", doc.get("keywords"));
 				
 				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
 				jsonGen.writeNumberField("score", roundedScore);
