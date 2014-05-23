@@ -21,12 +21,14 @@ package com.joliciel.jochre.search;
 import java.util.ArrayList;
 import java.util.List;
 
-class SearchParagraphImpl implements SearchParagraph {
-	private List<SearchRow> rows = new ArrayList<SearchRow>();
+class SearchRowImpl implements SearchRow {
+	private List<SearchWord> words = new ArrayList<SearchWord>();
 	private int left, top, right, bottom;
+	private SearchParagraph paragraph;
 	
-	public SearchParagraphImpl(int left, int top, int right, int bottom) {
+	public SearchRowImpl(SearchParagraph paragraph, int left, int top, int right, int bottom) {
 		super();
+		this.paragraph = paragraph;
 		this.left = left;
 		this.top = top;
 		this.right = right;
@@ -34,8 +36,8 @@ class SearchParagraphImpl implements SearchParagraph {
 	}
 
 	@Override
-	public List<SearchRow> getRows() {
-		return rows;
+	public List<SearchWord> getWords() {
+		return words;
 	}
 
 	public int getLeft() {
@@ -52,6 +54,10 @@ class SearchParagraphImpl implements SearchParagraph {
 
 	public int getBottom() {
 		return bottom;
+	}
+
+	public SearchParagraph getParagraph() {
+		return paragraph;
 	}
 	
 	

@@ -18,30 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.io.IOException;
+import java.util.List;
 
-import org.apache.lucene.analysis.TokenFilter;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-
-class LocationTokenFilter extends TokenFilter {
-	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
-
-	private TokenOffsetObserver observer;
-
-	public LocationTokenFilter(TokenOffsetObserver observer, TokenStream input) {
-		super(input);
-		this.observer = observer;
-	}
-
-	@Override
-	public boolean incrementToken() throws IOException {
-		if (input.incrementToken()) {
-			if (observer!=null)
-				observer.onNewToken(offsetAtt);       
-			return true;
-		} else {
-			return false;
-		}
-	}
+public interface SearchWord {
+	public String getText();
+	public int getLeft();
+	public int getTop();
+	public int getRight();
+	public int getBottom();
+	public boolean isKnown();
+	public void setKnown(boolean known);
+	public List<SearchLetter> getLetters();
+	public SearchRow getRow();
 }

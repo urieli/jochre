@@ -77,6 +77,7 @@ class HighlightManagerImpl implements HighlightManager {
 				Document doc = indexSearcher.doc(docId);
 				jsonGen.writeObjectFieldStart(doc.get("id"));
 				jsonGen.writeStringField("path", doc.get("path"));
+				jsonGen.writeNumberField("docId", docId);
 				
 				jsonGen.writeArrayFieldStart("terms");
 
@@ -146,27 +147,28 @@ class HighlightManagerImpl implements HighlightManager {
 				Document doc = indexSearcher.doc(docId);
 				jsonGen.writeObjectFieldStart(doc.get("id"));
 				jsonGen.writeStringField("path", doc.get("path"));
+				jsonGen.writeNumberField("docId", docId);
 
 				jsonGen.writeArrayFieldStart("snippets");
 				for (Snippet snippet : snippetMap.get(docId)) {
-					jsonGen.writeStartObject();
-					jsonGen.writeStringField("field", snippet.getField());
-					jsonGen.writeNumberField("start", snippet.getStartOffset());
-					jsonGen.writeNumberField("end", snippet.getEndOffset());
-					double roundedScore = df.parse(df.format(snippet.getScore())).doubleValue();
-					jsonGen.writeNumberField("score", roundedScore);
-					jsonGen.writeArrayFieldStart("terms");
-					for (HighlightTerm term : snippet.getHighlightTerms()) {
+					snippet.toJson(jsonGen, df);
+				}
+				jsonGen.writeEndArray();
+
+				if (includeText) {
+					jsonGen.writeArrayFieldStart("snippetText");
+					for (Snippet snippet : snippetMap.get(docId)) {
 						jsonGen.writeStartObject();
-						jsonGen.writeNumberField("start", term.getStartOffset());
-						jsonGen.writeNumberField("end", term.getEndOffset());
-						double roundedWeight = df.parse(df.format(term.getWeight())).doubleValue();
-						jsonGen.writeNumberField("weight", roundedWeight);
+						jsonGen.writeStringField("snippet", this.displaySnippet(docId, snippet));
 						jsonGen.writeEndObject();
 					}
-					jsonGen.writeEndArray(); // terms
-					
-					if (includeGraphics) {
+					jsonGen.writeEndArray();
+				}
+				
+				if (includeGraphics) {
+					jsonGen.writeArrayFieldStart("snippetGraphics");
+					for (Snippet snippet : snippetMap.get(docId)) {
+						jsonGen.writeStartObject();
 						ImageSnippet imageSnippet = this.getImageSnippet(snippet);
 						jsonGen.writeNumberField("left", imageSnippet.getRectangle().getLeft());
 						jsonGen.writeNumberField("top", imageSnippet.getRectangle().getTop());
@@ -183,29 +185,15 @@ class HighlightManagerImpl implements HighlightManager {
 							jsonGen.writeEndObject();
 						}
 						jsonGen.writeEndArray();
-					}
-					jsonGen.writeEndObject();
-				}
-				jsonGen.writeEndArray();
-
-				if (includeText) {
-					jsonGen.writeArrayFieldStart("snippetText");
-					for (Snippet snippet : snippetMap.get(docId)) {
-						jsonGen.writeStartObject();
-						jsonGen.writeStringField("snippet", this.displaySnippet(docId, snippet));
 						jsonGen.writeEndObject();
 					}
 					jsonGen.writeEndArray();
 				}
-				
 				jsonGen.writeEndObject();
 			} // next doc
 
 			jsonGen.writeEndObject();
 			jsonGen.flush();
-		} catch (java.text.ParseException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

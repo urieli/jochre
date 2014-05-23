@@ -18,50 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.util.ArrayList;
 import java.util.List;
 
-class SearchWordImpl implements SearchWord {
-	private String text;
-	private int left, top, right, bottom;
-	private boolean known;
-	private List<SearchLetter> letters = new ArrayList<SearchLetter>();
-	
-	public SearchWordImpl(String text, int left, int top, int right, int bottom) {
-		super();
-		this.text = text;
-		this.left = left;
-		this.top = top;
-		this.right = right;
-		this.bottom = bottom;
-	}
-	public String getText() {
-		return text;
-	}
-
-	public int getLeft() {
-		return left;
-	}
-
-	public int getTop() {
-		return top;
-	}
-
-	public int getRight() {
-		return right;
-	}
-
-	public int getBottom() {
-		return bottom;
-	}
-	public boolean isKnown() {
-		return known;
-	}
-	public void setKnown(boolean known) {
-		this.known = known;
-	}
-	public List<SearchLetter> getLetters() {
-		return letters;
-	}
-
+public interface CoordinateStorage {
+	public List<Rectangle> getRectangles(int offset);
+	public void setRectangles(int offset, List<Rectangle> rectangles);
+	public List<Rectangle> getNearestRectangles(int offset);
+	public void addRow(int startOffset, Rectangle rectangle);
+	public Rectangle getRowCoordinates(int offset);
 }

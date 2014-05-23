@@ -80,14 +80,14 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int top = Integer.parseInt(attributes.getValue("t"));
         	int right = Integer.parseInt(attributes.getValue("r"));
         	int bottom = Integer.parseInt(attributes.getValue("b"));
-        	currentParagraph = searchService.newParagraph(left, top, right, bottom);
+        	currentParagraph = searchService.newParagraph(currentPage, left, top, right, bottom);
         	currentPage.getParagraphs().add(currentParagraph);
         } else if (qName.equals("row")) {
            	int left = Integer.parseInt(attributes.getValue("l"));
         	int top = Integer.parseInt(attributes.getValue("t"));
         	int right = Integer.parseInt(attributes.getValue("r"));
         	int bottom = Integer.parseInt(attributes.getValue("b"));
-        	currentRow = searchService.newRow(left, top, right, bottom);
+        	currentRow = searchService.newRow(currentParagraph, left, top, right, bottom);
         	currentParagraph.getRows().add(currentRow);
         } else if (qName.equals("word")) {
            	int left = Integer.parseInt(attributes.getValue("l"));
@@ -96,7 +96,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int bottom = Integer.parseInt(attributes.getValue("b"));
         	String text = attributes.getValue("text").replace("&quot;", "\"");
         	boolean known = attributes.getValue("known").equals("true");
-        	currentWord = searchService.newWord(text, left, top, right, bottom);
+        	currentWord = searchService.newWord(currentRow, text, left, top, right, bottom);
         	currentWord.setKnown(known);
         	currentRow.getWords().add(currentWord);
         } else if (qName.equals("char")) {

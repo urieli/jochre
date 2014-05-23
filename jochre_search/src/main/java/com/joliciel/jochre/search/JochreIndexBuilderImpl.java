@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -124,6 +125,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			}
 			
 			for (SearchPage page : jochreDoc.getPages()) {
+				LOG.debug("Processing page: " + page.getFileNameBase());
 				Document doc = new Document();
 				
 				offsetLetterMap = new HashMap<Integer, SearchLetter>();
@@ -131,6 +133,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 				StringBuilder sb = new StringBuilder();
 				for (SearchParagraph par : page.getParagraphs()) {
 					for (SearchRow row : par.getRows()) {
+						coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
+						int k=0;
 						for (SearchWord word : row.getWords()) {
 							for (SearchLetter letter : word.getLetters()) {
 								offsetLetterMap.put(sb.length(), letter);
@@ -141,7 +145,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 								}
 								sb.append(letter.getText());
 							}
-							sb.append(" ");
+							k++;
+							boolean finalDash = false;
+							if (k==row.getWords().size() && word.getText().endsWith("-") && word.getText().length()>1)
+								finalDash = true;
+							if (!finalDash)
+								sb.append(" ");
 						}
 					}
 				}
@@ -183,7 +192,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 	}
 
 	@Override
-	public void onNewToken(OffsetAttribute offsetAtt) {
+	public void onNewToken(CharTermAttribute termAtt, OffsetAttribute offsetAtt) {
 		List<Rectangle> rectangles = new ArrayList<Rectangle>();
 		SearchWord currentWord = null;
 		Rectangle currentRectangle = null;
@@ -201,6 +210,11 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		}
 		if (currentRectangle!=null)
 			rectangles.add(currentRectangle);
+		
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Adding term " + termAtt.toString() + ", offset " + offsetAtt.startOffset() + ", rectangles: " + rectangles.toString());
+		}
+		
 		coordinateStorage.setRectangles(offsetAtt.startOffset(), rectangles);
 	}
 	

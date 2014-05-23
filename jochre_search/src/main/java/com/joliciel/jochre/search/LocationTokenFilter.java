@@ -18,13 +18,32 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-interface SearchServiceInternal extends SearchService {
-	public SearchLetter newLetter(SearchWord word, String text, int left, int top, int right, int bottom);
-	public SearchWord newWord(String text, int left, int top, int right, int bottom);
-	public SearchRow newRow(int left, int top, int right, int bottom);
-	public SearchParagraph newParagraph(int left, int top, int right, int bottom);
-	public SearchPage newPage(String fileNameBase, int width, int height);
-	public SearchDocument newDocument();
-	public JochreXmlReader getJochreXmlReader(SearchDocument doc);
-	public CoordinateStorage getCoordinateStorage();
+import java.io.IOException;
+
+import org.apache.lucene.analysis.TokenFilter;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+
+class LocationTokenFilter extends TokenFilter {
+	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
+	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+
+	private TokenOffsetObserver observer;
+
+	public LocationTokenFilter(TokenOffsetObserver observer, TokenStream input) {
+		super(input);
+		this.observer = observer;
+	}
+
+	@Override
+	public boolean incrementToken() throws IOException {
+		if (input.incrementToken()) {
+			if (observer!=null)
+				observer.onNewToken(termAtt, offsetAtt);       
+			return true;
+		} else {
+			return false;
+		}
+	}
 }

@@ -18,15 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.util.List;
-
-public interface SearchWord {
-	public String getText();
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
-	public boolean isKnown();
-	public void setKnown(boolean known);
-	public List<SearchLetter> getLetters();
+interface SearchServiceInternal extends SearchService {
+	public SearchLetter newLetter(SearchWord word, String text, int left, int top, int right, int bottom);
+	public SearchWord newWord(SearchRow row, String text, int left, int top, int right, int bottom);
+	public SearchRow newRow(SearchParagraph paragraph, int left, int top, int right, int bottom);
+	public SearchParagraph newParagraph(SearchPage page, int left, int top, int right, int bottom);
+	public SearchPage newPage(String fileNameBase, int width, int height);
+	public SearchDocument newDocument();
+	public JochreXmlReader getJochreXmlReader(SearchDocument doc);
+	public CoordinateStorage getCoordinateStorage();
 }

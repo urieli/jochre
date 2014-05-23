@@ -20,8 +20,11 @@ package com.joliciel.jochre.search;
 
 import java.util.List;
 
-public interface CoordinateStorage {
-	public List<Rectangle> getRectangles(int offset);
-	public void setRectangles(int offset, List<Rectangle> rectangles);
-	public List<Rectangle> getNearestRectangles(int offset);
+public interface SearchRow {
+	public List<SearchWord> getWords();
+	public int getLeft();
+	public int getTop();
+	public int getRight();
+	public int getBottom();
+	public SearchParagraph getParagraph();
 }

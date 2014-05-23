@@ -23,12 +23,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 class CoordinateStorageImpl implements CoordinateStorage, Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final Log LOG = LogFactory.getLog(CoordinateStorageImpl.class);
+	private static final long serialVersionUID = 2L;
 	private Map<Integer, List<Rectangle>> coordinates = new HashMap<Integer, List<Rectangle>>();
 	private SortedSet<Integer> offsets = new TreeSet<Integer>();
+	private Map<Integer, Rectangle> rowCoordinates = new TreeMap<Integer, Rectangle>();
 	
 	@Override
 	public List<Rectangle> getRectangles(int offset) {
@@ -54,5 +60,23 @@ class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 			return this.getRectangles(nearestOffset);
 		}
 		return null;
+	}
+	
+	public Rectangle getRowCoordinates(int offset) {
+		int myRowStart = 0;
+		for (int rowStart : rowCoordinates.keySet()) {
+			if (rowStart > offset) {
+				break;
+			}
+			myRowStart = rowStart;
+		}
+		Rectangle rowRect = rowCoordinates.get(myRowStart);
+		return rowRect;
+	}
+	
+	public void addRow(int startOffset, Rectangle rectangle) {
+		if (LOG.isDebugEnabled())
+			LOG.debug("Adding row " + startOffset + ": " + rectangle.toString());
+		this.rowCoordinates.put(startOffset, rectangle);
 	}
 }

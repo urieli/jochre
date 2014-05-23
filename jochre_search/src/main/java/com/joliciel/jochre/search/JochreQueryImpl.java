@@ -42,6 +42,7 @@ class JochreQueryImpl implements JochreQuery {
 	private String filterField = "id";
 	private Query luceneQuery = null;
 	private Filter luceneFilter = null;
+	private int[] docIds = null;
 
 	public JochreQueryImpl() {}
 	
@@ -65,7 +66,8 @@ class JochreQueryImpl implements JochreQuery {
 					this.setDocFilter(idArray);
 				}
 			} else if (argName.equalsIgnoreCase("filterField")) {
-				this.setFilterField(argValue);
+				if (argValue.length()>0)
+					this.setFilterField(argValue);
 			} else {
 				LOG.trace("CFHQuery unknown option: " + argName);
 			}
@@ -170,11 +172,20 @@ class JochreQueryImpl implements JochreQuery {
 	public void setFilterField(String filterField) {
 		this.filterField = filterField;
 	}
+	
+	public int[] getDocIds() {
+		return docIds;
+	}
+
+	public void setDocIds(int[] docIds) {
+		this.docIds = docIds;
+	}
 
 	@Override
 	public Query getLuceneQuery() {
 		try {
 			if (luceneQuery==null) {
+				LOG.debug("Parsing query: " + this.getQueryString());
 				JochreAnalyzer jochreAnalyzer = new JochreAnalyzer(Version.LUCENE_46);
 				QueryParser queryParser = new QueryParser(Version.LUCENE_46, "text", jochreAnalyzer);
 				luceneQuery = queryParser.parse(this.getQueryString());

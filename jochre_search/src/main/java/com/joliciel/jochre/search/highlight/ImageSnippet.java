@@ -18,16 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
 import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
@@ -56,21 +54,28 @@ public class ImageSnippet {
 	}
 	
 	private void initialize() {
-		Set<Rectangle> rectangles = new HashSet<Rectangle>();
-		rectangles.addAll(coordinateStorage.getRectangles(snippet.getStartOffset()));
-		rectangles.addAll(coordinateStorage.getNearestRectangles(snippet.getEndOffset()));
-		rectangle = null;
-		for (Rectangle oneRect : rectangles) {
-			if (rectangle==null)
-				rectangle = new Rectangle(oneRect);
-			else
-				rectangle.expand(oneRect);
-		}
+		rectangle = new Rectangle(coordinateStorage.getRowCoordinates(snippet.getStartOffset()));
+		if (LOG.isDebugEnabled())
+			LOG.debug("start offset " + snippet.getStartOffset() + " rect: " + rectangle.toString());
+		Rectangle endOffsetRect = coordinateStorage.getRowCoordinates(snippet.getEndOffset()-1);
+		if (LOG.isDebugEnabled())
+			LOG.debug("end offset " + snippet.getEndOffset() + " rect : " + endOffsetRect.toString());
+		rectangle.expand(endOffsetRect);
+		if (LOG.isDebugEnabled())
+			LOG.debug("new rect: " + rectangle.toString());
+		
+		rectangle.setLeft(rectangle.getLeft()-5);
+		rectangle.setTop(rectangle.getTop()-5);
+		rectangle.setRight(rectangle.getRight()+5);
+		rectangle.setBottom(rectangle.getBottom()+5);
+		
 		highlights = new ArrayList<Rectangle>();
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
 			List<Rectangle> termRects = coordinateStorage.getRectangles(term.getStartOffset());
+			if (termRects==null) {
+				throw new RuntimeException("No rectangles for offset " + term.getStartOffset());
+			}
 			for (Rectangle termRect : termRects) {
-				rectangle.expand(termRect);
 				highlights.add(termRect);
 			}
 		}
@@ -96,14 +101,20 @@ public class ImageSnippet {
 			if (imageFile==null)
 				throw new RuntimeException("No image found in directory " + directory.getAbsolutePath() + ", baseName " + baseName);
 			
-			BufferedImage image = ImageIO.read(imageFile);
-			Graphics2D graphics2D = image.createGraphics();
-			graphics2D.setColor(new Color(255, 255, 0, 127));
+			BufferedImage originalImage = ImageIO.read(imageFile);
+			BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());
+			Graphics2D graphics2D = imageSnippet.createGraphics();
+			graphics2D.drawImage(originalImage, 0, 0, this.rectangle.getWidth(), this.rectangle.getHeight(), null);
+			int extra=2;
 			for (Rectangle rect : this.highlights) {
-				graphics2D.fillRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
+				graphics2D.setStroke(new BasicStroke(1));
+				graphics2D.setPaint(Color.BLACK);
+				graphics2D.drawRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
+				graphics2D.setColor(new Color(255, 255, 0, 127));
+				graphics2D.fillRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
 			}
-			image = image.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());
-			return image;
+			return imageSnippet;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);

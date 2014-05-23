@@ -18,13 +18,9 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.util.List;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 
-public interface SearchRow {
-	public List<SearchWord> getWords();
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
-
+public interface TokenOffsetObserver {
+	public void onNewToken(CharTermAttribute termAtt, OffsetAttribute offsetAtt);
 }

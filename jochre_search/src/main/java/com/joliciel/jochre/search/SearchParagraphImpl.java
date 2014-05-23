@@ -18,8 +18,47 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface TokenOffsetObserver {
-	public void onNewToken(OffsetAttribute offsetAtt);
+class SearchParagraphImpl implements SearchParagraph {
+	private List<SearchRow> rows = new ArrayList<SearchRow>();
+	private int left, top, right, bottom;
+	private SearchPage page;
+	
+	public SearchParagraphImpl(SearchPage page, int left, int top, int right, int bottom) {
+		super();
+		this.page = page;
+		this.left = left;
+		this.top = top;
+		this.right = right;
+		this.bottom = bottom;
+	}
+
+	@Override
+	public List<SearchRow> getRows() {
+		return rows;
+	}
+
+	public int getLeft() {
+		return left;
+	}
+
+	public int getTop() {
+		return top;
+	}
+
+	public int getRight() {
+		return right;
+	}
+
+	public int getBottom() {
+		return bottom;
+	}
+
+	public SearchPage getPage() {
+		return page;
+	}
+	
+	
 }

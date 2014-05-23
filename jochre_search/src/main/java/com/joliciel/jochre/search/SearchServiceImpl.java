@@ -26,16 +26,16 @@ class SearchServiceImpl implements SearchServiceInternal {
 		SearchLetterImpl letter = new SearchLetterImpl(word, text, left, top, right, bottom);
 		return letter;
 	}
-	public SearchWord newWord(String text, int left, int top, int right, int bottom) {
-		SearchWordImpl word = new SearchWordImpl(text, left, top, right, bottom);
+	public SearchWord newWord(SearchRow row, String text, int left, int top, int right, int bottom) {
+		SearchWordImpl word = new SearchWordImpl(row, text, left, top, right, bottom);
 		return word;
 	}
-	public SearchRow newRow(int left, int top, int right, int bottom) {
-		SearchRowImpl row = new SearchRowImpl(left, top, right, bottom);
+	public SearchRow newRow(SearchParagraph paragraph, int left, int top, int right, int bottom) {
+		SearchRowImpl row = new SearchRowImpl(paragraph, left, top, right, bottom);
 		return row;
 	}
-	public SearchParagraph newParagraph(int left, int top, int right, int bottom) {
-		SearchParagraphImpl paragraph = new SearchParagraphImpl(left, top, right, bottom);
+	public SearchParagraph newParagraph(SearchPage page, int left, int top, int right, int bottom) {
+		SearchParagraphImpl paragraph = new SearchParagraphImpl(page, left, top, right, bottom);
 		return paragraph;
 	}
 	public SearchPage newPage(String fileNameBase, int width, int height) {

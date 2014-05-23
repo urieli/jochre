@@ -84,6 +84,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeObjectFieldStart(doc.get("id"));
+				jsonGen.writeNumberField("docId", scoreDoc.doc);
 				jsonGen.writeStringField("path", doc.get("path"));
 				
 				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
