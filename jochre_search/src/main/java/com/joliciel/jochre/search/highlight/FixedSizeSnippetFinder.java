@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
+import com.joliciel.jochre.search.CoordinateStorage;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
@@ -58,33 +59,29 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 			for (HighlightTerm term : highlightTerms) {
 				i++;
 				String content = jochreDoc.getContents();
+				CoordinateStorage coordinateStorage = jochreDoc.getCoordinateStorage();
 				if (term.getStartOffset()>=content.length()) {
 					String title = doc.get("title");
 					String startPage = doc.get("startPage");
 					String endPage = doc.get("endPage");
-					if (content.length()>100) {
-						LOG.debug("Content start: " + content.substring(0, 100));
-						LOG.debug("Content end: " + content.substring(content.length()-100));
-					} else {
-						LOG.debug("Content: " + content);
-					}
+					LOG.debug("Content: " + content);
 					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage + ", length: " + content.length());
 				}
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
 				int j=-1;
-				boolean foundTextField = false;
+				boolean foundImage = false;
 				for (HighlightTerm otherTerm : highlightTerms) {
 					j++;
 					if (j<=i)
 						continue;
-					if (!otherTerm.getField().equals(term.getField())) {
-						if (foundTextField)
+					if (otherTerm.getImageIndex()!=term.getImageIndex()) {
+						if (foundImage)
 							break;
 						else
 							continue;
 					}
-					foundTextField = true;
+					foundImage = true;
 					
 					if (otherTerm.getStartOffset()<term.getStartOffset()+snippetSize) {
 						snippetTerms.add(otherTerm);
@@ -100,7 +97,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					start = term.getStartOffset();
 				if (end < lastTerm.getEndOffset())
 					end = lastTerm.getEndOffset();
-				
+
 				if (start<0)
 					start=0;
 				if (end > content.length())
@@ -118,6 +115,18 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 						break;
 					}
 				}
+				
+				int imageStartOffset = coordinateStorage.getImageStartOffset(term.getImageIndex());
+				int imageEndOffset = Integer.MAX_VALUE;
+				if (term.getImageIndex()+1<coordinateStorage.getImageCount()) {
+					imageEndOffset = coordinateStorage.getImageStartOffset(term.getImageIndex()+1);
+				}
+				
+				if (start<imageStartOffset)
+					start = imageStartOffset;
+				if (end>imageEndOffset)
+					end = imageEndOffset;
+				
 				Snippet snippet = new Snippet(docId, term.getField(), start, end);
 				snippet.setHighlightTerms(snippetTerms);
 				heap.add(snippet);
@@ -148,6 +157,10 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				}
 				if (!hasOverlap)
 					snippets.add(snippet);
+			}
+			
+			for (Snippet snippet : snippets) {
+				LOG.debug("Added snippet: " + snippet.toJson());
 			}
 			return snippets;
 		} catch (IOException e) {

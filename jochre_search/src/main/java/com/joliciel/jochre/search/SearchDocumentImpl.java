@@ -24,7 +24,7 @@ import java.util.List;
 
 public class SearchDocumentImpl implements SearchDocument {
 	private File directory;
-	private List<SearchPage> pages = new ArrayList<SearchPage>();
+	private List<SearchImage> images = new ArrayList<SearchImage>();
 	
 	@Override
 	public File getDirectory() {
@@ -32,8 +32,8 @@ public class SearchDocumentImpl implements SearchDocument {
 	}
 
 	@Override
-	public List<SearchPage> getPages() {
-		return pages;
+	public List<SearchImage> getImages() {
+		return images;
 	}
 
 }

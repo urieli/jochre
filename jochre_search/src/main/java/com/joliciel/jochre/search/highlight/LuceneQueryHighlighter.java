@@ -117,7 +117,7 @@ class LuceneQueryHighlighter implements Highlighter {
 			Map<Integer,Document> idToDocMap = new HashMap<Integer, Document>();
 			Map<Integer,CoordinateStorage> idToCoordinateStorageMap = new HashMap<Integer, CoordinateStorage>();
 
-			Set<Integer> myLeaves = new HashSet<Integer>();
+			Map<Integer,Set<Integer>> myLeaves = new HashMap<Integer, Set<Integer>>();
 			for (int docId : docIds) {
 				Document luceneDoc = indexSearcher.doc(docId);
 				idToDocMap.put(docId, luceneDoc);
@@ -125,10 +125,18 @@ class LuceneQueryHighlighter implements Highlighter {
 				idToCoordinateStorageMap.put(docId, jochreDoc.getCoordinateStorage());
 				termMap.put(docId, new TreeSet<HighlightTerm>());
 				int leaf = ReaderUtil.subIndex(docId, leaves);
-				myLeaves.add(leaf);
+				Set<Integer> docsPerLeaf = myLeaves.get(leaf);
+				if (docsPerLeaf==null) {
+					docsPerLeaf = new HashSet<Integer>();
+					myLeaves.put(leaf, docsPerLeaf);
+				}
+				docsPerLeaf.add(docId);
 			}
-				
-			for (int leaf : myLeaves) {
+			
+			for (int leaf : myLeaves.keySet()) {
+				if (LOG.isTraceEnabled())
+					LOG.trace("Searching leaf " + leaf);
+				Set<Integer> docsPerLeaf = myLeaves.get(leaf);
 				AtomicReaderContext subContext = leaves.get(leaf);
 				AtomicReader atomicReader = subContext.reader();
 				
@@ -155,9 +163,10 @@ class LuceneQueryHighlighter implements Highlighter {
 						}
 	
 						DocsAndPositionsEnum docPosEnum = termsEnum.docsAndPositions(null, null, DocsAndPositionsEnum.FLAG_OFFSETS);
-						int docId = docPosEnum.nextDoc();
-						while (docId!=DocsAndPositionsEnum.NO_MORE_DOCS) {
-			                if (docIds.contains(docId)) {
+						int relativeDocId = docPosEnum.nextDoc();
+						while (relativeDocId!=DocsAndPositionsEnum.NO_MORE_DOCS) {
+							int docId = subContext.docBase + relativeDocId;
+			                if (docsPerLeaf.contains(docId)) {
 			                	Document doc = idToDocMap.get(docId);
 			                	Set<HighlightTerm> highlightTerms = termMap.get(docId);
 				                //Retrieve the term frequency in the current document
@@ -177,15 +186,16 @@ class LuceneQueryHighlighter implements Highlighter {
 				                    	LOG.trace("Found match " + position + " at docId " + docId + ", field " + field + " start=" + start + ", end=" + end);
 				                    
 				                    CoordinateStorage coordinateStorage = idToCoordinateStorageMap.get(docId);
+				                    int imageIndex = coordinateStorage.getImageIndex(start);
 				                    int pageIndex = coordinateStorage.getPageIndex(start);
 				                    
-									HighlightTerm highlightTerm = new HighlightTerm(docId, field, start, end, pageIndex);
+									HighlightTerm highlightTerm = new HighlightTerm(docId, field, start, end, imageIndex, pageIndex);
 									highlightTerm.setWeight(this.weigh(term));
 									if (highlightTerm.getWeight()>0)
 										highlightTerms.add(highlightTerm);
 								}
 			                }
-			                docId = docPosEnum.nextDoc();
+			                relativeDocId = docPosEnum.nextDoc();
 						}
 					} // next term
 				} // next field

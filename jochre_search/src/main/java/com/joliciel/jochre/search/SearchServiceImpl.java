@@ -36,12 +36,12 @@ class SearchServiceImpl implements SearchServiceInternal {
 		SearchRowImpl row = new SearchRowImpl(paragraph, left, top, right, bottom);
 		return row;
 	}
-	public SearchParagraph newParagraph(SearchPage page, int left, int top, int right, int bottom) {
+	public SearchParagraph newParagraph(SearchImage page, int left, int top, int right, int bottom) {
 		SearchParagraphImpl paragraph = new SearchParagraphImpl(page, left, top, right, bottom);
 		return paragraph;
 	}
-	public SearchPage newPage(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
-		SearchPageImpl page = new SearchPageImpl(fileNameBase, pageIndex, imageIndex, width, height);
+	public SearchImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
+		SearchImageImpl page = new SearchImageImpl(fileNameBase, pageIndex, imageIndex, width, height);
 		return page;
 	}
 	public SearchDocument newDocument() {

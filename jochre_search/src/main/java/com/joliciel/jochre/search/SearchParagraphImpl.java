@@ -24,9 +24,9 @@ import java.util.List;
 class SearchParagraphImpl implements SearchParagraph {
 	private List<SearchRow> rows = new ArrayList<SearchRow>();
 	private int left, top, right, bottom;
-	private SearchPage page;
+	private SearchImage page;
 	
-	public SearchParagraphImpl(SearchPage page, int left, int top, int right, int bottom) {
+	public SearchParagraphImpl(SearchImage page, int left, int top, int right, int bottom) {
 		super();
 		this.page = page;
 		this.left = left;
@@ -56,7 +56,7 @@ class SearchParagraphImpl implements SearchParagraph {
 		return bottom;
 	}
 
-	public SearchPage getPage() {
+	public SearchImage getPage() {
 		return page;
 	}
 	

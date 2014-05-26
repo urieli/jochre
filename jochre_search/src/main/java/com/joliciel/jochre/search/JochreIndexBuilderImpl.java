@@ -167,35 +167,36 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			int endPage = -1;
 			int docCount = 0;
 			int wordCount = 0;
-			for (SearchPage page : jochreDoc.getPages()) {
-				if (startPage<0) startPage = page.getPageIndex();
-				endPage = page.getPageIndex();
+			for (SearchImage image : jochreDoc.getImages()) {
+				if (startPage<0) startPage = image.getPageIndex();
+				endPage = image.getPageIndex();
 				if (wordsPerDoc>0 && wordCount >= wordsPerDoc) {
 					this.addDocument(indexWriter, docCount, sb, startPage, endPage, fields);
 					docCount++;
 					
 					sb = new StringBuilder();
 					coordinateStorage = searchService.getCoordinateStorage();
-					startPage = page.getPageIndex();
+					startPage = image.getPageIndex();
 					offsetLetterMap = new HashMap<Integer, SearchLetter>();
 					wordCount = 0;
 				}
 				
-				LOG.debug("Processing page: " + page.getFileNameBase());
+				LOG.debug("Processing page: " + image.getFileNameBase());
 				
 				File imageFile = null;
 				for (String imageExtension : imageExtensions) {
-					imageFile = new File(documentDir, page.getFileNameBase() + "." + imageExtension);
+					imageFile = new File(documentDir, image.getFileNameBase() + "." + imageExtension);
 					if (imageFile.exists())
 						break;
 					imageFile = null;
 				}
 				if (imageFile==null)
-					throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + page.getFileNameBase());
+					throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + image.getFileNameBase());
 
-				coordinateStorage.addPage(sb.length(), imageFile.getName());
+				coordinateStorage.addImage(sb.length(), imageFile.getName(), image.getPageIndex());
 				
-				for (SearchParagraph par : page.getParagraphs()) {
+				for (SearchParagraph par : image.getParagraphs()) {
+					coordinateStorage.addParagraph(sb.length(), new Rectangle(par.getLeft(), par.getTop(), par.getRight(), par.getBottom()));
 					for (SearchRow row : par.getRows()) {
 						coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
 						int k=0;

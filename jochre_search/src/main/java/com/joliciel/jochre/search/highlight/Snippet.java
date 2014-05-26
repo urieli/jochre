@@ -108,6 +108,7 @@ public class Snippet implements Comparable<Snippet> {
 		 				int termStart = 0;
 		 	 			int termEnd = 0;
 		 	 			int pageIndex = 0;
+		 	 			int imageIndex = 0;
 		 	 			double weight = 0.0;
 		 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 			 				String termFieldName = jsonParser.getCurrentName();
@@ -121,6 +122,8 @@ public class Snippet implements Comparable<Snippet> {
 			 					termEnd = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("pageIndex")) {
 			 					pageIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("imageIndex")) {
+			 					imageIndex = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("weight")) {
 								jsonParser.nextValue();
 								weight = jsonParser.getDoubleValue();
@@ -128,7 +131,7 @@ public class Snippet implements Comparable<Snippet> {
 								throw new RuntimeException("Unexpected term field name: " + termFieldName + " at " + jsonParser.getCurrentLocation());
 							}
 			 			}
-	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, pageIndex);
+	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, imageIndex, pageIndex);
 	 	 				highlightTerm.setWeight(weight);
 	 	 				this.highlightTerms.add(highlightTerm);
 		 			}
@@ -173,13 +176,7 @@ public class Snippet implements Comparable<Snippet> {
 			jsonGen.writeNumberField("score", roundedScore);
 			jsonGen.writeArrayFieldStart("terms");
 			for (HighlightTerm term : this.getHighlightTerms()) {
-				jsonGen.writeStartObject();
-				jsonGen.writeNumberField("start", term.getStartOffset());
-				jsonGen.writeNumberField("end", term.getEndOffset());
-				jsonGen.writeNumberField("pageIndex", term.getPageIndex());
-				double roundedWeight = df.parse(df.format(term.getWeight())).doubleValue();
-				jsonGen.writeNumberField("weight", roundedWeight);
-				jsonGen.writeEndObject();
+				term.toJson(jsonGen, df);
 			}
 			jsonGen.writeEndArray(); // terms
 	

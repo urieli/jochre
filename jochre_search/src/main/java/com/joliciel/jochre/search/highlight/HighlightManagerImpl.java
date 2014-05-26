@@ -83,17 +83,9 @@ class HighlightManagerImpl implements HighlightManager {
 				jsonGen.writeNumberField("docId", docId);
 				
 				jsonGen.writeArrayFieldStart("terms");
-
 				for (HighlightTerm term : termMap.get(docId)) {
-					jsonGen.writeStartObject();
 					fields.add(term.getField());
-					jsonGen.writeStringField("field", term.getField());
-					jsonGen.writeNumberField("start", term.getStartOffset());
-					jsonGen.writeNumberField("end", term.getEndOffset());
-					jsonGen.writeNumberField("pageIndex", term.getPageIndex());
-					double roundedWeight = df.parse(df.format(term.getWeight())).doubleValue();
-					jsonGen.writeNumberField("weight", roundedWeight);
-					jsonGen.writeEndObject();
+					term.toJson(jsonGen, df);
 				}
 				jsonGen.writeEndArray();
 				
@@ -112,9 +104,6 @@ class HighlightManagerImpl implements HighlightManager {
 
 			jsonGen.writeEndObject();
 			jsonGen.flush();
-		} catch (java.text.ParseException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
@@ -210,7 +199,6 @@ class HighlightManagerImpl implements HighlightManager {
 		String content = jochreDoc.getContents();
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Displaying highlights for doc " + docId + ", field " + field);
-			LOG.trace("Contents: " + content);
 		}
 		StringBuilder sb = new StringBuilder();
 
@@ -245,7 +233,6 @@ class HighlightManagerImpl implements HighlightManager {
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Displaying snippet for doc " + docId + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
-			LOG.trace("Contents: " + content);
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -366,7 +353,7 @@ class HighlightManagerImpl implements HighlightManager {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
 		CoordinateStorage coordinateStorage = jochreDoc.getCoordinateStorage();
 		
-		int pageIndex = coordinateStorage.getPageIndex(snippet.getStartOffset());
+		int pageIndex = coordinateStorage.getImageIndex(snippet.getStartOffset());
 		String imageFileName = coordinateStorage.getImageName(pageIndex);
 		File imageFile = new File(jochreDoc.getDirectory(), imageFileName);
 		ImageSnippet imageSnippet = new ImageSnippet(coordinateStorage, snippet, imageFile);

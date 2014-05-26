@@ -21,7 +21,7 @@ package com.joliciel.jochre.search;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchPageImpl implements SearchPage {
+public class SearchImageImpl implements SearchImage {
 	private String fileNameBase;
 	private List<SearchParagraph> paragraphs = new ArrayList<SearchParagraph>();
 	private int pageIndex;
@@ -29,7 +29,7 @@ public class SearchPageImpl implements SearchPage {
 	private int width;
 	private int height;
 	
-	public SearchPageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
+	public SearchImageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
 		super();
 		this.fileNameBase = fileNameBase;
 		this.pageIndex = pageIndex;

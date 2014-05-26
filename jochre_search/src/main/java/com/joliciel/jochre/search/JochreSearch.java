@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -72,6 +73,11 @@ public class JochreSearch {
 				PropertyConfigurator.configure(props);
 			}
 			
+			LOG.debug("##### Arguments:");
+			for (Entry<String, String> arg : argMap.entrySet()) {
+				LOG.debug(arg.getKey() + ": " + arg.getValue());
+			}
+			
 			SearchServiceLocator locator = SearchServiceLocator.getInstance();
 			SearchService searchService = locator.getSearchService();
 			
@@ -90,7 +96,6 @@ public class JochreSearch {
 				
 				String indexDirPath = argMap.get("indexDir");
 				File indexDir = new File(indexDirPath);
-				argMap.put("query", "ער");
 				JochreQuery query = searchService.getJochreQuery(argMap);
 				
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
@@ -106,7 +111,7 @@ public class JochreSearch {
 				Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
 				HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
 				highlightManager.setDecimalPlaces(query.getDecimalPlaces());
-				highlightManager.setMinWeight(0.5);
+				highlightManager.setMinWeight(0.0);
 				highlightManager.setIncludeText(true);
 				highlightManager.setIncludeGraphics(true);
 

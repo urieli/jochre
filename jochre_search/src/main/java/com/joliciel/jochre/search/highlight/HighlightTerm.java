@@ -18,25 +18,37 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.io.IOException;
+import java.text.DecimalFormat;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.talismane.utils.LogUtils;
+
 /**
  * A single highlighted term within a document.
  * @author Assaf Urieli
  *
  */
 public class HighlightTerm implements Comparable<HighlightTerm> {
+	private static final Log LOG = LogFactory.getLog(HighlightTerm.class);
 	private int startOffset;
 	private int endOffset;
 	private double weight;
 	private int docId;
 	private String field;
+	private int imageIndex;
 	private int pageIndex;
 
-	public HighlightTerm(int docId, String field, int startOffset, int endOffset, int pageIndex) {
+	public HighlightTerm(int docId, String field, int startOffset, int endOffset, int imageIndex, int pageIndex) {
 		super();
 		this.docId = docId;
 		this.field = field;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
+		this.imageIndex = imageIndex;
 		this.pageIndex = pageIndex;
 	}
 
@@ -114,6 +126,30 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 				+ endOffset + ", weight=" + weight + ", docId=" + docId
 				+ ", field=" + field + ", pageIndex=" + pageIndex + "]";
 	}
+
+	public int getImageIndex() {
+		return imageIndex;
+	}
 	
-	
+	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {
+		try {
+			jsonGen.writeStartObject();
+			jsonGen.writeStringField("field", this.getField());
+			jsonGen.writeNumberField("start", this.getStartOffset());
+			jsonGen.writeNumberField("end", this.getEndOffset());
+			jsonGen.writeNumberField("pageIndex", this.getPageIndex());
+			jsonGen.writeNumberField("imageIndex", this.getImageIndex());
+			double roundedWeight = df.parse(df.format(this.getWeight())).doubleValue();
+			jsonGen.writeNumberField("weight", roundedWeight);
+			jsonGen.writeEndObject();
+
+			jsonGen.flush();
+		} catch (java.text.ParseException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
+		}
+	}
 }

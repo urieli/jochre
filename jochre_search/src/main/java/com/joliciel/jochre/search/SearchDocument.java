@@ -23,5 +23,5 @@ import java.util.List;
 
 public interface SearchDocument {
 	public File getDirectory();
-	public List<SearchPage> getPages();
+	public List<SearchImage> getImages();
 }

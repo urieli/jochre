@@ -63,6 +63,14 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 		try {
 			TopDocs topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getLuceneFilter(), jochreQuery.getMaxDocs());
 
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Search results: ");
+				for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+					Document doc = indexSearcher.doc(scoreDoc.doc);
+					String extId = doc.get("id");
+					LOG.trace(extId + "(docId " + scoreDoc.doc + "): " + scoreDoc.score);
+				}
+			}
 			return topDocs;
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);

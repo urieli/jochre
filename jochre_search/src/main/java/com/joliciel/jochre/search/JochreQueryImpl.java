@@ -18,7 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
@@ -47,30 +53,44 @@ class JochreQueryImpl implements JochreQuery {
 	public JochreQueryImpl() {}
 	
 	public JochreQueryImpl(Map<String,String> argMap) {
-		for (Entry<String, String> argEntry : argMap.entrySet()) {
-			String argName = argEntry.getKey();
-			String argValue = argEntry.getValue();
-			if (argName.equalsIgnoreCase("query")) {
-				this.setQueryString(argValue);
-			} else if (argName.equalsIgnoreCase("maxDocs")) {
-				int maxDocs = Integer.parseInt(argValue);
-				this.setMaxDocs(maxDocs);
-			} else if (argName.equalsIgnoreCase("decimalPlaces")) {
-				int decimalPlaces = Integer.parseInt(argValue);
-				this.setDecimalPlaces(decimalPlaces);
-			} else if (argName.equalsIgnoreCase("lang")) {
-				this.setLanguage(argValue);
-			} else if (argName.equalsIgnoreCase("filter")) {
-				if (argValue.length()>0) {
-					String[] idArray = argValue.split(",");
-					this.setDocFilter(idArray);
+		try {
+			for (Entry<String, String> argEntry : argMap.entrySet()) {
+				String argName = argEntry.getKey();
+				String argValue = argEntry.getValue();
+				if (argName.equalsIgnoreCase("query")) {
+					this.setQueryString(argValue);
+				} else if (argName.equalsIgnoreCase("queryFile")) {
+					File queryFile = new File(argValue);
+					Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(queryFile), "UTF-8")));
+					while (scanner.hasNextLine()) {
+						String line = scanner.nextLine();
+						this.setQueryString(line);
+						break;
+					}
+					scanner.close();
+				} else if (argName.equalsIgnoreCase("maxDocs")) {
+					int maxDocs = Integer.parseInt(argValue);
+					this.setMaxDocs(maxDocs);
+				} else if (argName.equalsIgnoreCase("decimalPlaces")) {
+					int decimalPlaces = Integer.parseInt(argValue);
+					this.setDecimalPlaces(decimalPlaces);
+				} else if (argName.equalsIgnoreCase("lang")) {
+					this.setLanguage(argValue);
+				} else if (argName.equalsIgnoreCase("filter")) {
+					if (argValue.length()>0) {
+						String[] idArray = argValue.split(",");
+						this.setDocFilter(idArray);
+					}
+				} else if (argName.equalsIgnoreCase("filterField")) {
+					if (argValue.length()>0)
+						this.setFilterField(argValue);
+				} else {
+					LOG.trace("JochreQuery unknown option: " + argName);
 				}
-			} else if (argName.equalsIgnoreCase("filterField")) {
-				if (argValue.length()>0)
-					this.setFilterField(argValue);
-			} else {
-				LOG.trace("CFHQuery unknown option: " + argName);
 			}
+		} catch (IOException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -186,6 +206,7 @@ class JochreQueryImpl implements JochreQuery {
 		try {
 			if (luceneQuery==null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
+				LOG.debug("Max docs: " + this.getMaxDocs());
 				JochreAnalyzer jochreAnalyzer = new JochreAnalyzer(Version.LUCENE_46);
 				QueryParser queryParser = new QueryParser(Version.LUCENE_46, "text", jochreAnalyzer);
 				luceneQuery = queryParser.parse(this.getQueryString());

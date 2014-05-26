@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
@@ -32,12 +31,16 @@ import org.apache.commons.logging.LogFactory;
 
 class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 	private static final Log LOG = LogFactory.getLog(CoordinateStorageImpl.class);
-	private static final long serialVersionUID = 3L;
+	private static final long serialVersionUID = 6L;
 	private Map<Integer, List<Rectangle>> coordinates = new HashMap<Integer, List<Rectangle>>();
-	private SortedSet<Integer> offsets = new TreeSet<Integer>();
-	private Map<Integer, Rectangle> rowCoordinates = new TreeMap<Integer, Rectangle>();
-	private List<Integer> pageOffsets = new ArrayList<Integer>();
-	private Map<Integer, String> pageImageNames = new HashMap<Integer, String>();
+	private SortedSet<Integer> wordOffsets = new TreeSet<Integer>();
+	private List<Rectangle> rowCoordinates = new ArrayList<Rectangle>();
+	private List<Integer> rowOffsets = new ArrayList<Integer>();
+	private List<Rectangle> paragraphCoordinates = new ArrayList<Rectangle>();
+	private List<Integer> paragraphOffsets = new ArrayList<Integer>();
+	private List<Integer> imageOffsets = new ArrayList<Integer>();
+	private Map<Integer, String> imageNames = new HashMap<Integer, String>();
+	private List<Integer> imagePageIndexes = new ArrayList<Integer>();
 	
 	@Override
 	public List<Rectangle> getRectangles(int offset) {
@@ -47,16 +50,16 @@ class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 	@Override
 	public void setRectangles(int offset, List<Rectangle> rectangles) {
 		coordinates.put(offset, rectangles);
-		offsets.add(offset);
+		wordOffsets.add(offset);
 	}
 
 	public List<Rectangle> getNearestRectangles(int offset) {
 		int nearestOffset = -1;
-		SortedSet<Integer> tailSet = offsets.tailSet(offset);
+		SortedSet<Integer> tailSet = wordOffsets.tailSet(offset);
 		if (tailSet.size()>0) {
 			nearestOffset = tailSet.first();
 		} else {
-			SortedSet<Integer> headSet = offsets.headSet(offset);
+			SortedSet<Integer> headSet = wordOffsets.headSet(offset);
 			nearestOffset = headSet.last();
 		}
 		if (nearestOffset>=0) {
@@ -66,34 +69,78 @@ class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 	}
 	
 	public Rectangle getRowCoordinates(int offset) {
-		int myRowStart = 0;
-		for (int rowStart : rowCoordinates.keySet()) {
+		int rowIndex = this.getRowIndex(offset);
+		Rectangle rectangle = rowCoordinates.get(rowIndex);
+		return rectangle;
+	}
+	
+
+	@Override
+	public Rectangle getParagraphCoordinates(int offset) {
+		int paragraphIndex = this.getParagraphIndex(offset);
+		Rectangle rectangle = paragraphCoordinates.get(paragraphIndex);
+		return rectangle;
+	}
+
+	@Override
+	public int getRowIndex(int offset) {
+		int rowIndex = 0;
+		for (int i=0; i<rowOffsets.size(); i++) {
+			int rowStart = rowOffsets.get(i);
 			if (rowStart > offset) {
 				break;
 			}
-			myRowStart = rowStart;
+			rowIndex = i;
 		}
-		Rectangle rowRect = rowCoordinates.get(myRowStart);
-		return rowRect;
+		return rowIndex;
+	}
+
+
+	@Override
+	public int getParagraphIndex(int offset) {
+		int paragraphIndex = 0;
+		for (int i=0; i<paragraphOffsets.size(); i++) {
+			int paragraphStart = paragraphOffsets.get(i);
+			if (paragraphStart > offset) {
+				break;
+			}
+			paragraphIndex = i;
+		}
+		return paragraphIndex;
+	}
+	
+	@Override
+	public int getRowStartOffset(int rowIndex) {
+		return rowOffsets.get(rowIndex);
 	}
 	
 	public void addRow(int startOffset, Rectangle rectangle) {
 		if (LOG.isDebugEnabled())
 			LOG.debug("Adding row " + startOffset + ": " + rectangle.toString());
-		this.rowCoordinates.put(startOffset, rectangle);
+		this.rowCoordinates.add(rectangle);
+		this.rowOffsets.add(startOffset);
 	}
-	
-	public void addPage(int startOffset, String imageName) {
+
+	@Override
+	public void addParagraph(int startOffset, Rectangle rectangle) {
 		if (LOG.isDebugEnabled())
-			LOG.debug("Adding page " + pageOffsets.size() + " at offset "+ startOffset + ": " + imageName);
-		pageImageNames.put(pageOffsets.size(), imageName);
-		pageOffsets.add(startOffset);
+			LOG.debug("Adding paragraph " + startOffset + ": " + rectangle.toString());
+		this.paragraphCoordinates.add(rectangle);
+		this.paragraphOffsets.add(startOffset);
+	}
+
+	public void addImage(int startOffset, String imageName, int pageIndex) {
+		if (LOG.isDebugEnabled())
+			LOG.debug("Adding page " + imageOffsets.size() + " at offset "+ startOffset + ": " + imageName);
+		imageNames.put(imageOffsets.size(), imageName);
+		imageOffsets.add(startOffset);
+		imagePageIndexes.add(pageIndex);
 	}
 	
-	public int getPageIndex(int offset) {
+	public int getImageIndex(int offset) {
 		int myPageIndex = 0;
-		for (int i=0; i<pageOffsets.size(); i++) {
-			int pageStart = pageOffsets.get(i);
+		for (int i=0; i<imageOffsets.size(); i++) {
+			int pageStart = imageOffsets.get(i);
 			if (pageStart > offset) {
 				break;
 			}
@@ -102,7 +149,31 @@ class CoordinateStorageImpl implements CoordinateStorage, Serializable {
 		return myPageIndex;
 	}
 	
-	public String getImageName(int pageIndex) {
-		return pageImageNames.get(pageIndex);
+	public String getImageName(int imageIndex) {
+		return imageNames.get(imageIndex);
 	}
+
+	@Override
+	public int getImageCount() {
+		return imageOffsets.size();
+	}
+
+	@Override
+	public int getPageIndex(int offset) {
+		int imageIndex = this.getImageIndex(offset);
+		int pageIndex = imagePageIndexes.get(imageIndex);
+		return pageIndex;
+	}
+
+	@Override
+	public int getImageStartOffset(int imageIndex) {
+		return imageOffsets.get(imageIndex);
+	}
+
+
+	@Override
+	public int getParagraphStartOffset(int paragraphIndex) {
+		return paragraphOffsets.get(paragraphIndex);
+	}
+
 }

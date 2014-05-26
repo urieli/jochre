@@ -36,7 +36,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
     private SearchDocument doc = null;
     private SearchServiceInternal searchService;
     private String fileNameBase;
-    private SearchPage currentPage;
+    private SearchImage currentPage;
     private SearchParagraph currentParagraph;
     private SearchRow currentRow;
     private SearchWord currentWord;
@@ -82,8 +82,8 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int pageIndex = Integer.parseInt(attributes.getValue("pageIndex"));
         	int imageIndex = Integer.parseInt(attributes.getValue("imageIndex"));
 //        	String lang = attributes.getValue("lang");
-        	currentPage = searchService.newPage(fileNameBase, pageIndex, imageIndex, width, height);
-        	this.doc.getPages().add(currentPage);
+        	currentPage = searchService.newImage(fileNameBase, pageIndex, imageIndex, width, height);
+        	this.doc.getImages().add(currentPage);
         } else if (qName.equals("paragraph")) {
         	int left = Integer.parseInt(attributes.getValue("l"));
         	int top = Integer.parseInt(attributes.getValue("t"));

@@ -22,8 +22,8 @@ interface SearchServiceInternal extends SearchService {
 	public SearchLetter newLetter(SearchWord word, String text, int left, int top, int right, int bottom);
 	public SearchWord newWord(SearchRow row, String text, int left, int top, int right, int bottom);
 	public SearchRow newRow(SearchParagraph paragraph, int left, int top, int right, int bottom);
-	public SearchParagraph newParagraph(SearchPage page, int left, int top, int right, int bottom);
-	public SearchPage newPage(String fileNameBase, int pageIndex, int imageIndex, int width, int height);
+	public SearchParagraph newParagraph(SearchImage page, int left, int top, int right, int bottom);
+	public SearchImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height);
 	public SearchDocument newDocument();
 	public JochreXmlReader getJochreXmlReader(SearchDocument doc);
 	public CoordinateStorage getCoordinateStorage();

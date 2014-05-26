@@ -20,7 +20,7 @@ package com.joliciel.jochre.search;
 
 import java.util.List;
 
-public interface SearchPage {
+public interface SearchImage {
 	public String getFileNameBase();
 	public List<SearchParagraph> getParagraphs();
 	public int getWidth();
