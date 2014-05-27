@@ -54,6 +54,7 @@
 			
 	<target name="clean" depends="init" description="removes all directories related to this build">
 		<delete dir="${build}"/>
+		<delete dir="${webapp}"/>
 	</target>
 	
 	<target name="compile" depends="init">

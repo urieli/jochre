@@ -18,7 +18,7 @@
 		<property name="jochreLib" location="../lib" />
 		<property name="jochre-web" location="../jochre_web" />
 		<property name="web" location="web" />
-		<property name="webapp" location="../webapp" />
+		<property name="webapp" location="../jochre_web/webapp" />
 		<property name="myWebApp" location="webapp" />
 		<property name="jochre.web.conf" value="conf/localhost"/>   
 		<path id="classpath">
@@ -44,10 +44,11 @@
 	
 	<target name="clean" depends="init" description="removes all directories related to this build">
 		<delete dir="${build}"/>
+		<delete dir="${myWebApp}"/>
 	</target>
 		
 	<target name="compile" depends="init">
-		<javac srcdir="${src}" destdir="${classes}" deprecation="on" debug="on" encoding="utf-8">
+		<javac srcdir="${src}" destdir="${classes}" deprecation="on" debug="on" encoding="utf-8" includeantruntime="false">
 			<classpath><path refid="classpath" /></classpath>
 		</javac>
 		<copy todir="${classes}">

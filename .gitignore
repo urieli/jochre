@@ -11,5 +11,6 @@ jochre_web/webapp/
 jochre_search/webapp/
 jochre_occitan/webapp/
 jochre_yiddish/webapp/
+/webapp/
 logs/
 ant/conf.xml

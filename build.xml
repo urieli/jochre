@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build" name="jochre-all">
-    <import file="ant/global.xml"/>
+	<import file="ant/global.xml"/>
 	<target name="clean">
 		<subant target="clean">
 			<fileset dir=".">
@@ -20,6 +20,11 @@
 		<subant target="clean">
 			<fileset dir=".">
 				<include name="jochre_occitan/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="clean">
+			<fileset dir=".">
+				<include name="jochre_search/build.xml"/>
 			</fileset>
 		</subant>
 	</target>
@@ -45,6 +50,11 @@
 				<include name="jochre_occitan/build.xml"/>
 			</fileset>
 		</subant>
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_search/build.xml"/>
+			</fileset>
+		</subant>
 	</target>
 	
 	<target name="webapp" depends="jar">
@@ -61,6 +71,11 @@
 		<subant target="webapp">
 			<fileset dir=".">
 				<include name="jochre_occitan/build.xml"/>
+			</fileset>
+		</subant>
+		<subant target="webapp">
+			<fileset dir=".">
+				<include name="jochre_search/build.xml"/>
 			</fileset>
 		</subant>
 	</target>
