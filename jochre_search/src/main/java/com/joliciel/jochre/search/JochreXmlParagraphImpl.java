@@ -21,24 +21,24 @@ package com.joliciel.jochre.search;
 import java.util.ArrayList;
 import java.util.List;
 
-class SearchWordImpl implements SearchWord {
-	private String text;
+class JochreXmlParagraphImpl implements JochreXmlParagraph {
+	private List<JochreXmlRow> rows = new ArrayList<JochreXmlRow>();
 	private int left, top, right, bottom;
-	private boolean known;
-	private List<SearchLetter> letters = new ArrayList<SearchLetter>();
-	private SearchRow row;
+	private JochreXmlImage page;
+	private int wordCount = -1;
 	
-	public SearchWordImpl(SearchRow row, String text, int left, int top, int right, int bottom) {
+	public JochreXmlParagraphImpl(JochreXmlImage page, int left, int top, int right, int bottom) {
 		super();
-		this.row = row;
-		this.text = text;
+		this.page = page;
 		this.left = left;
 		this.top = top;
 		this.right = right;
 		this.bottom = bottom;
 	}
-	public String getText() {
-		return text;
+
+	@Override
+	public List<JochreXmlRow> getRows() {
+		return rows;
 	}
 
 	public int getLeft() {
@@ -56,17 +56,21 @@ class SearchWordImpl implements SearchWord {
 	public int getBottom() {
 		return bottom;
 	}
-	public boolean isKnown() {
-		return known;
-	}
-	public void setKnown(boolean known) {
-		this.known = known;
-	}
-	public List<SearchLetter> getLetters() {
-		return letters;
-	}
-	public SearchRow getRow() {
-		return row;
+
+	public JochreXmlImage getPage() {
+		return page;
 	}
 
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = 0;
+			for (JochreXmlRow row : this.getRows()) {
+				wordCount += row.wordCount();
+			}
+		}
+		return wordCount;
+	}
+	
+	
 }

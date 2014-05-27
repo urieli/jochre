@@ -20,7 +20,7 @@ public class SearchDocument {
 	private double score;
 	private String author;
 	private String title;
-	private String keywords;
+	private String url;
 	
 	public SearchDocument(String baseName, JsonParser jsonParser) {
 		try {
@@ -36,8 +36,8 @@ public class SearchDocument {
 					author = jsonParser.nextTextValue();
 				} else if (fieldName.equals("title")) {
 					title = jsonParser.nextTextValue();
-				} else if (fieldName.equals("keywords")) {
-					keywords = jsonParser.nextTextValue();
+				} else if (fieldName.equals("url")) {
+					url = jsonParser.nextTextValue();
 				} else if (fieldName.equals("startPage")) {
 					startPage = jsonParser.nextIntValue(0);
 				} else if (fieldName.equals("endPage")) {
@@ -142,12 +142,12 @@ public class SearchDocument {
 		this.title = title;
 	}
 
-	public String getKeywords() {
-		return keywords;
+	public String getUrl() {
+		return url;
 	}
 
-	public void setKeywords(String keywords) {
-		this.keywords = keywords;
+	public void setUrl(String url) {
+		this.url = url;
 	}
 	
 	

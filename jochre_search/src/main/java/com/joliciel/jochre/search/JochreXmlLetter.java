@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-public interface SearchLetter {
+public interface JochreXmlLetter {
 	public String getText();
 	public int getLeft();
 	public int getTop();
@@ -26,5 +26,5 @@ public interface SearchLetter {
 	public int getBottom();
 	public int getConfidence();
 	public void setConfidence(int confidence);
-	public SearchWord getWord();
+	public JochreXmlWord getWord();
 }

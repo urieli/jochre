@@ -32,9 +32,8 @@ import com.joliciel.talismane.utils.LogUtils;
 
 public class SearchWebClientUtils {
 	private static final Log LOG = LogFactory.getLog(SearchWebClientUtils.class);
-	public static String getJson(String urlString) {
+	public static String getJson(URL url) {
 		try {
-			URL url = new URL(urlString);
 			URLConnection con = url.openConnection();
 			InputStream in = con.getInputStream();
 			StringWriter writer = new StringWriter();

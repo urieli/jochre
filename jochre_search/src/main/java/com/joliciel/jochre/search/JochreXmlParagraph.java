@@ -18,22 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-public class SearchDocumentImpl implements SearchDocument {
-	private File directory;
-	private List<SearchImage> images = new ArrayList<SearchImage>();
-	
-	@Override
-	public File getDirectory() {
-		return directory;
-	}
-
-	@Override
-	public List<SearchImage> getImages() {
-		return images;
-	}
+public interface JochreXmlParagraph {
+	public List<JochreXmlRow> getRows();
+	public int getLeft();
+	public int getTop();
+	public int getRight();
+	public int getBottom();
+	public int wordCount();
 
 }

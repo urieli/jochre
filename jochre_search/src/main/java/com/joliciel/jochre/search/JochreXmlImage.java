@@ -18,10 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.io.File;
 import java.util.List;
 
-public interface SearchDocument {
-	public File getDirectory();
-	public List<SearchImage> getImages();
+public interface JochreXmlImage {
+	public String getFileNameBase();
+	public List<JochreXmlParagraph> getParagraphs();
+	public int getWidth();
+	public int getHeight();
+	public int getPageIndex();
+	public int getImageIndex();
+	public int wordCount();
 }

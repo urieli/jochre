@@ -18,13 +18,34 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface SearchParagraph {
-	public List<SearchRow> getRows();
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
+public class JochreXmlDocumentImpl implements JochreXmlDocument {
+	private File directory;
+	private List<JochreXmlImage> images = new ArrayList<JochreXmlImage>();
+	private int wordCount = -1;
+	
+	@Override
+	public File getDirectory() {
+		return directory;
+	}
 
+	@Override
+	public List<JochreXmlImage> getImages() {
+		return images;
+	}
+
+
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = 0;
+			for (JochreXmlImage image : this.getImages()) {
+				wordCount += image.wordCount();
+			}
+		}
+		return wordCount;
+	}
 }

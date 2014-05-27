@@ -27,5 +27,5 @@ public interface SearchService {
 	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
 	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
 	public JochreQuery getJochreQuery(Map<String,String> argMap);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File documentDir);
+	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
 }

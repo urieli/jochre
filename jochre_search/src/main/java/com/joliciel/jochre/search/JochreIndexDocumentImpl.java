@@ -1,15 +1,21 @@
 package com.joliciel.jochre.search;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.util.Scanner;
+import java.io.ObjectOutputStream;
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.talismane.utils.LogUtils;
@@ -22,6 +28,47 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private int index;
 	private String path;
 	private File directory;
+	private String author;
+	private String title;
+	private String url;
+	private int startPage;
+	private int endPage;
+	
+	@SuppressWarnings("unused")
+	private Map<String,String> fields;
+
+	/* Indexed, tokenized, not stored. */
+	public static final FieldType TYPE_NOT_STORED = new FieldType();
+
+	/* Indexed, tokenized, stored. */
+	public static final FieldType TYPE_STORED = new FieldType();
+
+	/* Not indexed, not tokenized, stored. */
+	public static final FieldType TYPE_NOT_INDEXED = new FieldType();
+
+	static {
+	    TYPE_NOT_STORED.setIndexed(true);
+	    TYPE_NOT_STORED.setTokenized(true);
+	    TYPE_NOT_STORED.setStoreTermVectors(true);
+	    TYPE_NOT_STORED.setStoreTermVectorPositions(true);
+	    TYPE_NOT_STORED.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+	    TYPE_NOT_STORED.freeze();
+
+	    TYPE_STORED.setIndexed(true);
+	    TYPE_STORED.setTokenized(true);
+	    TYPE_STORED.setStored(true);
+	    TYPE_STORED.setStoreTermVectors(true);
+	    TYPE_STORED.setStoreTermVectorPositions(true);
+	    TYPE_STORED.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+	    TYPE_STORED.freeze();
+	    
+	    TYPE_NOT_INDEXED.setIndexed(false);
+	    TYPE_NOT_INDEXED.setTokenized(false);
+	    TYPE_NOT_INDEXED.setStored(true);
+	    TYPE_NOT_INDEXED.setStoreTermVectors(false);
+	    TYPE_NOT_INDEXED.setStoreTermVectorPositions(false);
+	    TYPE_NOT_INDEXED.freeze();
+	}
 	
 	public JochreIndexDocumentImpl(IndexSearcher indexSearcher, int docId) {
 		try {
@@ -35,28 +82,59 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		}
 	}
 
+	public JochreIndexDocumentImpl(File directory, int index, StringBuilder sb, CoordinateStorage coordinateStorage, int startPage, int endPage, Map<String,String> fields) {
+		this.directory = directory;
+		this.fields = fields;
+		this.coordinateStorage = coordinateStorage;
+		this.index = index;
+		this.startPage = startPage;
+		this.endPage = endPage;
+		
+		this.contents = sb.toString();
+		LOG.trace(contents);
+
+		this.author = fields.get("Author");
+		this.title = fields.get("Title");
+		this.url = fields.get("Keywords");
+	}
+	
+	public void save(IndexWriter indexWriter) {
+		try {
+			doc = new Document();
+			doc.add(new StringField("id", directory.getName(), Field.Store.YES));
+			doc.add(new IntField("startPage", startPage, Field.Store.YES));
+			doc.add(new IntField("endPage", endPage, Field.Store.YES));
+			doc.add(new IntField("index", index, Field.Store.YES));
+			doc.add(new Field("text", contents, TYPE_STORED));
+			doc.add(new Field("path", directory.getAbsolutePath(), TYPE_NOT_INDEXED));
+			
+			
+			if (author!=null)
+				doc.add(new StringField("author", author, Field.Store.YES));
+			if (title!=null)
+				doc.add(new StringField("title", title, Field.Store.YES));
+			if (url!=null)
+				doc.add(new StringField("url", url, Field.Store.YES));		
+
+			indexWriter.addDocument(doc);
+			
+			File offsetPositionFile = new File(this.directory, "offsets" + this.index + ".obj");
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(offsetPositionFile, false));
+			oos.writeObject(coordinateStorage);
+			oos.flush();
+			oos.close();
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
+		}
+	}
+	
 	@Override
 	public String getContents() {
-		try {
-			if (this.contents==null) {
-				StringBuilder sb = new StringBuilder();
-				File contentFile = new File(directory, "text" + index + ".txt");
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(contentFile), "UTF-8")));
-				while (scanner.hasNextLine()) {
-					String line = scanner.nextLine();
-					sb.append(line);
-					sb.append("\n");
-				}
-				scanner.close();
-			    this.contents = sb.toString();
-	
-			}
-			return contents;
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+		if (this.contents==null) {
+			this.contents = doc.get("text");
 		}
-
+		return contents;
 	}
 
 	@Override
@@ -80,6 +158,18 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 	public File getDirectory() {
 		return directory;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getUrl() {
+		return url;
 	}
 	
 	

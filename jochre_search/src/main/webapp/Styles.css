@@ -1,0 +1,28 @@
+<style type="text/css">
+BODY { BACKGROUND-COLOR: #FFFFCC; COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
+H1 { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 18px; }
+H2 { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 16px;}
+H3 { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 14px; }
+H4 { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 13px; }
+TD { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; VERTICAL-ALIGN: top; }
+TD.Small { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 10px; VERTICAL-ALIGN: top; }
+TD.Label { BACKGROUND-COLOR: #FFFF99; COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
+INPUT { COLOR: #660033; FONT-FAMILY: Arial, Helvetica; FONT-SIZE: 12px; }
+INPUT.Button { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
+INPUT.Submit { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
+TEXTAREA { COLOR: #660033; FONT-FAMILY: Arial, Helvetica; FONT-SIZE: 12px; }
+P { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
+LI { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
+SELECT { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
+OPTION { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; font-weight: normal; color : #660033;  }
+a.mainmenu:hover{ text-decoration: underline; font-weight: normal; color : #000000; }
+A {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #CC6600; text-decoration: none}
+A.simple {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: normal; color: #660000; text-decoration: none}
+A.darklink {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #660000; text-decoration: none}
+A:hover { text-decoration: underline; }
+A.simple:hover {  text-decoration: underline; }
+.bigText { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 14px; font-weight: bold; }
+</style>

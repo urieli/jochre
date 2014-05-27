@@ -21,15 +21,16 @@ package com.joliciel.jochre.search;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchImageImpl implements SearchImage {
+public class JochreXmlImageImpl implements JochreXmlImage {
 	private String fileNameBase;
-	private List<SearchParagraph> paragraphs = new ArrayList<SearchParagraph>();
+	private List<JochreXmlParagraph> paragraphs = new ArrayList<JochreXmlParagraph>();
 	private int pageIndex;
 	private int imageIndex;
 	private int width;
 	private int height;
+	private int wordCount = -1;
 	
-	public SearchImageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
+	public JochreXmlImageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
 		super();
 		this.fileNameBase = fileNameBase;
 		this.pageIndex = pageIndex;
@@ -44,7 +45,7 @@ public class SearchImageImpl implements SearchImage {
 	}
 
 	@Override
-	public List<SearchParagraph> getParagraphs() {
+	public List<JochreXmlParagraph> getParagraphs() {
 		return paragraphs;
 	}
 
@@ -64,4 +65,14 @@ public class SearchImageImpl implements SearchImage {
 		return imageIndex;
 	}
 
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = 0;
+			for (JochreXmlParagraph par : this.getParagraphs()) {
+				wordCount += par.wordCount();
+			}
+		}
+		return wordCount;
+	}
 }

@@ -103,9 +103,9 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				String title = doc.get("title");
 				if (title!=null)
 					jsonGen.writeStringField("title", doc.get("title"));
-				String keywords = doc.get("keywords");
+				String keywords = doc.get("url");
 				if (keywords!=null)
-					jsonGen.writeStringField("keywords", doc.get("keywords"));
+					jsonGen.writeStringField("url", doc.get("url"));
 				
 				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
 				jsonGen.writeNumberField("score", roundedScore);

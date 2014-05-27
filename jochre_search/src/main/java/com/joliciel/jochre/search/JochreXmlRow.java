@@ -20,14 +20,12 @@ package com.joliciel.jochre.search;
 
 import java.util.List;
 
-public interface SearchWord {
-	public String getText();
+public interface JochreXmlRow {
+	public List<JochreXmlWord> getWords();
 	public int getLeft();
 	public int getTop();
 	public int getRight();
 	public int getBottom();
-	public boolean isKnown();
-	public void setKnown(boolean known);
-	public List<SearchLetter> getLetters();
-	public SearchRow getRow();
+	public JochreXmlParagraph getParagraph();
+	public int wordCount();
 }

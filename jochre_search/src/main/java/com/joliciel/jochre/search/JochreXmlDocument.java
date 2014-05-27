@@ -18,13 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.File;
 import java.util.List;
 
-public interface SearchImage {
-	public String getFileNameBase();
-	public List<SearchParagraph> getParagraphs();
-	public int getWidth();
-	public int getHeight();
-	public int getPageIndex();
-	public int getImageIndex();
+public interface JochreXmlDocument {
+	public File getDirectory();
+	public List<JochreXmlImage> getImages();
+	public int wordCount();
 }

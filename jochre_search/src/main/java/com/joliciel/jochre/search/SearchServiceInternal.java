@@ -18,13 +18,17 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.File;
+import java.util.Map;
+
 interface SearchServiceInternal extends SearchService {
-	public SearchLetter newLetter(SearchWord word, String text, int left, int top, int right, int bottom);
-	public SearchWord newWord(SearchRow row, String text, int left, int top, int right, int bottom);
-	public SearchRow newRow(SearchParagraph paragraph, int left, int top, int right, int bottom);
-	public SearchParagraph newParagraph(SearchImage page, int left, int top, int right, int bottom);
-	public SearchImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height);
-	public SearchDocument newDocument();
-	public JochreXmlReader getJochreXmlReader(SearchDocument doc);
+	public JochreXmlLetter newLetter(JochreXmlWord word, String text, int left, int top, int right, int bottom);
+	public JochreXmlWord newWord(JochreXmlRow row, String text, int left, int top, int right, int bottom);
+	public JochreXmlRow newRow(JochreXmlParagraph paragraph, int left, int top, int right, int bottom);
+	public JochreXmlParagraph newParagraph(JochreXmlImage page, int left, int top, int right, int bottom);
+	public JochreXmlImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height);
+	public JochreXmlDocument newDocument();
+	public JochreXmlReader getJochreXmlReader(JochreXmlDocument doc);
 	public CoordinateStorage getCoordinateStorage();
+	public JochreIndexDocument newJochreIndexDocument(File directory, int index, StringBuilder sb, CoordinateStorage coordinateStorage, int startPage, int endPage, Map<String,String> fields);
 }

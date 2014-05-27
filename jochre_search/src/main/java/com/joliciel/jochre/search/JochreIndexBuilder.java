@@ -18,9 +18,20 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-public interface JochreIndexBuilder {
+import java.io.File;
 
-	public void buildIndex();
+public interface JochreIndexBuilder {
+	/**
+	 * Update the index by scanning all of the sub-directories of this contentDir for updates.
+	 * @param contentDir
+	 */
+	public void updateIndex(File contentDir);
+	
+	/**
+	 * Add a single document directory to the index.
+	 * @param documentDir
+	 */
+	public void addDocumentDir(File documentDir);
 
 	/**
 	 * The approximate number of words to include in each Lucene document -

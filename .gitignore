@@ -7,6 +7,9 @@
 */corpusTest/
 */logs/
 dist/
-webapp/
+jochre_web/webapp/
+jochre_search/webapp/
+jochre_occitan/webapp/
+jochre_yiddish/webapp/
 logs/
 ant/conf.xml

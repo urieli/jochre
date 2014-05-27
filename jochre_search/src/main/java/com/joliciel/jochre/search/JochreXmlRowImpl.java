@@ -18,23 +18,27 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-class SearchLetterImpl implements SearchLetter {
-	private SearchWord word;
-	private String text;
+import java.util.ArrayList;
+import java.util.List;
+
+class JochreXmlRowImpl implements JochreXmlRow {
+	private List<JochreXmlWord> words = new ArrayList<JochreXmlWord>();
 	private int left, top, right, bottom;
-	private int confidence;
+	private JochreXmlParagraph paragraph;
+	private int wordCount = -1;
 	
-	public SearchLetterImpl(SearchWord word, String text, int left, int top, int right, int bottom) {
+	public JochreXmlRowImpl(JochreXmlParagraph paragraph, int left, int top, int right, int bottom) {
 		super();
-		this.word = word;
-		this.text = text;
+		this.paragraph = paragraph;
 		this.left = left;
 		this.top = top;
 		this.right = right;
 		this.bottom = bottom;
 	}
-	public String getText() {
-		return text;
+
+	@Override
+	public List<JochreXmlWord> getWords() {
+		return words;
 	}
 
 	public int getLeft() {
@@ -52,14 +56,17 @@ class SearchLetterImpl implements SearchLetter {
 	public int getBottom() {
 		return bottom;
 	}
-	public int getConfidence() {
-		return confidence;
+
+	public JochreXmlParagraph getParagraph() {
+		return paragraph;
 	}
-	public void setConfidence(int confidence) {
-		this.confidence = confidence;
-	}
-	public SearchWord getWord() {
-		return word;
+
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = this.getWords().size();
+		}
+		return wordCount;
 	}
 	
 	

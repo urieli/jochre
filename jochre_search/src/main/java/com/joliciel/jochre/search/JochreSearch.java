@@ -88,8 +88,17 @@ public class JochreSearch {
 				indexDir.mkdirs();
 				File documentDir = new File(documentDirPath);
 				
-				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, documentDir);
-				builder.buildIndex();
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
+				builder.addDocumentDir(documentDir);
+			} else if (command.equals("updateIndex")) {
+				String indexDirPath = argMap.get("indexDir");
+				String documentDirPath = argMap.get("documentDir");
+				File indexDir = new File(indexDirPath);
+				indexDir.mkdirs();
+				File documentDir = new File(documentDirPath);
+				
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
+				builder.updateIndex(documentDir);
 			} else if (command.equals("search")) {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();

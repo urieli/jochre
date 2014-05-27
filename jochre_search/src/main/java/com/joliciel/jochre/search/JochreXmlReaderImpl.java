@@ -33,15 +33,15 @@ import org.xml.sax.helpers.DefaultHandler;
 
 class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
     private String tempVal = null;
-    private SearchDocument doc = null;
+    private JochreXmlDocument doc = null;
     private SearchServiceInternal searchService;
     private String fileNameBase;
-    private SearchImage currentPage;
-    private SearchParagraph currentParagraph;
-    private SearchRow currentRow;
-    private SearchWord currentWord;
+    private JochreXmlImage currentPage;
+    private JochreXmlParagraph currentParagraph;
+    private JochreXmlRow currentRow;
+    private JochreXmlWord currentWord;
     
-    public JochreXmlReaderImpl(SearchDocument doc) {
+    public JochreXmlReaderImpl(JochreXmlDocument doc) {
     	this.doc = doc;
     }
     
@@ -115,7 +115,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int bottom = Integer.parseInt(attributes.getValue("b"));
         	String text = attributes.getValue("letter").replace("&quot;", "\"");
         	int confidence = Integer.parseInt(attributes.getValue("confidence"));
-        	SearchLetter letter = searchService.newLetter(currentWord, text, left, top, right, bottom);
+        	JochreXmlLetter letter = searchService.newLetter(currentWord, text, left, top, right, bottom);
         	letter.setConfidence(confidence);
         	currentWord.getLetters().add(letter);
         } 
