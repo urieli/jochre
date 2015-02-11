@@ -171,12 +171,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	Lexicon lexicon = null;
 	Map<String,Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
 	
-	public Jochre(Locale locale) {
-		this();
-		this.setLocale(locale);
-	}
-	
-	Jochre() { }
+	public Jochre() { }
 
 	private void initialise() {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
@@ -267,6 +262,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String mergeFeatureFilePath = "";
 		boolean reconstructLetters = false;
 		double minProbForDecision = 0.5;
+		double junkThreshold = 0.0;
 		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
 		int excludeImageId = 0;
 		int crossValidationSize = -1;
@@ -353,6 +349,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				reconstructLetters = (argValue.equals("true"));
 			else if (argName.equals("minProbForDecision"))
 				minProbForDecision = Double.parseDouble(argValue);
+			else if (argName.equals("junkThreshold"))
+				junkThreshold = Double.parseDouble(argValue);
 			else if (argName.equals("boundaryDetector")) 
 				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
 			else if (argName.equals("lexicon"))
@@ -464,6 +462,7 @@ public class Jochre implements LocaleSpecificLexiconService {
         	wordChooser.setFrequencyLogBase(frequencyLogBase);
         	wordChooser.setFrequencyAdjusted(frequencyAdjusted);
 			
+        	JochreSession.setJunkConfidenceThreshold(junkThreshold);
 			
 			if (command.equals("segment")) {
 				this.doCommandSegment(filename, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
@@ -537,9 +536,13 @@ public class Jochre implements LocaleSpecificLexiconService {
         		File outputDir = new File(outputDirPath);
         		outputDir.mkdirs();
 
-        		String baseName = filename.substring(0, filename.indexOf("."));
-	    		if (baseName.lastIndexOf("/")>0)
-	    			baseName = baseName.substring(baseName.lastIndexOf("/")+1);
+        		String baseName = filename;
+        		if (baseName.lastIndexOf('.')>0)
+        			baseName = filename.substring(0, filename.lastIndexOf('.'));
+	    		if (baseName.lastIndexOf('/')>0)
+	    			baseName = baseName.substring(baseName.lastIndexOf('/')+1);
+	    		if (baseName.lastIndexOf('\\')>0)
+	    			baseName = baseName.substring(baseName.lastIndexOf('\\')+1);
 	    		
         		List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
         		
@@ -1124,7 +1127,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 	}
 	
-	public void doCommandAnalyse(File pdfFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers, int firstPage, int lastPage) throws IOException {
+	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers, int firstPage, int lastPage) throws IOException {
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
 		ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
 
@@ -1181,21 +1184,27 @@ public class Jochre implements LocaleSpecificLexiconService {
 			analyser.addObserver(letterAssigner);
 		}
 		
-		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(pdfFile.getName(), "", locale);
+		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(sourceFile.getName(), "", locale);
 		documentGenerator.requestAnalysis(analyser);
 		
 		for (DocumentObserver observer : observers)
 			documentGenerator.addDocumentObserver(observer);
 		
-		if (pdfFile.getName().toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(pdfFile, firstPage, lastPage, documentGenerator);
+		if (!sourceFile.exists())
+			throw new JochreException("The file " + sourceFile.getPath() + " does not exist");
+		
+		if (sourceFile.getName().toLowerCase().endsWith(".pdf")) {
+			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(sourceFile, firstPage, lastPage, documentGenerator);
 			
 			pdfImageVisitor.visitImages();
-		} else if (pdfFile.getName().toLowerCase().endsWith(".png")
-				|| pdfFile.getName().toLowerCase().endsWith(".jpg")
-				|| pdfFile.getName().toLowerCase().endsWith(".jpeg")
-				|| pdfFile.getName().toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(pdfFile, documentGenerator);
+		} else if (sourceFile.getName().toLowerCase().endsWith(".png")
+				|| sourceFile.getName().toLowerCase().endsWith(".jpg")
+				|| sourceFile.getName().toLowerCase().endsWith(".jpeg")
+				|| sourceFile.getName().toLowerCase().endsWith(".gif")) {
+			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
+			extractor.extractDocument();
+		} else if (sourceFile.isDirectory()) {
+			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");

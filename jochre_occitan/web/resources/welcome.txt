@@ -18,4 +18,4 @@
   or contact me for help.</p>
   <p>If you would like to use Jochre, please contact me for a login at <a href="mailto:assaf.urieli@gmail.com">assaf.urieli@gmail.com</a></p>
   <p>- Assaf Urieli, Joliciel Informatique, PhD student in Natural Language Processing
-  at Université de Toulouse le Mirail</p>
+  at UniversitÃ© de Toulouse le Mirail</p>

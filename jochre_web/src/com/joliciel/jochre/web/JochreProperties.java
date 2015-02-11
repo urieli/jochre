@@ -64,11 +64,19 @@ public class JochreProperties {
 					lexiconServiceClass.getConstructor(new Class[]{});
 				lexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
 		
+				if (this.properties.containsKey("locale")) {
+					String languageCode = this.getProperties().getProperty("locale");
+					Locale locale = new Locale(languageCode);
+					lexiconService.setLocale(locale);
+				}
+				
+				LOG.debug("locale: " + lexiconService.getLocale());
+				
 				String lexiconDirPath = this.properties.getProperty("lexiconDirPath");
 				LOG.debug("lexiconDirPath: " + lexiconDirPath);
 				String lexiconDirRealPath = servletContext.getRealPath(lexiconDirPath);
 		
-				lexiconService.setLexiconPath(lexiconDirRealPath);	
+				lexiconService.setLexiconPath(lexiconDirRealPath);
 			}
 			return lexiconService;
 		} catch (ClassNotFoundException e) {

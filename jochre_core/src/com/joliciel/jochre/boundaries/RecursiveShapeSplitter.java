@@ -270,11 +270,11 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 							}
 						}
 					} finally {
-						MONITOR.endTask(feature.getName());
+						MONITOR.endTask();
 					}
 				}
 			} finally {
-				MONITOR.endTask("analyse features");
+				MONITOR.endTask();
 			}
 			
 			List<Decision<SplitOutcome>> decisions = null;
@@ -282,7 +282,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 			try {
 				decisions = decisionMaker.decide(featureResults);
 			} finally {
-				MONITOR.endTask("decision maker");
+				MONITOR.endTask();
 			}
 			
 			double yesProb = 0.0;
@@ -300,7 +300,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 	
 			return yesProb;
 		} finally {
-			MONITOR.endTask("shouldSplit");
+			MONITOR.endTask();
 		}
 	}
 	

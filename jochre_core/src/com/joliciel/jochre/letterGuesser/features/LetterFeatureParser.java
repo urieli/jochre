@@ -82,7 +82,7 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 			}
 			return wrappedFeatures;
 		} finally {
-			MONITOR.endTask("parseDescriptor");
+			MONITOR.endTask();
 		}
 	}
 

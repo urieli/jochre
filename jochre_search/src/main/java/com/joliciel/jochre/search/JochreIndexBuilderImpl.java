@@ -79,7 +79,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		}
 	}
 	
-	public void updateIndex(File contentDir) {
+	public void updateIndex(File contentDir, boolean forceUpdate) {
 		long startTime = System.currentTimeMillis();
 		try {
 			File[] subdirs = contentDir.listFiles(new FileFilter() {
@@ -91,7 +91,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			});
 			
 			for (File subdir : subdirs) {
-				this.addDocumentDir(subdir, false);
+				this.processDocument(subdir, forceUpdate);
 			}
 			
 			indexWriter.commit();
@@ -108,10 +108,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 	}
 
 	@Override
-	public void addDocumentDir(File documentDir) {
+	public void updateDocument(File documentDir) {
 		long startTime = System.currentTimeMillis();
 		try {
-			this.addDocumentDir(documentDir, true);
+			this.updateDocumentInternal(documentDir);
 			indexWriter.commit();
 			indexWriter.close();
 		} catch (IOException e) {
@@ -124,23 +124,72 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		}
 	}
 
-	public void addDocumentDir(File documentDir, boolean forceUpdate) {
+	public void deleteDocument(File documentDir) {
 		try {
+			this.deleteDocumentInternal(documentDir);
+			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
+			if (lastIndexDateFile.exists())
+				lastIndexDateFile.delete();
+			indexWriter.commit();
+			indexWriter.close();
+		} catch (IOException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private void processDocument(File documentDir, boolean forceUpdate) {
+		try {
+			File instructionsFile = new File(documentDir, "instructions.txt");
+			boolean updateIndex = false;
+			if (instructionsFile.exists()) {
+				String instructions = null;
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(instructionsFile), "UTF-8")));
+				while (scanner.hasNextLine()) {
+					instructions = scanner.nextLine();
+					break;
+				}
+				scanner.close();
+				
+				LOG.info("Instructions: " + instructions + " for " + documentDir.getName());
+				if (instructions.equals("delete")) {
+					this.deleteDocumentInternal(documentDir);
+					File lastIndexDateFile = new File(documentDir, "indexDate.txt");
+					if (lastIndexDateFile.exists())
+						lastIndexDateFile.delete();
+
+					return;
+				} else if (instructions.equals("skip")) {
+					return;
+				} else if (instructions.equals("update")) {
+					updateIndex = true;
+				} else {
+					LOG.info("Unknown instructions.");
+				}
+			}
+			
 			File zipFile = new File(documentDir, documentDir.getName() + ".zip");
 			if (!zipFile.exists()) {
 				LOG.info("Nothing to index in " + documentDir.getName());
 				return;
-			} else {
-				LOG.debug("Checking " + documentDir.getName());
 			}
-			long zipDate = zipFile.lastModified();
 			
-			boolean updateIndex = false;
-			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
-			
-			if (forceUpdate) {
+			File metaDataFile = new File(documentDir, "metadata.txt");
+			if (!metaDataFile.exists()) {
+				LOG.info("Skipping: OCR analysis incomplete for " + documentDir.getName());
+				return;
+			}
+
+			if (forceUpdate)
 				updateIndex = true;
-			} else {
+			
+			if (!updateIndex) {
+				
+				LOG.debug("Checking last update date on " + documentDir.getName());
+				long zipDate = zipFile.lastModified();
+				
+				File lastIndexDateFile = new File(documentDir, "indexDate.txt");
+				
 				long lastIndexDate = Long.MIN_VALUE;
 				
 				if (lastIndexDateFile.exists()) {
@@ -155,132 +204,160 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 					updateIndex = true;
 			}
 			
-			if (!updateIndex) {
-				LOG.info("Index for " + documentDir.getName() + "already up-to-date.");
+			if (updateIndex) {
+				this.updateDocumentInternal(documentDir);
 			} else {
-				LOG.info("Updating index for " + documentDir.getName());
-				Term term = new Term("id", documentDir.getName());
-				indexWriter.deleteDocuments(term);
-				
-				File[] offsetFiles = documentDir.listFiles(new FilenameFilter() {
-					
-					@Override
-					public boolean accept(File dir, String name) {
-						return name.endsWith(".obj");
-					}
-				});
-				
-				for (File offsetFile : offsetFiles) {
-					offsetFile.delete();
-				}
-				
-				int i = 0;
-				
-				Map<String,String> fields = new TreeMap<String, String>();
-				File metaDataFile = new File(documentDir, "metadata.txt");
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(metaDataFile), "UTF-8")));
-				while (scanner.hasNextLine()) {
-					String line = scanner.nextLine();
-					String key = line.substring(0, line.indexOf('\t'));
-					String value = line.substring(line.indexOf('\t'));
-					fields.put(key, value);
-				}
-				scanner.close();
-				
-				JochreXmlDocument xmlDoc = this.searchService.newDocument();
-				JochreXmlReader reader = this.searchService.getJochreXmlReader(xmlDoc);
-				
-				ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-				ZipEntry ze = null;
-			    while ((ze = zis.getNextEntry()) != null) {
-					LOG.debug("Adding zipEntry " + i + ": " + ze.getName());
-					String baseName = ze.getName().substring(0, ze.getName().lastIndexOf('.'));
-					UnclosableInputStream uis = new UnclosableInputStream(zis);
-					reader.parseFile(uis, baseName);
-			    	i++;
-			    }
-			    zis.close();
-				
-				i = 0;
-				StringBuilder sb = new StringBuilder();
-				coordinateStorage = searchService.getCoordinateStorage();
-				offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
-				int startPage = -1;
-				int endPage = -1;
-				int docCount = 0;
-				int wordCount = 0;
-				int cumulWordCount = 0;
-				for (JochreXmlImage image : xmlDoc.getImages()) {
-					if (startPage<0) startPage = image.getPageIndex();
-					endPage = image.getPageIndex();
-					int remainingWords = xmlDoc.wordCount() - (cumulWordCount + wordCount);
-					LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount + ", total xml words: " + xmlDoc.wordCount() + ", remaining words: " + remainingWords);
-					if (wordsPerDoc>0 && wordCount >= wordsPerDoc && remainingWords >= wordsPerDoc) {
-						LOG.debug("Creating new index doc: " + docCount);
-						JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
-						indexDoc.save(indexWriter);
-						docCount++;
-						
-						sb = new StringBuilder();
-						coordinateStorage = searchService.getCoordinateStorage();
-						startPage = image.getPageIndex();
-						offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
-						cumulWordCount += wordCount;
-						wordCount = 0;
-					}
-					
-					LOG.debug("Processing page: " + image.getFileNameBase());
-					
-					File imageFile = null;
-					for (String imageExtension : imageExtensions) {
-						imageFile = new File(documentDir, image.getFileNameBase() + "." + imageExtension);
-						if (imageFile.exists())
-							break;
-						imageFile = null;
-					}
-					if (imageFile==null)
-						throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + image.getFileNameBase());
-	
-					coordinateStorage.addImage(sb.length(), imageFile.getName(), image.getPageIndex());
-					
-					for (JochreXmlParagraph par : image.getParagraphs()) {
-						coordinateStorage.addParagraph(sb.length(), new Rectangle(par.getLeft(), par.getTop(), par.getRight(), par.getBottom()));
-						for (JochreXmlRow row : par.getRows()) {
-							coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
-							int k=0;
-							for (JochreXmlWord word : row.getWords()) {
-								wordCount++;
-								for (JochreXmlLetter letter : word.getLetters()) {
-									offsetLetterMap.put(sb.length(), letter);
-									if (letter.getText().length()>1) {
-										for (int j=1; j<letter.getText().length(); j++) {
-											offsetLetterMap.put(sb.length()+j, letter);
-										}
-									}
-									sb.append(letter.getText());
-								}
-								k++;
-								boolean finalDash = false;
-								if (k==row.getWords().size() && word.getText().endsWith("-") && word.getText().length()>1)
-									finalDash = true;
-								if (!finalDash)
-									sb.append(" ");
-							}
-						}
-						sb.append("\n");
-					}
-					i++;
-				}
-				JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
-				indexDoc.save(indexWriter);
-				
-				Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(lastIndexDateFile, false),"UTF8"));
-				writer.write("" + zipDate);
-				writer.flush();
-
-				writer.close();
+				LOG.info("Index for " + documentDir.getName() + "already up-to-date.");
 			} // should update index?
 			
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
+		}
+	}
+	
+	private void updateDocumentInternal(File documentDir) {
+		try {
+			LOG.info("Updating index for " + documentDir.getName());
+			
+			File zipFile = new File(documentDir, documentDir.getName() + ".zip");
+			if (!zipFile.exists()) {
+				LOG.info("Nothing to index in " + documentDir.getName());
+				return;
+			}
+			long zipDate = zipFile.lastModified();
+	
+			this.deleteDocumentInternal(documentDir);
+			
+			File[] offsetFiles = documentDir.listFiles(new FilenameFilter() {
+				
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.endsWith(".obj");
+				}
+			});
+			
+			for (File offsetFile : offsetFiles) {
+				offsetFile.delete();
+			}
+			
+			int i = 0;
+			
+			Map<String,String> fields = new TreeMap<String, String>();
+			File metaDataFile = new File(documentDir, "metadata.txt");
+			Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(metaDataFile), "UTF-8")));
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+				String key = line.substring(0, line.indexOf('\t'));
+				String value = line.substring(line.indexOf('\t'));
+				fields.put(key, value);
+			}
+			scanner.close();
+			
+			JochreXmlDocument xmlDoc = this.searchService.newDocument();
+			JochreXmlReader reader = this.searchService.getJochreXmlReader(xmlDoc);
+			
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+			ZipEntry ze = null;
+		    while ((ze = zis.getNextEntry()) != null) {
+				LOG.debug("Adding zipEntry " + i + ": " + ze.getName());
+				String baseName = ze.getName().substring(0, ze.getName().lastIndexOf('.'));
+				UnclosableInputStream uis = new UnclosableInputStream(zis);
+				reader.parseFile(uis, baseName);
+		    	i++;
+		    }
+		    zis.close();
+			
+			i = 0;
+			StringBuilder sb = new StringBuilder();
+			coordinateStorage = searchService.getCoordinateStorage();
+			offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
+			int startPage = -1;
+			int endPage = -1;
+			int docCount = 0;
+			int wordCount = 0;
+			int cumulWordCount = 0;
+			for (JochreXmlImage image : xmlDoc.getImages()) {
+				if (startPage<0) startPage = image.getPageIndex();
+				endPage = image.getPageIndex();
+				int remainingWords = xmlDoc.wordCount() - (cumulWordCount + wordCount);
+				LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount + ", total xml words: " + xmlDoc.wordCount() + ", remaining words: " + remainingWords);
+				if (wordsPerDoc>0 && wordCount >= wordsPerDoc && remainingWords >= wordsPerDoc) {
+					LOG.debug("Creating new index doc: " + docCount);
+					JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
+					indexDoc.save(indexWriter);
+					docCount++;
+					
+					sb = new StringBuilder();
+					coordinateStorage = searchService.getCoordinateStorage();
+					startPage = image.getPageIndex();
+					offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
+					cumulWordCount += wordCount;
+					wordCount = 0;
+				}
+				
+				LOG.debug("Processing page: " + image.getFileNameBase());
+				
+				File imageFile = null;
+				for (String imageExtension : imageExtensions) {
+					imageFile = new File(documentDir, image.getFileNameBase() + "." + imageExtension);
+					if (imageFile.exists())
+						break;
+					imageFile = null;
+				}
+				if (imageFile==null)
+					throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + image.getFileNameBase());
+	
+				coordinateStorage.addImage(sb.length(), imageFile.getName(), image.getPageIndex());
+				
+				for (JochreXmlParagraph par : image.getParagraphs()) {
+					coordinateStorage.addParagraph(sb.length(), new Rectangle(par.getLeft(), par.getTop(), par.getRight(), par.getBottom()));
+					for (JochreXmlRow row : par.getRows()) {
+						coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
+						int k=0;
+						for (JochreXmlWord word : row.getWords()) {
+							wordCount++;
+							for (JochreXmlLetter letter : word.getLetters()) {
+								offsetLetterMap.put(sb.length(), letter);
+								if (letter.getText().length()>1) {
+									for (int j=1; j<letter.getText().length(); j++) {
+										offsetLetterMap.put(sb.length()+j, letter);
+									}
+								}
+								sb.append(letter.getText());
+							}
+							k++;
+							boolean finalDash = false;
+							if (k==row.getWords().size() && word.getText().endsWith("-") && word.getText().length()>1)
+								finalDash = true;
+							if (!finalDash)
+								sb.append(" ");
+						}
+					}
+					sb.append("\n");
+				}
+				i++;
+			}
+			JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
+			indexDoc.save(indexWriter);
+			
+			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
+	
+			Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(lastIndexDateFile, false),"UTF8"));
+			writer.write("" + zipDate);
+			writer.flush();
+	
+			writer.close();
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
+		}
+	}
+
+	private void deleteDocumentInternal(File documentDir) {
+		try {
+			Term term = new Term("id", documentDir.getName());
+			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

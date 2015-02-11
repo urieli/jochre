@@ -12,7 +12,8 @@ import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 
 public class JochreOccitan extends Jochre implements LocaleSpecificLexiconService {
 	public JochreOccitan() {
-		super(new Locale("oc"));
+		super();
+		this.setLocale(Locale.forLanguageTag("oc"));
 	}
 
 	public static void main(String[] args) throws Exception {

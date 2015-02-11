@@ -31,6 +31,7 @@ public interface LocaleSpecificLexiconService {
 	 * @return
 	 */
 	public Locale getLocale();
+	public void setLocale(Locale locale);
 	
 	/**
 	 * A lexicon for use with this locale.

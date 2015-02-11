@@ -101,11 +101,11 @@ class JochreSplitEventStream implements ClassificationEventStream {
 								}
 							}
 						} finally {
-							MONITOR.endTask(feature.getName());
+							MONITOR.endTask();
 						}
 					}
 				} finally {
-					MONITOR.endTask("analyse features");
+					MONITOR.endTask();
 				}
 
 				SplitOutcome outcome = SplitOutcome.DO_NOT_SPLIT;
@@ -136,7 +136,7 @@ class JochreSplitEventStream implements ClassificationEventStream {
 			}
 			return event;
 		} finally {
-			MONITOR.endTask("next");
+			MONITOR.endTask();
 		}
 	}
 
@@ -164,7 +164,7 @@ class JochreSplitEventStream implements ClassificationEventStream {
 			
 			return splitCandidate!=null;
 		} finally {
-			MONITOR.endTask("hasNext");
+			MONITOR.endTask();
 		}
 	}
 	

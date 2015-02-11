@@ -48,13 +48,18 @@ public class LexiconMerger implements Lexicon {
 	@Override
 	public Iterator<String> getWords() {
 		final List<Lexicon> myLexicons = lexicons;
+		if (lexicons.size()==0) {
+			List<String> words = new ArrayList<String>();
+			return words.iterator();
+		}
+		
 		return new Iterator<String>() {
 			int i = 0;
 			Iterator<String> iterator = lexicons.get(0).getWords();
 			
 			@Override
 			public boolean hasNext() {
-				while (!iterator.hasNext() && i<lexicons.size()) {
+				while (!iterator.hasNext() && i+1<lexicons.size()) {
 					i++;
 					iterator = myLexicons.get(i).getWords();
 				}

@@ -102,7 +102,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 				observer.onFinish();
 			}
 		} finally {
-			MONITOR.endTask("analyse(JochreCorpusImageReader)");
+			MONITOR.endTask();
 		}
 	}
 	
@@ -116,7 +116,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 				observer.onFinish();
 			}
 		} finally {
-			MONITOR.endTask("analyse");
+			MONITOR.endTask();
 		}
 	}
 	
@@ -207,7 +207,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							try {
 								letterGuesser.guessLetter(shapeInSequence, history);
 							} finally {
-								MONITOR.endTask("guess letter");
+								MONITOR.endTask();
 							}
 							
 							MONITOR.startTask("heap sort");
@@ -222,7 +222,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									} // weight big enough to include
 								} // next letter guess for this shape
 							} finally {
-								MONITOR.endTask("heap sort");
+								MONITOR.endTask();
 							}
 						} // next history in heap
 					} // any more heaps?
@@ -276,7 +276,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							}
 						}
 					} finally {
-						MONITOR.endTask("best sequence");
+						MONITOR.endTask();
 					}
 					
 					MONITOR.startTask("assign letter");
@@ -310,7 +310,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							currentMonitor.setPercentComplete(progress);
 						}
 					} finally {
-						MONITOR.endTask("assign letter");
+						MONITOR.endTask();
 					}
 				} // next group
 			} // next row

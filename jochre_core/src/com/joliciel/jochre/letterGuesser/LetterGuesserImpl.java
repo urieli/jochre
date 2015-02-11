@@ -82,11 +82,11 @@ final class LetterGuesserImpl implements LetterGuesser {
 							}
 						}
 					} finally {
-						MONITOR.endTask(feature.getName());
+						MONITOR.endTask();
 					}
 				}
 			} finally {
-				MONITOR.endTask("analyse features");
+				MONITOR.endTask();
 			}
 			
 			List<Decision<Letter>> letterGuesses = null;
@@ -94,7 +94,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 			try {
 				letterGuesses = decisionMaker.decide(featureResults);
 			} finally {
-				MONITOR.endTask("decision maker");
+				MONITOR.endTask();
 			}
 			
 			Letter bestOutcome = null;
@@ -110,7 +110,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 				
 				bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
 			} finally {
-				MONITOR.endTask("store outcomes");
+				MONITOR.endTask();
 			}
 			
 			if (LOG.isTraceEnabled()) {
@@ -121,7 +121,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 
 			return bestOutcome.getString();
 		} finally {
-			MONITOR.endTask("guessLetter");
+			MONITOR.endTask();
 		}
 	}
 

@@ -91,7 +91,7 @@ class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements Joch
 	
 			return group!=null;
 		} finally {
-			MONITOR.endTask("hasNext");
+			MONITOR.endTask();
 		}
 	}
 

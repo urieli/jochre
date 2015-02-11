@@ -20,11 +20,15 @@ package com.joliciel.jochre.doc;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Locale;
+
 import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
@@ -40,17 +44,23 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	MultiTaskProgressMonitor currentMonitor;
 	File imageFile;
 	int pageNumber = 1;
+	Locale locale;
+	double junkConfidenceThreshold;
 
 	public ImageDocumentExtractorImpl(File imageFile,
 			SourceFileProcessor documentProcessor) {
 		this.documentProcessor = documentProcessor;	
 		this.imageFile = imageFile;
+		this.locale = JochreSession.getLocale();
+		this.junkConfidenceThreshold = JochreSession.getJunkConfidenceThreshold();
 	}
 	
 	
 	
 	@Override
 	public void run() {
+		JochreSession.setLocale(locale);
+		JochreSession.setJunkConfidenceThreshold(junkConfidenceThreshold);
 		this.extractDocument();
 	}
 
@@ -61,21 +71,46 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	public JochreDocument extractDocument() {
 		LOG.debug("ImageDocumentExtractorImpl.extractDocument");
 		try {
+			File[] files = new File[1];
+			
+			if (imageFile.isDirectory()) {
+				files = imageFile.listFiles(new FilenameFilter() {
+					
+					@Override
+					public boolean accept(File dir, String name) {
+						return (name.toLowerCase().endsWith(".png")
+								|| name.toLowerCase().endsWith(".jpg")
+								|| name.toLowerCase().endsWith(".jpeg")
+								|| name.toLowerCase().endsWith(".gif"));	
+					}
+				});
+			} else {
+				files[0] = imageFile;
+			}
+			
 			JochreDocument doc = this.documentProcessor.onDocumentStart();
-			JochrePage page = this.documentProcessor.onPageStart(pageNumber);
+			doc.setTotalPageCount(files.length);
 			
-			BufferedImage image = ImageIO.read(imageFile);
-			String imageName = imageFile.getName();
-			if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
-				ProgressMonitor monitor = ((Monitorable)documentProcessor).monitorTask();
-				currentMonitor.startTask(monitor, 1);
-			}
-			documentProcessor.onImageFound(page, image, imageName, 0);
-			if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
-				currentMonitor.endTask();
-			}
+			int currentPageNumber = this.pageNumber;
+			for (File file : files) {
+				JochrePage page = this.documentProcessor.onPageStart(currentPageNumber++);
 			
-			this.documentProcessor.onPageComplete(page);
+				BufferedImage image = ImageIO.read(file);
+				String imageName = file.getName();
+
+				if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
+					ProgressMonitor monitor = ((Monitorable)documentProcessor).monitorTask();
+					double percentAllotted = (1 / (double)(files.length));
+					currentMonitor.startTask(monitor, percentAllotted);
+				}
+				
+				documentProcessor.onImageFound(page, image, imageName, 0);
+				if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
+					currentMonitor.endTask();
+				}
+				
+				this.documentProcessor.onPageComplete(page);
+			}
 			this.documentProcessor.onDocumentComplete(doc);
 			
 			if (currentMonitor!=null)

@@ -101,11 +101,11 @@ class JochreMergeEventStream implements ClassificationEventStream {
 								}
 							}
 						} finally {
-							MONITOR.endTask(feature.getName());
+							MONITOR.endTask();
 						}
 					}
 				} finally {
-					MONITOR.endTask("analyse features");
+					MONITOR.endTask();
 				}
 				
 				MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
@@ -133,7 +133,7 @@ class JochreMergeEventStream implements ClassificationEventStream {
 			}
 			return event;
 		} finally {
-			MONITOR.endTask("next");
+			MONITOR.endTask();
 		}
 	}
 
@@ -177,7 +177,7 @@ class JochreMergeEventStream implements ClassificationEventStream {
 			
 			return mergeCandidate!=null;
 		} finally {
-			MONITOR.endTask("hasNext");
+			MONITOR.endTask();
 		}
 	}
 	

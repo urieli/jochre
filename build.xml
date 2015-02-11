@@ -19,11 +19,6 @@
 		</subant>
 		<subant target="clean">
 			<fileset dir=".">
-				<include name="jochre_occitan/build.xml"/>
-			</fileset>
-		</subant>
-		<subant target="clean">
-			<fileset dir=".">
 				<include name="jochre_search/build.xml"/>
 			</fileset>
 		</subant>
@@ -47,11 +42,6 @@
 		</subant>
 		<subant target="jar">
 			<fileset dir=".">
-				<include name="jochre_occitan/build.xml"/>
-			</fileset>
-		</subant>
-		<subant target="jar">
-			<fileset dir=".">
 				<include name="jochre_search/build.xml"/>
 			</fileset>
 		</subant>
@@ -66,11 +56,6 @@
 		<subant target="webapp">
 			<fileset dir=".">
 				<include name="jochre_yiddish/build.xml"/>
-			</fileset>
-		</subant>
-		<subant target="webapp">
-			<fileset dir=".">
-				<include name="jochre_occitan/build.xml"/>
 			</fileset>
 		</subant>
 		<subant target="webapp">

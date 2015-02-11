@@ -83,7 +83,7 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 			}
 			return wrappedFeatures;
 		} finally {
-			MONITOR.endTask("parseDescriptor");
+			MONITOR.endTask();
 		}
 	}
 

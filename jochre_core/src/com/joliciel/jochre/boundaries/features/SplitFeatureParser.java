@@ -86,7 +86,7 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 			}
 			return wrappedFeatures;
 		} finally {
-			MONITOR.endTask("parseDescriptor");
+			MONITOR.endTask();
 		}
 	}
 

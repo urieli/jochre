@@ -68,6 +68,9 @@
 	    		<attribute name="Class-Path" value="${jar.classpath}"/>
 	    	</manifest>
 		</jar>
+	</target>
+	
+	<target name="zip" depends="jar">
 		<zip destfile="${dist}/${project}-${jochre.version}.zip">
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 			<fileset dir="${dist}">
@@ -76,8 +79,7 @@
 			</fileset>
 		</zip>
 	</target>
-	
-	
+		
 	<target name="one-jar" depends="jar">
         <!-- Construct the One-JAR file -->   
         <one-jar destfile="${dist}/${project}-${jochre.version}-allDeps.jar">

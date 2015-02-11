@@ -113,11 +113,11 @@ class JochreLetterEventStream implements ClassificationEventStream {
 								}
 							}
 						} finally {
-							MONITOR.endTask(feature.getName());
+							MONITOR.endTask();
 						}
 					}
 				} finally {
-					MONITOR.endTask("analyse features");
+					MONITOR.endTask();
 				}
 				
 				String outcome = shape.getLetter();
@@ -131,7 +131,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 			}
 			return event;
 		} finally {
-			MONITOR.endTask("next");
+			MONITOR.endTask();
 		}
 	}
 
@@ -170,7 +170,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 			}
 			return shapeInSequence!=null;
 		} finally {
-			MONITOR.endTask("hasNext");			
+			MONITOR.endTask();			
 		}
 	}
 	

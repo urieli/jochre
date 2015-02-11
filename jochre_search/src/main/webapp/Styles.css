@@ -7,9 +7,10 @@ H4 { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 13px; }
 TD { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; VERTICAL-ALIGN: top; }
 TD.Small { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 10px; VERTICAL-ALIGN: top; }
 TD.Label { BACKGROUND-COLOR: #FFFF99; COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
-INPUT { COLOR: #660033; FONT-FAMILY: Arial, Helvetica; FONT-SIZE: 12px; }
-INPUT.Button { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
-INPUT.Submit { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 11px; FONT-WEIGHT: bold; }
+INPUT { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 16px; }
+INPUT[type="text"] { COLOR: #660033; FONT-FAMILY: "Times New Roman", Times, serif; FONT-SIZE: 16px; }
+INPUT[type="button"] { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 13px; FONT-WEIGHT: bold; }
+INPUT[type="submit"] { BACKGROUND-COLOR: #FFCC66; BORDER-BOTTOM: ridge; BORDER-LEFT: ridge; BORDER-RIGHT: ridge; BORDER-TOP: ridge; COLOR: #660000; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 13px; FONT-WEIGHT: bold; }
 TEXTAREA { COLOR: #660033; FONT-FAMILY: Arial, Helvetica; FONT-SIZE: 12px; }
 P { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }
 LI { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px; }

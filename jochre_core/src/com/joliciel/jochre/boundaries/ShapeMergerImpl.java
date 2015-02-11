@@ -74,11 +74,11 @@ public class ShapeMergerImpl implements ShapeMerger {
 							}
 						}
 					} finally {
-						MONITOR.endTask(feature.getName());
+						MONITOR.endTask();
 					}
 				}
 			} finally {
-				MONITOR.endTask("analyse features");
+				MONITOR.endTask();
 			}
 			
 			List<Decision<MergeOutcome>> decisions = null;
@@ -86,7 +86,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			try {
 				decisions = decisionMaker.decide(featureResults);
 			} finally {
-				MONITOR.endTask("decision maker");
+				MONITOR.endTask();
 			}
 			
 			double yesProb = 0.0;
@@ -102,7 +102,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			}
 			return yesProb;
 		} finally {
-			MONITOR.endTask("checkMerge");
+			MONITOR.endTask();
 		}
 	}
 

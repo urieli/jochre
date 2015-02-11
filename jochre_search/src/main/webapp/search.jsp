@@ -28,9 +28,9 @@ if (queryString==null) queryString = "";
 <%@ include file="Styles.css" %>
 </head>
 <body>
-<form>
+<form method="post" accept-charset="UTF-8">
 <table>
-<tr><td><img src="images/jochreLogo.png"/></td><td>Query:</td><td><input type="text" name="query" value="<%= queryString %>" /><input type="submit" value="Search" /></td></tr>
+<tr><td><img src="images/jochreLogo.png"/></td><td><input type="text" name="query" style="width:200px;" value="<%= queryString %>" />&nbsp;<input type="submit" value="Search" /></td></tr>
 </table>
 <%
 if (queryString.length()>0) {

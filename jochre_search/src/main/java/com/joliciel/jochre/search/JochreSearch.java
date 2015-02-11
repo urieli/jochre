@@ -89,16 +89,20 @@ public class JochreSearch {
 				File documentDir = new File(documentDirPath);
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
-				builder.addDocumentDir(documentDir);
+				builder.updateDocument(documentDir);
 			} else if (command.equals("updateIndex")) {
 				String indexDirPath = argMap.get("indexDir");
 				String documentDirPath = argMap.get("documentDir");
+				boolean forceUpdate = false;
+				if (argMap.containsKey("forceUpdate")) {
+					forceUpdate = argMap.get("forceUpdate").equals("true");
+				}
 				File indexDir = new File(indexDirPath);
 				indexDir.mkdirs();
 				File documentDir = new File(documentDirPath);
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
-				builder.updateIndex(documentDir);
+				builder.updateIndex(documentDir, forceUpdate);
 			} else if (command.equals("search")) {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();

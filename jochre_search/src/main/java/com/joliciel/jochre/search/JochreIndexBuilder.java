@@ -23,15 +23,28 @@ import java.io.File;
 public interface JochreIndexBuilder {
 	/**
 	 * Update the index by scanning all of the sub-directories of this contentDir for updates.
-	 * @param contentDir
+	 * Each sub-directory name should uniquely identify a document set contained inside it.
+	 * The sub-directory can contain a file called "instructions.txt".
+	 * This file can contain a single word: "delete" or "skip", in which case the document set
+	 * will be deleted from the index or skipped.
+	 * Otherwise, the index will be updated if the zip file in the document set has a later modify
+	 * date than the one located in the file "indexDate.txt".
+	 * @param contentDir the parent directory to scan
+	 * @param forceUpdate if true, all docs will be updated regardless of last update date
 	 */
-	public void updateIndex(File contentDir);
+	public void updateIndex(File contentDir, boolean forceUpdate);
 	
 	/**
-	 * Add a single document directory to the index.
-	 * @param documentDir
+	 * Add or update a single document set to the index. The directory name should uniquely identify the document set.
+	 * @param documentDir the directory containing the document set
 	 */
-	public void addDocumentDir(File documentDir);
+	public void updateDocument(File documentDir);
+	
+	/**
+	 * Delete a single document set from the index. The directory name should uniquely identify the document set.
+	 * @param documentDir the directory containing the document set
+	 */
+	public void deleteDocument(File documentDir);
 
 	/**
 	 * The approximate number of words to include in each Lucene document -
