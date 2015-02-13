@@ -412,6 +412,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			if (locale==null) {
 				throw new JochreException("Argument lang is required");
 			}
+			JochreSession.setLocale(locale);
 			
     		if (encoding==null)
     			encoding = Charset.defaultCharset().name();

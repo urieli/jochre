@@ -34,7 +34,8 @@ import com.joliciel.jochre.lexicon.WordSplitter;
 
 public class JochreYiddish extends Jochre implements LocaleSpecificLexiconService {
 	public JochreYiddish() {
-		super(new Locale("yi"));
+		super();
+		this.setLocale(new Locale("yi"));
 	}
 
 	@SuppressWarnings("unused")

@@ -130,16 +130,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		jochreProperties = new Properties();
 		jochreProperties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
 
-		String lexiconServiceClassName = jochreProperties.getProperty("lexiconService");
-		LOG.debug("lexiconServiceClassName: " + lexiconServiceClassName);
-		@SuppressWarnings("rawtypes")
-		Class lexiconServiceClass = Class.forName(lexiconServiceClassName);
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		Constructor constructor =
-			lexiconServiceClass.getConstructor(new Class[]{});
-		LocaleSpecificLexiconService localeSpecificLexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
-
-		locale = localeSpecificLexiconService.getLocale();
+		locale = JochreProperties.getInstance().getLocale();
 		
 		binder = new AnnotateDataBinder(window);
 		binder.loadAll();
