@@ -26,15 +26,25 @@ import java.util.Locale;
  *
  */
 public class JochreSession {
-	private static ThreadLocal<Locale> localeHolder = new ThreadLocal<Locale>();
-	private static ThreadLocal<Double> junkConfidenceThresholdHolder = new ThreadLocal<Double>();
+	private Locale locale;
+	private double junkConfidenceThreshold = 0.75;
 	
-	public static Locale getLocale() {
-		return localeHolder.get();
+	private static JochreSession instance;
+	
+	public static JochreSession getInstance() {
+		if (instance==null)
+			instance = new JochreSession();
+		return instance;
 	}
 	
-	public static void setLocale(Locale locale) {
-		localeHolder.set(locale);
+	private JochreSession() { }
+	
+	public Locale getLocale() {
+		return locale;
+	}
+	
+	public void setLocale(Locale locale) {
+		this.locale = locale;
 	}
 	
 	/**
@@ -42,14 +52,11 @@ public class JochreSession {
 	 * when considering all of its letters.
 	 * @return
 	 */
-	public static double getJunkConfidenceThreshold() {
-		Double junkConfidenceThreshold = junkConfidenceThresholdHolder.get();
-		if (junkConfidenceThreshold==null)
-			return 0.75;
+	public double getJunkConfidenceThreshold() {
 		return junkConfidenceThreshold;
 	}
 	
-	public static void setJunkConfidenceThreshold(double junkConfidenceThreshold) {
-		junkConfidenceThresholdHolder.set(junkConfidenceThreshold);
+	public void setJunkConfidenceThreshold(double junkConfidenceThreshold) {
+		this.junkConfidenceThreshold = junkConfidenceThreshold;
 	}
 }

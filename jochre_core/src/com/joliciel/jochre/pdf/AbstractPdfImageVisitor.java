@@ -20,17 +20,18 @@ package com.joliciel.jochre.pdf;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jpedal.PdfDecoder;
-import org.jpedal.exception.PdfException;
-import org.jpedal.objects.PdfFileInformation;
-import org.jpedal.objects.PdfImageData;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 
 /**
  * A base class for visiting the images in a Pdf document one at a time.
@@ -39,40 +40,18 @@ import org.jpedal.objects.PdfImageData;
  */
 abstract class AbstractPdfImageVisitor {
 	private static final Log LOG = LogFactory.getLog(AbstractPdfImageVisitor.class);
-	private PdfDecoder pdfDecoder = null;
+	private PDDocument pdfDocument = null;
 	private File pdfFile;
 	private Map<String,String> fields = new TreeMap<String, String>();
 	
 	public AbstractPdfImageVisitor(File pdfFile) {
 		try {
 			this.pdfFile = pdfFile;
-			this.pdfDecoder = new PdfDecoder( false );
-
-			this.pdfDecoder.setExtractionMode(PdfDecoder.RAWIMAGES+PdfDecoder.FINALIMAGES);
 	
-			FileInputStream fis = new FileInputStream(pdfFile);
-			this.pdfDecoder.openPdfFileFromInputStream(fis, true);
-			
-	        PdfFileInformation currentFileInformation=pdfDecoder.getFileInformationData();
-
-	        String[] values=currentFileInformation.getFieldValues();
-	        String[] fieldNames= PdfFileInformation.getFieldNames();
-
-	        int count = fieldNames.length;
-
-	        LOG.info("Fields");
-	        for(int i=0;i<count;i++){
-	        	fields.put(fieldNames[i], values[i].replace("Ì£", ""));
-	        	LOG.info(fieldNames[i]+" = "+values[i]);
-	        }
-
-	        LOG.info("Metadata");
-	        LOG.info(currentFileInformation.getFileXMLMetaData());
+			pdfDocument = PDDocument.load(pdfFile);
 
 		} catch (FileNotFoundException fnfe) {
 			throw new RuntimeException(fnfe);
-		} catch (PdfException pdfe) {
-			throw new RuntimeException(pdfe);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -86,43 +65,36 @@ abstract class AbstractPdfImageVisitor {
 	 */
 	final void visitImages(int firstPage, int lastPage) {
 		try {
-			try {
-				for( int i = 1;i < pdfDecoder.getPageCount() + 1; i++ )
-				{
-					if (i < firstPage)
-						continue;
-					if (lastPage > 0 && i > lastPage)
-						break;
+			@SuppressWarnings("unchecked")
+			Iterator<PDPage> pageIterator = pdfDocument.getDocumentCatalog().getAllPages().iterator();
 
-					LOG.debug("Decoding page " + i);
-					pdfDecoder.decodePage(i);
+			int i=0;
+			while (pageIterator.hasNext()) {
+				PDPage pdfPage = pageIterator.next();
+				i++;
+				if (i < firstPage)
+					continue;
+				if (lastPage > 0 && i > lastPage)
+					break;
 
-					// This object contains image meta-data
-					// and gets the binary data which has been stored in a temp directory
-					PdfImageData pdfImages = pdfDecoder.getPdfImageData();
-
-					int imageCount = pdfImages.getImageCount();
-					LOG.debug( imageCount + " images found" );
-
-					for( int j = 0; j < imageCount; j++ )
-					{
-						String imageName = pdfImages.getImageName(j);
-						// JPedal indicates the raw version of the image with the R prefix
-						BufferedImage image = pdfDecoder.getObjectStore().loadStoredImage('R' + imageName );
-						this.visitImage(image, imageName, i, j);
-					}
-
-					// After each page we need to flush the images out, otherwise we accumulate
-					// images from previous pages
-					pdfDecoder.flushObjectValues(true);
-				}
-			} finally {
-				pdfDecoder.closePdfFile();	
+				LOG.debug("Decoding page " + i);
+				
+				PDResources resources = pdfPage.getResources();
+				Map<String,PDXObject> pdxObjects = resources.getXObjects();
+				int j = 0;
+				for (String key : pdxObjects.keySet()) {
+					PDXObject pdxObject = pdxObjects.get(key);
+					if (pdxObject instanceof PDXObjectImage) {
+		                PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
+		                BufferedImage image = pdfImage.getRGBImage();
+		                this.visitImage(image, key, i, j);
+		                j++;
+		            }
+		        }
+				
 			}
 		} catch (FileNotFoundException fnfe) {
 			throw new RuntimeException(fnfe);
-		} catch (PdfException pdfe) {
-			throw new RuntimeException(pdfe);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}		
@@ -138,7 +110,7 @@ abstract class AbstractPdfImageVisitor {
 	abstract void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex);
 	
 	public int getPageCount() {
-		return pdfDecoder.getPageCount();
+		return pdfDocument.getNumberOfPages();
 	}
 	
 	public File getPdfFile() {

@@ -412,7 +412,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 			if (locale==null) {
 				throw new JochreException("Argument lang is required");
 			}
-			JochreSession.setLocale(locale);
+			JochreSession jochreSession = JochreSession.getInstance();
+			jochreSession.setLocale(locale);
 			
     		if (encoding==null)
     			encoding = Charset.defaultCharset().name();
@@ -463,7 +464,7 @@ public class Jochre implements LocaleSpecificLexiconService {
         	wordChooser.setFrequencyLogBase(frequencyLogBase);
         	wordChooser.setFrequencyAdjusted(frequencyAdjusted);
 			
-        	JochreSession.setJunkConfidenceThreshold(junkThreshold);
+        	jochreSession.setJunkConfidenceThreshold(junkThreshold);
 			
 			if (command.equals("segment")) {
 				this.doCommandSegment(filename, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
@@ -1552,7 +1553,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 	public void setLocale(Locale locale) {
 		this.locale = locale;
-		JochreSession.setLocale(locale);
+		JochreSession jochreSession = JochreSession.getInstance();
+		jochreSession.setLocale(locale);
 	}
 
 	public GraphicsService getGraphicsService() {

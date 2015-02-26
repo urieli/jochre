@@ -77,7 +77,8 @@ public class DefaultLexiconWrapper implements Lexicon {
 	    // removing diacritics
 	    String removed = decomposed.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
 		
-	    String uppercase = removed.toUpperCase(JochreSession.getLocale());
+	    JochreSession jochreSession = JochreSession.getInstance();
+	    String uppercase = removed.toUpperCase(jochreSession.getLocale());
 	    return uppercase;
 	}
 	

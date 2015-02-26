@@ -495,7 +495,8 @@ class GroupOfShapesImpl extends EntityImpl implements
 					}
 					averageConfidence = averageConfidence / this.getShapes().size();
 				}
-				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+				JochreSession jochreSession = JochreSession.getInstance();
+				if (averageConfidence < jochreSession.getJunkConfidenceThreshold())
 					junk = true;
 				else
 					junk = false;
@@ -518,7 +519,8 @@ class GroupOfShapesImpl extends EntityImpl implements
 
 	@Override
 	public String getWordForIndex() {
-		Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
+		JochreSession jochreSession = JochreSession.getInstance();
+		Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 		String word = this.getWord();
 		int wordStart = 0;
 		for (int i=0; i<word.length(); i++) {

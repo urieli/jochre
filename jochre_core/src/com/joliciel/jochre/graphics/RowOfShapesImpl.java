@@ -1079,8 +1079,9 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 					}
 				}
 				averageConfidence = averageConfidence / shapeCount;
-
-				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+				
+				JochreSession jochreSession = JochreSession.getInstance();
+				if (averageConfidence < jochreSession.getJunkConfidenceThreshold())
 					junk = true;
 				else
 					junk = false;

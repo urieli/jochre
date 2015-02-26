@@ -241,7 +241,8 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						beamContainsRightWord = false;
 					}
 					
-					Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
+					JochreSession jochreSession = JochreSession.getInstance();
+					Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
 						String letterGuess = bestSequence.get(j++).getString();
 						String letter = shapeInSequence.getShape().getLetter();

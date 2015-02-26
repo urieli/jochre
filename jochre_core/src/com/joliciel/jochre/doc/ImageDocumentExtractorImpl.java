@@ -21,14 +21,11 @@ package com.joliciel.jochre.doc;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Locale;
-
 import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
@@ -44,23 +41,17 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	MultiTaskProgressMonitor currentMonitor;
 	File imageFile;
 	int pageNumber = 1;
-	Locale locale;
-	double junkConfidenceThreshold;
 
 	public ImageDocumentExtractorImpl(File imageFile,
 			SourceFileProcessor documentProcessor) {
 		this.documentProcessor = documentProcessor;	
 		this.imageFile = imageFile;
-		this.locale = JochreSession.getLocale();
-		this.junkConfidenceThreshold = JochreSession.getJunkConfidenceThreshold();
 	}
 	
 	
 	
 	@Override
 	public void run() {
-		JochreSession.setLocale(locale);
-		JochreSession.setJunkConfidenceThreshold(junkConfidenceThreshold);
 		this.extractDocument();
 	}
 

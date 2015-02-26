@@ -165,8 +165,9 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 					}
 				}
 				averageConfidence = averageConfidence / shapeCount;
-
-				if (averageConfidence < JochreSession.getJunkConfidenceThreshold())
+				
+				JochreSession jochreSession = JochreSession.getInstance();
+				if (averageConfidence < jochreSession.getJunkConfidenceThreshold())
 					junk = true;
 				else
 					junk = false;

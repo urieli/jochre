@@ -183,7 +183,8 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	@Override
 	public String getRealSequence() {
 		if (realSequence==null) {
-			Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
+			JochreSession jochreSession = JochreSession.getInstance();
+			Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 			StringBuilder realWordBuilder = new StringBuilder();
 			Shape lastShape = null;
 			for (ShapeInSequence shapeInSequence : this.getUnderlyingShapeSequence()) {
@@ -208,7 +209,8 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	@Override
 	public String getGuessedSequence() {
 		if (guessedSequence==null) {
-			Linguistics linguistics = Linguistics.getInstance(JochreSession.getLocale());
+			JochreSession jochreSession = JochreSession.getInstance();
+			Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 			StringBuilder builder = new StringBuilder();
 			for (Letter letter : this) {
 				if (letter.getString().length()==0)
