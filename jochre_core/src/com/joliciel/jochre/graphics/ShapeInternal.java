@@ -58,5 +58,7 @@ interface ShapeInternal extends Shape, EntityInternal {
 	public abstract void setJochreImage(JochreImage jochreImage);
 
 	public abstract JochreImage getJochreImage();
+	
+	public void setGraphicsService(GraphicsServiceInternal graphicsService);
 
 }

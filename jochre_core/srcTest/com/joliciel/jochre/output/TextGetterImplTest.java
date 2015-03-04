@@ -22,7 +22,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.ArrayList;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -45,12 +45,21 @@ public class TextGetterImplTest {
     private static final Log LOG = LogFactory.getLog(TextGetterImplTest.class);
 
     @Test
-    public void testGetText(@NonStrict final JochreDocument doc,
-    		@NonStrict final JochrePage page,
-    		@NonStrict final JochreImage jochreImage,
-    		@NonStrict final Paragraph paragraph,
-    		@NonStrict final RowOfShapes row,
-    		@NonStrict final GroupOfShapes group
+    public void testGetText(@Mocked final JochreDocument doc,
+    		@Mocked final JochrePage page,
+    		@Mocked final JochreImage jochreImage,
+    		@Mocked final Paragraph paragraph,
+    		@Mocked final RowOfShapes row,
+    		@Mocked final GroupOfShapes group,
+    		@Mocked final Shape shape1,
+    		@Mocked final Shape shape2,
+    		@Mocked final Shape shape3,
+    		@Mocked final Shape shape4,
+    		@Mocked final Shape shape5,
+    		@Mocked final Shape shape6,
+    		@Mocked final Shape shape7,
+    		@Mocked final Shape shape8,
+    		@Mocked final Shape shape9
     		) {
     	final List<Paragraph> paragraphs = new ArrayList<Paragraph>();
     	paragraphs.add(paragraph);
@@ -60,7 +69,6 @@ public class TextGetterImplTest {
     	groups.add(group);
     	
 		new NonStrictExpectations() {
-			Shape shape1, shape2, shape3, shape4, shape5, shape6, shape7, shape8, shape9;
 			{
          	jochreImage.getPage(); returns(page);
         	page.getDocument(); returns(doc);
@@ -102,19 +110,26 @@ public class TextGetterImplTest {
     }
     
     @Test
-    public void testGetTextFontSizes(@NonStrict final JochreDocument doc,
-    		@NonStrict final JochrePage page,
-    		@NonStrict final JochreImage jochreImage,
-    		@NonStrict final Paragraph paragraph,
-    		@NonStrict final RowOfShapes row) {
+    public void testGetTextFontSizes(@Mocked final JochreDocument doc,
+    		@Mocked final JochrePage page,
+    		@Mocked final JochreImage jochreImage,
+    		@Mocked final Paragraph paragraph,
+    		@Mocked final RowOfShapes row,
+    		@Mocked final GroupOfShapes group1,
+       		@Mocked final GroupOfShapes group2,
+       		@Mocked final GroupOfShapes group3,
+       		@Mocked final GroupOfShapes group4,
+       		@Mocked final Shape shape1,
+       		@Mocked final Shape shape2,
+       		@Mocked final Shape shape3,
+       		@Mocked final Shape shape4
+    	) {
       	final List<Paragraph> paragraphs = new ArrayList<Paragraph>();
      	paragraphs.add(paragraph);
     	final List<RowOfShapes> rows = new ArrayList<RowOfShapes>();
     	rows.add(row);
   
 		new NonStrictExpectations() {
-			GroupOfShapes group1, group2, group3, group4;
-			Shape shape1, shape2, shape3, shape4;
 			{
 				jochreImage.getPage(); returns(page);
 	        	page.getDocument(); returns(doc);

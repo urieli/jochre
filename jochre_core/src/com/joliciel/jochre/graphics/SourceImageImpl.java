@@ -69,6 +69,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	
 	boolean drawPixelSpread = false;
 	
+	SourceImageImpl() { super(); }
+	
 	public SourceImageImpl(GraphicsServiceInternal graphicsService, String name, BufferedImage image) {
 		super(image);
 		this.name = name;

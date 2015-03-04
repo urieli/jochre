@@ -21,7 +21,7 @@ package com.joliciel.jochre.graphics;
 import java.util.BitSet;
 import java.util.List;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -34,37 +34,23 @@ public class VectorizerImplTest {
 	private static final Log LOG = LogFactory.getLog(VectorizerImplTest.class);
 
 	@Test
-	public void testGetLongestLines(@NonStrict final Shape shape) {
+	public void testGetLongestLines() {
 		final int threshold = 100;
 		final int maxLines = 60;
 		final int whiteGapFillFactor = 5;
-		
-		new NonStrictExpectations() {
-			{
-	        	shape.getHeight();returns(8);
-	        	shape.getWidth();returns(8);
-	        	
-	        	int[] pixels =
-	        		{ 0, 1, 1, 0, 0, 1, 1, 1,
-	        		  0, 1, 1, 1, 0, 1, 1, 1,
-	        		  0, 0, 1, 1, 0, 0, 1, 1,
-	        		  0, 0, 1, 1, 0, 1, 1, 0,
-	        		  0, 0, 0, 1, 1, 1, 1, 0,
-	        		  0, 0, 0, 1, 1, 1, 0, 0,
-	        		  0, 0, 1, 1, 1, 0, 0, 0,
-	        		  1, 1, 1, 1, 1, 0, 0, 0
-	        		};
-	        	
-	        	for (int x = -1; x <= 8; x++)
-	        		for (int y = -1; y <= 8; y++) {
-	        			shape.isPixelBlack(x, y, threshold, whiteGapFillFactor); 
-	        			if (x >= 0 && x < 8 && y >= 0 && y < 8)
-	        				returns(pixels[y*8 + x]==1);
-	        			else
-	        				returns(false);
-	        		}
-	        	
-	        }};
+    	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1,
+		  0, 1, 1, 1, 0, 1, 1, 1,
+		  0, 0, 1, 1, 0, 0, 1, 1,
+		  0, 0, 1, 1, 0, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  1, 1, 1, 1, 1, 0, 0, 0
+		};
+    	
+    	Shape shape = new ShapeMock(pixels, 8, 8);
+    	
 		BitSet outline = new BitSet(64);
 
     	int[] outlinePixels =
@@ -91,36 +77,21 @@ public class VectorizerImplTest {
 	}
 
 	@Test
-	public void testGetLinesToEdge(@NonStrict final Shape shape) {
+	public void testGetLinesToEdge() {
 		final int threshold = 100;
 		final int whiteGapFillFactor = 5;
-			
-		new NonStrictExpectations() {
-			{
-	        	shape.getHeight();returns(8);
-	        	shape.getWidth();returns(8);
-	        	
-	        	int[] pixels =
-	        		{ 0, 1, 1, 0, 0, 1, 1, 1,
-	        		  0, 1, 1, 1, 0, 1, 1, 1,
-	        		  0, 0, 1, 1, 0, 0, 1, 1,
-	        		  0, 0, 1, 1, 0, 1, 1, 0,
-	        		  0, 0, 0, 1, 1, 1, 1, 0,
-	        		  0, 0, 0, 1, 1, 1, 0, 0,
-	        		  0, 0, 1, 1, 1, 0, 0, 0,
-	        		  1, 1, 1, 1, 1, 0, 0, 0
-	        		};
-	        	
-	        	for (int x = -1; x <= 8; x++)
-	        		for (int y = -1; y <= 8; y++) {
-	        			shape.isPixelBlack(x, y, threshold, whiteGapFillFactor); 
-	        			if (x >= 0 && x < 8 && y >= 0 && y < 8)
-	        				returns(pixels[y*8 + x]==1);
-	        			else
-	        				returns(false);
-	        		}
-	        	
-	        }};
+    	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1,
+		  0, 1, 1, 1, 0, 1, 1, 1,
+		  0, 0, 1, 1, 0, 0, 1, 1,
+		  0, 0, 1, 1, 0, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  1, 1, 1, 1, 1, 0, 0, 0
+		};
+
+    	Shape shape = new ShapeMock(pixels, 8, 8);
     	
 		VectorizerImpl vectorizer = new VectorizerImpl();
 		GraphicsServiceInternal graphicsService = new GraphicsServiceImpl();
@@ -132,55 +103,45 @@ public class VectorizerImplTest {
 	}
 
 	@Test
-	public void testArrayListize(@NonStrict final Shape shape,
-			@NonStrict final JochreImage image) {
+	public void testArrayListize(@Mocked final JochreImage image) {
 		final int threshold = 100;
 		final int whiteGapFillFactor = 5;
 		
+    	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1,
+		  0, 1, 1, 1, 0, 1, 1, 1,
+		  0, 0, 1, 1, 0, 0, 1, 1,
+		  0, 0, 1, 1, 0, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  1, 1, 1, 1, 1, 0, 0, 0
+		};
+
+    	ShapeMock shape = new ShapeMock(pixels, 8, 8);
+    	
+       	int[] outlinePixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
+		  0, 1, 0, 1, 0, 1, 0, 1, // row 1
+		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
+		  0, 0, 0, 1, 1, 0, 1, 0, // row 4
+		  0, 0, 0, 1, 0, 1, 0, 0, // row 5
+		  0, 0, 1, 0, 1, 0, 0, 0, // row 6
+		  1, 1, 1, 1, 1, 0, 0, 0, // row 7
+		};
+    	
+    	BitSet outline = new BitSet();
+    	for (int i = 0; i < 8 * 8; i++)
+    		outline.set(i,outlinePixels[i]==1);
+    	
+    	shape.setOutline(outline);
+    	shape.setJochreImage(image);
+    	
 		new NonStrictExpectations() {
 		{
-			shape.getHeight();returns(8);
-        	shape.getWidth();returns(8);
-        	shape.getJochreImage();returns(image);
         	image.getBlackThreshold();returns(threshold);
         	
-        	int[] pixels =
-        		{ 0, 1, 1, 0, 0, 1, 1, 1,
-        		  0, 1, 1, 1, 0, 1, 1, 1,
-        		  0, 0, 1, 1, 0, 0, 1, 1,
-        		  0, 0, 1, 1, 0, 1, 1, 0,
-        		  0, 0, 0, 1, 1, 1, 1, 0,
-        		  0, 0, 0, 1, 1, 1, 0, 0,
-        		  0, 0, 1, 1, 1, 0, 0, 0,
-        		  1, 1, 1, 1, 1, 0, 0, 0
-        		};
-        	
-        	for (int x = -1; x <= 8; x++)
-        		for (int y = -1; y <= 8; y++) {
-        			shape.isPixelBlack(x, y, threshold, whiteGapFillFactor); 
-        			if (x >= 0 && x < 8 && y >= 0 && y < 8)
-        				returns(pixels[y*8 + x]==1);
-        			else
-        				returns(false);
-        		}
-        	
-        	int[] outlinePixels =
-    		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
-    		  0, 1, 0, 1, 0, 1, 0, 1, // row 1
-    		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
-    		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
-    		  0, 0, 0, 1, 1, 0, 1, 0, // row 4
-    		  0, 0, 0, 1, 0, 1, 0, 0, // row 5
-    		  0, 0, 1, 0, 1, 0, 0, 0, // row 6
-    		  1, 1, 1, 1, 1, 0, 0, 0, // row 7
-    		};
-        	
-        	BitSet outline = new BitSet();
-        	for (int i = 0; i < 8 * 8; i++)
-        		outline.set(i,outlinePixels[i]==1);
-        	
-        	shape.getOutline(threshold); returns(outline);
-
 
         }};
 	 	

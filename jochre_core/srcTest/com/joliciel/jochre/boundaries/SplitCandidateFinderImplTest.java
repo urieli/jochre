@@ -26,7 +26,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,7 +42,7 @@ public class SplitCandidateFinderImplTest {
 	private static final Log LOG = LogFactory.getLog(SplitCandidateFinderImplTest.class);
 
 	@Test
-	public void testFindSplitCanidates(@NonStrict final JochrePage page) throws Exception {
+	public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		
 		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();

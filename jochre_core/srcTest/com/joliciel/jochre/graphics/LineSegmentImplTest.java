@@ -22,8 +22,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.ArrayList;
 
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import mockit.NonStrict;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +36,7 @@ public class LineSegmentImplTest {
 	private static final Log LOG = LogFactory.getLog(LineSegmentImplTest.class);
 
 	@Test
-	public void testGetEnclosingRectangle(@NonStrict final Shape shape) {
+	public void testGetEnclosingRectangle(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
@@ -74,7 +74,7 @@ public class LineSegmentImplTest {
     }
 	
 	@Test
-	public void testGetEnclosingRectangleDiagonal(@NonStrict final Shape shape) {
+	public void testGetEnclosingRectangleDiagonal(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(1);
@@ -112,7 +112,7 @@ public class LineSegmentImplTest {
     }
 	
 	@Test
-	public void testGetEnclosingRectangleDoubleDiagonal(@NonStrict final Shape shape) {
+	public void testGetEnclosingRectangleDoubleDiagonal(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(1,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
@@ -149,7 +149,7 @@ public class LineSegmentImplTest {
     }
 
 	@Test
-	public void testGetEnclosingRectangleIntersection(@NonStrict final Shape shape) {
+	public void testGetEnclosingRectangleIntersection(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef1 = new LineDefinitionImpl(0,0);
 		List<Integer> steps1 = new ArrayList<Integer>();
 		steps1.add(2);

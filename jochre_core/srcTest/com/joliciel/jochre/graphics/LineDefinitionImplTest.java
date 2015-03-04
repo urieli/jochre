@@ -22,7 +22,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.ArrayList;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -36,7 +36,7 @@ public class LineDefinitionImplTest {
 	private static final Log LOG = LogFactory.getLog(LineDefinitionImplTest.class);
 
 	@Test
-	public void testTrace(@NonStrict final Shape shape) {
+	public void testTrace(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
@@ -88,7 +88,7 @@ public class LineDefinitionImplTest {
 	}
 
 	@Test
-	public void testFollow(@NonStrict final Shape shape) {
+	public void testFollow(@Mocked final Shape shape) {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
@@ -108,41 +108,25 @@ public class LineDefinitionImplTest {
   	}
 
 	@Test
-	public void testFollowInShape(@NonStrict final Shape shape) {
+	public void testFollowInShape() {
 		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
-		final int whiteGapFillFactor = 0;
 		
-		final int threshold = 100;
+      	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1,
+		  0, 1, 1, 1, 0, 1, 1, 1,
+		  0, 0, 1, 1, 0, 0, 1, 1,
+		  0, 0, 1, 1, 0, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 1, 0,
+		  0, 0, 0, 1, 1, 1, 0, 0,
+		  0, 0, 1, 1, 1, 0, 0, 0,
+		  1, 1, 1, 1, 1, 0, 0, 0
+		};
 
-		new NonStrictExpectations() {
-			{
-			shape.getHeight(); returns(8);
-			shape.getWidth(); returns(8);
-
-           	int[] pixels =
-    		{ 0, 1, 1, 0, 0, 1, 1, 1,
-    		  0, 1, 1, 1, 0, 1, 1, 1,
-    		  0, 0, 1, 1, 0, 0, 1, 1,
-    		  0, 0, 1, 1, 0, 1, 1, 0,
-    		  0, 0, 0, 1, 1, 1, 1, 0,
-    		  0, 0, 0, 1, 1, 1, 0, 0,
-    		  0, 0, 1, 1, 1, 0, 0, 0,
-    		  1, 1, 1, 1, 1, 0, 0, 0
-    		};
-    	
-    	for (int x = -1; x <= 8; x++)
-    		for (int y = -1; y <= 8; y++) {
-    			shape.isPixelBlack(x, y, threshold, whiteGapFillFactor); 
-    			if (x >= 0 && x < 8 && y >= 0 && y < 8)
-    				returns(pixels[y*8 + x]==1);
-    			else
-    				returns(false);
-    		}
-    	}};
+		ShapeInternal shape = new ShapeMock(pixels, 8, 8);
         
         int[] endPoint = lineDef.followInShape(shape, 5, 5, 0, 100, 0);
         

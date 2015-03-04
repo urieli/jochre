@@ -24,7 +24,7 @@ import java.util.BitSet;
 
 import javax.imageio.ImageIO;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -38,7 +38,7 @@ public class ShapeFillerImplTest  {
 	private static final Log LOG = LogFactory.getLog(ShapeFillerImplTest.class);
 	
 	@Test
-	public void testGetFillFactor(@NonStrict final JochreImage jochreImage) throws Exception {
+	public void testGetFillFactor(@Mocked final JochreImage jochreImage) throws Exception {
 		
 		new NonStrictExpectations() {
 			{
@@ -75,7 +75,7 @@ public class ShapeFillerImplTest  {
 	}
 
 	@Test
-	public void testFillShape(@NonStrict final JochreImage jochreImage) throws Exception {
+	public void testFillShape(@Mocked final JochreImage jochreImage) throws Exception {
 		
 		new NonStrictExpectations() {
 			{
@@ -124,49 +124,23 @@ public class ShapeFillerImplTest  {
 	}
 
 	@Test
-	public void testFillBitSet(@NonStrict final Shape shape) {
+	public void testFillBitSet() {
 		final int threshold = 100;
 		final int width = 8;
 		final int height = 8;
 
-		new NonStrictExpectations() {
-			{
-        	shape.getHeight(); returns(height);
-        	shape.getWidth(); returns(width);
-        	
-        	int[] pixels =
-        		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
-        		  0, 1, 0, 1, 0, 1, 0, 1, // row 1
-        		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
-        		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
-        		  0, 0, 0, 1, 0, 1, 1, 0, // row 4
-        		  0, 0, 0, 1, 1, 1, 0, 0, // row 5
-        		  0, 0, 1, 0, 1, 0, 0, 0, // row 6
-        		  1, 1, 0, 1, 1, 0, 0, 0, // row 7
-        		};
-        	
-        	BitSet bitset = new BitSet(height * width);
-        	
-           	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			if (x >= 0 && x < width && y >= 0 && y < height && pixels[y*width + x]==1)
-        				bitset.set(y * width + x);
-        			shape.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height)
-        				returns(pixels[y*width + x]==1);
-        			else
-        				returns(false);
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-	        			shape.getAbsolutePixel(x, y);
-	        			if (pixels[y*width + x]==1)
-	        				returns(0);
-	        			else
-	        				returns(255);
-        			}
-        		}
-        	
-           	shape.getBlackAndWhiteBitSet(threshold); returns(bitset);
-        }};
+       	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
+		  0, 1, 0, 1, 0, 1, 0, 1, // row 1
+		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
+		  0, 0, 0, 1, 0, 1, 1, 0, // row 4
+		  0, 0, 0, 1, 1, 1, 0, 0, // row 5
+		  0, 0, 1, 0, 1, 0, 0, 0, // row 6
+		  1, 1, 0, 1, 1, 0, 0, 0, // row 7
+		};
+
+		ShapeMock shape = new ShapeMock(pixels, width, height);		
         
 		ShapeFillerImpl shapeFiller = new ShapeFillerImpl();
 		BitSet filledBitSet = shapeFiller.fillBitSet(shape, shape.getBlackAndWhiteBitSet(threshold), 5);

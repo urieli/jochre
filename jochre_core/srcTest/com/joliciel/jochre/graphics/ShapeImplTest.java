@@ -21,7 +21,7 @@ package com.joliciel.jochre.graphics;
 import java.awt.image.BufferedImage;
 import java.util.BitSet;
 import mockit.Delegate;
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -52,46 +52,24 @@ public class ShapeImplTest  {
 	}
 
     @Test
-	public void testGetOutline(@NonStrict final SourceImage sourceImage) {
+	public void testGetOutline() {
 		final int threshold = 100;
 		final int width = 8;
 		final int height = 8;
-
-		new NonStrictExpectations() {
-			{
-         	sourceImage.getHeight(); returns(height);
-        	sourceImage.getWidth(); returns(width);
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        	sourceImage.getWhiteGapFillFactor(); returns(0);
-        	
-        	int[] pixels =
-        		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
-        		  0, 1, 1, 1, 0, 1, 1, 1, // row 1
-        		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
-        		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
-        		  0, 0, 0, 1, 1, 1, 1, 0, // row 4
-        		  0, 0, 0, 1, 1, 1, 0, 0, // row 5
-        		  0, 0, 1, 1, 1, 0, 0, 0, // row 6
-        		  1, 1, 1, 1, 1, 0, 0, 0, // row 7
-        		};
-        	
-           	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			sourceImage.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height)
-        				returns(pixels[y*width + x]==1);
-        			else
-        				returns(false);
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-	        			sourceImage.getAbsolutePixel(x, y);
-	        			if (pixels[y*width + x]==1)
-	        				returns(0);
-	        			else
-	        				returns(255);
-        			}
-        		}
-        	
-        }};
+    	int[] pixels =
+		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
+		  0, 1, 1, 1, 0, 1, 1, 1, // row 1
+		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
+		  0, 0, 0, 1, 1, 1, 1, 0, // row 4
+		  0, 0, 0, 1, 1, 1, 0, 0, // row 5
+		  0, 0, 1, 1, 1, 0, 0, 0, // row 6
+		  1, 1, 1, 1, 1, 0, 0, 0, // row 7
+		};
+		SourceImage sourceImage = new SourceImageMock(pixels, height, width);
+		sourceImage.setWhiteGapFillFactor(0);
+		sourceImage.setBlackThreshold(threshold);
+		
         Shape shape = new ShapeImpl(sourceImage);
         shape.setTop(0);
         shape.setBottom(7);
@@ -118,44 +96,25 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testIsPixelBlackFromContainer(@NonStrict final SourceImage sourceImage) {
+	public void testIsPixelBlackFromContainer() {
 		final int threshold = 100;
 		final int width = 8;
 		final int height = 8;
 
-		new NonStrictExpectations() {
-			{
-        	sourceImage.getHeight(); returns(height);
-        	sourceImage.getWidth(); returns(width);
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        	sourceImage.getWhiteGapFillFactor(); returns(0);
-        	int[] pixels =
-        		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
-        		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
-        		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
-        		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
-        		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
-        		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
-        		};
-        	
-           	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			sourceImage.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height)
-        				returns(pixels[y*width + x]==1);
-        			else
-        				returns(false);
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-	        			sourceImage.getAbsolutePixel(x, y);
-	        			if (pixels[y*width + x]==1)
-	        				returns(0);
-	        			else
-	        				returns(255);
-        			}
-        		}
-         }};
+       	int[] pixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
+		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
+		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
+		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
+		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
+		};
+		SourceImage sourceImage = new SourceImageMock(pixels, height, width);
+		sourceImage.setWhiteGapFillFactor(0);
+		sourceImage.setBlackThreshold(threshold);
+		
         Shape shape = new ShapeImpl(sourceImage);
         shape.setTop(2);
         shape.setLeft(2);
@@ -180,43 +139,23 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void getVerticalCounts(@NonStrict final SourceImage sourceImage) {
+	public void getVerticalCounts() {
 		final int threshold = 100;
 		final int width = 8;
 		final int height = 8;
 
-		new NonStrictExpectations() {
-			{
-        	sourceImage.getHeight(); returns(height);
-        	sourceImage.getWidth(); returns(width);
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        	int[] pixels =
-        		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
-        		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
-        		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
-        		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
-        		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
-        		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
-        		};
-        	
-          	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			sourceImage.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height)
-        				returns(pixels[y*width + x]==1);
-        			else
-        				returns(false);
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-	        			sourceImage.getAbsolutePixel(x, y);
-	        			if (pixels[y*width + x]==1)
-	        				returns(0);
-	        			else
-	        				returns(255);
-        			}
-        		}
-         }};
+    	int[] pixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
+		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
+		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
+		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
+		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
+		};
+		SourceImage sourceImage = new SourceImageMock(pixels, height, width);
+		sourceImage.setSeparationThreshold(threshold);
         
         Shape shape = new ShapeImpl(sourceImage);
         shape.setTop(0);
@@ -257,18 +196,27 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessTotalsBySector(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySector(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		final ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
 		final int bottom = 6;
 		final int left = 0;
 		final int right = 4;
+		
+   		int[] pixels = new int[]
+            { 	0, 255, 254, 253, 252,		// row
+				251, 250, 249, 248, 247,		// row
+				246, 245, 244, 243, 242,		// row
+				241, 240, 239, 238, 237,		// row
+			    236, 235, 234, 233, 232,		// row
+				231, 230, 229, 228, 227,		// row
+				226, 225, 224, 223, 222};
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 		
 		new NonStrictExpectations() {
 			{
@@ -277,27 +225,10 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
         	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        		
-    		int[] pixels = new int[]
-                 { 		0, 255, 254, 253, 252,		// row
-						251, 250, 249, 248, 247,		// row
-						246, 245, 244, 243, 242,		// row
-						241, 240, 239, 238, 237,		// row
-					    236, 235, 234, 233, 232,		// row
-						231, 230, 229, 228, 227,		// row
-						226, 225, 224, 223, 222};
-    		
-    		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
         }};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -348,12 +279,11 @@ public class ShapeImplTest  {
 	}
 
     @Test
-	public void testGetBrightnessTotalsBySectorMidPixelBreaks(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorMidPixelBreaks(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
@@ -361,6 +291,16 @@ public class ShapeImplTest  {
 		final int left = 0;
 		final int right = 5;
 		
+   		int[] pixels = new int[]
+        { 		245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245, };
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 		
 		new NonStrictExpectations() {
 			{
@@ -369,27 +309,10 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
         	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
-        	};
-        		
-    		int[] pixels = new int[]
-                 { 		245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245, };
-       		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
+        	};     		
        	}};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -438,12 +361,11 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessTotalsBySectorTwoSectorMargins(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorTwoSectorMargins(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
@@ -452,6 +374,18 @@ public class ShapeImplTest  {
 		final int right = 5;
 		
 		
+		int[] pixels = new int[]
+		      { 245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245,		// row
+				245, 245, 245, 245, 245, 245, };
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
+
+		
 		new NonStrictExpectations() {
 			{
         	group.getId(); returns(1);
@@ -459,27 +393,10 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
         	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        		
-    		int[] pixels = new int[]
-                 { 		245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245,		// row
-						245, 245, 245, 245, 245, 245, };
-       		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
        	}};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -541,12 +458,11 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessTotalsBySectorWithSquare(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorWithSquare(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		final ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
@@ -554,6 +470,17 @@ public class ShapeImplTest  {
 		final int left = 0;
 		final int right = 5;
 		
+   		int[] pixels = new int[]
+   		                    { 	245, 245, 245, 245, 245, 245,		// row
+   		     					245, 245, 245, 245, 245, 245,		// row
+   		     					245, 245, 245, 245, 245, 245,		// row
+   		     					245, 245, 245, 245, 245, 245,		// row
+   		     					245, 245, 245, 245, 245, 245,		// row
+   		     					245, 245, 245, 245, 245, 245,		// row
+   		     					};
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
+
+   		
 		new NonStrictExpectations() {
 			{
          	group.getId(); returns(1);
@@ -561,27 +488,11 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
           	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        		
-    		int[] pixels = new int[]
-               { 	245, 245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245, 245,		// row
-					};
-		
-    		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
+        	
         }};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -631,12 +542,11 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessTotalsBySectorWithSquareBigger(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorWithSquareBigger(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		final ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
@@ -644,6 +554,16 @@ public class ShapeImplTest  {
 		final int left = 0;
 		final int right = 4;
 		
+		int[] pixels = new int[]
+		                       { 	245, 245, 245, 245, 245,		// row
+		        					245, 245, 245, 245, 245,		// row
+		        					245, 245, 245, 245, 245,		// row
+		        					245, 245, 245, 245, 245,		// row
+		        					245, 245, 245, 245, 245,		// row
+		        					245, 245, 245, 245, 245,		// row
+		        					};
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
+
 		new NonStrictExpectations() {
 			{
          	group.getId(); returns(1);
@@ -651,27 +571,12 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
         	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
         		
-    		int[] pixels = new int[]
-               { 	245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245,		// row
-					245, 245, 245, 245, 245,		// row
-					};
     		
-    		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
         }};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -723,18 +628,29 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessTotalsBySectorWithSquareSmaller(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorWithSquareSmaller(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		final ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
 		final int bottom = 5;
 		final int left = 0;
 		final int right = 2;
+		
+		int[] pixels = new int[]
+		                       { 	245, 245, 245,		// row
+		        					245, 245, 245,		// row
+		        					245, 245, 245,		// row
+		        					245, 245, 245,		// row
+		        					245, 245, 245,		// row
+		        					245, 245, 245,		// row
+		        					};
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
+		            		
+
 		
 		new NonStrictExpectations() {
 			{
@@ -743,28 +659,10 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
            	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-
-        		
-    		int[] pixels = new int[]
-               { 	245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					};
-    		
-    		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
         }};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -816,12 +714,11 @@ public class ShapeImplTest  {
 	}
 	
     @Test
-	public void testGetBrightnessBySectorNoMargins(@NonStrict final GroupOfShapes group,
-			@NonStrict final RowOfShapes row,
-			@NonStrict final Paragraph paragraph,
-			@NonStrict final JochreImage image,
-			@NonStrict final ImagePixelGrabber pixelGrabber,
-			@NonStrict final BufferedImage shapeImage) {
+	public void testGetBrightnessBySectorNoMargins(@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage image,
+			@Mocked final BufferedImage shapeImage) {
 		final ShapeImpl shape = new ShapeImpl();
 		
 		final int top = 0;
@@ -829,6 +726,15 @@ public class ShapeImplTest  {
 		final int left = 0;
 		final int right = 2;
 		
+  		int[] pixels = new int[]
+  		                     { 	245, 245, 245,		// row
+  		      					245, 245, 245,		// row
+  		      					245, 245, 245,		// row
+  		      					245, 245, 245,		// row
+  		      					245, 245, 245,		// row
+  		      					245, 245, 245,		// row
+  		      					};
+		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 		new NonStrictExpectations() {
 			{
          	group.getId(); returns(1);
@@ -836,27 +742,10 @@ public class ShapeImplTest  {
         	row.getParagraph(); returns(paragraph);
         	paragraph.getImage(); returns(image);
           	image.normalize(anyInt);
-        	result = new Delegate() {
+        	result = new Delegate<Integer>() {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        		
-    		int[] pixels = new int[]
-               { 	245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					245, 245, 245,		// row
-					};
-    		
-    		int width = right - left + 1;
-    		int height = bottom - top + 1;
-           	for (int x = 0; x < width; x++)
-        		for (int y = 0; y < height; y++) {
-        			pixelGrabber.getPixelBrightness(x,y); 
-        			returns(pixels[y*width + x]);
-        		}        		
         }};
         
         shape.setPixelGrabber(pixelGrabber);

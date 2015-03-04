@@ -9,7 +9,7 @@ import java.util.TreeSet;
 
 import javax.sql.DataSource;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -37,20 +37,21 @@ public class RecursiveShapeSplitterTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShape(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker<SplitOutcome> decisionMaker,
-			final Shape shape,
-			final JochreImage jochreImage,
-			@NonStrict final DataSource dataSource) {
+	public void testSplitShape(@Mocked final SplitCandidateFinder splitCandidateFinder,
+			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final Shape shape,
+			@Mocked final JochreImage jochreImage,
+			@Mocked final DataSource dataSource,
+			@Mocked final Split split,
+			@Mocked final Shape shape1, @Mocked final Shape shape2,
+			@Mocked final Split split1, @Mocked final Split split2,
+			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
+			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
 		
 		new NonStrictExpectations() {
-			Split split;
-			Shape shape1, shape2;
-			Split split1, split2;
-			Shape shape11, shape12, shape21, shape22;
-			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);
@@ -167,20 +168,21 @@ public class RecursiveShapeSplitterTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShapeNoSplitMoreLikely(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker<SplitOutcome> decisionMaker,
-			final Shape shape,
-			final JochreImage jochreImage,
-			@NonStrict final DataSource dataSource) {
+	public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder,
+			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final Shape shape,
+			@Mocked final JochreImage jochreImage,
+			@Mocked final DataSource dataSource,
+			@Mocked final Split split,
+			@Mocked final Shape shape1, @Mocked final Shape shape2,
+			@Mocked final Split split1, @Mocked final Split split2,
+			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
+			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
 		
 		new NonStrictExpectations() {
-			Split split;
-			Shape shape1, shape2;
-			Split split1, split2;
-			Shape shape11, shape12, shape21, shape22;
-			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);
@@ -336,20 +338,21 @@ public class RecursiveShapeSplitterTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShapeSplitMoreLikely(final SplitCandidateFinder splitCandidateFinder,
-			final DecisionMaker<SplitOutcome> decisionMaker,
-			final Shape shape,
-			final JochreImage jochreImage,
-			@NonStrict final DataSource dataSource) {
+	public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder,
+			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final Shape shape,
+			@Mocked final JochreImage jochreImage,
+			@Mocked final DataSource dataSource,
+			@Mocked final Split split,
+			@Mocked final Shape shape1, @Mocked final Shape shape2,
+			@Mocked final Split split1, @Mocked final Split split2,
+			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
+			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
 		
 		new NonStrictExpectations() {
-			Split split;
-			Shape shape1, shape2;
-			Split split1, split2;
-			Shape shape11, shape12, shape21, shape22;
-			Decision<SplitOutcome> yesDecision, noDecision;
 			{
 				shape.getWidth(); returns(64);
 				shape.getXHeight(); returns(8);

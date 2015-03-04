@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
 
@@ -49,11 +49,23 @@ public class TrainingCorpusShapeSplitterTest {
 	private JochreServiceLocator locator = null;
 
 	@Test
-	public void testSplit(@NonStrict final Shape shape,
-			@NonStrict final Shape shape1,
-			@NonStrict final Shape shape2,
-			@NonStrict final Shape shape3,
-			@NonStrict final Shape shape4) throws IOException {
+	public void testSplit(@Mocked final Shape shape,
+			@Mocked final Shape shape1,
+			@Mocked final Shape shape2,
+			@Mocked final Shape shape3,
+			@Mocked final Shape shape4,
+			@Mocked final GroupOfShapes group,
+			@Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph,
+			@Mocked final JochreImage jochreImage,
+			@Mocked final JochrePage jochrePage,
+			@Mocked final JochreDocument jochreDocument,
+			@Mocked final Iterator<Split> i,
+			@Mocked final List<Split> splits,
+			@Mocked final Split split1,
+			@Mocked final Split split2,
+			@Mocked final Split split3
+	) throws IOException {
 		locator = JochreServiceLocator.getInstance();
 		locator.setDataSourcePropertiesResource("jdbc-live.properties");
 		
@@ -61,17 +73,6 @@ public class TrainingCorpusShapeSplitterTest {
 		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();
 		
 		new NonStrictExpectations() {
-			GroupOfShapes group;
-			RowOfShapes row;
-			Paragraph paragraph;
-			JochreImage jochreImage;
-			JochrePage jochrePage;
-			JochreDocument jochreDocument;
-
-			Iterator<Split> i;
-			List<Split> splits;
-			Split split1, split2, split3;
-
 			{
 				shape.getLetter(); returns("אָבּער");
 				shape.getLeft(); returns(100);

@@ -18,11 +18,10 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.ArrayList;
 
-import mockit.NonStrict;
+import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
@@ -37,41 +36,24 @@ public class SegmenterImplTest {
 	private static final Log LOG = LogFactory.getLog(SegmenterImplTest.class);
  
 	@Test
-	public void testGetShape(@NonStrict final LetterGuesserService letterGuesserService,
-			@NonStrict final SourceImage sourceImage) throws Exception {
+	public void testGetShape(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
 		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
 		graphicsService.setLetterGuesserService(letterGuesserService);
 		
-		final int threshold = 100;
 		final int startX = 3;
 		final int startY = 2;
+    	int[] pixels =
+		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
+		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
+		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
+		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
+		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
+		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
+		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
+		};
 
-		new NonStrictExpectations() {
-			{
-        	sourceImage.getHeight(); returns(8);
-        	sourceImage.getWidth(); returns(8);
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        	int[] pixels =
-        		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
-        		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
-        		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
-        		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
-        		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
-        		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
-        		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
-        		};
-        	
-        	for (int x = -1; x <= 8; x++)
-        		for (int y = -1; y <= 8; y++) {
-        			sourceImage.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < 8 && y >= 0 && y < 8)
-        				returns(pixels[y*8 + x]==1);
-        			else
-        				returns(false);
-        		}
-        	
-        }};
+		SourceImage sourceImage = new SourceImageMock(pixels, 8, 8);
         
 		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
 		segmenter.setGraphicsService(graphicsService);
@@ -86,9 +68,9 @@ public class SegmenterImplTest {
 		assertEquals(7, shape.getRight());
 	}
 
-	public void testSplitShape(@NonStrict final LetterGuesserService letterGuesserService,
-			@NonStrict final SourceImage sourceImage,
-			@NonStrict final Shape shape) throws Exception {
+	@Test
+	public void testSplitShape(@Mocked final LetterGuesserService letterGuesserService,
+			@Mocked final SourceImage sourceImage) throws Exception {
 		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
 		graphicsService.setLetterGuesserService(letterGuesserService);
 
@@ -98,46 +80,28 @@ public class SegmenterImplTest {
 		final int maxBridgeWidth = 2;
 		final int minLetterWeight = 12;
 		final int maxOverlap = 2;
-		final BitSet bitset = new BitSet(width*height);
 		final int left = 10;
 		final int top = 10;
-
+		
+       	int[] pixels =
+		{ 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
+		  0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, // row 1
+		  0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, // row 2
+		  0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, // row 3
+		  0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, // row 4
+		  0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, // row 5
+		  0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, // row 6
+		  1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, // row 7
+		  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, // row 8
+		};
+       	
+		ShapeInternal shape = new ShapeMock(pixels, width, height);
+		shape.setGraphicsService(graphicsService);
+		shape.setJochreImage(sourceImage);
+		
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(height);
-        	shape.getWidth(); returns(width);
-        	shape.getLeft(); returns(left);
-        	shape.getTop(); returns(top);
-        	shape.getRight(); returns(left + width-1);
-        	shape.getBottom(); returns(top + height-1);
-        	
         	sourceImage.getSeparationThreshold(); returns(threshold);
-        	int[] pixels =
-        		{ 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
-        		  0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, // row 1
-        		  0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, // row 2
-        		  0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, // row 3
-        		  0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, // row 4
-        		  0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, // row 5
-        		  0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, // row 6
-        		  1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, // row 7
-        		  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, // row 8
-        		};
-        	
-        	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			shape.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-        				returns(pixels[y*width + x]==1);
-        				if (pixels[y*width + x]==1) {
-        					bitset.set(y*width + x);
-        				}
-        			}
-        			else
-        				returns(false);
-        		}
-        	
-        	shape.getBlackAndWhiteBitSet(threshold, 0); returns(bitset);
         }};
         
 		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
@@ -163,56 +127,28 @@ public class SegmenterImplTest {
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")
-	public void testSegment(@NonStrict final LetterGuesserService letterGuesserService,
-			@NonStrict final SourceImage sourceImage) throws Exception {
+	public void testSegment(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
 		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
 		graphicsService.setLetterGuesserService(letterGuesserService);
 
-		final int threshold = 100;
 		final int width = 12;
 		final int height = 10;
 		final List<Rectangle> whiteAreas = new ArrayList<Rectangle>();
 
-		new NonStrictExpectations() {
-			{
-        	sourceImage.getHeight(); returns(height);
-        	sourceImage.getWidth(); returns(width);
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        	sourceImage.getWhiteGapFillFactor(); returns(0);
-        	sourceImage.isLeftToRight(); returns(false);
-        	sourceImage.getWhiteAreas((List<Shape>) any); returns(whiteAreas);
-        	int[] pixels =
-        		//0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
-        		{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-        		  0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, // row 1
-        		  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, // row 2
-        		  0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, // row 3
-        		  0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, // row 4
-        		  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 5
-        		  0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, // row 6
-        		  0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, // row 7
-        		  0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, // row 8
-        		  0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, // row 9
-        		};
-        	
-        	for (int x = -1; x <= width; x++)
-        		for (int y = -1; y <= height; y++) {
-        			sourceImage.isPixelBlack(x, y, threshold); 
-        			if (x >= 0 && x < width && y >= 0 && y < height)
-        				returns(pixels[y*width + x]==1);
-        			else
-        				returns(false);
-        			if (x >= 0 && x < width && y >= 0 && y < height) {
-	        			sourceImage.getAbsolutePixel(x, y);
-	        			if (pixels[y*width + x]==1)
-	        				returns(0);
-	        			else
-	        				returns(255);
-        			}
-        		}
-        	
-        }};
+       	int[] pixels =
+    		//0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
+    		{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+    		  0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, // row 1
+    		  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, // row 2
+    		  0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, // row 3
+    		  0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, // row 4
+    		  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 5
+    		  0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, // row 6
+    		  0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, // row 7
+    		  0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, // row 8
+    		  0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, // row 9
+    		};
+		SourceImage sourceImage = new SourceImageMock(pixels, height, width);
         
 		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
 		segmenter.setGraphicsService(graphicsService);
