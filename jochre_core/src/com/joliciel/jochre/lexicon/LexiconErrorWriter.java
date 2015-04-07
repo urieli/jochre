@@ -244,7 +244,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 					JochreSession jochreSession = JochreSession.getInstance();
 					Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-						String letterGuess = bestSequence.get(j++).getString();
+						String letterGuess = bestSequence.get(j++);
 						String letter = shapeInSequence.getShape().getLetter();
 						boolean badSegLetter = letter.contains("|") || letter.length()==0 || (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter));
 						if (letter.equals(letterGuess)) {

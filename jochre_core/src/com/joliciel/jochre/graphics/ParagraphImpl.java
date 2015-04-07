@@ -177,4 +177,14 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		}
 		return junk;
 	}
+	
+	@Override
+	public String toString() {
+		return "Par " + this.getIndex() + ", left(" + this.getLeft() + ")"
+		+ ", top(" + this.getTop() + ")"
+		+ ", right(" + this.getRight() + ")"
+		+ ", bot(" + this.getBottom() + ")"
+		+ ", width(" + (this.getRight()-this.getLeft()+1) + ")"
+		+ ", height(" + (this.getBottom()-this.getTop()+1) + ")";
+	}
 }

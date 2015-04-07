@@ -18,13 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
-import com.joliciel.talismane.machineLearning.Outcome;
-
 /**
  * An outcome either of splitting or merging, which determines shape boundaries somehow.
  * @author Assaf Urieli
  *
  */
-public interface SplitMergeOutcome extends Outcome {
+public interface SplitMergeOutcome {
 
 }

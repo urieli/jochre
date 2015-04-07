@@ -16,10 +16,10 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	private boolean scoreCalculated = false;
 	private BoundaryServiceInternal boundaryServiceInternal;
 	
-	private List<Decision<SplitMergeOutcome>> decisions = new ArrayList<Decision<SplitMergeOutcome>>();
+	private List<Decision> decisions = new ArrayList<Decision>();
 	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
 	@SuppressWarnings("rawtypes")
-	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy<SplitMergeOutcome>();
+	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy();
 	
 	ShapeSequenceImpl() {
 		super();
@@ -131,7 +131,7 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	}
 
 	@Override
-	public List<Decision<SplitMergeOutcome>> getDecisions() {
+	public List<Decision> getDecisions() {
 		return decisions;
 	}
 
@@ -141,7 +141,7 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	}
 
 	@Override
-	public void addDecision(Decision<SplitMergeOutcome> decision) {
+	public void addDecision(Decision decision) {
 		this.decisions.add(decision);
 	}
 

@@ -26,7 +26,6 @@ import java.util.PriorityQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.utils.WeightedOutcome;
@@ -65,8 +64,8 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		for (LetterSequence sequenceWithDash : holdoverWithDash) {
 			// find the dash that needs to be skipped at the end of sequence 1
 			for (int j = sequenceWithDash.size()-1; j>=0; j--) {
-				Letter outcome = sequenceWithDash.get(j);
-				if (outcome.getString().equals("-")) {
+				String outcome = sequenceWithDash.get(j);
+				if (outcome.equals("-")) {
 					sequenceWithDash.setDashToSkip(j);
 					break;
 				}
@@ -265,10 +264,10 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			
 			StringBuilder sb = new StringBuilder();
 			int j = 0;
-			for (Letter outcome : sequence) {
+			for (String outcome : sequence) {
 				// we skip a dash which separates two rows if required
 				if (outcome!=null && j!=sequence.getDashToSkip())
-					sb.append(outcome.getString());
+					sb.append(outcome);
 				j++;
 			}
 			String wordText = sb.toString();

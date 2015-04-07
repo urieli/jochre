@@ -20,6 +20,8 @@ package com.joliciel.jochre.graphics;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,6 +67,8 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	List<Rectangle> whiteAreasAroundLargeShapes = null;
 	List<Rectangle> columnSeparators = null;
 	
+	BufferedImage imageBackup;
+	
 	int myShapeCount = -1;
 	
 	boolean drawPixelSpread = false;
@@ -74,19 +78,39 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	public SourceImageImpl(GraphicsServiceInternal graphicsService, String name, BufferedImage image) {
 		super(image);
 		this.name = name;
+		
+		// increase contrast for grayscale images, to help with segmentation
+		// the original image will be restored again after segmentation with a call to restoreOriginalImage()
+		imageBackup = image;
+		
+        ColorModel srcCM = image.getColorModel();
+        if (!(srcCM instanceof IndexColorModel)) {
+			float contrastFactor = 1.4f;
+			float brightnessFactor = 30f;
+			BrightnessContrastOp op = new BrightnessContrastOp(contrastFactor, brightnessFactor, null);
+			image = op.filter(image, null);
+        }
+		
 		this.setOriginalImage(image);
+
 		this.setGraphicsService(graphicsService);
 		
 		this.setWidth(this.getPixelGrabber().getWidth());
 		this.setHeight(this.getPixelGrabber().getHeight());
 		
+		this.calculateThresholds(drawPixelSpread);
+	}
+	
+	private void calculateThresholds(boolean drawPixelSpread) {
 		// to normalise the image, we need to figure out where black and white are
 		// we want to leave out anomalies (ink blots!)
+		// also, we leave x% at each margin, in case there's black areas surrounding the image
 		int[] pixelSpread = new int[256];
 		
-		// To save on memory
-		for (int y = 0; y < this.getHeight(); y++)
-			for (int x = 0; x < this.getWidth(); x++){
+		int verticalMarginPixels = (int) Math.floor(this.getHeight() * 0.10);
+		int horizontalMarginPixels = (int) Math.floor(this.getWidth() * 0.10);
+		for (int y = verticalMarginPixels; y < this.getHeight()-verticalMarginPixels; y++)
+			for (int x = horizontalMarginPixels; x < this.getWidth()-horizontalMarginPixels; x++){
 				int pixel = this.getPixelGrabber().getPixelBrightness(x, y);
 				pixelSpread[pixel]++;
 			}
@@ -189,9 +213,9 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		
 		separationThreshold = (int) Math.round((separationThresholdValue - blackLimit) * greyscaleMultiplier);
 		LOG.debug("Separation threshold: " + separationThreshold);
-		
 		if (drawPixelSpread)
 			this.drawChart(pixelSpread, countStats, blackCountStats, blackSpread, startWhite, endWhite, startBlack, blackThresholdValue);
+
 	}
 	
 	private void drawChart(int[] pixelSpread,
@@ -807,7 +831,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 			
 			LOG.debug("rowXHeight mean: " + rowXHeightStats.getMean());
 			LOG.debug("rowXHeight median: " + rowXHeightStats.getPercentile(50));
-			double minVerticalBreak = rowXHeightStats.getMean() * 1.0;
+			double minVerticalBreak = rowXHeightStats.getPercentile(50) * 1.0;
 			LOG.debug("minVerticalBreak: " + minVerticalBreak);
 	
 			List<int[]> columnBreaks = new ArrayList<int[]>();
@@ -902,6 +926,10 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	public void setDrawPixelSpread(boolean drawPixelSpread) {
 		this.drawPixelSpread = drawPixelSpread;
 	}
-	
-	
+
+	@Override
+	public void restoreOriginalImage() {
+		this.setOriginalImage(imageBackup);
+		this.calculateThresholds(false);
+	}
 }

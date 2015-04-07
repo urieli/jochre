@@ -39,7 +39,6 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lang.Linguistics;
-import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
@@ -212,7 +211,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							
 							MONITOR.startTask("heap sort");
 							try {
-								for (Decision<Letter> letterGuess : shape.getLetterGuesses()) {
+								for (Decision letterGuess : shape.getLetterGuesses()) {
 									// leave out very low probability outcomes
 									if (letterGuess.getProbability() > this.minOutcomeWeight) {
 										LetterSequence sequence = this.getLetterGuesserService().getLetterSequencePlusOne(history);
@@ -293,7 +292,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-								String bestOutcome = bestSequence.get(i).getString();
+								String bestOutcome = bestSequence.get(i);
 								this.assignLetter(shapeInSequence, bestOutcome);
 								i++;
 							} // next shape

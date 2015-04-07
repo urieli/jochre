@@ -22,6 +22,8 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.MachineLearningServiceLocator;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 public class RecursiveShapeSplitterTest {
@@ -38,7 +40,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShape(@Mocked final SplitCandidateFinder splitCandidateFinder,
-			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final DecisionMaker decisionMaker,
 			@Mocked final Shape shape,
 			@Mocked final JochreImage jochreImage,
 			@Mocked final DataSource dataSource,
@@ -46,10 +48,11 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape1, @Mocked final Shape shape2,
 			@Mocked final Split split1, @Mocked final Split split2,
 			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
-			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+			@Mocked final Decision yesDecision, @Mocked final Decision noDecision
 	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
+		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 		
 		new NonStrictExpectations() {
 			{
@@ -67,12 +70,12 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT.name());
 				yesDecision.getProbability(); returns(0.5);
-				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getOutcome(); returns(SplitOutcome.DO_NOT_SPLIT.name());
 				noDecision.getProbability(); returns(0.5);
 				
-				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				List<Decision> decisions = new ArrayList<Decision>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 
@@ -154,6 +157,7 @@ public class RecursiveShapeSplitterTest {
 		
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
+		splitter.setMachineLearningService(machineLearningService);
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);
@@ -169,7 +173,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder,
-			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final DecisionMaker decisionMaker,
 			@Mocked final Shape shape,
 			@Mocked final JochreImage jochreImage,
 			@Mocked final DataSource dataSource,
@@ -177,10 +181,11 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape1, @Mocked final Shape shape2,
 			@Mocked final Split split1, @Mocked final Split split2,
 			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
-			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+			@Mocked final Decision yesDecision, @Mocked final Decision noDecision
 	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
+		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 		
 		new NonStrictExpectations() {
 			{
@@ -198,12 +203,12 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT.name());
 				yesDecision.getProbability(); returns(0.4);
-				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getOutcome(); returns(SplitOutcome.DO_NOT_SPLIT.name());
 				noDecision.getProbability(); returns(0.6);
 				
-				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				List<Decision> decisions = new ArrayList<Decision>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 				
@@ -286,6 +291,7 @@ public class RecursiveShapeSplitterTest {
 		
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
+		splitter.setMachineLearningService(machineLearningService);
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);
@@ -299,7 +305,7 @@ public class RecursiveShapeSplitterTest {
 		LOG.debug("twoThirds: " + twoThirds);
 		for (ShapeSequence shapeSequence : shapeSequences) {
 			LOG.debug("sequence " + i + " decisions:");
-			for (Decision<SplitMergeOutcome> decision : shapeSequence.getDecisions())
+			for (Decision decision : shapeSequence.getDecisions())
 				LOG.debug(decision.getProbability());
 			
 			if (i==0) {
@@ -339,7 +345,7 @@ public class RecursiveShapeSplitterTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder,
-			@Mocked final DecisionMaker<SplitOutcome> decisionMaker,
+			@Mocked final DecisionMaker decisionMaker,
 			@Mocked final Shape shape,
 			@Mocked final JochreImage jochreImage,
 			@Mocked final DataSource dataSource,
@@ -347,10 +353,11 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape1, @Mocked final Shape shape2,
 			@Mocked final Split split1, @Mocked final Split split2,
 			@Mocked final Shape shape11, @Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22,
-			@Mocked final Decision<SplitOutcome> yesDecision, @Mocked final Decision<SplitOutcome> noDecision
+			@Mocked final Decision yesDecision, @Mocked final Decision noDecision
 	) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
+		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 		
 		new NonStrictExpectations() {
 			{
@@ -368,12 +375,12 @@ public class RecursiveShapeSplitterTest {
 				split.getShape(); returns(shape); minTimes=0; maxTimes=500;
 				splitCandidateFinder.findSplitCandidates(shape); returns(splits);
 				
-				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT);
+				yesDecision.getOutcome(); returns(SplitOutcome.DO_SPLIT.name());
 				yesDecision.getProbability(); returns(0.6);
-				noDecision.getCode(); returns(SplitOutcome.DO_NOT_SPLIT);
+				noDecision.getOutcome(); returns(SplitOutcome.DO_NOT_SPLIT.name());
 				noDecision.getProbability(); returns(0.4);
 				
-				List<Decision<SplitOutcome>> decisions = new ArrayList<Decision<SplitOutcome>>();
+				List<Decision> decisions = new ArrayList<Decision>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 				
@@ -456,6 +463,7 @@ public class RecursiveShapeSplitterTest {
 		
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
+		splitter.setMachineLearningService(machineLearningService);
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);
@@ -479,7 +487,7 @@ public class RecursiveShapeSplitterTest {
 		LOG.debug("twoThirds: " + twoThirds);
 		for (ShapeSequence shapeSequence : shapeSequences) {
 			LOG.debug("sequence " + i + " decisions:");
-			for (Decision<SplitMergeOutcome> decision : shapeSequence.getDecisions())
+			for (Decision decision : shapeSequence.getDecisions())
 				LOG.debug(decision.getProbability());
 			
 			if (i==0) {

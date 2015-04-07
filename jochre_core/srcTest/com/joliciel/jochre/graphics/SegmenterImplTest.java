@@ -95,7 +95,7 @@ public class SegmenterImplTest {
 		  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, // row 8
 		};
        	
-		ShapeInternal shape = new ShapeMock(pixels, width, height);
+		ShapeInternal shape = new ShapeMock(pixels, left, top, width, height);
 		shape.setGraphicsService(graphicsService);
 		shape.setJochreImage(sourceImage);
 		

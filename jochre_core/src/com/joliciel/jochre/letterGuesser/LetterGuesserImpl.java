@@ -40,13 +40,13 @@ final class LetterGuesserImpl implements LetterGuesser {
 	
 	private static final double MIN_PROB_TO_STORE = 0.001;
 	
-	DecisionMaker<Letter> decisionMaker = null;
+	DecisionMaker decisionMaker = null;
 	Set<LetterFeature<?>> features = null;
 	
 	LetterGuesserServiceInternal letterGuesserServiceInternal;
 	FeatureService featureService;
 	
-	public LetterGuesserImpl(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
+	public LetterGuesserImpl(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
 		this.decisionMaker = decisionMaker;
 		this.features = features;
 	}
@@ -89,7 +89,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 				MONITOR.endTask();
 			}
 			
-			List<Decision<Letter>> letterGuesses = null;
+			List<Decision> letterGuesses = null;
 			MONITOR.startTask("decision maker");
 			try {
 				letterGuesses = decisionMaker.decide(featureResults);
@@ -97,12 +97,12 @@ final class LetterGuesserImpl implements LetterGuesser {
 				MONITOR.endTask();
 			}
 			
-			Letter bestOutcome = null;
+			String bestOutcome = null;
 			MONITOR.startTask("store outcomes");
 			try {
 				shape.getLetterGuesses().clear();
 		
-				for (Decision<Letter> letterGuess : letterGuesses) {
+				for (Decision letterGuess : letterGuesses) {
 					if (letterGuess.getProbability()>=MIN_PROB_TO_STORE) {
 						shape.getLetterGuesses().add(letterGuess);
 					}
@@ -119,7 +119,7 @@ final class LetterGuesserImpl implements LetterGuesser {
 				LOG.trace("Best outcome: " + bestOutcome);
 			}
 
-			return bestOutcome.getString();
+			return bestOutcome;
 		} finally {
 			MONITOR.endTask();
 		}

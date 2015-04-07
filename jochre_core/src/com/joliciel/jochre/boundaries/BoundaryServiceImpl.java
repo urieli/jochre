@@ -26,7 +26,6 @@ import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
-import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
@@ -49,6 +48,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		boundaryDetector.setShapeMerger(shapeMerger);
 		boundaryDetector.setMinProbabilityForDecision(minProbabilityForDecision);
 		boundaryDetector.setBoundaryService(this);
+		boundaryDetector.setMachineLearningService(this.getMachineLearningService());
 		return boundaryDetector;		
 	}
 
@@ -60,6 +60,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		boundaryDetector.setShapeMerger(shapeMerger);
 		boundaryDetector.setBeamWidth(beamWidth);
 		boundaryDetector.setBoundaryService(this);
+		boundaryDetector.setMachineLearningService(this.getMachineLearningService());
 		return boundaryDetector;
 	}
 
@@ -210,13 +211,14 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	public ShapeSplitter getShapeSplitter(
 			SplitCandidateFinder splitCandidateFinder,
 			Set<SplitFeature<?>> splitFeatures,
-			DecisionMaker<SplitOutcome> decisionMaker, double minWidthRatio, int beamWidth, int maxDepth) {
+			DecisionMaker decisionMaker, double minWidthRatio, int beamWidth, int maxDepth) {
 		RecursiveShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		shapeSplitter.setMinWidthRatio(minWidthRatio);
 		shapeSplitter.setBeamWidth(beamWidth);
 		shapeSplitter.setMaxDepth(maxDepth);
 		shapeSplitter.setBoundaryServiceInternal(this);
 		shapeSplitter.setFeatureService(this.getFeatureService());
+		shapeSplitter.setMachineLearningService(this.getMachineLearningService());
 		
 		return shapeSplitter;
 	}
@@ -261,21 +263,11 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 	@Override
 	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures,
-			DecisionMaker<MergeOutcome> decisionMaker) {
+			DecisionMaker decisionMaker) {
 		ShapeMergerImpl merger = new ShapeMergerImpl(decisionMaker, mergeFeatures);
 		merger.setBoundaryServiceInternal(this);
 		merger.setFeatureService(this.getFeatureService());
 		return merger;
-	}
-
-	@Override
-	public DecisionFactory<SplitOutcome> getSplitDecisionFactory() {
-		return new SplitDecisionFactory();
-	}
-
-	@Override
-	public DecisionFactory<MergeOutcome> getMergeDecisionFactory() {
-		return new MergeDecisionFactory();
 	}
 
 

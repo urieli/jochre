@@ -25,6 +25,7 @@ import java.util.PriorityQueue;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
 
 /**
  * Returns shapes each representing a single letter (after splitting/merging),
@@ -41,7 +42,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	private double minHeightRatioForSplit = 1.0;
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
-	private BoundaryDecisionFactory boundaryDecisionFactory = new BoundaryDecisionFactory();
+	private MachineLearningService machineLearningService;
 	
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
@@ -117,19 +118,19 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 						}
 						heap.add(mergedSequence);
 						
-						Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_MERGE.getCode(), mergeProb);
+						Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_MERGE.name(), mergeProb);
 						mergedSequence.addDecision(mergeDecision);
-						for (Decision<SplitMergeOutcome> splitDecision : splitSequence.getDecisions())
+						for (Decision splitDecision : splitSequence.getDecisions())
 							mergedSequence.addDecision(splitDecision);
 					}
 					
 					if (mergeProb<1) {
 						ShapeSequence totalSequence = boundaryService.getShapeSequencePlusOne(history);
 						if (mergeProb>0) {
-							Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_NOT_MERGE.getCode(), 1-mergeProb);
+							Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_NOT_MERGE.name(), 1-mergeProb);
 							totalSequence.addDecision(mergeDecision);
 						}
-						for (Decision<SplitMergeOutcome> splitDecision : splitSequence.getDecisions())
+						for (Decision splitDecision : splitSequence.getDecisions())
 							totalSequence.addDecision(splitDecision);
 						
 						for (ShapeInSequence splitShape : splitSequence) {
@@ -224,4 +225,14 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 		this.minHeightRatioForSplit = minHeightRatioForSplit;
 	}
 
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
+	}
+
+	
 }

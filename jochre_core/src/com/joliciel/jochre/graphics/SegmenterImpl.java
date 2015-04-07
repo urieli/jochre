@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -150,7 +151,8 @@ class SegmenterImpl implements Segmenter {
 		this.joinShapesVertically(sourceImage);
 		
 		this.findGuideLines(sourceImage);
-		this.combineRows(sourceImage);
+		this.combineRowsVertically(sourceImage);
+		this.removeFalseColumns(sourceImage, columnSeparators);
 		
 		this.removeOrphans(sourceImage, false);
 		
@@ -179,6 +181,8 @@ class SegmenterImpl implements Segmenter {
 		if (this.isDrawSegmentation()) {
 			this.drawSegmentation(sourceImage);
 		}
+		
+		sourceImage.restoreOriginalImage();
 		
 		if (currentMonitor!=null) {
 			currentMonitor.setFinished(true);
@@ -1467,7 +1471,7 @@ class SegmenterImpl implements Segmenter {
 	 * Combine rows that represent thin lines directly above or below another row
 	 * (e.g. diacritics)
 	 */
-	void combineRows(SourceImage sourceImage) {
+	void combineRowsVertically(SourceImage sourceImage) {
 		LOG.debug("########## combineRows #########");
 		// We thought of using row height, but mean row height is not a good enough
 		// indicator when there are title rows with very big characters.
@@ -1589,6 +1593,32 @@ class SegmenterImpl implements Segmenter {
 		LOG.debug("########## end combineRows #########");	
 	}
 	
+
+	private void removeFalseColumns(SourceImage sourceImage,
+			List<Rectangle> columnSeparators) {
+		LOG.debug("########## start removeFalseColumns #########");	
+		Map<Rectangle, List<RowOfShapes[]>> candidateMap = new HashMap<Rectangle, List<RowOfShapes[]>>();
+		for (Rectangle columnSeparator : columnSeparators) {
+			LOG.debug("# Column separator: " + columnSeparator);
+			List<RowOfShapes[]> candidates = new ArrayList<RowOfShapes[]>();
+			candidateMap.put(columnSeparator, candidates);
+			for (int i = 0; i<sourceImage.getRows().size()-1; i++) {
+				RowOfShapes row = sourceImage.getRows().get(i);
+				if (row.getLeft() - columnSeparator.getRight() < sourceImage.getAverageShapeWidth()) {
+					for (int j = i+1; j<sourceImage.getRows().size(); j++) {
+						RowOfShapes otherRow = sourceImage.getRows().get(j);
+						if (!otherRow.equals(row) &&
+								Math.abs(otherRow.getTop() - row.getTop()) < sourceImage.getAverageShapeHeight() &&
+								otherRow.getLeft() - columnSeparator.getRight() < sourceImage.getAverageShapeWidth()) {
+							LOG.debug("Found candidates: " + row + " AND " + otherRow);
+							candidates.add(new RowOfShapes[] {row, otherRow});
+							}
+					}
+				}
+			}
+		}
+		LOG.debug("########## end removeFalseColumns #########");	
+	}
 	
 	/**
 	 * Group the shapes into words.
@@ -2351,6 +2381,8 @@ class SegmenterImpl implements Segmenter {
 		// indent/outdent is full or partial. In the case of indentation, partial rows will
 		// typically be followed by an indent. In the case of outdentation, partial rows will
 		// typically be followed by an outdent.
+		// Note that this is a bit of a simplification: some pages are both outdented and indented
+		// at worst, such pages will have bad paragraphization :(
 		boolean isIndented = true;
 
 		int indentCount = 0;
@@ -2477,6 +2509,7 @@ class SegmenterImpl implements Segmenter {
 						if (sourceImage.isLeftToRight()) {
 							if (previousRow.getRight()-previousRow.getXAdjustment() - rightOverlap <column.endMargin - safetyMargin) {
 								LOG.debug("New paragraph (previous EOP)");
+								LOG.debug(previousRow.getRight() +  " - " + ((int)previousRow.getXAdjustment()) + " - " + ((int)rightOverlap) + " (" + ((int) previousRow.getRight()-previousRow.getXAdjustment() - rightOverlap) + ") " + " < " + ((int)column.endMargin) + " - " + ((int)safetyMargin) + " (" + ((int)column.endMargin - safetyMargin) + ")");
 								newParagraph = true;
 							} else if (column.hasTab && isIndented && row.getLeft()-row.getXAdjustment() + leftOverlap >column.startTab - safetyMargin) {
 								LOG.debug("New paragraph (indent)");
@@ -2488,6 +2521,7 @@ class SegmenterImpl implements Segmenter {
 						} else {
 							if (previousRow.getLeft()-previousRow.getXAdjustment() + leftOverlap >column.endMargin + safetyMargin) {
 								LOG.debug("New paragraph (previous EOP)");
+								LOG.debug(previousRow.getLeft() +  " - " + ((int)previousRow.getXAdjustment()) + " + " + ((int)leftOverlap) + " (" + ((int) previousRow.getLeft()-previousRow.getXAdjustment() + leftOverlap) + ") " + " < " + ((int)column.endMargin) + " + " + ((int)safetyMargin) + " (" + ((int)column.endMargin + safetyMargin) + ")");
 								newParagraph = true;
 							} else if (column.hasTab && isIndented && row.getRight()-row.getXAdjustment() - rightOverlap <column.startTab + safetyMargin) {
 								LOG.debug("New paragraph (indent)");

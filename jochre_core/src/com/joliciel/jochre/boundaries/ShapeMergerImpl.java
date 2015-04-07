@@ -38,12 +38,12 @@ public class ShapeMergerImpl implements ShapeMerger {
 	private static final Log LOG = LogFactory.getLog(ShapeMergerImpl.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
-	DecisionMaker<MergeOutcome> decisionMaker;
+	DecisionMaker decisionMaker;
 	Set<MergeFeature<?>> mergeFeatures;
 	BoundaryServiceInternal boundaryServiceInternal;
 	FeatureService featureService;
 	
-	public ShapeMergerImpl(DecisionMaker<MergeOutcome> decisionMaker,
+	public ShapeMergerImpl(DecisionMaker decisionMaker,
 			Set<MergeFeature<?>> mergeFeatures) {
 		super();
 		this.decisionMaker = decisionMaker;
@@ -81,7 +81,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 				MONITOR.endTask();
 			}
 			
-			List<Decision<MergeOutcome>> decisions = null;
+			List<Decision> decisions = null;
 			MONITOR.startTask("decision maker");
 			try {
 				decisions = decisionMaker.decide(featureResults);
@@ -90,7 +90,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			}
 			
 			double yesProb = 0.0;
-			for (Decision<MergeOutcome> decision : decisions) {
+			for (Decision decision : decisions) {
 				if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
 					yesProb = decision.getProbability();
 					break;

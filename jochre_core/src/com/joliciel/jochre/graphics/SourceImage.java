@@ -140,4 +140,6 @@ public interface SourceImage extends JochreImage, ImageGrid {
 	public abstract void setDrawPixelSpread(boolean drawPixelSpread);
 
 	public abstract boolean isDrawPixelSpread();
+	
+	public void restoreOriginalImage();
 }

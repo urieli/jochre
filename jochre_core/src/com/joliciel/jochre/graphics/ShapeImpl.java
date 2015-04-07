@@ -41,7 +41,6 @@ import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
-import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.features.Feature;
@@ -95,7 +94,7 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	
 	private boolean dirty = true;
 	
-	private Set<Decision<Letter>> letterGuesses = null;
+	private Set<Decision> letterGuesses = null;
 	private int totalBrightness = 0;
 	
 	private int[] startingPoint;
@@ -948,9 +947,9 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 	}
 
 	@Override
-	public Set<Decision<Letter>> getLetterGuesses() {
+	public Set<Decision> getLetterGuesses() {
 		if (this.letterGuesses==null) {
-			this.letterGuesses = new TreeSet<Decision<Letter>>();
+			this.letterGuesses = new TreeSet<Decision>();
 		}
 		return letterGuesses;
 	}
@@ -1087,7 +1086,8 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 					}
 				}
 				
-				//LOG.debug("Adding line x = " + line.x + ", top = " + line.yTop + ", bottom = " + line.yBottom);
+				if (LOG.isTraceEnabled())
+					LOG.trace("Adding line x = " + line.x + ", top = " + line.yTop + ", bottom = " + line.yBottom);
 				lines.add(line);
 				
 				// find any points to the left of this segment
@@ -1781,8 +1781,8 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 		if (confidence==null) {
 			confidence = 1.0;
 			if (this.letterGuesses!=null) {
-				for (Decision<Letter> guess : this.letterGuesses) {
-					if (guess.getOutcome().getString().equals(this.letter)) {
+				for (Decision guess : this.letterGuesses) {
+					if (guess.getOutcome().equals(this.letter)) {
 						confidence = guess.getProbability();
 						break;
 					}

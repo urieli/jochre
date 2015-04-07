@@ -39,7 +39,7 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  * @author Assaf Urieli
  *
  */
-final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<LetterSequenceImpl>, LetterSequence {
+final class LetterSequenceImpl extends ArrayList<String> implements Comparable<LetterSequenceImpl>, LetterSequence {
 	private static final long serialVersionUID = 7846011721688179506L;
 
 	private double score = 0;
@@ -58,10 +58,10 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	private int frequency = 0;
 	private List<WeightedOutcome<String>> wordFrequencies = new ArrayList<WeightedOutcome<String>>();
 	
-	private List<Decision<Letter>> decisions = new ArrayList<Decision<Letter>>();
+	private List<Decision> decisions = new ArrayList<Decision>();
 	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
 	@SuppressWarnings("rawtypes")
-	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy<Letter>();
+	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy();
 	
 	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence) {
 		super();
@@ -212,13 +212,13 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 			JochreSession jochreSession = JochreSession.getInstance();
 			Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 			StringBuilder builder = new StringBuilder();
-			for (Letter letter : this) {
-				if (letter.getString().length()==0)
+			for (String letter : this) {
+				if (letter.length()==0)
 					builder.append("[]");
-				else if (letter.getString().length()>1 && !linguistics.getDualCharacterLetters().contains(letter.getString()))
+				else if (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter))
 					builder.append("[" + letter + "]");
 				else
-					builder.append(letter.getString());
+					builder.append(letter);
 			}
 			guessedSequence = builder.toString();
 		}
@@ -277,7 +277,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	}
 
 	@Override
-	public List<Decision<Letter>> getDecisions() {
+	public List<Decision> getDecisions() {
 		return this.decisions;
 	}
 
@@ -287,7 +287,7 @@ final class LetterSequenceImpl extends ArrayList<Letter> implements Comparable<L
 	}
 
 	@Override
-	public void addDecision(Decision<Letter> decision) {
+	public void addDecision(Decision decision) {
 		this.decisions.add(decision);
 	}
 

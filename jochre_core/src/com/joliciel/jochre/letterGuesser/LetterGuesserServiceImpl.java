@@ -27,7 +27,6 @@ import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
-import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
@@ -51,7 +50,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		this.objectCache = objectCache;
 	}
 	
-	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker<Letter> decisionMaker) {
+	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
 		LetterGuesserImpl letterGuesser = new LetterGuesserImpl(features, decisionMaker);
 		letterGuesser.setLetterGuesserServiceInternal(this);
 		letterGuesser.setFeatureService(this.getFeatureService());
@@ -113,11 +112,6 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 
 	public void setBoundaryService(BoundaryService boundaryService) {
 		this.boundaryService = boundaryService;
-	}
-
-	@Override
-	public DecisionFactory<Letter> getLetterDecisionFactory() {
-		return new LetterDecisionFactory();
 	}
 
 	public MachineLearningService getMachineLearningService() {

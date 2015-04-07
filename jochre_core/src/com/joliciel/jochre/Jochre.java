@@ -58,12 +58,10 @@ import com.joliciel.jochre.analyser.SimpleLetterFScoreObserver;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.MergeEvaluator;
-import com.joliciel.jochre.boundaries.MergeOutcome;
 import com.joliciel.jochre.boundaries.ShapeMerger;
 import com.joliciel.jochre.boundaries.ShapeSplitter;
 import com.joliciel.jochre.boundaries.SplitCandidateFinder;
 import com.joliciel.jochre.boundaries.SplitEvaluator;
-import com.joliciel.jochre.boundaries.SplitOutcome;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
@@ -85,7 +83,6 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.features.VerticalElongationFeature;
 import com.joliciel.jochre.letterGuesser.ComponentCharacterValidator;
-import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
@@ -115,7 +112,6 @@ import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
-import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.MachineLearningAlgorithm;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.ClassificationModelTrainer;
@@ -746,10 +742,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 			Map<String,Object> trainParameters = new HashMap<String, Object>();
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
-			ClassificationModelTrainer<MergeOutcome> trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
+			ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
 
-			DecisionFactory<MergeOutcome> mergeDecisionFactory = boundaryService.getMergeDecisionFactory();
-			ClassificationModel<MergeOutcome> mergeModel = trainer.trainModel(corpusEventStream, mergeDecisionFactory, mergeFeatureDescriptors);
+			ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, mergeFeatureDescriptors);
 			mergeModel.persist(file);
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -773,7 +768,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new RuntimeException("mergeModel must end with .zip");
 
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel<MergeOutcome> mergeModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel mergeModel = machineLearningService.getClassificationModel(zis);
 		
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
@@ -831,10 +826,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 			Map<String,Object> trainParameters = new HashMap<String, Object>();
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
-			ClassificationModelTrainer<SplitOutcome> trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
+			ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
 
-			DecisionFactory<SplitOutcome> splitDecisionFactory = boundaryService.getSplitDecisionFactory();
-			ClassificationModel<SplitOutcome> splitModel = trainer.trainModel(corpusEventStream, splitDecisionFactory, splitFeatureDescriptors);
+			ClassificationModel splitModel = trainer.trainModel(corpusEventStream, splitFeatureDescriptors);
 			splitModel.persist(splitModelFile);
 
 		} catch (IOException e) {
@@ -858,7 +852,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new RuntimeException("splitModel must end with .zip");
 		
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel<SplitOutcome> splitModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel splitModel = machineLearningService.getClassificationModel(zis);
 		
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
@@ -927,16 +921,14 @@ public class Jochre implements LocaleSpecificLexiconService {
 			ClassificationEventStream corpusEventStream = letterGuesserService.getJochreLetterEventStream(criteria, features, boundaryDetector, letterValidator);
 			
 			File letterModelFile = new File(letterModelPath);
-
-			DecisionFactory<Letter> letterDecisionFactory = letterGuesserService.getLetterDecisionFactory();
 			
 			Map<String,Object> trainParameters = new HashMap<String, Object>();
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Iterations.name(), iterations);
 			trainParameters.put(MaxentModelTrainer.MaxentModelParameter.Cutoff.name(), cutoff);
 			
-			ClassificationModelTrainer<Letter> trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
+			ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(MachineLearningAlgorithm.MaxEnt, trainParameters);
 			
-			ClassificationModel<Letter> letterModel = trainer.trainModel(corpusEventStream, letterDecisionFactory, descriptors);
+			ClassificationModel letterModel = trainer.trainModel(corpusEventStream, descriptors);
 			letterModel.persist(letterModelFile);
 
 		} catch (IOException e) {
@@ -968,7 +960,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		outputDir.mkdirs();
 
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 		
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1095,7 +1087,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
 
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 		
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1131,7 +1123,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	
 	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers, int firstPage, int lastPage) throws IOException {
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
-		ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1151,13 +1143,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 			splitCandidateFinder.setMinDistanceBetweenSplits(5);
 			
 			ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel<SplitOutcome> splitModel = machineLearningService.getClassificationModel(splitZis);
+			ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
 			List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 			Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 			ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
 		
 			ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel<MergeOutcome> mergeModel = machineLearningService.getClassificationModel(mergeZis);
+			ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
 			List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 			Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 			double maxWidthRatioForMerge = 1.2;
@@ -1242,7 +1234,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
 		
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel<Letter> letterModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 		
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1255,7 +1247,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new RuntimeException("splitModel must end with .zip");
 
 		ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel<SplitOutcome> splitModel = machineLearningService.getClassificationModel(splitZis);
+		ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
 		
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
@@ -1275,7 +1267,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new RuntimeException("mergeModel must end with .zip");
 
 		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel<MergeOutcome> mergeModel = machineLearningService.getClassificationModel(mergeZis);
+		ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
 		
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);

@@ -25,7 +25,6 @@ import java.util.Set;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.jochre.letterGuesser.Letter;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.features.HasFeatureCache;
 
@@ -296,7 +295,7 @@ public interface Shape extends ImageGrid, Entity, Rectangle, ShapeWrapper, HasFe
 	 * An ordered set of letter guesses for the current shape.
 	 * @return
 	 */
-	public Set<Decision<Letter>> getLetterGuesses();
+	public Set<Decision> getLetterGuesses();
 	
 	/**
 	 * Writes a textual form of the image (pixel by pixel) to the log.

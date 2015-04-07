@@ -126,7 +126,7 @@ class JochreMergeEventStream implements ClassificationEventStream {
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.getCode());
+				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.name());
 	
 				// set mergeCandidate to null so that hasNext can retrieve the next one.
 				this.mergeCandidate = null;

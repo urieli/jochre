@@ -30,7 +30,7 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  * @author Assaf Urieli
  *
  */
-public interface LetterSequence extends List<Letter>, ClassificationSolution<Letter> {
+public interface LetterSequence extends List<String>, ClassificationSolution {
 
 	/**
 	 * Get the sum of logs of the weights.

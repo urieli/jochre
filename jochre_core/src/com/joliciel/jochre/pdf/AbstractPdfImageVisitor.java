@@ -87,6 +87,9 @@ abstract class AbstractPdfImageVisitor {
 					if (pdxObject instanceof PDXObjectImage) {
 		                PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
 		                BufferedImage image = pdfImage.getRGBImage();
+		                if (image==null) {
+		                	throw new RuntimeException("Something went wrong: unable to extract image");
+		                }
 		                this.visitImage(image, key, i, j);
 		                j++;
 		            }

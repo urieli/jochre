@@ -102,4 +102,12 @@ public class VerticalLineSegment implements Comparable<VerticalLineSegment> {
 		}
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "VerticalLineSegment [x=" + x + ", yTop=" + yTop + ", yBottom="
+				+ yBottom + "]";
+	}
+	
+	
 }

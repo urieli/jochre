@@ -123,13 +123,13 @@ class JochreSplitEventStream implements ClassificationEventStream {
 						break;
 					}				
 				}
-				if (outcome.equals("YES"))
+				if (outcome.equals(SplitOutcome.DO_SPLIT))
 					yesCount++;
 				else
 					noCount++;
 	
 				LOG.debug("Outcome: " + outcome);
-				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.getCode());
+				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.name());
 	
 				// set splitCandidate to null so that hasNext can retrieve the next one.
 				this.splitCandidate = null;

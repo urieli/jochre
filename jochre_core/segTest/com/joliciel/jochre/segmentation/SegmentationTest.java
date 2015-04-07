@@ -12,6 +12,7 @@ import java.util.Locale;
 import javax.imageio.ImageIO;
 
 import mockit.Mocked;
+import mockit.NonStrictExpectations;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,6 +20,7 @@ import org.junit.Test;
 
 import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Paragraph;
@@ -260,6 +262,254 @@ public class SegmentationTest {
 		
 		int[] rowCounts = new int[] {1, 1, 2, 7, 1, 3, 2, 4, 1, 4, 2};
 		int[] wordCountsFirstRow = new int[] {1, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0};
+		
+		for (i=0; i<textParagraphs.size(); i++) {
+			assertEquals("row count " +i, rowCounts[i], textParagraphs.get(i).getRows().size());
+			RowOfShapes row = textParagraphs.get(i).getRows().get(0);
+			if (wordCountsFirstRow[i]>0)
+				assertEquals("word count " + i, wordCountsFirstRow[i], row.getGroups().size());
+		}
+		
+	}
+	
+	/**
+	 * Segmentation errors reported for Alsacien.
+	 * @param jochrePage
+	 * @throws Exception
+	 */
+	@Test
+	public void testAlsacien1(@Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDoc) throws Exception {
+		JochreServiceLocator locator = JochreServiceLocator.getInstance();
+		JochreSession jochreSession = JochreSession.getInstance();
+		jochreSession.setLocale(new Locale("de"));
+		
+		new NonStrictExpectations() {
+			{
+				jochrePage.getDocument(); returns(jochreDoc);
+				jochreDoc.isLeftToRight(); returns(true);
+			}
+		};
+		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
+		
+		String imageName = "Alsacien1.jpg";
+		LOG.debug(imageName);
+	    InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/segmentation/" + imageName); 
+	    assertNotNull(imageFileStream);
+		BufferedImage image = ImageIO.read(imageFileStream);
+		SourceImage sourceImage = graphicsService.getSourceImage(jochrePage, "", image);
+		
+		Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
+		segmenter.segment();
+		
+		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		Rectangle textPar1 = new Rectangle(715, 517, 462, 115);
+		//TODO: for now it's splitting this paragraph by row, since it's assuming paragraphs cannot be
+		// both outdented and indented on the same page
+//		Rectangle textPar2 = new Rectangle(50, 666, 1798, 1039);
+		Rectangle textPar3 = new Rectangle(55, 1837, 1777, 335);
+		Rectangle textPar4 = new Rectangle(50, 2211, 1765, 154);
+		Rectangle textPar5 = new Rectangle(44, 2404, 1782, 511);
+		Rectangle textPar6 = new Rectangle(50, 2948, 1776, 154);
+		Rectangle textPar7 = new Rectangle(50, 3135, 1770, 77);
+		
+		textPars.add(textPar1); // title paragraph
+//		textPars.add(textPar2);
+		textPars.add(textPar3);
+		textPars.add(textPar4);
+		textPars.add(textPar5);
+		textPars.add(textPar6);
+		textPars.add(textPar7);
+		
+		int i=0;
+		int j=0;
+		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		for (Paragraph par : sourceImage.getParagraphs()) {
+			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight()-par.getLeft(), par.getBottom()-par.getTop());
+			Rectangle expected = textPars.get(i);
+			Rectangle intersection = expected.intersection(real);
+			double realArea = real.width * real.height;
+			double expectedArea = expected.width * expected.height;
+			double intersectionArea = intersection.width * intersection.height;
+			double realRatio = intersectionArea / realArea;
+			double expectedRatio = intersectionArea / expectedArea;
+			
+			LOG.debug("Paragraph " + j + ": " + par.toString());
+			LOG.debug("realRatio: " + realRatio);
+			LOG.debug("expectedRatio: " + expectedRatio);
+			if (realRatio > 0.8 && expectedRatio > 0.8) {
+				LOG.debug("Found");
+				textParagraphs.add(par);
+				i++;
+			}
+			j++;
+		}
+		
+		assertEquals(textPars.size(), textParagraphs.size());
+		
+		int[] rowCounts = new int[] {1, 4, 2, 6, 2, 1};
+		int[] wordCountsFirstRow = new int[] {2, 0, 0, 0, 0, 0, 0};
+		
+		for (i=0; i<textParagraphs.size(); i++) {
+			assertEquals("row count " +i, rowCounts[i], textParagraphs.get(i).getRows().size());
+			RowOfShapes row = textParagraphs.get(i).getRows().get(0);
+			if (wordCountsFirstRow[i]>0)
+				assertEquals("word count " + i, wordCountsFirstRow[i], row.getGroups().size());
+		}
+		
+	}
+	
+	/**
+	 * Segmentation errors reported for Alsacien.
+	 * @param jochrePage
+	 * @throws Exception
+	 */
+	@Test
+	public void testAlsacien2(@Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDoc) throws Exception {
+		JochreServiceLocator locator = JochreServiceLocator.getInstance();
+		JochreSession jochreSession = JochreSession.getInstance();
+		jochreSession.setLocale(new Locale("de"));
+		
+		new NonStrictExpectations() {
+			{
+				jochrePage.getDocument(); returns(jochreDoc);
+				jochreDoc.isLeftToRight(); returns(true);
+			}
+		};
+		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
+		
+		String imageName = "Alsacien2.jpeg";
+		LOG.debug(imageName);
+	    InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/segmentation/" + imageName); 
+	    assertNotNull(imageFileStream);
+		BufferedImage image = ImageIO.read(imageFileStream);
+		SourceImage sourceImage = graphicsService.getSourceImage(jochrePage, "", image);
+		
+		Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
+		segmenter.segment();
+		
+		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		Rectangle textPar1 = new Rectangle(63, 81, 1059, 108);
+		Rectangle textPar2 = new Rectangle(66, 204, 1065, 294);
+		Rectangle textPar3 = new Rectangle(63, 516, 1068, 348);
+		Rectangle textPar4 = new Rectangle(63, 879, 1071, 537);
+		Rectangle textPar5 = new Rectangle(63, 1428, 1068, 354);
+		
+		textPars.add(textPar1); // title paragraph
+		textPars.add(textPar2);
+		textPars.add(textPar3);
+		textPars.add(textPar4);
+		textPars.add(textPar5);
+		
+		int i=0;
+		int j=0;
+		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		for (Paragraph par : sourceImage.getParagraphs()) {
+			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight()-par.getLeft(), par.getBottom()-par.getTop());
+			Rectangle expected = textPars.get(i);
+			Rectangle intersection = expected.intersection(real);
+			double realArea = real.width * real.height;
+			double expectedArea = expected.width * expected.height;
+			double intersectionArea = intersection.width * intersection.height;
+			double realRatio = intersectionArea / realArea;
+			double expectedRatio = intersectionArea / expectedArea;
+			
+			LOG.debug("Paragraph " + j + ": " + par.toString());
+			LOG.debug("realRatio: " + realRatio);
+			LOG.debug("expectedRatio: " + expectedRatio);
+			if (realRatio > 0.8 && expectedRatio > 0.8) {
+				LOG.debug("Found");
+				textParagraphs.add(par);
+				i++;
+				if (i>=textPars.size()) break;
+			}
+			j++;
+		}
+		
+		assertEquals(textPars.size(), textParagraphs.size());
+		
+		int[] rowCounts = new int[] {2, 5, 6, 9, 6};
+		int[] wordCountsFirstRow = new int[] {10, 8, 9, 8, 8};
+		
+		for (i=0; i<textParagraphs.size(); i++) {
+			assertEquals("row count " +i, rowCounts[i], textParagraphs.get(i).getRows().size());
+			RowOfShapes row = textParagraphs.get(i).getRows().get(0);
+			if (wordCountsFirstRow[i]>0)
+				assertEquals("word count " + i, wordCountsFirstRow[i], row.getGroups().size());
+		}
+		
+	}
+	
+	/**
+	 * Segmentation errors reported for Alsacien play - challenging because of the unusual indentation.
+	 * @param jochrePage
+	 * @throws Exception
+	 */
+	@Test
+	public void testAlsacienPlay3(@Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDoc) throws Exception {
+		JochreServiceLocator locator = JochreServiceLocator.getInstance();
+		JochreSession jochreSession = JochreSession.getInstance();
+		jochreSession.setLocale(new Locale("de"));
+		
+		new NonStrictExpectations() {
+			{
+				jochrePage.getDocument(); returns(jochreDoc);
+				jochreDoc.isLeftToRight(); returns(true);
+			}
+		};
+		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
+		
+		String imageName = "AlsacienPlay3.jpg";
+		LOG.debug(imageName);
+	    InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/segmentation/" + imageName); 
+	    assertNotNull(imageFileStream);
+		BufferedImage image = ImageIO.read(imageFileStream);
+		SourceImage sourceImage = graphicsService.getSourceImage(jochrePage, "", image);
+		
+		Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
+		segmenter.segment();
+		
+		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		Rectangle textPar1 = new Rectangle(712, 532, 556, 52);
+		Rectangle textPar2 = new Rectangle(324, 600, 1324, 128);
+		Rectangle textPar3 = new Rectangle(680, 730, 592, 50);
+		Rectangle textPar4 = new Rectangle(404, 808, 684, 48);
+		
+		textPars.add(textPar1); // title paragraph
+		textPars.add(textPar2);
+		textPars.add(textPar3);
+		textPars.add(textPar4);
+		
+		int i=0;
+		int j=0;
+		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		for (Paragraph par : sourceImage.getParagraphs()) {
+			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight()-par.getLeft(), par.getBottom()-par.getTop());
+			Rectangle expected = textPars.get(i);
+			Rectangle intersection = expected.intersection(real);
+			double realArea = real.width * real.height;
+			double expectedArea = expected.width * expected.height;
+			double intersectionArea = intersection.width * intersection.height;
+			double realRatio = intersectionArea / realArea;
+			double expectedRatio = intersectionArea / expectedArea;
+			
+			LOG.debug("Paragraph " + j + ": " + par.toString());
+			LOG.debug("realRatio: " + realRatio);
+			LOG.debug("expectedRatio: " + expectedRatio);
+			if (realRatio > 0.8 && expectedRatio > 0.8) {
+				LOG.debug("Found");
+				textParagraphs.add(par);
+				i++;
+				if (i>=textPars.size()) break;
+			}
+			j++;
+		}
+		
+		assertEquals(textPars.size(), textParagraphs.size());
+		
+		int[] rowCounts = new int[] {1, 2, 1, 1};
+		//TODO: words in "spaced" rows (uses spacing to emphasize instead of bold or italics) get split
+		// should try to detect multiple single letter words
+		int[] wordCountsFirstRow = new int[] {0, 10, 0, 5};
 		
 		for (i=0; i<textParagraphs.size(); i++) {
 			assertEquals("row count " +i, rowCounts[i], textParagraphs.get(i).getRows().size());

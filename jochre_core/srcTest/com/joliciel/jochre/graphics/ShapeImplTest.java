@@ -492,7 +492,8 @@ public class ShapeImplTest  {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        	
+        	image.isLeftToRight(); returns(true);
+       	
         }};
         
         shape.setPixelGrabber(pixelGrabber);
@@ -575,7 +576,7 @@ public class ShapeImplTest  {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
-        		
+        	image.isLeftToRight(); returns(true);
     		
         }};
         
@@ -663,6 +664,8 @@ public class ShapeImplTest  {
         		@SuppressWarnings("unused")
 				int normalize(int i) { return i; }
         	};
+        	image.isLeftToRight(); returns(true);
+
         }};
         
         shape.setPixelGrabber(pixelGrabber);

@@ -28,7 +28,7 @@ import com.joliciel.talismane.machineLearning.ClassificationSolution;
  * @author Assaf Urieli
  *
  */
-public interface ShapeSequence extends List<ShapeInSequence>, ClassificationSolution<SplitMergeOutcome> {
+public interface ShapeSequence extends List<ShapeInSequence>, ClassificationSolution {
 	/**
 	 * The score attached to this particular sequence.
 	 * @return

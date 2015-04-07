@@ -7,12 +7,12 @@ public class ShapeMock extends ShapeImpl {
 	private BitSet bitset;
 	private BitSet outline;
 
-	public ShapeMock(int[] pixels, int height, int width) {
+	public ShapeMock(int[] pixels, int left, int top, int width, int height) {
 		this.pixels = pixels;
-		this.setTop(0);
-		this.setBottom(height);
-		this.setLeft(0);
-		this.setRight(width);
+		this.setTop(top);
+		this.setBottom(top+height-1);
+		this.setLeft(left);
+		this.setRight(left+width-1);
 		
 		bitset = new BitSet(height * width);
        	for (int x = -1; x <= width; x++) {
@@ -21,13 +21,18 @@ public class ShapeMock extends ShapeImpl {
     				bitset.set(y * width + x);
     		}
        	}
+       }
+	
+	public ShapeMock(int[] pixels, int width, int height) {
+		this(pixels, 0, 0, width, height);
 	}
 
 	@Override
 	public boolean isPixelBlack(int x, int y) {
-		if (x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight())
-			return pixels[y*this.getWidth() + x]==1;
-		else
+		if (x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight()) {
+			int index = y*this.getWidth() + x;
+			return pixels[index]==1;
+		} else
 			return false;
 	}
 

@@ -24,6 +24,7 @@ import java.util.List;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
 
 /**
  * Returns a single "most likely" shape boundary guess,
@@ -33,6 +34,8 @@ import com.joliciel.talismane.machineLearning.Decision;
  */
 class DeterministicBoundaryDetector implements BoundaryDetector {
 	private BoundaryServiceInternal boundaryService;
+	private MachineLearningService machineLearningService;
+	
 	private ShapeSplitter shapeSplitter;
 	private ShapeMerger shapeMerger;
 	private double minWidthRatioForSplit = 1.1;
@@ -40,7 +43,6 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
 	private double minProbabilityForDecision = 0.5;
-	private BoundaryDecisionFactory boundaryDecisionFactory = new BoundaryDecisionFactory();
 	
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
@@ -113,16 +115,16 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 					isFirstShape = false;
 				}
 				
-				Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_MERGE.getCode(), mergeProb);
+				Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_MERGE.name(), mergeProb);
 				bestSequence.addDecision(mergeDecision);
-				for (Decision<SplitMergeOutcome> splitDecision : bestSplitSequence.getDecisions())
+				for (Decision splitDecision : bestSplitSequence.getDecisions())
 					bestSequence.addDecision(splitDecision);
 			} else {
 				if (mergeProb>0) {
-					Decision<SplitMergeOutcome> mergeDecision = this.boundaryDecisionFactory.createDecision(MergeOutcome.DO_NOT_MERGE.getCode(), 1-mergeProb);
+					Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_NOT_MERGE.name(), 1-mergeProb);
 					bestSequence.addDecision(mergeDecision);
 				}
-				for (Decision<SplitMergeOutcome> splitDecision : bestSplitSequence.getDecisions())
+				for (Decision splitDecision : bestSplitSequence.getDecisions())
 					bestSequence.addDecision(splitDecision);
 				
 				for (ShapeInSequence splitShape : bestSplitSequence) {
@@ -207,6 +209,15 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 
 	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
 		this.minProbabilityForDecision = minProbabilityForDecision;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 
 }

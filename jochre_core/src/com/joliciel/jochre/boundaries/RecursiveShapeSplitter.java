@@ -30,6 +30,7 @@ import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
+import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
@@ -67,17 +68,17 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 	private SplitCandidateFinder splitCandidateFinder;
 	private BoundaryServiceInternal boundaryServiceInternal;
 	private FeatureService featureService;
+	private MachineLearningService machineLearningService;
 	
 	private Set<SplitFeature<?>> splitFeatures = null;
-	private DecisionMaker<SplitOutcome> decisionMaker;
-	private BoundaryDecisionFactory boundaryDecisionFactory = new BoundaryDecisionFactory();
+	private DecisionMaker decisionMaker;
 	
 	double minWidthRatio = 1.1;
 	int beamWidth = 5;
 	int maxDepth = 3;
 	
 	public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder,
-			Set<SplitFeature<?>> splitFeatures, DecisionMaker<SplitOutcome> decisionMaker) {
+			Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker) {
 		super();
 		this.splitCandidateFinder = splitCandidateFinder;
 		this.splitFeatures = splitFeatures;
@@ -93,7 +94,11 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 		for (ShapeSequence shapeSequence : shapeSequences) {
 			LOG.debug("Sequence" + i + ", score=" + shapeSequence.getScore());
 			for(ShapeInSequence splitGuess : shapeSequence) {
-				LOG.debug(splitGuess.getShape());
+				LOG.debug("Shape, left(" + splitGuess.getShape().getLeft() + ")"
+						+ ", top(" + splitGuess.getShape().getTop() + ")"
+						+ ", right(" + splitGuess.getShape().getRight() + ")"
+						+ ", bot(" + splitGuess.getShape().getBottom() + ")"
+						+ " [id=" + splitGuess.getShape().getId() + "]");
 			}
 			i++;
 		}
@@ -105,15 +110,19 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 		for (int i = 0; i<depth; i++)
 			padding += "-";
 		padding += " ";
-		LOG.trace(padding + "Splitting shape: " + shape.getLeft() + " , " + shape.getRight());
-		LOG.trace(padding + "depth: " + depth);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace(padding + "Splitting shape: " + shape.getLeft() + " , " + shape.getRight());
+			LOG.trace(padding + "depth: " + depth);
+		}
 		List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
 		// check if shape is wide enough to bother with
 		double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
-		LOG.trace(padding + "widthRatio: " + widthRatio);
+		if (LOG.isTraceEnabled())
+			LOG.trace(padding + "widthRatio: " + widthRatio);
 		
 		if (widthRatio<minWidthRatio || depth>=maxDepth) {
-			LOG.trace(padding + "too narrow or too deep");
+			if (LOG.isTraceEnabled())
+				LOG.trace(padding + "too narrow or too deep");
 			ShapeSequence shapeSequence = this.boundaryServiceInternal.getEmptyShapeSequence();
 			shapeSequence.addShape(shape, originalShape);
 			shapeSequences.add(shapeSequence);
@@ -146,11 +155,15 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 			for (WeightedOutcome<Split> weightedSplit : weightedSplits) {
 				Split splitCandidate = weightedSplit.getOutcome();
 				double splitProb = weightedSplit.getWeight();
-				LOG.trace(padding + "splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition() + ", initial prob: " + splitProb);
+				if (LOG.isTraceEnabled())
+					LOG.trace(padding + "splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition() + ", initial prob: " + splitProb);
 
-				if (topCandidate) {
-					LOG.trace(padding + "topCandidate");
+				if (LOG.isTraceEnabled()) {
+					if (topCandidate) {
+						LOG.trace(padding + "topCandidate");
+					}
 				}
+				
 				if (splitCandidate.getPosition()<0) {
 					// This is the no-split candidate
 					if (topCandidate)
@@ -159,9 +172,10 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 					ShapeSequence shapeSequence = boundaryServiceInternal.getEmptyShapeSequence();
 					shapeSequence.addShape(shape, originalShape);
 					double prob = (splitProb / maxSplitProb) * topCandidateWeight;
-					LOG.trace(padding + "noSplit prob=(" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
+					if (LOG.isTraceEnabled())
+						LOG.trace(padding + "noSplit prob=(" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
 					
-					Decision<SplitMergeOutcome> decision = boundaryDecisionFactory.createDecision(SplitOutcome.DO_NOT_SPLIT.getCode(), prob);
+					Decision decision = machineLearningService.createDecision(SplitOutcome.DO_NOT_SPLIT.name(), prob);
 					shapeSequence.addDecision(decision);
 					myShapeSequences.add(shapeSequence);
 				} else {
@@ -195,7 +209,8 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 						// we should be guaranteed to find a noSplitLeft and noSplitRight
 						// since a no-split candidate is always returned
 						topCandidateWeight = noSplitLeft.getScore() * noSplitRight.getScore();
-						LOG.trace(padding + "topCandidateWeight=" + noSplitLeft.getScore() + " *" + noSplitRight.getScore() + " = " + topCandidateWeight);
+						if (LOG.isTraceEnabled())
+							LOG.trace(padding + "topCandidateWeight=" + noSplitLeft.getScore() + " *" + noSplitRight.getScore() + " = " + topCandidateWeight);
 					}
 					
 					for (ShapeSequence leftShapeSequence : leftShapeSequences) {
@@ -213,20 +228,22 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 								LOG.trace(padding + sb.toString());
 							}
 							double totalProb = 1.0;
-							for (Decision<SplitMergeOutcome> decision : newSequence.getDecisions()) {
+							for (Decision decision : newSequence.getDecisions()) {
 								totalProb = totalProb * decision.getProbability();
 							}
 							newSequence.getDecisions().clear();
 							double prob = 0.0;
 							if (topCandidate) {
 								prob = totalProb * (splitProb / maxSplitProb);
-								LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") = " + prob);
+								if (LOG.isTraceEnabled())
+									LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") = " + prob);
 							} else {
 								prob = totalProb * (splitProb / maxSplitProb) * topCandidateWeight;
-								LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
+								if (LOG.isTraceEnabled())
+									LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
 							}
 							
-							Decision<SplitMergeOutcome> decision = this.boundaryDecisionFactory.createDecision(SplitOutcome.DO_SPLIT.getCode(), prob);
+							Decision decision = machineLearningService.createDecision(SplitOutcome.DO_SPLIT.name(), prob);
 							newSequence.addDecision(decision);
 							myShapeSequences.add(newSequence);
 						}
@@ -277,7 +294,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 				MONITOR.endTask();
 			}
 			
-			List<Decision<SplitOutcome>> decisions = null;
+			List<Decision> decisions = null;
 			MONITOR.startTask("decision maker");
 			try {
 				decisions = decisionMaker.decide(featureResults);
@@ -286,8 +303,8 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 			}
 			
 			double yesProb = 0.0;
-			for (Decision<SplitOutcome> decision : decisions) {
-				if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT)) {
+			for (Decision decision : decisions) {
+				if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT.name())) {
 					yesProb = decision.getProbability();
 					break;
 				}
@@ -367,6 +384,15 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 
 	public void setFeatureService(FeatureService featureService) {
 		this.featureService = featureService;
+	}
+
+	public MachineLearningService getMachineLearningService() {
+		return machineLearningService;
+	}
+
+	public void setMachineLearningService(
+			MachineLearningService machineLearningService) {
+		this.machineLearningService = machineLearningService;
 	}
 
 }

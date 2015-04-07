@@ -26,7 +26,6 @@ import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
-import com.joliciel.talismane.machineLearning.DecisionFactory;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 public interface BoundaryService {	
@@ -96,7 +95,7 @@ public interface BoundaryService {
 	 * @return
 	 */
 	public ShapeSplitter getShapeSplitter(SplitCandidateFinder splitCandidateFinder,
-			Set<SplitFeature<?>> splitFeatures, DecisionMaker<SplitOutcome> decisionMaker, 
+			Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker, 
 			double minWidthRatio, 
 			int beamWidth,
 			int maxDepth);
@@ -114,10 +113,6 @@ public interface BoundaryService {
 	
 	public MergeEvaluator getMergeEvaluator(double maxWidthRatio, double maxDistanceRatio);
 	
-	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker<MergeOutcome> decisionMaker);
-
-	public DecisionFactory<SplitOutcome> getSplitDecisionFactory();
-	
-	public DecisionFactory<MergeOutcome> getMergeDecisionFactory();
+	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker decisionMaker);
 
 }
