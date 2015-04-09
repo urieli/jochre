@@ -152,10 +152,11 @@ class SegmenterImpl implements Segmenter {
 		
 		this.findGuideLines(sourceImage);
 		this.combineRowsVertically(sourceImage);
-		this.removeFalseColumns(sourceImage, columnSeparators);
 		
 		this.removeOrphans(sourceImage, false);
 		
+		this.removeFalseColumns(sourceImage, columnSeparators);
+
 		if (currentMonitor!=null) {
 			currentMonitor.setCurrentAction("imageMonitor.groupingShapesIntoWords");
 			currentMonitor.setPercentComplete(0.6);
@@ -164,6 +165,7 @@ class SegmenterImpl implements Segmenter {
 		
 		this.removeOrphans(sourceImage, true);
 		this.cleanMargins(sourceImage);
+		
 		
 		if (currentMonitor!=null) {
 			currentMonitor.setCurrentAction("imageMonitor.analysingFontSize");
@@ -1593,33 +1595,6 @@ class SegmenterImpl implements Segmenter {
 		LOG.debug("########## end combineRows #########");	
 	}
 	
-
-	private void removeFalseColumns(SourceImage sourceImage,
-			List<Rectangle> columnSeparators) {
-		LOG.debug("########## start removeFalseColumns #########");	
-		Map<Rectangle, List<RowOfShapes[]>> candidateMap = new HashMap<Rectangle, List<RowOfShapes[]>>();
-		for (Rectangle columnSeparator : columnSeparators) {
-			LOG.debug("# Column separator: " + columnSeparator);
-			List<RowOfShapes[]> candidates = new ArrayList<RowOfShapes[]>();
-			candidateMap.put(columnSeparator, candidates);
-			for (int i = 0; i<sourceImage.getRows().size()-1; i++) {
-				RowOfShapes row = sourceImage.getRows().get(i);
-				if (row.getLeft() - columnSeparator.getRight() < sourceImage.getAverageShapeWidth()) {
-					for (int j = i+1; j<sourceImage.getRows().size(); j++) {
-						RowOfShapes otherRow = sourceImage.getRows().get(j);
-						if (!otherRow.equals(row) &&
-								Math.abs(otherRow.getTop() - row.getTop()) < sourceImage.getAverageShapeHeight() &&
-								otherRow.getLeft() - columnSeparator.getRight() < sourceImage.getAverageShapeWidth()) {
-							LOG.debug("Found candidates: " + row + " AND " + otherRow);
-							candidates.add(new RowOfShapes[] {row, otherRow});
-							}
-					}
-				}
-			}
-		}
-		LOG.debug("########## end removeFalseColumns #########");	
-	}
-	
 	/**
 	 * Group the shapes into words.
 	 */
@@ -1923,20 +1898,12 @@ class SegmenterImpl implements Segmenter {
 	}
 
 	/**
-	 * Detects paragraph splits and assign rows to correct paragraphs.
+	 * Returns a list of areas (horizontal blocks from top to bottom)
+	 * each split into columns (vertical blocks from left to right).
 	 * @param sourceImage
+	 * @return
 	 */
-	void groupRowsIntoParagraphs(SourceImage sourceImage) {
-		LOG.debug("########## groupRowsIntoParagraphs #########");
-		// We'll use various possible indicators, including
-		// indented start, indented end, and spacing between rows.
-		
-		// On pages with a single big paragraph makes it hypersensitive to differences in row-start/row-end
-		// This means we cannot use deviation. Instead, we use the average shape width on the page.
-		// We also adjust maxLeft & minRight to match the vertical line slope
-		
-		// This is now complicated by the possibility of multiple columns
-		
+	List<List<Column>> getColumns(SourceImage sourceImage, List<Column> columns) {
 		// Need to take into account a big horizontal space - Pietrushka page 14
 		// Find horizontal spaces that go all the way across and are wider than a certain threshold
 		// simply do a boolean column and black out everything in a row, than see if there are any remaining spaces above a certain threshold
@@ -1998,7 +1965,8 @@ class SegmenterImpl implements Segmenter {
 
 		// break up each area into vertical columns
 		LOG.debug("break up each area into vertical columns");
-		List<Column> columns = new ArrayList<Column>();
+		if (columns==null)
+			columns = new ArrayList<Column>();
 		List<List<Column>> columnsPerAreaList = new ArrayList<List<Column>>();
 		for (List<RowOfShapes> area : areas) {
 			LOG.debug("Next area");
@@ -2055,10 +2023,18 @@ class SegmenterImpl implements Segmenter {
 		
 		for (Column column : columns)
 			column.recalculate();
-				
-		// Intermediate step to reform the vertical columns, if they exist
-		// basically the idea is that if the columns are aligned vertically, then the thresholds for paragraph indents
-		// should be shared, to increase the statistical sample size and reduce anomalies.
+		
+		return columnsPerAreaList;
+	}
+	
+	/**
+	 * Group columns together depending on whether they align vertically or not.
+	 * Column groups allow us to increase the statistical weight of columns by adding more rows,
+	 * as long as they're aligned vertically.
+	 * @param columnsPerAreaList
+	 * @return
+	 */
+	List<List<Column>> getColumnGroups(List<List<Column>> columnsPerAreaList) {
 		// We'll assume that two columns from two consecutive areas are in the same vertical group if they overlap with each other horizontally
 		// and don't overlap with any other column in the other column's area.
 		List<List<Column>> columnGroups = new ArrayList<List<Column>>();
@@ -2140,7 +2116,171 @@ class SegmenterImpl implements Segmenter {
 				}
 			}
 		}
+		return columnGroups;
+	}
+	
+	/**
+	 * When looking for columns, we sometimes add a false column, in pages where a long vertical white line
+	 * happens to break a row into columns.
+	 * We try to recognise this phenomenon and restore the original row.
+	 * @param sourceImage
+	 * @param columnSeparators
+	 */
+	void removeFalseColumns(SourceImage sourceImage,
+			List<Rectangle> columnSeparators) {
+		LOG.debug("########## start removeFalseColumns #########");	
+		List<Column> columns = new ArrayList<SegmenterImpl.Column>();
+		List<List<Column>> columnsPerAreaList = this.getColumns(sourceImage, columns);
 		
+		// Intermediate step to reform the vertical columns, if they exist
+		List<List<Column>> columnGroups = this.getColumnGroups(columnsPerAreaList);
+		
+		// Merge columns from each group
+		List<Column> mergedColumns = new ArrayList<SegmenterImpl.Column>();
+		for (List<Column> columnGroup : columnGroups) {
+			Column mergedColumn = new Column(sourceImage);
+			for (Column column : columnGroup) {
+				for (RowOfShapes row : column) {
+					mergedColumn.add(row);
+				}
+			}
+			mergedColumn.recalculate();
+			mergedColumns.add(mergedColumn);
+		}
+		
+		// retain those pairs where we have a possible row continuation, meaning
+		// a) they contain aligned rows with a small distance between them
+		// b) one of the rows is much shorter than the other (typical of this type of fringe phenomenon)
+		// c) the "small" column contains a relatively small number of rows
+		List<Column[]> columnsToMerge = new ArrayList<SegmenterImpl.Column[]>();
+		List<RowOfShapes[]> rowsToMerge = new ArrayList<RowOfShapes[]>();
+		int counter = 0;
+		do {
+			LOG.debug("Running iteration " + counter++);
+			// find each merged column's right- and left-hand neighbors
+			Map<Column, List<Column>> rightHandNeighbors = new HashMap<SegmenterImpl.Column, List<Column>>();
+			Map<Column, List<Column>> leftHandNeighbors = new HashMap<SegmenterImpl.Column, List<Column>>();
+			
+			for (Column column : mergedColumns) {
+				rightHandNeighbors.put(column, new ArrayList<SegmenterImpl.Column>());
+				leftHandNeighbors.put(column, new ArrayList<SegmenterImpl.Column>());
+			}
+			
+			for (int i=0; i<mergedColumns.size()-1; i++) {
+				Column column = mergedColumns.get(i);
+				for (int j=i+1; j<mergedColumns.size(); j++) {
+					Column otherColumn = mergedColumns.get(j);
+					if (column.top <= otherColumn.bottom && column.bottom >= otherColumn.top) {
+						if (column.adjustedLeft <= otherColumn.adjustedLeft) {
+							rightHandNeighbors.get(column).add(otherColumn);
+							leftHandNeighbors.get(otherColumn).add(column);
+						} else {
+							leftHandNeighbors.get(column).add(otherColumn);
+							rightHandNeighbors.get(otherColumn).add(column);
+						}
+					}
+				}
+			}
+			
+			columnsToMerge = new ArrayList<SegmenterImpl.Column[]>();
+			rowsToMerge = new ArrayList<RowOfShapes[]>();
+			for (Column column : mergedColumns) {
+				LOG.debug(column.toString());
+				Map<Column, List<Column>> neighbors = rightHandNeighbors;
+				if (!sourceImage.isLeftToRight())
+					neighbors = leftHandNeighbors;
+	
+				for (Column otherColumn : neighbors.get(column)) {
+					// is the "other column" much narrower?
+					if ((double) otherColumn.getWidth() / (double) column.getWidth() <= 0.5) {
+						LOG.debug("Found narrow merge candidate: " + otherColumn);
+						boolean smallSize = column.size() <=4
+							|| otherColumn.size() <= 0.4 * column.size();
+						if (!smallSize) {
+							LOG.debug("otherColumn has too many rows, exiting");
+							continue;
+						}
+						
+						// for each row in the otherColumn, find an aligned row in the column
+						List<RowOfShapes[]> matches = new ArrayList<RowOfShapes[]>();
+						for (RowOfShapes otherRow : otherColumn) {
+							LOG.debug("Trying to match otherRow: " + otherRow.toString());
+							LOG.debug("otherRow.getBaseLineMiddlePoint() " + otherRow.getBaseLineMiddlePoint());
+							for (RowOfShapes row : column) {
+								LOG.debug("row: " + row.toString());
+								LOG.debug("row.getBaseLineMiddlePoint() " + row.getBaseLineMiddlePoint());
+								if (
+										Math.abs(row.getBaseLineMiddlePoint() - otherRow.getBaseLineMiddlePoint()) < sourceImage.getAverageShapeHeight() / 4.0 &&
+										((sourceImage.isLeftToRight() && 
+												otherRow.getLeft() - row.getRight() < sourceImage.getAverageShapeWidth() * 2.0)
+										|| (!sourceImage.isLeftToRight() &&
+												row.getLeft() - otherRow.getRight() < sourceImage.getAverageShapeWidth() * 2.0)))
+												{
+									LOG.debug("Found match : " + row + " AND " + otherRow);
+									matches.add(new RowOfShapes[] { row, otherRow });
+									break;
+								}
+							}
+						}
+						if (matches.size()==otherColumn.size()) {
+							// we have matches for all rows
+							LOG.debug("Have matches for all rows, merging");
+							columnsToMerge.add(new Column[] { column, otherColumn });
+							rowsToMerge.addAll(matches);
+						} // have perfect match
+					} // have match candidate
+				} // next neighbor
+			} // next column
+			
+			if (columnsToMerge.size()>0) {
+				for (RowOfShapes[] rowMatch : rowsToMerge) {
+					RowOfShapes masterRow = rowMatch[0];
+					RowOfShapes slaveRow = rowMatch[1];
+					masterRow.addShapes(slaveRow.getShapes());
+					masterRow.recalculate();
+					
+					masterRow.addShapes(slaveRow.getShapes());
+					masterRow.reorderShapes();
+					masterRow.recalculate();
+					
+					this.joinShapesVertically(masterRow);
+					masterRow.assignGuideLines();
+					sourceImage.removeRow(slaveRow);
+				}
+				for (Column[] columnMatch : columnsToMerge) {
+					Column masterColumn = columnMatch[0];
+					Column slaveColumn = columnMatch[1];
+					masterColumn.recalculate();
+					mergedColumns.remove(slaveColumn);
+				}
+			}
+		} while (columnsToMerge.size()>0);
+
+		LOG.debug("########## end removeFalseColumns #########");	
+	}
+	
+	/**
+	 * Detects paragraph splits and assign rows to correct paragraphs.
+	 * @param sourceImage
+	 */
+	void groupRowsIntoParagraphs(SourceImage sourceImage) {
+		LOG.debug("########## groupRowsIntoParagraphs #########");
+		// We'll use various possible indicators, including
+		// indented start, indented end, and spacing between rows.
+		
+		// On pages with a single big paragraph makes it hypersensitive to differences in row-start/row-end
+		// This means we cannot use deviation. Instead, we use the average shape width on the page.
+		// We also adjust maxLeft & minRight to match the vertical line slope
+		
+		// This is now complicated by the possibility of multiple columns
+		
+		List<Column> columns = new ArrayList<SegmenterImpl.Column>();
+		List<List<Column>> columnsPerAreaList = this.getColumns(sourceImage, columns);
+		
+		// Intermediate step to reform the vertical columns, if they exist
+		// basically the idea is that if the columns are aligned vertically, then the thresholds for paragraph indents
+		// should be shared, to increase the statistical sample size and reduce anomalies.
+		List<List<Column>> columnGroups = this.getColumnGroups(columnsPerAreaList);
 		
 		// What we really want here is, for each column (in the case of right-to-left),
 		// two clusters on the right
@@ -2698,7 +2838,55 @@ class SegmenterImpl implements Segmenter {
 				
 			}
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			long temp;
+			temp = Double.doubleToLongBits(adjustedLeft);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(adjustedRight);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(bottom);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(top);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Column other = (Column) obj;
+			if (Double.doubleToLongBits(adjustedLeft) != Double
+					.doubleToLongBits(other.adjustedLeft))
+				return false;
+			if (Double.doubleToLongBits(adjustedRight) != Double
+					.doubleToLongBits(other.adjustedRight))
+				return false;
+			if (Double.doubleToLongBits(bottom) != Double
+					.doubleToLongBits(other.bottom))
+				return false;
+			if (Double.doubleToLongBits(top) != Double
+					.doubleToLongBits(other.top))
+				return false;
+			return true;
+		}
 		
+		public int getWidth() {
+			return (int) (adjustedRight-adjustedLeft+1);
+		}
+		
+		@SuppressWarnings("unused")
+		public int getHeight() {
+			return (int) (bottom-top+1);
+		}
 		
 	}
 
