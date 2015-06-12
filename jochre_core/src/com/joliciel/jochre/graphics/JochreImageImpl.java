@@ -63,6 +63,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 	int shapeCount = -1;
 	private ImagePixelGrabber pixelGrabber;
 
+	private double confidence = -1;
 	
 	GraphicsServiceInternal graphicsService;
 	DocumentService documentService;
@@ -415,6 +416,67 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 			if (shapeCount==0)
 				shapeCount = 1;
 			this.currentMonitor.setPercentComplete((double)shapesSaved / (double) shapeCount);
+		}
+	}
+
+	@Override
+	public double getConfidence() {
+		if (confidence<0) {
+			confidence = 0;
+			int count = 0;
+			for (Paragraph paragraph : paragraphs) {
+				for (RowOfShapes row : paragraph.getRows()) {
+					for (GroupOfShapes group : row.getGroups()) {
+						count++;
+						confidence += Math.log(group.getConfidence());
+					}
+				}
+			}
+			if (count==0) {
+				confidence = 0;
+			} else {
+				confidence /= count;
+				confidence = Math.exp(confidence);
+			}
+		}
+		return confidence;
+	}
+
+	@Override
+	public Rectangle getPrintSpace() {
+		RectangleImpl printSpace = new RectangleImpl(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+		for (Paragraph paragraph : this.getParagraphs()) {
+			if (!paragraph.isJunk()) {
+				if (paragraph.getTop()<printSpace.getTop())
+					printSpace.setTop(paragraph.getTop());
+				if (paragraph.getLeft()<printSpace.getLeft())
+					printSpace.setLeft(paragraph.getLeft());
+				if (paragraph.getBottom()>printSpace.getBottom())
+					printSpace.setBottom(paragraph.getBottom());
+				if (paragraph.getRight()>printSpace.getRight())
+					printSpace.setRight(paragraph.getRight());
+			}
+		}
+		return printSpace;
+	}
+
+	@Override
+	public void recalculateIndexes() {
+		int iPar = 0;
+		for (Paragraph par : this.getParagraphs()) {
+			((ParagraphInternal) par).setIndex(iPar++);
+			int iRow = 0;
+			for (RowOfShapes row : par.getRows()) {
+				((RowOfShapesInternal) row).setIndex(iRow++);
+				int iGroup = 0;
+				for (GroupOfShapes group : row.getGroups()) {
+					((GroupOfShapesInternal)group).setIndex(iGroup++);
+					int iShape = 0;
+					for (Shape shape : group.getShapes()) {
+						((ShapeInternal) shape).setIndex(iShape++);
+					}
+				}
+			}
 		}
 	}
 

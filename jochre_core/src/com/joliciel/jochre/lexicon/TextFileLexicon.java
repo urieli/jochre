@@ -199,8 +199,11 @@ public class TextFileLexicon implements Lexicon, Serializable {
 				memoryBase = TextFileLexicon.deserialize(zis);
 			} else {
 				in = new ObjectInputStream(fis);
-				memoryBase = (TextFileLexicon)in.readObject();
-				in.close();
+				try {
+					memoryBase = (TextFileLexicon)in.readObject();
+				} finally {
+					in.close();					
+				}
 			}
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);

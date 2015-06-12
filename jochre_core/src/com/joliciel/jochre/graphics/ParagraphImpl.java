@@ -184,7 +184,24 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		+ ", top(" + this.getTop() + ")"
 		+ ", right(" + this.getRight() + ")"
 		+ ", bot(" + this.getBottom() + ")"
-		+ ", width(" + (this.getRight()-this.getLeft()+1) + ")"
-		+ ", height(" + (this.getBottom()-this.getTop()+1) + ")";
+		+ ", width(" + this.getWidth() + ")"
+		+ ", height(" + this.getHeight() + ")";
+	}
+	
+
+	@Override
+	public int getWidth() {
+		return right-left+1;
+	}
+	
+	@Override
+	public int getHeight() {
+		return bottom-top+1;
+	}
+
+	@Override
+	public void addRow(RowOfShapes row) {
+		this.getRows().add(row);
+		((RowOfShapesInternal)row).setParagraph(this);
 	}
 }

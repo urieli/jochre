@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
@@ -1092,4 +1093,13 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 		return junk;
 	}
 	
+	@Override
+	public int getWidth() {
+		return right-left+1;
+	}
+	
+	@Override
+	public int getHeight() {
+		return bottom-top+1;
+	}
 }

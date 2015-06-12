@@ -30,6 +30,21 @@ import com.joliciel.jochre.lexicon.Lexicon;
  * 
  */
 public interface OutputService {
+	public enum ExportFormat {
+		/**
+		 * Outputs to Jochre's native lossless XML format.
+		 */
+		Jochre,
+		/**
+		* Outputs to Alto 3.0 XML format, see http://www.loc.gov/standards/alto/
+		**/
+		Alto,
+		/**
+		 * Outputs to the XML spec indicated by http://finereader.abbyy.com/
+		 */
+		Abbyy
+	}
+	
 	/**
 	 * See getTextGetter(Writer, TextFormat, Lexicon), except that all end-of-row hyphens
 	 * are considered to be soft hyphens (and removed).
@@ -56,16 +71,7 @@ public interface OutputService {
 	public DocumentObserver getJochrePageByPageExporter(File outputDir, String baseName);
 
 	/**
-	 * Outputs Jochre's analysis to a lossless XML format
-	 * @param writer
-	 * @return
+	 * Returns an exporter in a particular export format.
 	 */
-	public DocumentObserver getJochreXMLExporter(Writer writer);
-	
-	/**
-	 * Outputs Jochre's analysis to an XML format as per the XML spec indicated by http://finereader.abbyy.com/
-	 * @param writer
-	 * @return
-	 */
-	public DocumentObserver getAbbyyFineReader8Exporter(Writer writer);
+	public DocumentObserver getExporter(Writer writer, ExportFormat exportFormat);
 }

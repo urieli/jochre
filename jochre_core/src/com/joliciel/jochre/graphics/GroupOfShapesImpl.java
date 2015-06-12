@@ -552,4 +552,37 @@ class GroupOfShapesImpl extends EntityImpl implements
 			return bestLetterSequence.getWordFrequencies();
 		return null;
 	}
+
+	@Override
+	public double getConfidence() {
+		if (bestLetterSequence!=null)
+			return bestLetterSequence.getAdjustedScore();
+		return 0;
+	}
+	
+	@Override
+	public int getWidth() {
+		return right-left+1;
+	}
+	
+	@Override
+	public int getHeight() {
+		return bottom-top+1;
+	}
+
+	@Override
+	public Rectangle getPrecedingSpace() {
+		Rectangle prevSpace = null;
+		if (this.index>0) {
+			GroupOfShapes prevGroup = this.getRow().getGroups().get(this.index-1);
+			int top = this.top < prevGroup.getTop() ? this.top : prevGroup.getTop();
+			int bottom = this.bottom > prevGroup.getBottom() ? this.bottom : prevGroup.getBottom();
+			if (this.getRow().getParagraph().getImage().isLeftToRight()) {
+				prevSpace = new RectangleImpl(prevGroup.getRight()+1, top, this.getLeft()-1, bottom);
+			} else {
+				prevSpace = new RectangleImpl(this.getRight()+1, top, prevGroup.getLeft()-1, bottom);
+			}
+		}
+		return prevSpace;
+	}
 }

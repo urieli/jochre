@@ -185,4 +185,21 @@ public interface JochreImage extends Entity, ImageGrid {
 	 * @return
 	 */
 	public boolean isLeftToRight();
+	
+	/**
+	 * The average confidence of the current page, in a scale from 0 to 1.
+	 * @return
+	 */
+	public double getConfidence();
+	
+	/**
+	 * A rectangle containing all of this images paragraphs.
+	 * @return
+	 */
+	public Rectangle getPrintSpace();
+	
+	/**
+	 * Recalculate all indexes on this image.
+	 */
+	public void recalculateIndexes();
 }

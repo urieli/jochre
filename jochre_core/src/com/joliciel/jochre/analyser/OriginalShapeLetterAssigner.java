@@ -78,7 +78,6 @@ public class OriginalShapeLetterAssigner implements FScoreObserver {
 	public void onGuessSequence(LetterSequence letterSequence) {
 		stillValid = true;
 		ShapeSequence shapeSequence = letterSequence.getUnderlyingShapeSequence();
-		int i = 0;
 		Shape previousOriginalShape = null;
 
 		List<ShapeInSequence> subsequenceForPrevOriginalShape = new ArrayList<ShapeInSequence>();
@@ -109,7 +108,6 @@ public class OriginalShapeLetterAssigner implements FScoreObserver {
 				subsequenceForPrevOriginalShape.add(shapeInSequence);
 			} // next original shape
 
-			i++;
 		} // next underlying shape sequence shape
 		if (previousOriginalShape!=null)
 			this.assignLetter(previousOriginalShape, subsequenceForPrevOriginalShape);

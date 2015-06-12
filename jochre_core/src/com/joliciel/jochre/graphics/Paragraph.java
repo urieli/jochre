@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.joliciel.jochre.Entity;
 
-public interface Paragraph extends Entity {
+public interface Paragraph extends Entity, Rectangle {
 	/**
 	 * The index of this paragraph, from 0 (top-most in right-to-left or left-to-right languages) to n.
 	 * @return
@@ -38,6 +38,7 @@ public interface Paragraph extends Entity {
 	public JochreImage getImage();
 	
 	public List<RowOfShapes> getRows();
+	public void addRow(RowOfShapes row);
 	public RowOfShapes newRow();
 	
 	

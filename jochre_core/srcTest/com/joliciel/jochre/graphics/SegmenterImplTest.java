@@ -20,6 +20,7 @@ package com.joliciel.jochre.graphics;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -154,7 +155,7 @@ public class SegmenterImplTest {
 		segmenter.setGraphicsService(graphicsService);
 
 		LOG.debug("findContiguousShapes");
-		List<Shape> shapes = segmenter.findContiguousShapes(sourceImage);
+		Set<Shape> shapes = segmenter.findContiguousShapes(sourceImage);
 		assertEquals(11, shapes.size());
 		int i = 0;
 		int j = 0;

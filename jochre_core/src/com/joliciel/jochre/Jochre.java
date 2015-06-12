@@ -104,6 +104,7 @@ import com.joliciel.jochre.lexicon.UnknownWordListWriter;
 import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.OutputService;
 import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.OutputService.ExportFormat;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.pdf.PdfImageSaver;
 import com.joliciel.jochre.pdf.PdfService;
@@ -139,6 +140,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	public enum OutputFormat {
 		Jochre,
 		JochrePageByPage,
+		Alto3,
 		AbbyyFineReader8,
 		HTML,
 		UnknownWords
@@ -448,6 +450,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					}
 					documentGroups.put(groupName, idSet);
 				}
+				scanner.close();
 			}
 			
 			OutputService outputService = locator.getTextServiceLocator().getTextService();			
@@ -554,7 +557,19 @@ public class Jochre implements LocaleSpecificLexiconService {
         				analysisFile.delete();
         				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
         				
-        				DocumentObserver observer = outputService.getAbbyyFineReader8Exporter(analysisFileWriter);
+        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Abbyy);
+        				observers.add(observer);
+        				break;
+        			}
+        			case Alto3:
+        			{
+        		       	Writer analysisFileWriter = null;
+        	    		String outputFileName = baseName+ "_alto3.xml";
+        				File analysisFile = new File(outputDir, outputFileName);
+        				analysisFile.delete();
+        				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+        				
+        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Alto);
         				observers.add(observer);
         				break;
         			}
@@ -579,7 +594,7 @@ public class Jochre implements LocaleSpecificLexiconService {
         				analysisFile.delete();
         				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
         				
-        				DocumentObserver observer = outputService.getJochreXMLExporter(analysisFileWriter);
+        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Jochre);
         				observers.add(observer);
         				break;
         			}
@@ -729,6 +744,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				mergeFeatureDescriptors.add(descriptor);
 				LOG.debug(descriptor);
 			}
+			scanner.close();
 			
 			Set<MergeFeature<?>> mergeFeatures = this.boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 			double maxWidthRatio = 1.2;
@@ -815,6 +831,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				splitFeatureDescriptors.add(descriptor);
 				LOG.debug(descriptor);
 			}
+			scanner.close();
 			
 			Set<SplitFeature<?>> splitFeatures = this.boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 			
@@ -905,6 +922,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				descriptors.add(descriptor);
 				LOG.debug(descriptor);
 			}
+			scanner.close();
+			
 			Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(descriptors);
 			
 			BoundaryDetector boundaryDetector = null;
@@ -1358,10 +1377,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 				descriptors.add(descriptor);
 				LOG.debug(descriptor);
 			}
+			scanner.close();
 			Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(descriptors);
 			Set<String> letters = new HashSet<String>();
-	//			letters.add("ג");
-	//			letters.add("נ");
+
 			featureTester.applyFeatures(features, letters, imageId, shapeId);
 		} catch (FileNotFoundException e) {
 			LogUtils.logError(LOG, e);

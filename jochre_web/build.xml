@@ -51,7 +51,11 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}" />
+		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">
+			<manifest>
+		        <attribute name="Implementation-Version" value="${jochre.version}"/> 
+	    	</manifest>
+		</jar>
 	</target>
 	
 	<target name="webapp" depends="compile,jar">

@@ -435,7 +435,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	}
 	
 	@Override
-	public List<Rectangle> getWhiteAreas(List<Shape> shapes) {
+	public List<Rectangle> getWhiteAreas(Set<Shape> shapes) {
 		LOG.debug("#### getWhiteAreas ####");
 		// Delimit area to be examined based on shapes
 		int top=Integer.MAX_VALUE, bottom=0, left=Integer.MAX_VALUE, right=0;
@@ -575,7 +575,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 		return largeShapes;
 	}
 	
-	private List<Rectangle> getWhiteAreasAroundLargeShapes(List<Shape> shapes) {
+	private List<Rectangle> getWhiteAreasAroundLargeShapes(Set<Shape> shapes) {
 		List<Rectangle> whiteAreas = new ArrayList<Rectangle>(this.getLargeShapes().size());
 		
 		for (Shape largeShape : this.getLargeShapes()) {
@@ -606,7 +606,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 				}
 			}
 			
-			Rectangle whiteArea = new WhiteArea(nearestLeft+1, nearestAbove+1, nearestRight-1, nearestBelow-1);
+			Rectangle whiteArea = new RectangleImpl(nearestLeft+1, nearestAbove+1, nearestRight-1, nearestBelow-1);
 			whiteAreas.add(whiteArea);
 			LOG.debug("White area: " + whiteArea);
 		}
@@ -646,7 +646,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 						nearestBelow = row.getTop();
 					}
 				}		
-				Rectangle whiteArea = new WhiteArea(nearestLeft+1, nearestAbove+1, nearestRight-1, nearestBelow-1);
+				Rectangle whiteArea = new RectangleImpl(nearestLeft+1, nearestAbove+1, nearestRight-1, nearestBelow-1);
 				whiteAreas.add(whiteArea);
 			}
 			for (Rectangle whiteArea : whiteAreas) {
@@ -878,7 +878,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 				if (bestColumnBreak==null)
 					bestColumnBreak = columnBreak;
 				
-				Rectangle whiteArea = new WhiteArea(bestColumnBreak[0], mainTextTop, bestColumnBreak[1], mainTextBottom);
+				Rectangle whiteArea = new RectangleImpl(bestColumnBreak[0], mainTextTop, bestColumnBreak[1], mainTextBottom);
 				columnSeparators.add(whiteArea);
 				LOG.debug("ColumnBreak: " + whiteArea);
 			} // next column break

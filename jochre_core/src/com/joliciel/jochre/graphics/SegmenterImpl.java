@@ -72,7 +72,7 @@ class SegmenterImpl implements Segmenter {
 		if (currentMonitor!=null) {
 			currentMonitor.setCurrentAction("imageMonitor.findingShapes");
 		}
-		List<Shape> shapes = this.findContiguousShapes(sourceImage);
+		Set<Shape> shapes = this.findContiguousShapes(sourceImage);
 		if (this.isDrawSegmentation()) {
 			segmentedImage = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			graphics2D = segmentedImage.createGraphics();
@@ -96,6 +96,7 @@ class SegmenterImpl implements Segmenter {
 //			}			
 //		}
 
+		
 		// first we group shapes into rows based on white areas which don't rely on knowledge of page slope
 		// having the rows allows us to estimate page slope
 		List<RowOfShapes> rows = this.groupShapesIntoRows(sourceImage, shapes, whiteAreas, false);
@@ -178,6 +179,8 @@ class SegmenterImpl implements Segmenter {
 			currentMonitor.setPercentComplete(0.9);
 		}
 		this.groupRowsIntoParagraphs(sourceImage);
+		sourceImage.recalculateIndexes();
+		
 		sourceImage.setShapeCount(this.getShapeCount(sourceImage));
 		
 		if (this.isDrawSegmentation()) {
@@ -374,7 +377,7 @@ class SegmenterImpl implements Segmenter {
 		}
 	}
 
-	void removeOversizedShapes(List<Shape> shapes) {
+	void removeOversizedShapes(Set<Shape> shapes) {
 		LOG.debug("########## removeOversizedShapes #########");
 		Mean shapeHeightMean = new Mean();
 		Mean shapeWidthMean = new Mean();
@@ -532,6 +535,7 @@ class SegmenterImpl implements Segmenter {
 			}
 		}
 		
+		//TODO: too long with two lists, need to replace shapes with Set to ease finding
 		shapes.removeAll(largeShapes);
 		shapes.removeAll(enclosedShapesToDelete);
 		
@@ -693,11 +697,11 @@ class SegmenterImpl implements Segmenter {
 	/**
 	 * Get all contiguous shapes out of the image grid.
 	 */
-	List<Shape> findContiguousShapes(SourceImage sourceImage) {
+	Set<Shape> findContiguousShapes(SourceImage sourceImage) {
 		LOG.debug("########## findContiguousShapes #########");
 		//As we get them out of the image grid, we write them to a writeable grid so as to avoid duplicate extraction
 		WritableImageGrid mirror = this.graphicsService.getEmptyMirror(sourceImage);
-		List<Shape> shapes = new ArrayList<Shape>();
+		Set<Shape> shapes = new TreeSet<Shape>(new ShapeTopToBottomComparator());
 
 		for (int y = 0; y < sourceImage.getHeight(); y++) {
 			for (int x = 0; x < sourceImage.getWidth(); x++) {
@@ -717,7 +721,7 @@ class SegmenterImpl implements Segmenter {
 		return shapes;
 	}
 
-	List<RowOfShapes> groupShapesIntoRows(SourceImage sourceImage, List<Shape> shapes, List<Rectangle> whiteAreas, boolean useSlope) {
+	List<RowOfShapes> groupShapesIntoRows(SourceImage sourceImage, Set<Shape> shapes, List<Rectangle> whiteAreas, boolean useSlope) {
 		LOG.debug("########## groupShapesIntoRows #########");
 		LOG.debug("useSlope? " + useSlope);
 		
@@ -979,7 +983,7 @@ class SegmenterImpl implements Segmenter {
 	 * a relatively small shape at a relatively large distance from other shapes.
 	 * @param sourceImage
 	 */
-	void removeSpecks(SourceImage sourceImage, List<Shape> shapes) {	
+	void removeSpecks(SourceImage sourceImage, Set<Shape> shapes) {	
 		LOG.debug("########## removeSpecks #########");
 		
 		DescriptiveStatistics shapeWidthStats = new DescriptiveStatistics();
@@ -994,9 +998,14 @@ class SegmenterImpl implements Segmenter {
 		double shapeHeightMedian = shapeHeightStats.getPercentile(65);
 		LOG.debug("meanShapeWidth: " + shapeWidthMedian);
 		LOG.debug("meanShapeHeight: " + shapeHeightMedian);
-		
+
 		int maxSpeckHeightFloor = (int) Math.ceil(shapeHeightMedian / 6.0);
 		int maxSpeckWidthFloor = (int) Math.ceil(shapeWidthMedian / 6.0);
+		
+		// set reasonable minimum values, in case page has a huge amount of dirt that affected the median
+		if (maxSpeckHeightFloor<5) maxSpeckHeightFloor=5;
+		if (maxSpeckWidthFloor<5) maxSpeckWidthFloor=5;
+
 		int maxSpeckHeightCeiling = maxSpeckHeightFloor * 2;
 		int maxSpeckWidthCeiling = maxSpeckWidthFloor * 2;
 		
@@ -1016,8 +1025,12 @@ class SegmenterImpl implements Segmenter {
 
 		List<Shape> specks = new ArrayList<Shape>();
 		List<double[]> speckCoordinates = new ArrayList<double[]>();
+		List<Shape> specksToRemove = new ArrayList<Shape>();
+
 		for (Shape shape : shapes) {
-			if (shape.getHeight()<maxSpeckHeightCeiling && shape.getWidth()<maxSpeckWidthCeiling) {
+			if (shape.getHeight()<maxSpeckHeightFloor && shape.getWidth()<maxSpeckWidthFloor) {
+				specksToRemove.add(shape);
+			} else if (shape.getHeight()<maxSpeckHeightCeiling && shape.getWidth()<maxSpeckWidthCeiling) {
 				specks.add(shape);
 				speckCoordinates.add(shape.getCentrePoint());
 			}
@@ -1028,8 +1041,12 @@ class SegmenterImpl implements Segmenter {
 		// or just a bunch of specks off on their own
 		DBSCANClusterer<Shape> clusterer = new DBSCANClusterer<Shape>(specks,speckCoordinates);
 		Set<Set<Shape>> speckClusters = clusterer.cluster(speckXDistanceThresholdFloor, 2, true);
-		List<Shape> specksToRemove = new ArrayList<Shape>();
 		for (Set<Shape> speckCluster : speckClusters) {
+			// safeguard to remove huge clusters of specks
+			if (speckCluster.size()>20) {
+				specksToRemove.addAll(speckCluster);
+				continue;
+			}
 			
 			int speckHeight = 0;
 			int speckWidth = 0;
@@ -1513,7 +1530,7 @@ class SegmenterImpl implements Segmenter {
 				RowOfShapes nearestRow = null;
 				double shortestDistance = Double.MAX_VALUE;
 				int masterRowHeight = -1;
-				int j = 0;
+
 				for (RowOfShapes otherRow : rows) {
 					if (!rowsToDelete.contains(otherRow)&&!(currentRow.equals(otherRow))) {
 						// limit our search to nearby rows
@@ -1555,7 +1572,6 @@ class SegmenterImpl implements Segmenter {
 							}
 						}
 					}
-					j++;
 				}
 				
 				if (nearestRow!=null) {
@@ -2683,7 +2699,7 @@ class SegmenterImpl implements Segmenter {
 							LOG.debug("Standalone paragraph");
 							LOG.debug("Standalone row: left(" + oneRow.getLeft() + "), top(" + oneRow.getTop() + "), right(" + oneRow.getRight() + "), bottom(" + oneRow.getBottom() + ")");
 							Paragraph standaloneParagraph = sourceImage.newParagraph();
-							standaloneParagraph.getRows().add(oneRow);
+							standaloneParagraph.addRow(oneRow);
 						}
 						rowsForStandaloneParagraphs.clear();
 					}
@@ -2692,7 +2708,7 @@ class SegmenterImpl implements Segmenter {
 				//LOG.debug("Row: left(" + row.getLeft() + "), right(" + row.getRight() + "), width(" + (row.getRight() - row.getLeft() + 1) + ")");
 				
 				if (!rowForStandaloneParagraph) {
-					paragraph.getRows().add(row);
+					paragraph.addRow(row);
 					previousRow = row;
 				}
 			} // next row in column
@@ -2701,7 +2717,7 @@ class SegmenterImpl implements Segmenter {
 					LOG.debug("Standalone paragraph");
 					LOG.debug("Standalone row: left(" + oneRow.getLeft() + "), top(" + oneRow.getTop() + "), right(" + oneRow.getRight() + "), bottom(" + oneRow.getBottom() + ")");
 					Paragraph standaloneParagraph = sourceImage.newParagraph();
-					standaloneParagraph.getRows().add(oneRow);
+					standaloneParagraph.addRow(oneRow);
 				}
 				rowsForStandaloneParagraphs.clear();
 			}

@@ -66,6 +66,7 @@
 			<manifest>
 	    		<attribute name="Main-Class" value="com.joliciel.jochre.occitan.JochreOccitan"/>
 	    		<attribute name="Class-Path" value="${jar.classpath}"/>
+		        <attribute name="Implementation-Version" value="${jochre.version}"/> 
 	    	</manifest>
 		</jar>
 		<zip destfile="${dist}/${project}-${jochre.version}.zip">

@@ -110,7 +110,7 @@ public interface SourceImage extends JochreImage, ImageGrid {
 	 * @param shapes the shapes to be considered when looking for white space.
 	 * @return a List of {whiteArea.left, whiteArea.top, whiteArea.right, whiteArea.bottom}
 	 */
-	public abstract List<Rectangle> getWhiteAreas(List<Shape> shapes);
+	public abstract List<Rectangle> getWhiteAreas(Set<Shape> shapes);
 
 	public abstract List<Shape> getLargeShapes();
 

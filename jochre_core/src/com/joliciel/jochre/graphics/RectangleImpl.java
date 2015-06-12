@@ -18,13 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-class WhiteArea implements Rectangle {
+class RectangleImpl implements Rectangle {
 	private int left;
 	private int top;
 	private int right;
 	private int bottom;
 	
-	public WhiteArea(int left, int top, int right, int bottom) {
+	public RectangleImpl(int left, int top, int right, int bottom) {
 		this.left = left;
 		this.top = top;
 		this.right = right;
@@ -86,7 +86,7 @@ class WhiteArea implements Rectangle {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		WhiteArea other = (WhiteArea) obj;
+		RectangleImpl other = (RectangleImpl) obj;
 		if (bottom != other.bottom)
 			return false;
 		if (left != other.left)

@@ -38,21 +38,32 @@ class OutputServiceImpl implements OutputService {
 	}
 
 	@Override
-	public DocumentObserver getAbbyyFineReader8Exporter(Writer writer) {
-		AbbyyFineReader8Exporter exporter = new AbbyyFineReader8Exporter(writer);
-		return exporter;
-	}
-
-	@Override
-	public DocumentObserver getJochreXMLExporter(Writer writer) {
-		JochreXMLExporter exporter = new JochreXMLExporter(writer);
-		return exporter;
-	}
-
-	@Override
 	public DocumentObserver getJochrePageByPageExporter(File outputDir,
 			String baseName) {
 		JochrePageByPageExporter exporter = new JochrePageByPageExporter(outputDir, baseName);
+		return exporter;
+	}
+
+	@Override
+	public DocumentObserver getExporter(Writer writer, ExportFormat exportFormat) {
+		DocumentObserver exporter = null;
+		switch (exportFormat) {
+		case Abbyy: {
+			AbbyyFineReader8Exporter myExporter = new AbbyyFineReader8Exporter(writer);
+			exporter = myExporter;
+			break;
+		}
+		case Alto: {
+			AltoXMLExporter myExporter = new AltoXMLExporter(writer);
+			exporter = myExporter;
+			break;
+		}
+		case Jochre: {
+			JochreXMLExporter myExporter = new JochreXMLExporter(writer);
+			exporter = myExporter;
+			break;
+		}
+		}
 		return exporter;
 	}
 

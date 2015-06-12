@@ -47,7 +47,7 @@ class WhiteAreaFinder {
 			double minWhiteAreaWidth, double minWhiteAreaHeight) {	
 		// figure out white areas based on shapes, not isPixelBlack
 		List<Rectangle> whiteAreas = new ArrayList<Rectangle>();
-		List<WhiteArea> openWhiteAreas = new ArrayList<WhiteArea>();
+		List<RectangleImpl> openWhiteAreas = new ArrayList<RectangleImpl>();
 		TreeSet<Rectangle> blackAreasToConsider = new TreeSet<Rectangle>(new RectangleTopToBottomComparator());
 		if (blackAreas!=null)
 			blackAreasToConsider.addAll(blackAreas);
@@ -99,31 +99,31 @@ class WhiteAreaFinder {
 			}
 			
 			// check if the white horizontal lines extend existing rectangles
-			List<WhiteArea> currentWhiteAreas = new ArrayList<WhiteArea>();
+			List<RectangleImpl> currentWhiteAreas = new ArrayList<RectangleImpl>();
 			for (WhiteLine whiteLine : whiteLines) {
-				for (WhiteArea whiteArea : openWhiteAreas) {
+				for (RectangleImpl whiteArea : openWhiteAreas) {
 					int maxLeft = whiteLine.start >= whiteArea.getLeft() ? whiteLine.start : whiteArea.getLeft();
 					int minRight = whiteLine.end <= whiteArea.getRight() ? whiteLine.end : whiteArea.getRight();
 					if (minRight - maxLeft >= minWhiteAreaWidth) {
 						// there is an overlap that's wide enough, add it
 						// but first check the ratio is above the minimum
 //						if ((double)(minRight - maxLeft) / (double) (whiteArea.getRight() - whiteArea.getLeft()) > minRatioForExtension) {
-							WhiteArea newWhiteArea = new WhiteArea(maxLeft, whiteArea.getTop(), minRight, y);
+							RectangleImpl newWhiteArea = new RectangleImpl(maxLeft, whiteArea.getTop(), minRight, y);
 							currentWhiteAreas.add(newWhiteArea);
 //						}
 					}
 				}
-				WhiteArea whiteLineArea = new WhiteArea(whiteLine.start, y, whiteLine.end, y);
+				RectangleImpl whiteLineArea = new RectangleImpl(whiteLine.start, y, whiteLine.end, y);
 				currentWhiteAreas.add(whiteLineArea);
 			}
 			currentWhiteAreas.addAll(openWhiteAreas);
 			
 			// get rid of white areas with full overlap
-			List<WhiteArea> whiteAreasToDelete = new ArrayList<WhiteArea>();
+			List<RectangleImpl> whiteAreasToDelete = new ArrayList<RectangleImpl>();
 			for (int i=0; i<currentWhiteAreas.size()-1; i++) {
-				WhiteArea whiteArea1 = currentWhiteAreas.get(i);
+				RectangleImpl whiteArea1 = currentWhiteAreas.get(i);
 				for (int j=i+1; j<currentWhiteAreas.size(); j++) {
-					WhiteArea whiteArea2 = currentWhiteAreas.get(j);
+					RectangleImpl whiteArea2 = currentWhiteAreas.get(j);
 					if (whiteArea1.getLeft()>=whiteArea2.getLeft()&&whiteArea1.getTop()>=whiteArea2.getTop()
 							&& whiteArea1.getRight()<=whiteArea2.getRight()&&whiteArea1.getBottom()<=whiteArea2.getBottom()) {
 						whiteAreasToDelete.add(whiteArea1);
@@ -135,8 +135,8 @@ class WhiteAreaFinder {
 			}
 			currentWhiteAreas.removeAll(whiteAreasToDelete);
 			
-			openWhiteAreas = new ArrayList<WhiteArea>();
-			for (WhiteArea whiteArea : currentWhiteAreas) {
+			openWhiteAreas = new ArrayList<RectangleImpl>();
+			for (RectangleImpl whiteArea : currentWhiteAreas) {
 				if (whiteArea.getBottom()<y && (whiteArea.getBottom()-whiteArea.getTop()>=minWhiteAreaHeight)) {
 					LOG.debug("Adding " + whiteArea.toString());
 					whiteAreas.add(whiteArea);
@@ -145,7 +145,7 @@ class WhiteAreaFinder {
 				}
 			}
 		}
-		for (WhiteArea whiteArea : openWhiteAreas) {
+		for (RectangleImpl whiteArea : openWhiteAreas) {
 			if (whiteArea.getBottom()-whiteArea.getTop()>=minWhiteAreaHeight) {
 				LOG.debug("Adding " + whiteArea.toString());
 				whiteAreas.add(whiteArea);

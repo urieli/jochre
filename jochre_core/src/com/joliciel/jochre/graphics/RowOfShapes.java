@@ -31,7 +31,7 @@ import com.joliciel.jochre.Entity;
  * @author Assaf Urieli
  *
  */
-public interface RowOfShapes extends Entity {
+public interface RowOfShapes extends Entity, Rectangle {
 	/**
 	 * The width to which row images will be scaled.
 	 */

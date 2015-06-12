@@ -768,6 +768,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						}
 						i++;
 					}
+					scanner.close();
 				} else {
 					Scanner scanner = new Scanner(file);
 					boolean firstLine = true;
@@ -782,6 +783,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						}
 						writer.flush();
 					}
+					scanner.close();
 				} // file type
 			} // next file
 			

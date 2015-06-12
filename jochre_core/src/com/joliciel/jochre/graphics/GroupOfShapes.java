@@ -29,7 +29,7 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  * @author Assaf Urieli
  *
  */
-public interface GroupOfShapes extends Entity {
+public interface GroupOfShapes extends Entity, Rectangle {
 	/**
 	 * The shapes contained on this group.
 	 */
@@ -178,4 +178,16 @@ public interface GroupOfShapes extends Entity {
 	 * @return
 	 */
 	public List<WeightedOutcome<String>> getWordFrequencies();
+	
+	/**
+	 * The confidence in the current word guess, in a scale from 0 to 1.
+	 * @return
+	 */
+	public double getConfidence();
+	
+	/**
+	 * A rectangle defining the space preceding this group, or null if first group.
+	 * @return
+	 */
+	public Rectangle getPrecedingSpace();
 }

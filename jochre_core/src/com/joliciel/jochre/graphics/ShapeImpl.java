@@ -1741,11 +1741,11 @@ class ShapeImpl extends EntityImpl implements ShapeInternal {
 		final int prime = 3;
 		int result = 1;
 		result = prime * result + bottom;
-		result = prime * result
-				+ ((jochreImage == null) ? 0 : jochreImage.hashCode());
 		result = prime * result + left;
 		result = prime * result + right;
 		result = prime * result + top;
+		result = prime * result
+				+ ((jochreImage == null) ? 0 : jochreImage.hashCode());
 		return result;
 	}
 

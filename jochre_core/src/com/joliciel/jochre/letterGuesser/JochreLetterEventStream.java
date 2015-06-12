@@ -18,7 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	ShapeSequence shapeSequence = null;
 	LetterValidator letterValidator = null;
 	
-	private long totalTimeDatabaseRead = 0;
 	private int invalidLetterCount = 0;
 	
 	JochreCorpusReader corpusReader = null;
@@ -138,7 +136,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	public boolean hasNext() {
 		MONITOR.startTask("hasNext");
 		try {
-			long startTimeDatabaseRead = (new Date()).getTime();
 			this.initialiseStream();
 			
 			while (shapeInSequence==null && shapeSequence!=null) {
@@ -163,7 +160,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				}
 			}
 		
-			totalTimeDatabaseRead += (new Date()).getTime() - startTimeDatabaseRead;
 			if (shapeInSequence==null) {
 				LOG.debug("invalidLetterCount: " + invalidLetterCount);
 			}

@@ -54,14 +54,15 @@
 	</target>
 
 	<target name="jar" depends="compile">
-	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${talismane.version}.jar">
+	    <manifestclasspath property="jar.classpath" jarfile="${dist}/${project}-${jochre.version}.jar">
 	      <classpath refid="classpath.jar"/>
 	    </manifestclasspath>
 		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">
 			<manifest>
 	    		<attribute name="Main-Class" value="com.joliciel.jochre.Jochre"/>
 	    		<attribute name="Class-Path" value="${jar.classpath}"/>
-	    	</manifest>
+		        <attribute name="Implementation-Version" value="${jochre.version}"/> 
+			</manifest>
 		</jar>
 	</target>
 	
