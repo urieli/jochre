@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * A group of shapes within a row, corresponding a single orthographic word.
@@ -166,6 +166,12 @@ public interface GroupOfShapes extends Entity, Rectangle {
 	 */
 	public LetterSequence getBestLetterSequence();
 	public void setBestLetterSequence(LetterSequence bestLetterSequence);
+	
+	/**
+	 * Returns the subsequences of the best letter sequence.
+	 * @return
+	 */
+	public List<LetterSequence> getSubsequences();
 
 	/**
 	 * Whether or not the best letter sequence for this group is split across two lines.
@@ -177,7 +183,7 @@ public interface GroupOfShapes extends Entity, Rectangle {
 	 * The word frequencies for the best letter sequence.
 	 * @return
 	 */
-	public List<WeightedOutcome<String>> getWordFrequencies();
+	public List<CountedOutcome<String>> getWordFrequencies();
 	
 	/**
 	 * The confidence in the current word guess, in a scale from 0 to 1.

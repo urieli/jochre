@@ -34,8 +34,8 @@ public class NgramFeature extends AbstractLetterFeature<String> implements Strin
 				String letter = null;
 				if (history!=null) {
 					// this is during analysis, we look at the current history
-					if (history.size()>i) {
-						letter = history.get(history.size()-i-1);
+					if (history.getLetters().size()>i) {
+						letter = history.getLetters().get(history.getLetters().size()-i-1);
 					} else {
 						letter = SPACE;
 					}	

@@ -19,6 +19,9 @@
 package com.joliciel.jochre.lexicon;
 
 import java.util.Iterator;
+import java.util.List;
+
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * An interface giving a frequency of occurrence for each word.
@@ -37,5 +40,18 @@ public interface Lexicon {
 	 */
 	public int getFrequency(String word);
 	
+	/**
+	 * For a given word (not necessarily in standard spelling for the lexicon),
+	 * returns a list of any equivalent words found in the lexicon (in their standard spelling)
+	 * with the associated frequencies.
+	 * @param word
+	 * @return
+	 */
+	public List<CountedOutcome<String>> getFrequencies(String word);
+	
+	/**
+	 * Return all words in this lexicon.
+	 * @return
+	 */
 	public Iterator<String> getWords();
 }

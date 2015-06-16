@@ -42,6 +42,7 @@ import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.analyser.LetterGuessObserver;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
@@ -206,7 +207,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 		try  {
 			int realFrequency = 0;
 			if (wordChooser!=null)
-				realFrequency = wordChooser.getFrequency(bestSequence.getRealWord());
+				realFrequency = wordChooser.getFrequency(bestSequence, false);
 			boolean error = !bestSequence.getRealWord().equals(bestSequence.getGuessedWord());
 			boolean known = realFrequency>0;
 			boolean badSeg = bestSequence.getRealSequence().contains("[") || bestSequence.getRealSequence().contains("|");
@@ -244,7 +245,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 					JochreSession jochreSession = JochreSession.getInstance();
 					Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-						String letterGuess = bestSequence.get(j++);
+						String letterGuess = bestSequence.getLetters().get(j++);
 						String letter = shapeInSequence.getShape().getLetter();
 						boolean badSegLetter = letter.contains("|") || letter.length()==0 || (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter));
 						if (letter.equals(letterGuess)) {
@@ -330,12 +331,13 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 				
 				writer.write(CSV.format(realFrequency));
 				writer.write(CSV.format(bestSequence.getFrequency()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getDocument().getName()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getRow().getParagraph().getImage().getPage().getIndex()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getRow().getParagraph().getIndex()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getRow().getIndex()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getIndex()));
-				writer.write(CSV.format(bestSequence.getFirstGroup().getId()));
+				GroupOfShapes group = bestSequence.getGroups().get(0);
+				writer.write(CSV.format(group.getRow().getParagraph().getImage().getPage().getDocument().getName()));
+				writer.write(CSV.format(group.getRow().getParagraph().getImage().getPage().getIndex()));
+				writer.write(CSV.format(group.getRow().getParagraph().getIndex()));
+				writer.write(CSV.format(group.getRow().getIndex()));
+				writer.write(CSV.format(group.getIndex()));
+				writer.write(CSV.format(group.getId()));
 				
 				if (this.includeBeam) {
 					if (finalSequences!=null) {

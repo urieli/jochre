@@ -8,7 +8,15 @@
 						<TextLine HEIGHT="${row.height?c}" WIDTH="${row.width?c}" HPOS="${row.left?c}" VPOS="${row.top?c}">
 						[#list row.groups as group]
 							[#if group.index>0]<SP WIDTH="${group.precedingSpace.width?c}" HPOS="${group.precedingSpace.left?c}" VPOS="${group.precedingSpace.top?c}"/>[/#if]
-							<String HEIGHT="${group.height?c}" WIDTH="${group.width?c}" HPOS="${group.left?c}" VPOS="${group.top?c}" CONTENT="${group.word?replace("\"", "&quot;")}" WC="${group.confidence?string["0.0000"]}"/>
+							[#list group.subsequences as subsequence][#assign rect=subsequence.getRectangleInGroup(group)]
+							[#if rect??]
+							<String HEIGHT="${rect.height?c}" WIDTH="${rect.width?c}" HPOS="${rect.left?c}" VPOS="${rect.top?c}" CONTENT="${subsequence.guessedWord?replace("\"", "&quot;")}" WC="${group.confidence?string["0.0000"]}">
+							[#if subsequence.wordFrequencies[0]??][#assign otherWord=subsequence.wordFrequencies[0].outcome][#if otherWord!=subsequence.guessedWord]
+								<ALTERNATIVE>${otherWord}</ALTERNATIVE>
+							[/#if][/#if]
+							</String>
+							[/#if]
+							[/#list]
 						[/#list]
 						</TextLine>
 					[/#list]

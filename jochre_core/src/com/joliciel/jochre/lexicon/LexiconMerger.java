@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.joliciel.talismane.utils.CountedOutcome;
+
 /**
  * Merges lexicons by returning the maximum frequency that any single lexicon gives for a given word.
  * @author Assaf Urieli
@@ -39,6 +41,17 @@ public class LexiconMerger implements Lexicon {
 		}
 		return maxFrequency;
 	}
+	
+	@Override
+	public List<CountedOutcome<String>> getFrequencies(String word) {
+		int frequency = this.getFrequency(word);
+		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
+		if (frequency>0) {
+			results.add(new CountedOutcome<String>(word, frequency));
+		}
+		return results;
+	}
+	
 	public List<Lexicon> getLexicons() {
 		return lexicons;
 	}

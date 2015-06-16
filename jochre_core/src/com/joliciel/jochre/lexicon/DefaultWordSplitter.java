@@ -70,7 +70,6 @@ public class DefaultWordSplitter implements WordSplitter {
 						currentWord = token;
 					} else {
 						// combine punctuation marks together
-						//TODO: only for ... I think
 						currentWord = previousWord + token;
 					}
 				} else {

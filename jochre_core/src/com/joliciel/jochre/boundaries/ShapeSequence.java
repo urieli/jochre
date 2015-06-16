@@ -20,6 +20,8 @@ package com.joliciel.jochre.boundaries;
 
 import java.util.List;
 
+import com.joliciel.jochre.graphics.GroupOfShapes;
+import com.joliciel.jochre.graphics.Rectangle;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationSolution;
 
@@ -57,10 +59,19 @@ public interface ShapeSequence extends List<ShapeInSequence>, ClassificationSolu
 	public ShapeInSequence addShape(Shape shape, Shape[] originalShapes);
 	
 	/**
-	 * Add a fiven shape to this sequence for the original shapes in the list provided.
+	 * Add a given shape to this sequence for the original shapes in the list provided.
 	 * @param shape
 	 * @param originalShapes
 	 * @return
 	 */
 	public ShapeInSequence addShape(Shape shape, List<Shape> originalShapes);
+	
+	/**
+	 * Return the rectangle enclosing this shape sequence in a particular group.
+	 * @param group
+	 * @return
+	 */
+	public Rectangle getRectangleInGroup(GroupOfShapes group);
+	
+	
 }

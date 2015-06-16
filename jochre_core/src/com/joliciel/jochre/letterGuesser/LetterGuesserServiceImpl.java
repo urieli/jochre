@@ -18,7 +18,9 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
+import java.util.List;
 import java.util.Set;
+
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
@@ -63,8 +65,9 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 
 	@Override
 	public LetterSequence getEmptyLetterSequence(ShapeSequence shapeSequence) {
-		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, 0);
+		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence);
 		letterSequence.setBoundaryService(this.getBoundaryService());
+		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
 
@@ -72,15 +75,26 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	public LetterSequence getLetterSequencePlusOne(LetterSequence history) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(history);
 		letterSequence.setBoundaryService(this.getBoundaryService());
+		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
 	
 	@Override
 	public LetterSequence getLetterSequence(LetterSequence sequence1, LetterSequence sequence2) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(sequence1, sequence2, this.getBoundaryService());
+		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
 	
+
+	@Override
+	public LetterSequence getLetterSequence(ShapeSequence shapeSequence,
+			List<String> letters) {
+		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, letters);
+		letterSequence.setBoundaryService(this.getBoundaryService());
+		letterSequence.setLetterGuesserService(this);
+		return letterSequence;
+	}	
 	@Override
 	public LetterGuesserContext getContext(ShapeInSequence shapeInSequence, LetterSequence history) {
 		LetterGuesserContext context = new LetterGuesserContextImpl(shapeInSequence, history);
@@ -130,5 +144,6 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	public void setFeatureService(FeatureService featureService) {
 		this.featureService = featureService;
 	}
+
 	
 }

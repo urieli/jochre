@@ -30,7 +30,7 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.talismane.utils.LogUtils;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * Lists all unknown words.
@@ -73,8 +73,8 @@ public class UnknownWordListWriter implements DocumentObserver {
 					for (RowOfShapes row : paragraph.getRows()) {
 						for (GroupOfShapes group : row.getGroups()) {
 							if (group.getBestLetterSequence()!=null) {
-								for (WeightedOutcome<String> wordFrequency : group.getBestLetterSequence().getWordFrequencies()) {
-									if (wordFrequency.getWeight()==0) {
+								for (CountedOutcome<String> wordFrequency : group.getBestLetterSequence().getWordFrequencies()) {
+									if (wordFrequency.getCount()==0) {
 										writer.write(wordFrequency.getOutcome() + "\n");
 										writer.flush();
 									}

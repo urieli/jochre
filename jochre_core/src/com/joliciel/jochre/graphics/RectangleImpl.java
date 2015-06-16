@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-class RectangleImpl implements Rectangle {
+public class RectangleImpl implements Rectangle {
 	private int left;
 	private int top;
 	private int right;

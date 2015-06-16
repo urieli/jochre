@@ -25,7 +25,7 @@ import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 class GroupOfShapesImpl extends EntityImpl implements
 		GroupOfShapesInternal {
@@ -547,7 +547,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 		return wordForIndex;
 	}
 
-	public List<WeightedOutcome<String>> getWordFrequencies() {
+	public List<CountedOutcome<String>> getWordFrequencies() {
 		if (bestLetterSequence!=null)
 			return bestLetterSequence.getWordFrequencies();
 		return null;
@@ -584,5 +584,16 @@ class GroupOfShapesImpl extends EntityImpl implements
 			}
 		}
 		return prevSpace;
+	}
+
+
+
+	@Override
+	public List<LetterSequence> getSubsequences() {
+		LetterSequence bestLetterSequence = this.getBestLetterSequence();
+		List<LetterSequence> subsequences = new ArrayList<LetterSequence>();
+		if (bestLetterSequence!=null)
+			subsequences = bestLetterSequence.getSubsequences();
+		return subsequences;
 	}
 }

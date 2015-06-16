@@ -18,5 +18,17 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
+import java.util.List;
+
+import com.joliciel.jochre.boundaries.ShapeSequence;
+
 interface LetterGuesserServiceInternal extends LetterGuesserService {
+	/**
+	 * Create a letter sequence from a sequence of shapes and a sequence of letters.
+	 * @param sequence1
+	 * @param sequence2
+	 * @return
+	 */
+	public LetterSequence getLetterSequence(ShapeSequence shapeSequence, List<String> letters);
+
 }

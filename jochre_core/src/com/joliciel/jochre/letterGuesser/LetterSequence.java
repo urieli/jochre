@@ -19,24 +19,34 @@
 package com.joliciel.jochre.letterGuesser;
 
 import java.util.List;
+
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
+import com.joliciel.jochre.graphics.Rectangle;
 import com.joliciel.talismane.machineLearning.ClassificationSolution;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
- * A sequence of weighted outcomes with an attached score.
+ * A sequence of letter guesses associated with a given sequence of shapes, and the attached score.
+ * There will be exactly one element in this sequence per underlying shape, including possibly
+ * empty strings.
  * @author Assaf Urieli
  *
  */
-public interface LetterSequence extends List<String>, ClassificationSolution {
-
+public interface LetterSequence extends ClassificationSolution {
+	/**
+	 * The letters in this sequence.
+	 * @return
+	 */
+	public List<String> getLetters();
+	
 	/**
 	 * Get the sum of logs of the weights.
 	 * @return
 	 */
 	public double getScore();
+	public void setScore(double score);
 	
 	/**
 	 * A dash that needs to be skipped in certain circumstances,
@@ -80,7 +90,8 @@ public interface LetterSequence extends List<String>, ClassificationSolution {
 	 * gives the frequency for each word as found in the lexicon.
 	 * @return
 	 */
-	public List<WeightedOutcome<String>> getWordFrequencies();
+	public List<CountedOutcome<String>> getWordFrequencies();
+	public void setWordFrequencies(List<CountedOutcome<String>> wordFrequencies);
 	
 	/**
 	 * The guessed word.
@@ -110,14 +121,43 @@ public interface LetterSequence extends List<String>, ClassificationSolution {
 	public String getGuessedSequence();
 	
 	/**
-	 * The first group of shapes underlying this letter sequence.
+	 * A list of groups of shapes underlying this letter sequence.
 	 * @return
 	 */
-	public GroupOfShapes getFirstGroup();
+	public List<GroupOfShapes> getGroups();
 
 	/**
 	 * Whether or not this letter sequence is split across two lines.
 	 * @return
 	 */
-	public abstract boolean isSplit();
+	public boolean isSplit();
+	
+	/**
+	 * If this sequence contains any punctuation, returns individual sequences
+	 * representing letters and punctuation. Otherwise, returns the original sequence.
+	 * @return
+	 */
+	public List<LetterSequence> getSubsequences();
+	public void setSubsequences(List<LetterSequence> subsequences);
+	
+	/**
+	 * Whether or not this letter sequence represents punctuation (in the case of a subsequence).
+	 * @return
+	 */
+	public boolean isPunctation();
+	public void setPunctation(boolean punctation);
+	
+	
+	/**
+	 * Return the rectangle enclosing this letter sequence in a particular group.
+	 * @param group
+	 * @return
+	 */
+	public Rectangle getRectangleInGroup(GroupOfShapes group);
+	
+	/**
+	 * For a letter sequence covering two groups, split this letter sequence into one sequence per group.
+	 * @return
+	 */
+	List<LetterSequence> splitByGroup();
 }

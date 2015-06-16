@@ -19,16 +19,22 @@
 package com.joliciel.jochre.lexicon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
@@ -41,6 +47,9 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	LetterGuesserService letterGuesserService = null;
 	WordSplitter wordSplitter;
 	Lexicon lexicon;
+	Set<String> midWordPunctuation = new HashSet<String>();
+	Set<String> startWordPunctuation = new HashSet<String>();
+	Set<String> endWordPunctuation = new HashSet<String>(Arrays.asList("'"));
 	
 	public LetterSequence chooseMostLikelyWord(
 			List<LetterSequence> heap, List<LetterSequence> holdoverHeap, int n) {
@@ -63,8 +72,8 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		PriorityQueue<LetterSequence> combinedHeap = new PriorityQueue<LetterSequence>();
 		for (LetterSequence sequenceWithDash : holdoverWithDash) {
 			// find the dash that needs to be skipped at the end of sequence 1
-			for (int j = sequenceWithDash.size()-1; j>=0; j--) {
-				String outcome = sequenceWithDash.get(j);
+			for (int j = sequenceWithDash.getLetters().size()-1; j>=0; j--) {
+				String outcome = sequenceWithDash.getLetters().get(j);
 				if (outcome.equals("-")) {
 					sequenceWithDash.setDashToSkip(j);
 					break;
@@ -113,7 +122,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			LetterSequence separateSequence = this.letterGuesserService.getLetterSequence(bestHoldoverSequence, bestNextRowSequence);
 			int minFrequency = bestHoldoverSequence.getFrequency() < bestNextRowSequence.getFrequency() ? bestHoldoverSequence.getFrequency() : bestNextRowSequence.getFrequency();
 			double freqLog = this.getFrequencyAdjustment(minFrequency);
-			double separateAdjustedScore = separateSequence.getScore() * freqLog + additiveSmoothing;
+			double separateAdjustedScore = separateSequence.getScore() * freqLog;
 			separateSequence.setAdjustedScore(separateAdjustedScore);
 			if (LOG.isDebugEnabled())
 				LOG.debug("Best separate: " + separateSequence.toString() + ". Score: " + separateSequence.getScore() + ". Freq: " + minFrequency + ". Adjusted: " + freqLog + ". Adjusted score: " + separateSequence.getAdjustedScore());
@@ -134,121 +143,6 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		return bestSequence;
 	}
 	
-	public int getFrequency(String wordText) {
-		return this.getFrequency(wordText, null);
-	}
-
-	public int getFrequency(String wordText, LetterSequence sequence) {
-		int minFrequency = Integer.MAX_VALUE;
-
-		List<String> words = null;
-		if (this.getWordSplitter()!=null) {
-			words = this.getWordSplitter().splitText(wordText);
-		} else {
-			words = new ArrayList<String>();
-			words.add(wordText);
-		}
-		
-		for (String word : words) {
-			// More intelligent handling of dashes:
-			// If a word contains a dash, we should analyse both sides of the dash separately
-			// as well as the whole thing together
-			int frequency = 0;
-			
-			if (word.contains("-")&&word.length()>1) {
-				String[] parts = word.split("-");
-
-				frequency = this.lexicon.getFrequency(word);
-				
-				List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
-				int minPartFrequency = Integer.MAX_VALUE;
-				boolean firstPart = true;
-				for (String part : parts) {
-					part = part.trim();
-					if (part.length()>0) {
-						int partFrequency = 0;
-						if (!firstPart)
-							partFrequency = this.lexicon.getFrequency("-" + part);
-						
-						if (partFrequency==0)
-							partFrequency  = this.lexicon.getFrequency(part);
-						
-						partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
-						if (partFrequency < minPartFrequency)
-							minPartFrequency = partFrequency;
-					}
-					firstPart = false;
-				}
-				if (minPartFrequency==Integer.MAX_VALUE)
-					minPartFrequency = 0;
-				if (frequency>minPartFrequency) {
-					if (sequence!=null)
-						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-				} else {
-					if (sequence!=null)
-						sequence.getWordFrequencies().addAll(partFrequencies);
-					frequency = minPartFrequency;
-				}
-			} else if (word.contains("'") && !word.startsWith("'") && !word.endsWith("'") && word.length()>0) {
-				//TODO: combine ' and - into something a bit more generic
-				// the apostrophe can either be attached to the first or second part, but not to both (?)
-				String[] parts = word.split("'");
-				
-				frequency = this.lexicon.getFrequency(word);
-
-				List<WeightedOutcome<String>> partFrequencies = new ArrayList<WeightedOutcome<String>>();
-				int minPartFrequency = Integer.MAX_VALUE;
-				boolean prevApostropheAttached = false;
-				int i = 0;
-				for (String part : parts) {
-					boolean firstPart = i==0;
-					boolean lastPart = i==parts.length-1;
-					part = part.trim();
-					if (part.length()>0) {
-						int partFrequency = 0;
-						if (!firstPart && !prevApostropheAttached)
-							partFrequency = this.lexicon.getFrequency("'" + part);
-
-						prevApostropheAttached = false;
-						if (!lastPart && partFrequency==0) {
-							partFrequency = this.lexicon.getFrequency(part + "'");
-							if (partFrequency>0)
-								prevApostropheAttached = true;
-						}
-						
-						if (partFrequency==0)
-							partFrequency  = this.lexicon.getFrequency(part);
-						
-						partFrequencies.add(new WeightedOutcome<String>(part, partFrequency));
-						if (partFrequency < minPartFrequency)
-							minPartFrequency = partFrequency;
-					}
-					i++;
-				}
-				if (minPartFrequency==Integer.MAX_VALUE)
-					minPartFrequency = 0;
-				if (frequency>minPartFrequency) {
-					if (sequence!=null)
-						sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-				} else {
-					if (sequence!=null)
-						sequence.getWordFrequencies().addAll(partFrequencies);
-					frequency = minPartFrequency;
-				}
-				
-
-			} else {
-				frequency = this.lexicon.getFrequency(word);
-				if (sequence!=null)
-					sequence.getWordFrequencies().add(new WeightedOutcome<String>(word, frequency));
-			}
-			if (frequency < minFrequency)
-				minFrequency = frequency;
-
-		}
-		return minFrequency;
-	}
-	
 	@Override
 	public LetterSequence chooseMostLikelyWord(
 			List<LetterSequence> heap, int n) {
@@ -262,16 +156,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 				break;
 			sequences.add(sequence);
 			
-			StringBuilder sb = new StringBuilder();
-			int j = 0;
-			for (String outcome : sequence) {
-				// we skip a dash which separates two rows if required
-				if (outcome!=null && j!=sequence.getDashToSkip())
-					sb.append(outcome);
-				j++;
-			}
-			String wordText = sb.toString();
-			int minFrequency = this.getFrequency(wordText, sequence);
+			int minFrequency = this.getFrequency(sequence);
 			
 			sequence.setFrequency(minFrequency);
 			double freqLog = this.getFrequencyAdjustment(minFrequency);
@@ -326,6 +211,201 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 				return 1;
 		}
 	}
+	
+	public int getFrequency(LetterSequence letterSequence) {
+		return this.getFrequency(letterSequence, true);
+	}
+	
+	public int getFrequency(LetterSequence letterSequence, boolean guessedWord) {
+		int frequency = 0;
+		List<LetterSequence> subsequences = letterSequence.getSubsequences();
+		List<List<LetterSequence>> possibilities = new ArrayList<List<LetterSequence>>();
+		possibilities.add(new ArrayList<LetterSequence>());
+		
+		int lastIndex = -1;
+		for (int i=0; i<subsequences.size(); i++) {
+			LetterSequence subsequence = subsequences.get(i);
+			lastIndex += subsequence.getLetters().size();
+			String word = null;
+			if (guessedWord)
+				word = subsequence.getGuessedWord();
+			else
+				word = subsequence.getRealWord();
+			
+			List<List<LetterSequence>> newPossibilities = new ArrayList<List<LetterSequence>>();
+			for (List<LetterSequence> possibility : possibilities) {
+				if (possibility.size()>0) {
+					// has this subsequence already been processed ?
+					LetterSequence lastSequence = possibility.get(possibility.size()-1);
+					Shape lastShape = lastSequence.getUnderlyingShapeSequence().get(lastSequence.getUnderlyingShapeSequence().size()-1).getShape();
+					Shape myLastShape = subsequence.getUnderlyingShapeSequence().get(subsequence.getUnderlyingShapeSequence().size()-1).getShape();
+					if (lastShape.equals(myLastShape)) {
+						newPossibilities.add(possibility);
+						continue;
+					}
+				}
+				boolean addWord = true;
+				if (subsequence.isPunctation()) {
+					if (word.equals("-")||midWordPunctuation.contains(word)||startWordPunctuation.contains(word)||endWordPunctuation.contains(word)) {
+						LetterSequence prevSequence = possibility.size()==0 ? null : possibility.get(possibility.size()-1);
+						LetterSequence nextSequence = i==subsequences.size()-1 ? null : subsequences.get(i+1);
+						LetterSequence prevCurrentSequence = letterGuesserService.getLetterSequence(prevSequence, subsequence);
+						LetterSequence currentNextSequence = letterGuesserService.getLetterSequence(subsequence, nextSequence);
+						LetterSequence prevCurrentNextSequence = letterGuesserService.getLetterSequence(prevCurrentSequence, nextSequence);
+						if (word.equals("-")) {
+							if (prevSequence==null && nextSequence==null) {
+								newPossibilities.add(possibility);
+							} else if (prevSequence==null) {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>();
+								newPoss.add(subsequence);
+								newPoss.add(nextSequence);
+								newPossibilities.add(newPoss);
+								newPoss = new ArrayList<LetterSequence>();
+								newPoss.add(currentNextSequence);
+								newPossibilities.add(newPoss);
+							} else if (nextSequence==null) {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.add(subsequence);
+								newPossibilities.add(newPoss);
+								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.remove(newPoss.size()-1);
+								newPoss.add(prevCurrentSequence);
+								newPossibilities.add(newPoss);
+							} else {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.add(subsequence);
+								newPoss.add(nextSequence);
+								newPossibilities.add(newPoss);
+								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.add(currentNextSequence);
+								newPossibilities.add(newPoss);
+								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.remove(newPoss.size()-1);
+								newPoss.add(prevCurrentSequence);
+								newPoss.add(nextSequence);
+								newPossibilities.add(newPoss);
+								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.remove(newPoss.size()-1);
+								newPoss.add(prevCurrentNextSequence);
+								newPossibilities.add(newPoss);
+								
+								//add skipped dash possibility
+								if (lastIndex==letterSequence.getDashToSkip()) {
+									LetterSequence prevNextSequence = letterGuesserService.getLetterSequence(prevSequence, nextSequence);
+									newPoss = new ArrayList<LetterSequence>(possibility);
+									newPoss.remove(newPoss.size()-1);
+									newPoss.add(prevNextSequence);
+									
+									newPossibilities.add(newPoss);
+								}
+							}
+							
+							addWord = false;
+						}
+						
+						if (midWordPunctuation.contains(word)) {
+							if (prevSequence!=null && nextSequence!=null) {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.remove(newPoss.size()-1);
+								newPoss.add(prevCurrentNextSequence);
+								newPossibilities.add(newPoss);
+								addWord = false;
+							}
+						}
+						
+						if (startWordPunctuation.contains(word)) {
+							if (nextSequence!=null && !subsequences.get(subsequences.size()-1).getGuessedWord().equals(word)) {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.add(currentNextSequence);
+								newPossibilities.add(newPoss);
+								
+								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.add(subsequence);
+								newPoss.add(nextSequence);
+								newPossibilities.add(newPoss);
+								addWord = false;
+							}
+						}
+						
+						if (endWordPunctuation.contains(word) && !subsequences.get(0).getGuessedWord().equals(word)) {
+							if (prevSequence!=null) {
+								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss.remove(newPoss.size()-1);
+								newPoss.add(prevCurrentSequence);
+								newPossibilities.add(newPoss);
+							}
+						}
+					}
+				}
+				
+				if (addWord) {
+					possibility.add(subsequence);
+					newPossibilities.add(possibility);
+				}
+			}
+			possibilities = newPossibilities;
+		}
+		
+
+		
+		TreeMap<Integer, List<List<LetterSequence>>> freqPossibilityMap = new TreeMap<Integer, List<List<LetterSequence>>>();
+		
+		for (List<LetterSequence> possibility : possibilities) {
+			boolean hasWords = false;
+			for (LetterSequence subsequence : possibility) {
+				if (!subsequence.isPunctation()) {
+					hasWords = true;
+					break;
+				}
+			}
+			int minFreq = Integer.MAX_VALUE;
+			for (LetterSequence subsequence : possibility) {
+				String word = subsequence.getGuessedWord();
+				int freq = 0;
+				List<CountedOutcome<String>> frequencies = lexicon.getFrequencies(word);
+				if (frequencies!=null && frequencies.size()>0) {
+					subsequence.setWordFrequencies(frequencies);
+					letterSequence.getWordFrequencies().add(frequencies.get(0));
+					freq = frequencies.get(0).getCount();
+				}
+				
+				if (subsequence.isPunctation()&&hasWords) {
+					continue;
+				}
+				if (freq<minFreq) minFreq = freq;
+			}
+			
+			List<List<LetterSequence>> possibilitiesAtFreq = freqPossibilityMap.get(minFreq);
+			if (possibilitiesAtFreq==null) {
+				possibilitiesAtFreq = new ArrayList<List<LetterSequence>>();
+				freqPossibilityMap.put(minFreq, possibilitiesAtFreq);
+			}
+			possibilitiesAtFreq.add(possibility);
+
+		}
+		
+		List<List<LetterSequence>> maxFreqPossibilities = freqPossibilityMap.lastEntry().getValue();
+		List<LetterSequence> maxLengthList = null;
+		int maxLengthForList = -1;
+		for (List<LetterSequence> possibility : maxFreqPossibilities) {
+			int maxLength = 0;
+			for (LetterSequence subsequence : possibility) {
+				String word = subsequence.getGuessedWord();
+				if (word.length()>maxLength) maxLength = word.length();
+			}			
+			if (maxLength>maxLengthForList) {
+				maxLengthList = possibility;
+				maxLengthForList = maxLength;
+			}
+		}
+		
+		frequency = freqPossibilityMap.lastEntry().getKey();
+		letterSequence.setSubsequences(maxLengthList);
+		
+		return frequency;
+	}
+	
+
 
 
 	public LexiconServiceInternal getLexiconServiceInternal() {

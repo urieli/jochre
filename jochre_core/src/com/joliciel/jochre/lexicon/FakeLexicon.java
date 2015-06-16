@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.joliciel.talismane.utils.CountedOutcome;
+
 /**
  * A fake lexicon, which returns a frequency of 1 for every word queried.
  * @author Assaf Urieli
@@ -33,6 +35,17 @@ public class FakeLexicon implements Lexicon {
 	public int getFrequency(String word) {
 		return 1;
 	}
+	
+	@Override
+	public List<CountedOutcome<String>> getFrequencies(String word) {
+		int frequency = this.getFrequency(word);
+		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
+		if (frequency>0) {
+			results.add(new CountedOutcome<String>(word, frequency));
+		}
+		return results;
+	}
+	
 
 	@Override
 	public Iterator<String> getWords() {

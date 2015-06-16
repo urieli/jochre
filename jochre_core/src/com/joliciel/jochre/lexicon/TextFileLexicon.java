@@ -28,8 +28,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -39,6 +41,8 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * Constructs a lexicon from a tab-separated text file resource,
@@ -126,6 +130,16 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			return 0;
 	}
 
+	@Override
+	public List<CountedOutcome<String>> getFrequencies(String word) {
+		int frequency = this.getFrequency(word);
+		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
+		if (frequency>0) {
+			results.add(new CountedOutcome<String>(word, frequency));
+		}
+		return results;
+	}
+	
 
 	public void serialize(File memoryBaseFile) {
 		LOG.debug("serialize");

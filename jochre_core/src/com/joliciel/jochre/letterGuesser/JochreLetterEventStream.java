@@ -122,7 +122,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				
 				event = this.machineLearningService.getClassificationEvent(featureResults, outcome);
 				
-				history.add(outcome);
+				history.getLetters().add(outcome);
 				// set shape to null so that hasNext can retrieve the next one.
 				this.shapeInSequence = null;
 			}

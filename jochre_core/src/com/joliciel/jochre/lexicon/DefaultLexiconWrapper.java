@@ -20,14 +20,17 @@ package com.joliciel.jochre.lexicon;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.JochreSession;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * For each word in the lexicon, adds variants with an initial uppercase and all upper-case.
@@ -57,6 +60,17 @@ public class DefaultLexiconWrapper implements Lexicon {
 			    upperCaseLexicon.add(this.toUpperCaseNoAccents(word));
 			}
 		}
+	}
+	
+
+	@Override
+	public List<CountedOutcome<String>> getFrequencies(String word) {
+		int frequency = this.getFrequency(word);
+		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
+		if (frequency>0) {
+			results.add(new CountedOutcome<String>(word, frequency));
+		}
+		return results;
 	}
 	
 	@Override

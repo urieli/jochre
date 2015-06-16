@@ -18,7 +18,9 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.yiddish;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -26,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.lexicon.Lexicon;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * Given a Yiddish word in an unknown orthographic standard,
@@ -45,9 +48,23 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		super();
 		this.baseLexicon = baseLexicon;
 	}
+	
+
 
 	@Override
-	public int getFrequency(String initialWord) {
+	public int getFrequency(String word) {
+		List<CountedOutcome<String>> frequencies = this.getFrequencies(word);
+		if (frequencies.size()==0)
+			return 0;
+		else
+			return (int) frequencies.get(0).getCount();
+	}
+	
+	
+	
+	@Override
+	public List<CountedOutcome<String>> getFrequencies(String initialWord) {
+		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
 		String word = YiddishWordSplitter.standardiseWord(initialWord);
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
@@ -117,10 +134,12 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		variants = this.addVariants(variants, "(.)דיגע\\z", "$1דיקע");
 		variants = this.addVariants(variants, "(.)דיגן\\z", "$1דיקן");
 
-		int maxFrequency = 0;
-		
+		Set<CountedOutcome<String>> orderedResults = new TreeSet<CountedOutcome<String>>();
 		for (String variant : variants) {
 			int frequency = this.baseLexicon.getFrequency(variant);
+			if (frequency>0) {
+				orderedResults.add(new CountedOutcome<String>(variant, frequency));
+			}
 			// only count multiple occurrences if it's the exact spelling
 			if (!variant.equals(initialWord)&&frequency>1)
 				frequency = 1;
@@ -129,16 +148,16 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 					LOG.trace(variant + ": " + frequency);
 				}
 			}
-			if (frequency > maxFrequency)
-				maxFrequency = frequency;
 		}
+		results.addAll(orderedResults);
 		
-		if (maxFrequency==0) {
+		if (results.size()==0) {
 			// check whether word is impossible
-			if (!isWordPossible(initialWord))
-				maxFrequency = -1;
+			if (!isWordPossible(initialWord)) {
+				results.add(new CountedOutcome<String>(initialWord, -1));
+			}
 		}
-		return maxFrequency;
+		return results;
 	}
 
 	boolean isWordPossible(String word) {
@@ -184,6 +203,6 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	public Iterator<String> getWords() {
 		return this.baseLexicon.getWords();
 	}
-	
-	
+
+
 }

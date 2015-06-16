@@ -19,28 +19,34 @@
 package com.joliciel.jochre.letterGuesser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
+import com.joliciel.jochre.graphics.Rectangle;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.GeometricMeanScoringStrategy;
 import com.joliciel.talismane.machineLearning.ScoringStrategy;
 import com.joliciel.talismane.machineLearning.Solution;
-import com.joliciel.talismane.utils.WeightedOutcome;
+import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * 
  * @author Assaf Urieli
  *
  */
-final class LetterSequenceImpl extends ArrayList<String> implements Comparable<LetterSequenceImpl>, LetterSequence {
-	private static final long serialVersionUID = 7846011721688179506L;
+final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, LetterSequence {
+	// notice no dash in punctation, as these are always considered to be attached to the letters
+//    private static final Pattern PUNCTUATION = Pattern.compile("[\\p{Punct}&&[^\\-]]+", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final Pattern PUNCTUATION = Pattern.compile("[\\p{Punct}]+", Pattern.UNICODE_CHARACTER_CLASS);
 
 	private double score = 0;
 	private double adjustedScore = 0;
@@ -54,22 +60,23 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 	
 	private int dashToSkip = -1;
 	private ShapeSequence underlyingShapeSequence;
-	private BoundaryService boundaryService;
 	private int frequency = 0;
-	private List<WeightedOutcome<String>> wordFrequencies = new ArrayList<WeightedOutcome<String>>();
+	private List<CountedOutcome<String>> wordFrequencies = new ArrayList<CountedOutcome<String>>();
 	
 	private List<Decision> decisions = new ArrayList<Decision>();
 	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
 	@SuppressWarnings("rawtypes")
 	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy();
 	
+	private List<LetterSequence> subsequences;
+	private List<String> letters = new ArrayList<String>();
+	private boolean punctation = false;
+	
+	private BoundaryService boundaryService;
+	private LetterGuesserServiceInternal letterGuesserService;
+	
 	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence) {
 		super();
-		this.setUnderlyingShapeSequence(underlyingShapeSequence);
-	}
-	
-	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence, int initialCapacity) {
-		super(initialCapacity);
 		this.setUnderlyingShapeSequence(underlyingShapeSequence);
 	}
 	
@@ -79,8 +86,7 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 	 * @param history
 	 */
 	public LetterSequenceImpl(LetterSequence history) {
-		super(history.size()+1);
-		this.addAll(history);
+		this.letters.addAll(history.getLetters());
 		this.decisions.addAll(history.getDecisions());
 		this.setUnderlyingShapeSequence(history.getUnderlyingShapeSequence());
 	}
@@ -91,20 +97,34 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 	 * @param sequence2
 	 */
 	public LetterSequenceImpl(LetterSequence sequence1, LetterSequence sequence2, BoundaryService boundaryService) {
-		super(sequence1.size() + sequence2.size());
-		this.setSplit(true);
-		this.addAll(sequence1);
-		this.addAll(sequence2);
-		this.decisions.addAll(sequence1.getDecisions());
-		this.decisions.addAll(sequence2.getDecisions());
+		if (sequence1!=null) {
+			this.letters.addAll(sequence1.getLetters());
+			this.decisions.addAll(sequence1.getDecisions());
+			this.setDashToSkip(sequence1.getDashToSkip());
+		}
+		if (sequence2!=null) {
+			this.letters.addAll(sequence2.getLetters());
+			this.decisions.addAll(sequence2.getDecisions());
+		}
 		
-		this.setDashToSkip(sequence1.getDashToSkip());
+		if (sequence1!=null && sequence2!=null) {
+			GroupOfShapes group1 = sequence1.getUnderlyingShapeSequence().get(0).getShape().getGroup();
+			GroupOfShapes group2 = sequence2.getUnderlyingShapeSequence().get(0).getShape().getGroup();
+			if (!group1.equals(group2))
+				this.setSplit(true);
+		}
+		
 		this.boundaryService = boundaryService;
 		
-		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1.getUnderlyingShapeSequence(), sequence2.getUnderlyingShapeSequence());
+		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1==null ? null : sequence1.getUnderlyingShapeSequence(), sequence2==null ? null : sequence2.getUnderlyingShapeSequence());
 		this.setUnderlyingShapeSequence(shapeSequence);
 	}
 	
+	public LetterSequenceImpl(ShapeSequence shapeSequence, List<String> letters) {
+		this.setUnderlyingShapeSequence(shapeSequence);
+		this.letters = letters;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.joliciel.jochre.training.LetterSequence#getScore()
 	 */
@@ -212,7 +232,7 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 			JochreSession jochreSession = JochreSession.getInstance();
 			Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
 			StringBuilder builder = new StringBuilder();
-			for (String letter : this) {
+			for (String letter : this.letters) {
 				if (letter.length()==0)
 					builder.append("[]");
 				else if (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter))
@@ -237,7 +257,7 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 	public double getAdjustedScore() {
 		return adjustedScore;
 	}
-
+	
 	@Override
 	public void setAdjustedScore(double adjustedScore) {
 		this.adjustedScore = adjustedScore;
@@ -254,10 +274,10 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 
 	@Override
 	public ShapeInSequence getNextShape() {
-		if (this.underlyingShapeSequence.size()<=this.size())
+		if (this.underlyingShapeSequence.size()<=this.letters.size())
 			return null;
 		else
-			return this.underlyingShapeSequence.get(this.size());
+			return this.underlyingShapeSequence.get(this.letters.size());
 	}
 
 	public BoundaryService getBoundaryService() {
@@ -300,13 +320,27 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 		this.scoringStrategy = scoringStrategy;
 	}
 
-	public List<WeightedOutcome<String>> getWordFrequencies() {
+	public List<CountedOutcome<String>> getWordFrequencies() {
 		return wordFrequencies;
+	}
+	
+	public void setWordFrequencies(List<CountedOutcome<String>> wordFrequencies) {
+		this.wordFrequencies = wordFrequencies;
 	}
 
 	@Override
-	public GroupOfShapes getFirstGroup() {
-		return this.getUnderlyingShapeSequence().get(0).getShape().getGroup();
+	public List<GroupOfShapes> getGroups() {
+		List<GroupOfShapes> groups = new ArrayList<GroupOfShapes>();
+
+		GroupOfShapes currentGroup = this.getUnderlyingShapeSequence().get(0).getShape().getGroup();
+		groups.add(currentGroup);
+		for (ShapeInSequence shapeInSequence : this.getUnderlyingShapeSequence()) {
+			if (!shapeInSequence.getShape().getGroup().equals(currentGroup)) {
+				currentGroup = shapeInSequence.getShape().getGroup();
+				groups.add(currentGroup);
+			}
+		}
+		return groups;
 	}
 
 	@Override
@@ -317,6 +351,165 @@ final class LetterSequenceImpl extends ArrayList<String> implements Comparable<L
 	public void setSplit(boolean split) {
 		this.split = split;
 	}
+
+	@Override
+	public List<LetterSequence> getSubsequences() {
+		if (subsequences==null) {
+			subsequences = new ArrayList<LetterSequence>();
+			List<String> currentLetters = new ArrayList<String>();
+			ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
+			boolean inPunctuation = false;
+			for (int i=0; i<this.letters.size(); i++) {
+				String letter = this.letters.get(i);
+				ShapeInSequence shape = this.underlyingShapeSequence.get(i);
+				
+				if (PUNCTUATION.matcher(letter).matches()) {
+					if (!inPunctuation && currentLetters.size()>0) {
+						LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
+						subsequences.add(subsequence);
+						currentLetters = new ArrayList<String>();
+						currentShapes = this.boundaryService.getEmptyShapeSequence();
+					}
+					inPunctuation = true;
+				} else {
+					if (inPunctuation && currentLetters.size()>0) {
+						LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
+						subsequence.setPunctation(true);
+						subsequences.add(subsequence);
+						currentLetters = new ArrayList<String>();
+						currentShapes = this.boundaryService.getEmptyShapeSequence();
+					}
+					inPunctuation = false;
+				}
+				currentLetters.add(letter);
+				currentShapes.addShape(shape.getShape());
+			}
+			if (currentLetters.size()>0) {
+				LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
+				subsequence.setPunctation(inPunctuation);
+				subsequences.add(subsequence);
+			}
+		}
+		return subsequences;
+	}
+	
+	
+	
+	public void setSubsequences(List<LetterSequence> subsequences) {
+		this.subsequences = subsequences;
+	}
+
+	private LetterSequence getSubsequence(ShapeSequence shapeSequence, List<String> letters) {
+		LetterSequence subsequence = this.letterGuesserService.getLetterSequence(shapeSequence, letters);
+		return subsequence;
+	}
+
+	public LetterGuesserServiceInternal getLetterGuesserService() {
+		return letterGuesserService;
+	}
+
+	public void setLetterGuesserService(
+			LetterGuesserServiceInternal letterGuesserService) {
+		this.letterGuesserService = letterGuesserService;
+	}
+
+	public boolean isPunctation() {
+		return punctation;
+	}
+
+	public void setPunctation(boolean punctation) {
+		this.punctation = punctation;
+	}
+
+	public List<String> getLetters() {
+		return letters;
+	}
+
+	@Override
+	public Rectangle getRectangleInGroup(GroupOfShapes group) {
+		return this.getUnderlyingShapeSequence().getRectangleInGroup(group);
+	}
+
+	@Override
+	public List<LetterSequence> splitByGroup() {
+		List<LetterSequence> letterSequences = new ArrayList<LetterSequence>();
+		if (this.isSplit()) {
+			Map<GroupOfShapes,LetterSequence> groupToLetterSequenceMap = new HashMap<GroupOfShapes,LetterSequence>();
+			List<String> currentLetters = new ArrayList<String>();
+			ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
+			GroupOfShapes currentGroup = this.getGroups().get(0);
+
+			for (int i=0; i<this.letters.size(); i++) {
+				String letter = this.letters.get(i);
+				Shape shape = this.underlyingShapeSequence.get(i).getShape();
+				if (!currentGroup.equals(shape.getGroup())) {
+					LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
+					letterSequence.setScore(this.getScore());
+					letterSequence.setAdjustedScore(this.getAdjustedScore());
+					groupToLetterSequenceMap.put(currentGroup, letterSequence);
+					letterSequences.add(letterSequence);
+					currentLetters = new ArrayList<String>();
+					currentShapes = this.boundaryService.getEmptyShapeSequence();
+					currentGroup = shape.getGroup();
+				}
+				currentShapes.addShape(shape);
+				currentLetters.add(letter);
+			}
+			if (currentLetters.size()>0) {
+				LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
+				letterSequence.setScore(this.getScore());
+				letterSequence.setAdjustedScore(this.getAdjustedScore());
+				groupToLetterSequenceMap.put(currentGroup, letterSequence);
+				letterSequences.add(letterSequence);
+			}
+			
+			currentGroup = this.getGroups().get(0);
+			
+			List<LetterSequence> newSubsequences = new ArrayList<LetterSequence>();
+			for (LetterSequence subsequence : this.getSubsequences()) {
+				if (subsequence.getGroups().size()>1) {
+					// subsequence covers both groups
+					// break it up into two subsequences, but assign only one of them the word frequencies
+					List<LetterSequence> subsequencesByGroup = subsequence.splitByGroup();
+					subsequencesByGroup.get(0).setWordFrequencies(subsequence.getWordFrequencies());
+					newSubsequences.addAll(subsequencesByGroup);
+				} else {
+					newSubsequences.add(subsequence);
+				}
+			}
+			
+			
+			List<LetterSequence> currentSubsequences = new ArrayList<LetterSequence>();
+			for (LetterSequence subsequence : newSubsequences) {
+				if (!subsequence.getGroups().get(0).equals(currentGroup)) {
+					LetterSequence currentSequence = groupToLetterSequenceMap.get(currentGroup);
+					currentSequence.setSubsequences(currentSubsequences);
+					for (LetterSequence oneSubsequence : currentSubsequences) {
+						if (oneSubsequence.getWordFrequencies().size()>0) {
+							currentSequence.getWordFrequencies().add(oneSubsequence.getWordFrequencies().get(0));
+						}
+					}
+					currentSubsequences = new ArrayList<LetterSequence>();
+					currentGroup = subsequence.getGroups().get(0);
+				}
+				currentSubsequences.add(subsequence);
+			}
+			if (currentSubsequences.size()>0) {
+				LetterSequence currentSequence = groupToLetterSequenceMap.get(currentGroup);
+				currentSequence.setSubsequences(currentSubsequences);
+				for (LetterSequence oneSubsequence : currentSubsequences) {
+					if (oneSubsequence.getWordFrequencies().size()>0) {
+						currentSequence.getWordFrequencies().add(oneSubsequence.getWordFrequencies().get(0));
+					}
+				}
+			}
+			
+		} else {
+			letterSequences.add(this);
+		}
+		return letterSequences;
+	}
+
 
 
 }

@@ -43,6 +43,7 @@ public interface LetterGuesserService {
 	 * @return
 	 */
 	public LetterSequence getLetterSequence(LetterSequence sequence1, LetterSequence sequence2);
+	
 	/**
 	 * Get an empty letter sequence with a capacity of 0.
 	 * @return

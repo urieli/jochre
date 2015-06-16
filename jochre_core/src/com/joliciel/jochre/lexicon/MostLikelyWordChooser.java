@@ -86,12 +86,21 @@ public interface MostLikelyWordChooser {
 	 */
 	public Lexicon getLexicon();
 	public void setLexicon(Lexicon lexicon);
-	
+		
 	/**
-	 * Get the lexicon's frequency for a particular word (or minimum word frequency
-	 * for a set of words with no spaces).
-	 * @param wordText
+	 * Same as {@link #getFrequency(LetterSequence)}, but can either apply
+	 * to the guessed word or to the real word from the training corpus.
+	 * @param letterSequence
+	 * @param guessedWord if true, applies to the guessed word
 	 * @return
 	 */
-	public int getFrequency(String wordText);
+	public int getFrequency(LetterSequence letterSequence, boolean guessedWord);
+	
+	/**
+	 * For a given LetterSequence, find the lexicon's frequency for the underlying guessed word
+	 * (or the minimum word frequency if there are several words separated by punctuation).
+	 * @param letterSequence
+	 * @return
+	 */
+	public int getFrequency(LetterSequence letterSequence);
 }

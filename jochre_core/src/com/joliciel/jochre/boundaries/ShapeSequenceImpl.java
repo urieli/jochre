@@ -3,6 +3,9 @@ package com.joliciel.jochre.boundaries;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.joliciel.jochre.graphics.GroupOfShapes;
+import com.joliciel.jochre.graphics.Rectangle;
+import com.joliciel.jochre.graphics.RectangleImpl;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.GeometricMeanScoringStrategy;
@@ -46,12 +49,16 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 	 * @param sequence2
 	 */
 	public ShapeSequenceImpl(ShapeSequence sequence1, ShapeSequence sequence2) {
-		super(sequence1.size() + sequence2.size());
+		super((sequence1==null ? 0 : sequence1.size()) + (sequence2==null ? 0 : sequence2.size()));
 		
-		this.addAll(sequence1);
-		this.addAll(sequence2);
-		this.decisions.addAll(sequence1.getDecisions());
-		this.decisions.addAll(sequence2.getDecisions());
+		if (sequence1!=null) {
+			this.addAll(sequence1);
+			this.decisions.addAll(sequence1.getDecisions());
+		}
+		if (sequence2!=null) {
+			this.addAll(sequence2);
+			this.decisions.addAll(sequence2.getDecisions());
+		}
 		
 		int i = 0;
 		for (ShapeInSequence shapeInSequence : this) {
@@ -152,6 +159,25 @@ class ShapeSequenceImpl extends ArrayList<ShapeInSequence> implements ShapeSeque
 
 	public void setScoringStrategy(@SuppressWarnings("rawtypes") ScoringStrategy scoringStrategy) {
 		this.scoringStrategy = scoringStrategy;
+	}
+
+	@Override
+	public Rectangle getRectangleInGroup(GroupOfShapes group) {
+		boolean haveShapes = false;
+		RectangleImpl rectangle = new RectangleImpl(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+		for (ShapeInSequence shapeInSequence : this) {
+			Shape shape = shapeInSequence.getShape();
+			if (shape.getGroup().equals(group)) {
+				haveShapes = true;
+				if (shape.getLeft()<rectangle.getLeft()) rectangle.setLeft(shape.getLeft());
+				if (shape.getTop()<rectangle.getTop()) rectangle.setTop(shape.getTop());
+				if (shape.getRight()>rectangle.getRight()) rectangle.setRight(shape.getRight());
+				if (shape.getBottom()>rectangle.getBottom()) rectangle.setBottom(shape.getBottom());
+			}
+		}
+		if (!haveShapes)
+			rectangle = null;
+		return rectangle;
 	}
 
 }

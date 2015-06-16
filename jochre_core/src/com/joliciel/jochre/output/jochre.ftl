@@ -9,7 +9,7 @@
 			<word l="${group.left?c}" t="${group.top?c}" r="${group.right?c}" b="${group.bottom?c}" text="${group.word?replace("\"", "&quot;")}" known="[#if group.frequency > 0][#if group.split]split[#else]true[/#if][#else]false[/#if]">
 			[#if group.wordFrequencies??]
 			[#list group.wordFrequencies as wordFrequency]
-				<freq text="${wordFrequency.outcome?replace("\"", "&quot;")}" weight="${wordFrequency.weight?c}"/>
+				<freq text="${wordFrequency.outcome?replace("\"", "&quot;")}" weight="${wordFrequency.count?c}"/>
 			[/#list]
 			[/#if]
 			[#list group.correctedShapes as shape]

@@ -133,6 +133,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 		for (Paragraph paragraph : image.getParagraphs()) {
 			LOG.debug("Analysing paragraph " + paragraph.getIndex() + " (id=" + paragraph.getId() + ")");
 			List<LetterSequence> holdoverSequences = null;
+			GroupOfShapes holdoverGroup = null;
 			for (RowOfShapes row: paragraph.getRows()) {
 				LOG.debug("Analysing row " + row.getIndex() + " (id=" + row.getId() + ")");
 				for (GroupOfShapes group : row.getGroups()) {
@@ -215,7 +216,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									// leave out very low probability outcomes
 									if (letterGuess.getProbability() > this.minOutcomeWeight) {
 										LetterSequence sequence = this.getLetterGuesserService().getLetterSequencePlusOne(history);
-										sequence.add(letterGuess.getOutcome());
+										sequence.getLetters().add(letterGuess.getOutcome());
 										sequence.addDecision(letterGuess);
 										heap.add(sequence);
 									} // weight big enough to include
@@ -227,7 +228,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					} // any more heaps?
 					
 					LetterSequence bestSequence = null;
-					boolean shouldCombineWithHoldover = false;
 					boolean isHoldover = false;
 					MONITOR.startTask("best sequence");
 					try {
@@ -246,7 +246,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							if (holdoverSequences!=null) {
 								// we have a holdover from the previous row ending with a dash
 								bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
-								shouldCombineWithHoldover = true;
 							} else {
 								// check if this is the last group on the row and could end with a dash
 								boolean shouldBeHeldOver = false;
@@ -261,6 +260,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								}
 								if (shouldBeHeldOver) {
 									holdoverSequences = finalSequences;
+									holdoverGroup = group;
 									isHoldover = true;
 								} else {
 									// simplest case: no holdover
@@ -280,19 +280,29 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					
 					MONITOR.startTask("assign letter");
 					try {
-						if (shouldCombineWithHoldover) {
-							holdoverSequences = null;
-						}
 						if (!isHoldover) {
 							for (LetterGuessObserver observer : observers) {
 								observer.onStartSequence(bestSequence);
 							}
-	
-							group.setBestLetterSequence(bestSequence);
+							
+							if (holdoverGroup==null) {
+								group.setBestLetterSequence(bestSequence);
+							} else {
+								// split bestSequence by group
+								List<LetterSequence> sequencesByGroup = bestSequence.splitByGroup();
+								for (LetterSequence sequenceByGroup : sequencesByGroup) {
+									if (sequenceByGroup.getGroups().get(0).equals(holdoverGroup))
+										holdoverGroup.setBestLetterSequence(sequenceByGroup);
+									else if (sequenceByGroup.getGroups().get(0).equals(group))
+										group.setBestLetterSequence(sequenceByGroup);
+								}
+								holdoverSequences = null;
+								holdoverGroup = null;
+							}
 							
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-								String bestOutcome = bestSequence.get(i);
+								String bestOutcome = bestSequence.getLetters().get(i);
 								this.assignLetter(shapeInSequence, bestOutcome);
 								i++;
 							} // next shape
