@@ -152,6 +152,7 @@ public class JochreProperties {
 			while (scanner.hasNextLine()) {
 				sb.append(scanner.nextLine() + "\n");
 			}
+			scanner.close();
 			String welcomeText = sb.toString();
 			LOG.debug("welcomeText length: " + welcomeText.length());
 

@@ -160,4 +160,11 @@ public interface LetterSequence extends ClassificationSolution {
 	 * @return
 	 */
 	List<LetterSequence> splitByGroup();
+	
+	/**
+	 * A subsequence representing a soft-hyphen, or null if no soft hyphen.
+	 * @return
+	 */
+	LetterSequence getSoftHyphenSubsequence();
+	public void setSoftHyphenSubsequence(LetterSequence softHyphenSubsequence);
 }

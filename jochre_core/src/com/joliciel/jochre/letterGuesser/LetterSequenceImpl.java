@@ -69,6 +69,8 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy();
 	
 	private List<LetterSequence> subsequences;
+	private List<LetterSequence> groupSequences;
+	private LetterSequence softHyphenSubsequence = null;
 	private List<String> letters = new ArrayList<String>();
 	private boolean punctation = false;
 	
@@ -110,8 +112,12 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		if (sequence1!=null && sequence2!=null) {
 			GroupOfShapes group1 = sequence1.getUnderlyingShapeSequence().get(0).getShape().getGroup();
 			GroupOfShapes group2 = sequence2.getUnderlyingShapeSequence().get(0).getShape().getGroup();
-			if (!group1.equals(group2))
+			if (!group1.equals(group2)) {
 				this.setSplit(true);
+				groupSequences = new ArrayList<LetterSequence>();
+				groupSequences.add(sequence1);
+				groupSequences.add(sequence2);
+			}
 		}
 		
 		this.boundaryService = boundaryService;
@@ -434,36 +440,45 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	public List<LetterSequence> splitByGroup() {
 		List<LetterSequence> letterSequences = new ArrayList<LetterSequence>();
 		if (this.isSplit()) {
+			
 			Map<GroupOfShapes,LetterSequence> groupToLetterSequenceMap = new HashMap<GroupOfShapes,LetterSequence>();
-			List<String> currentLetters = new ArrayList<String>();
-			ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
-			GroupOfShapes currentGroup = this.getGroups().get(0);
-
-			for (int i=0; i<this.letters.size(); i++) {
-				String letter = this.letters.get(i);
-				Shape shape = this.underlyingShapeSequence.get(i).getShape();
-				if (!currentGroup.equals(shape.getGroup())) {
+			
+			if (groupSequences!=null) {
+				letterSequences = groupSequences;
+				for (LetterSequence letterSequence : letterSequences) {
+					groupToLetterSequenceMap.put(letterSequence.getGroups().get(0), letterSequence);
+				}
+			} else {
+				List<String> currentLetters = new ArrayList<String>();
+				ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
+				GroupOfShapes currentGroup = this.getGroups().get(0);
+	
+				for (int i=0; i<this.letters.size(); i++) {
+					String letter = this.letters.get(i);
+					Shape shape = this.underlyingShapeSequence.get(i).getShape();
+					if (!currentGroup.equals(shape.getGroup())) {
+						LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
+						letterSequence.setScore(this.getScore());
+						letterSequence.setAdjustedScore(this.getAdjustedScore());
+						groupToLetterSequenceMap.put(currentGroup, letterSequence);
+						letterSequences.add(letterSequence);
+						currentLetters = new ArrayList<String>();
+						currentShapes = this.boundaryService.getEmptyShapeSequence();
+						currentGroup = shape.getGroup();
+					}
+					currentShapes.addShape(shape);
+					currentLetters.add(letter);
+				}
+				if (currentLetters.size()>0) {
 					LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
 					letterSequence.setScore(this.getScore());
 					letterSequence.setAdjustedScore(this.getAdjustedScore());
 					groupToLetterSequenceMap.put(currentGroup, letterSequence);
 					letterSequences.add(letterSequence);
-					currentLetters = new ArrayList<String>();
-					currentShapes = this.boundaryService.getEmptyShapeSequence();
-					currentGroup = shape.getGroup();
 				}
-				currentShapes.addShape(shape);
-				currentLetters.add(letter);
-			}
-			if (currentLetters.size()>0) {
-				LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
-				letterSequence.setScore(this.getScore());
-				letterSequence.setAdjustedScore(this.getAdjustedScore());
-				groupToLetterSequenceMap.put(currentGroup, letterSequence);
-				letterSequences.add(letterSequence);
 			}
 			
-			currentGroup = this.getGroups().get(0);
+			GroupOfShapes currentGroup = this.getGroups().get(0);
 			
 			List<LetterSequence> newSubsequences = new ArrayList<LetterSequence>();
 			for (LetterSequence subsequence : this.getSubsequences()) {
@@ -477,7 +492,6 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					newSubsequences.add(subsequence);
 				}
 			}
-			
 			
 			List<LetterSequence> currentSubsequences = new ArrayList<LetterSequence>();
 			for (LetterSequence subsequence : newSubsequences) {
@@ -503,13 +517,24 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					}
 				}
 			}
+			if (this.getSoftHyphenSubsequence()!=null)
+				letterSequences.get(0).setSoftHyphenSubsequence(this.getSoftHyphenSubsequence());
 			
+			for (LetterSequence letterSequence : letterSequences) {
+				letterSequence.setScore(this.getScore());
+				letterSequence.setAdjustedScore(this.getAdjustedScore());
+			}
 		} else {
 			letterSequences.add(this);
 		}
 		return letterSequences;
 	}
 
+	public LetterSequence getSoftHyphenSubsequence() {
+		return softHyphenSubsequence;
+	}
 
-
+	public void setSoftHyphenSubsequence(LetterSequence softHyphenSubsequence) {
+		this.softHyphenSubsequence = softHyphenSubsequence;
+	}
 }

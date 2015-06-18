@@ -295,7 +295,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 									newPoss = new ArrayList<LetterSequence>(possibility);
 									newPoss.remove(newPoss.size()-1);
 									newPoss.add(prevNextSequence);
-									
+									prevNextSequence.setSoftHyphenSubsequence(subsequence);
 									newPossibilities.add(newPoss);
 								}
 							}
@@ -401,6 +401,11 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		
 		frequency = freqPossibilityMap.lastEntry().getKey();
 		letterSequence.setSubsequences(maxLengthList);
+		
+		for (LetterSequence subsequence : maxLengthList) {
+			if (subsequence.getSoftHyphenSubsequence()!=null)
+				letterSequence.setSoftHyphenSubsequence(subsequence.getSoftHyphenSubsequence());
+		}
 		
 		return frequency;
 	}
