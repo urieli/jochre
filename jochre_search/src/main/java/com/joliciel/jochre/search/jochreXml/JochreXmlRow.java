@@ -16,36 +16,16 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-public class JochreXmlDocumentImpl implements JochreXmlDocument {
-	private File directory;
-	private List<JochreXmlImage> images = new ArrayList<JochreXmlImage>();
-	private int wordCount = -1;
-	
-	@Override
-	public File getDirectory() {
-		return directory;
-	}
-
-	@Override
-	public List<JochreXmlImage> getImages() {
-		return images;
-	}
-
-
-	@Override
-	public int wordCount() {
-		if (wordCount<0) {
-			wordCount = 0;
-			for (JochreXmlImage image : this.getImages()) {
-				wordCount += image.wordCount();
-			}
-		}
-		return wordCount;
-	}
+public interface JochreXmlRow {
+	public List<JochreXmlWord> getWords();
+	public int getLeft();
+	public int getTop();
+	public int getRight();
+	public int getBottom();
+	public JochreXmlParagraph getParagraph();
+	public int wordCount();
 }

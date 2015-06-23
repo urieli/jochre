@@ -16,17 +16,21 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
-class JochreXmlLetterImpl implements JochreXmlLetter {
-	private JochreXmlWord word;
+import java.util.ArrayList;
+import java.util.List;
+
+class JochreXmlWordImpl implements JochreXmlWord {
 	private String text;
 	private int left, top, right, bottom;
-	private int confidence;
+	private boolean known;
+	private List<JochreXmlLetter> letters = new ArrayList<JochreXmlLetter>();
+	private JochreXmlRow row;
 	
-	public JochreXmlLetterImpl(JochreXmlWord word, String text, int left, int top, int right, int bottom) {
+	public JochreXmlWordImpl(JochreXmlRow row, String text, int left, int top, int right, int bottom) {
 		super();
-		this.word = word;
+		this.row = row;
 		this.text = text;
 		this.left = left;
 		this.top = top;
@@ -52,15 +56,17 @@ class JochreXmlLetterImpl implements JochreXmlLetter {
 	public int getBottom() {
 		return bottom;
 	}
-	public int getConfidence() {
-		return confidence;
+	public boolean isKnown() {
+		return known;
 	}
-	public void setConfidence(int confidence) {
-		this.confidence = confidence;
+	public void setKnown(boolean known) {
+		this.known = known;
 	}
-	public JochreXmlWord getWord() {
-		return word;
+	public List<JochreXmlLetter> getLetters() {
+		return letters;
 	}
-	
-	
+	public JochreXmlRow getRow() {
+		return row;
+	}
+
 }

@@ -19,52 +19,28 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
+import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.search.IndexSearcher;
 
+import com.joliciel.jochre.search.alto.AltoPage;
+import com.joliciel.jochre.search.alto.AltoService;
+
 class SearchServiceImpl implements SearchServiceInternal {
-	public JochreXmlLetter newLetter(JochreXmlWord word, String text, int left, int top, int right, int bottom) {
-		JochreXmlLetterImpl letter = new JochreXmlLetterImpl(word, text, left, top, right, bottom);
-		return letter;
-	}
-	public JochreXmlWord newWord(JochreXmlRow row, String text, int left, int top, int right, int bottom) {
-		JochreXmlWordImpl word = new JochreXmlWordImpl(row, text, left, top, right, bottom);
-		return word;
-	}
-	public JochreXmlRow newRow(JochreXmlParagraph paragraph, int left, int top, int right, int bottom) {
-		JochreXmlRowImpl row = new JochreXmlRowImpl(paragraph, left, top, right, bottom);
-		return row;
-	}
-	public JochreXmlParagraph newParagraph(JochreXmlImage page, int left, int top, int right, int bottom) {
-		JochreXmlParagraphImpl paragraph = new JochreXmlParagraphImpl(page, left, top, right, bottom);
-		return paragraph;
-	}
-	public JochreXmlImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
-		JochreXmlImageImpl page = new JochreXmlImageImpl(fileNameBase, pageIndex, imageIndex, width, height);
-		return page;
-	}
-	public JochreXmlDocument newDocument() {
-		JochreXmlDocumentImpl doc = new JochreXmlDocumentImpl();
-		return doc;
-	}
-	@Override
-	public JochreXmlReader getJochreXmlReader(JochreXmlDocument doc) {
-		JochreXmlReaderImpl reader = new JochreXmlReaderImpl(doc);
-		reader.setSearchService(this);
-		return reader;
-	}
+	private AltoService altoService;
+	
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir) {
 		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir);
 		builder.setSearchService(this);
+		builder.setAltoService(altoService);
 		return builder;
 	}
-	@Override
-	public CoordinateStorage getCoordinateStorage() {
-		CoordinateStorageImpl storage = new CoordinateStorageImpl();
-		return storage;
-	}
+
 	@Override
 	public JochreQuery getJochreQuery(Map<String, String> argMap) {
 		JochreQueryImpl query = new JochreQueryImpl(argMap);
@@ -85,9 +61,29 @@ class SearchServiceImpl implements SearchServiceInternal {
 	
 	@Override
 	public JochreIndexDocument newJochreIndexDocument(File directory,
-			int index, StringBuilder sb, CoordinateStorage coordinateStorage,
-			int startPage, int endPage, Map<String, String> fields) {
-		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, sb, coordinateStorage, startPage, endPage, fields);
+			int index, List<AltoPage> currentPages, Map<String, String> fields) {
+		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, currentPages, fields);
 		return doc;
 	}
+	@Override
+	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
+			String fieldName, Reader reader) {
+		JochreTokeniser jochreTokeniser = new JochreTokeniser(tokenExtractor, fieldName, reader);
+		jochreTokeniser.setSearchService(this);
+		return jochreTokeniser;
+	}
+	
+	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor) {
+		JochreAnalyser analyser = new JochreAnalyser(tokenExtractor);
+		analyser.setSearchService(this);
+		return analyser;
+	}
+	
+	public AltoService getAltoService() {
+		return altoService;
+	}
+	public void setAltoService(AltoService altoService) {
+		this.altoService = altoService;
+	}
+
 }

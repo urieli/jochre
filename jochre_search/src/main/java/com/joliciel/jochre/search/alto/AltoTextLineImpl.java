@@ -16,37 +16,43 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class JochreXmlImageImpl implements JochreXmlImage {
-	private String fileNameBase;
-	private List<JochreXmlParagraph> paragraphs = new ArrayList<JochreXmlParagraph>();
-	private int pageIndex;
-	private int imageIndex;
-	private int width;
-	private int height;
+import com.joliciel.jochre.search.Rectangle;
+
+class AltoTextLineImpl implements AltoTextLine {
+	private List<AltoString> strings = new ArrayList<AltoString>();
+	private int left, top, width, height;
+	private AltoTextBlock textBlock;
 	private int wordCount = -1;
+	private int index = -1;
+	private Rectangle rectangle = null;
 	
-	public JochreXmlImageImpl(String fileNameBase, int pageIndex, int imageIndex, int width, int height) {
+	public AltoTextLineImpl(AltoTextBlock textBlock, int left, int top, int width, int height) {
 		super();
-		this.fileNameBase = fileNameBase;
-		this.pageIndex = pageIndex;
-		this.imageIndex = imageIndex;
+		this.textBlock = textBlock;
+		this.left = left;
+		this.top = top;
 		this.width = width;
 		this.height = height;
+		this.index = this.textBlock.getTextLines().size();
+		this.textBlock.getTextLines().add(this);
 	}
 
 	@Override
-	public String getFileNameBase() {
-		return fileNameBase;
+	public List<AltoString> getStrings() {
+		return strings;
 	}
 
-	@Override
-	public List<JochreXmlParagraph> getParagraphs() {
-		return paragraphs;
+	public int getLeft() {
+		return left;
+	}
+
+	public int getTop() {
+		return top;
 	}
 
 	public int getWidth() {
@@ -57,22 +63,27 @@ public class JochreXmlImageImpl implements JochreXmlImage {
 		return height;
 	}
 
-	public int getPageIndex() {
-		return pageIndex;
-	}
-
-	public int getImageIndex() {
-		return imageIndex;
+	public AltoTextBlock getTextBlock() {
+		return textBlock;
 	}
 
 	@Override
 	public int wordCount() {
 		if (wordCount<0) {
-			wordCount = 0;
-			for (JochreXmlParagraph par : this.getParagraphs()) {
-				wordCount += par.wordCount();
-			}
+			wordCount = this.getStrings().size();
 		}
 		return wordCount;
+	}
+	
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public Rectangle getRectangle() {
+		if (rectangle==null) {
+			rectangle = new Rectangle(left, top, left + width -1, top + height -1);
+		}
+		return rectangle;
 	}
 }

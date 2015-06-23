@@ -21,16 +21,15 @@ package com.joliciel.jochre.boundaries;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.joliciel.jochre.JochreException;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeLeftToRightComparator;
 import com.joliciel.jochre.graphics.ShapeRightToLeftComparator;
-import com.joliciel.jochre.lang.Linguistics;
 
 /**
  * Splits a shape from the training corpus based on its annotations.
@@ -47,15 +46,14 @@ class TrainingCorpusShapeSplitter implements ShapeSplitter {
 		ShapeSequence shapeSequence = boundaryServiceInternal.getEmptyShapeSequence();
 		shapeSequences.add(shapeSequence);
 		
-		Locale locale = shape.getGroup().getRow().getParagraph().getImage().getPage().getDocument().getLocale();
-		Set<String> nonSplittableLetters = Linguistics.getInstance(locale).getDualCharacterLetters();
+		Set<String> nonSplittableLetters = JochreSession.getInstance().getLinguistics().getDualCharacterLetters();
 		String testLetter = shape.getLetter().replace("|", "");
 		if (testLetter.length()==1||nonSplittableLetters.contains(testLetter)) {
 			shapeSequence.addShape(shape);
 		} else {
 			int lastLeft = 0;
 			Comparator<Shape> shapeComparator = null;
-			if (Linguistics.getInstance(locale).isLeftToRight())
+			if (JochreSession.getInstance().getLinguistics().isLeftToRight())
 				shapeComparator = new ShapeLeftToRightComparator();
 			else
 				shapeComparator = new ShapeRightToLeftComparator();

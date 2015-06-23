@@ -38,6 +38,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.joliciel.jochre.search.JochreIndexDocument;
+import com.joliciel.jochre.search.JochrePayload;
+import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -52,6 +55,8 @@ public class Snippet implements Comparable<Snippet> {
 	private boolean scoreCalculated = false;
 	private double score;
 	private List<HighlightTerm> highlightTerms = new ArrayList<HighlightTerm>();
+	private Rectangle rect = null;
+	private int pageIndex = -1;
 	
 	public Snippet(int docId, String field, int startOffset, int endOffset) {
 		super();
@@ -108,7 +113,12 @@ public class Snippet implements Comparable<Snippet> {
 		 				int termStart = 0;
 		 	 			int termEnd = 0;
 		 	 			int pageIndex = 0;
-		 	 			int imageIndex = 0;
+		 	 			int textBlockIndex = 0;
+		 	 			int textLineIndex = 0;
+		 	 			int left = 0;
+		 	 			int top = 0;
+		 	 			int width = 0;
+		 	 			int height = 0;
 		 	 			double weight = 0.0;
 		 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 			 				String termFieldName = jsonParser.getCurrentName();
@@ -122,8 +132,18 @@ public class Snippet implements Comparable<Snippet> {
 			 					termEnd = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("pageIndex")) {
 			 					pageIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("imageIndex")) {
-			 					imageIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("textBlockIndex")) {
+			 					textBlockIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("textLineIndex")) {
+			 					textBlockIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("left")) {
+			 					left = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("top")) {
+			 					top = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("width")) {
+			 					width = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("height")) {
+			 					height = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("weight")) {
 								jsonParser.nextValue();
 								weight = jsonParser.getDoubleValue();
@@ -131,7 +151,8 @@ public class Snippet implements Comparable<Snippet> {
 								throw new RuntimeException("Unexpected term field name: " + termFieldName + " at " + jsonParser.getCurrentLocation());
 							}
 			 			}
-	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, imageIndex, pageIndex);
+		 				JochrePayload payload = new JochrePayload(left, top, width, height, pageIndex, textBlockIndex, textLineIndex);
+	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
 	 	 				highlightTerm.setWeight(weight);
 	 	 				this.highlightTerms.add(highlightTerm);
 		 			}
@@ -248,6 +269,9 @@ public class Snippet implements Comparable<Snippet> {
 		if (!this.getField().equals(o.getField()))
 			return this.getField().compareTo(o.getField());
 
+		if (this.getPageIndex()!=o.getPageIndex())
+			return this.getPageIndex() - o.getPageIndex();
+
 		if (this.startOffset!=o.getStartOffset())
 			return this.startOffset - o.getStartOffset();
 		
@@ -269,10 +293,37 @@ public class Snippet implements Comparable<Snippet> {
 	}
 
 	public int getPageIndex() {
-		if (this.highlightTerms.size()>0)
-			return this.highlightTerms.get(0).getPageIndex();
-		return 0;
+		if (pageIndex<0 && this.highlightTerms.size()>0)
+			pageIndex = this.highlightTerms.get(0).getPayload().getPageIndex();
+		return pageIndex;
 	}
 	
+	public void setPageIndex(int pageIndex) {
+		this.pageIndex = pageIndex;
+	}
+
+	public Rectangle getRectangle(JochreIndexDocument jochreDoc) {
+		if (rect==null) {
+			if (this.highlightTerms.size()>0) {
+				int startPageIndex =  this.highlightTerms.get(0).getPayload().getPageIndex();
+				int startBlockIndex =  this.highlightTerms.get(0).getPayload().getTextBlockIndex();
+				int startLineIndex =  this.highlightTerms.get(0).getPayload().getTextLineIndex();
+				int endPageIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getPageIndex();
+				int endBlockIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextBlockIndex();
+				int endLineIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextLineIndex();
+				
+				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex));
+				LOG.debug("Original rect: " + rect);
+				Rectangle otherRect = jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex);
+				LOG.debug("Expanding by: " + otherRect);
+				rect.expand(otherRect);
+				
+			} else {
+				int startPageIndex = jochreDoc.getStartPage();
+				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, 0, 0));
+			}
+		}
+		return rect;
+	}
 	
 }

@@ -20,6 +20,9 @@ package com.joliciel.jochre;
 
 import java.util.Locale;
 
+import com.joliciel.jochre.lang.DefaultLinguistics;
+import com.joliciel.jochre.lang.Linguistics;
+
 /**
  * A class storing session-wide reference data.
  * @author Assaf Urieli
@@ -27,6 +30,7 @@ import java.util.Locale;
  */
 public class JochreSession {
 	private Locale locale;
+	private Linguistics linguistics;
 	private double junkConfidenceThreshold = 0.75;
 	
 	private static JochreSession instance;
@@ -47,6 +51,17 @@ public class JochreSession {
 		this.locale = locale;
 	}
 	
+	public Linguistics getLinguistics() {
+		if (this.linguistics==null) {
+			this.linguistics = DefaultLinguistics.getInstance(this.locale);
+		}
+		return linguistics;
+	}
+
+	public void setLinguistics(Linguistics linguistics) {
+		this.linguistics = linguistics;
+	}
+
 	/**
 	 * The average confidence below which a paragraph is considered to be junk,
 	 * when considering all of its letters.

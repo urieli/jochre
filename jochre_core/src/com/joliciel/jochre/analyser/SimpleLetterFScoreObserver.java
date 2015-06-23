@@ -20,10 +20,10 @@ package com.joliciel.jochre.analyser;
 
 import java.util.List;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.stats.FScoreCalculator;
@@ -37,7 +37,6 @@ import com.joliciel.jochre.stats.FScoreCalculator;
 public class SimpleLetterFScoreObserver implements FScoreObserver {
 	FScoreCalculator<String> fScoreCalculator;
 	LetterValidator letterValidator;
-	Linguistics linguistics;
 
 	boolean hasError = false;
 	boolean stillValid = true;
@@ -47,7 +46,6 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 	public SimpleLetterFScoreObserver(LetterValidator letterValidator) {
 		super();
 		this.letterValidator = letterValidator;
-		this.linguistics = Linguistics.getInstance(letterValidator.getLocale());
 		fScoreCalculator = new FScoreCalculator<String>();
 	}
 
@@ -66,7 +64,7 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 				
 				if (realLetter.length()==0)
 					realLetter = "■";
-				else if (!linguistics.getValidLetters().contains(realLetter)) {
+				else if (!JochreSession.getInstance().getLinguistics().getValidLetters().contains(realLetter)) {
 					if (realLetter.contains("|"))
 						realLetter = "□" + realLetter;
 					else
@@ -74,7 +72,7 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 				}
 				if (bestGuess.length()==0)
 					bestGuess = "■";
-				else if (!linguistics.getValidLetters().contains(bestGuess))
+				else if (!JochreSession.getInstance().getLinguistics().getValidLetters().contains(bestGuess))
 					if (bestGuess.contains("|"))
 						bestGuess = "□" + bestGuess;
 					else

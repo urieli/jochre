@@ -49,13 +49,12 @@ public interface LetterSequence extends ClassificationSolution {
 	public void setScore(double score);
 	
 	/**
-	 * A dash that needs to be skipped in certain circumstances,
-	 * as it represents a dash a the end of a row for combining a sequence
-	 * with the first sequence of the next row.
+	 * The index of the shape representing a hyphen at the end of the line,
+	 * possibly a soft-hyphen (visible in word-wrapping only).
 	 * @return
 	 */
-	public int getDashToSkip();
-	public void setDashToSkip(int dashToSkip);
+	public int getEndOfLineHyphenIndex();
+	public void setEndOfLineHyphenIndex(int endOfLineHyphenIndex);
 
 	/**
 	 * The score, after adjustments to account for external factors
@@ -133,6 +132,13 @@ public interface LetterSequence extends ClassificationSolution {
 	public boolean isSplit();
 	
 	/**
+	 * Does this letter sequence contain a soft hyphen (only visible because of word wrapping and end-of-line)?
+	 * @return
+	 */
+	public boolean isSoftHyphen();
+	public void setSoftHyphen(boolean softHyphen);
+
+	/**
 	 * If this sequence contains any punctuation, returns individual sequences
 	 * representing letters and punctuation. Otherwise, returns the original sequence.
 	 * @return
@@ -162,9 +168,16 @@ public interface LetterSequence extends ClassificationSolution {
 	List<LetterSequence> splitByGroup();
 	
 	/**
-	 * A subsequence representing a soft-hyphen, or null if no soft hyphen.
+	 * A subsequence representing a hyphen at the end-of-line (either soft or hard).
 	 * @return
 	 */
-	LetterSequence getSoftHyphenSubsequence();
-	public void setSoftHyphenSubsequence(LetterSequence softHyphenSubsequence);
+	LetterSequence getHyphenSubsequence();
+	public void setHyphenSubsequence(LetterSequence hyphenSubsequence);
+	
+	/**
+	 * The most likely hyphenated string in the case of a hyphenated letter sequence.
+	 * @return
+	 */
+	String getHyphenatedString();
+	public void setHyphenatedString(String hyphenatedString);
 }

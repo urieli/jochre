@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -39,17 +40,17 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	private double weight;
 	private int docId;
 	private String field;
-	private int imageIndex;
-	private int pageIndex;
+	private JochrePayload payload;
+	private int position = -1;
+	private boolean inPhrase = false;
 
-	public HighlightTerm(int docId, String field, int startOffset, int endOffset, int imageIndex, int pageIndex) {
+	public HighlightTerm(int docId, String field, int startOffset, int endOffset, JochrePayload payload) {
 		super();
 		this.docId = docId;
 		this.field = field;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
-		this.imageIndex = imageIndex;
-		this.pageIndex = pageIndex;
+		this.payload = payload;
 	}
 
 	/**
@@ -96,10 +97,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 		this.weight = weight;
 	}
 
-	public int getPageIndex() {
-		return pageIndex;
-	}
-
 	@Override
 	public int compareTo(HighlightTerm o) {
 		if (this==o)
@@ -124,21 +121,22 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	public String toString() {
 		return "HighlightTerm [startOffset=" + startOffset + ", endOffset="
 				+ endOffset + ", weight=" + weight + ", docId=" + docId
-				+ ", field=" + field + ", pageIndex=" + pageIndex + "]";
+				+ ", field=" + field + "]";
 	}
 
-	public int getImageIndex() {
-		return imageIndex;
-	}
-	
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {
 		try {
 			jsonGen.writeStartObject();
 			jsonGen.writeStringField("field", this.getField());
 			jsonGen.writeNumberField("start", this.getStartOffset());
 			jsonGen.writeNumberField("end", this.getEndOffset());
-			jsonGen.writeNumberField("pageIndex", this.getPageIndex());
-			jsonGen.writeNumberField("imageIndex", this.getImageIndex());
+			jsonGen.writeNumberField("left", this.getPayload().getLeft());
+			jsonGen.writeNumberField("top", this.getPayload().getTop());
+			jsonGen.writeNumberField("width", this.getPayload().getWidth());
+			jsonGen.writeNumberField("height", this.getPayload().getHeight());
+			jsonGen.writeNumberField("pageIndex", this.getPayload().getPageIndex());
+			jsonGen.writeNumberField("textBlockIndex", this.getPayload().getTextBlockIndex());
+			jsonGen.writeNumberField("textLineIndex", this.getPayload().getTextLineIndex());
 			double roundedWeight = df.parse(df.format(this.getWeight())).doubleValue();
 			jsonGen.writeNumberField("weight", roundedWeight);
 			jsonGen.writeEndObject();
@@ -151,5 +149,47 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
 		}
+	}
+
+	public JochrePayload getPayload() {
+		return payload;
+	}
+
+	/**
+	 * The term's position within the search index,
+	 * starts at 0 for each document field.
+	 * @return
+	 */
+	public int getPosition() {
+		return position;
+	}
+
+	public void setPosition(int position) {
+		this.position = position;
+	}
+	
+	/**
+	 * Is the current highlight term inside a phrase,
+	 * that is, between quotes in the search query.
+	 * @return
+	 */
+	public boolean isInPhrase() {
+		return inPhrase;
+	}
+
+	public void setInPhrase(boolean inPhrase) {
+		this.inPhrase = inPhrase;
+	}
+
+	/**
+	 * Do the two terms overlap on any character indexes.
+	 * @param otherTerm
+	 * @return
+	 */
+	public boolean hasOverlap(HighlightTerm otherTerm) {
+		// note: if this.startOffset==otherTerm.endOffset, there's no overlap, since the end offset is AFTER the term.
+		return this.getDocId()==otherTerm.getDocId()
+				&& ((this.startOffset<otherTerm.getEndOffset() && this.endOffset>otherTerm.getStartOffset())
+						|| (otherTerm.getStartOffset()<this.endOffset && otherTerm.getEndOffset()>this.startOffset));
 	}
 }

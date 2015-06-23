@@ -11,12 +11,15 @@
 							[#if group.index>0]<SP WIDTH="${group.precedingSpace.width?c}" HPOS="${group.precedingSpace.left?c}" VPOS="${group.precedingSpace.top?c}"/>[/#if]
 							[#list group.subsequences as subsequence][#assign rect=subsequence.getRectangleInGroup(group)]
 							[#if rect??]
-							<String HEIGHT="${rect.height?c}" WIDTH="${rect.width?c}" HPOS="${rect.left?c}" VPOS="${rect.top?c}" CONTENT="${subsequence.guessedWord?replace("\"", "&quot;")}" [#if subsequence.softHyphenSubsequence??]SUBS_TYPE="HypPart1" SUBS_CONTENT="${subsequence.wordFrequencies[0].outcome?replace("\"", "&quot;")}"[#elseif hyphenated][#assign hyphenated=false]SUBS_TYPE="HypPart2" SUBS_CONTENT="${hyphenatedContent?replace("\"", "&quot;")}"[/#if]  WC="${group.confidence?string["0.0000"]}">
+							[#if subsequence.guessedWord=="-"]
+							<HYP HEIGHT="${rect.height?c}" WIDTH="${rect.width?c}" HPOS="${rect.left?c}" VPOS="${rect.top?c}" CONTENT="-" />
+							[#else]
+							<String HEIGHT="${rect.height?c}" WIDTH="${rect.width?c}" HPOS="${rect.left?c}" VPOS="${rect.top?c}" CONTENT="${subsequence.guessedWord?replace("\"", "&quot;")}" [#if subsequence.hyphenSubsequence??][#assign hyphenated=true]SUBS_TYPE="HypPart1" SUBS_CONTENT="${subsequence.hyphenatedString?replace("\"", "&quot;")}"[#elseif hyphenated][#assign hyphenated=false]SUBS_TYPE="HypPart2" SUBS_CONTENT="${subsequence.hyphenatedString?replace("\"", "&quot;")}"[/#if]  WC="${group.confidence?string["0.0000"]}">
 							[#if subsequence.wordFrequencies[0]??][#assign otherWord=subsequence.wordFrequencies[0].outcome][#if otherWord!=subsequence.guessedWord]
 								<ALTERNATIVE>${otherWord?replace("\"", "&quot;")}</ALTERNATIVE>
 							[/#if][/#if]
 							</String>
-							[#if subsequence.softHyphenSubsequence??][#assign hyphenated=true][#assign hyphenatedContent=subsequence.wordFrequencies[0].outcome][#assign hypRect=subsequence.softHyphenSubsequence.getRectangleInGroup(group)][#if hypRect??]<HYP HEIGHT="${hypRect.height?c}" WIDTH="${hypRect.width?c}" HPOS="${hypRect.left?c}" VPOS="${hypRect.top?c}" CONTENT="-"/>[/#if][/#if]
+							[/#if]
 							[/#if]
 							[/#list]
 						[/#list]

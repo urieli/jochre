@@ -16,16 +16,17 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
 import java.util.List;
 
-public interface JochreXmlImage {
-	public String getFileNameBase();
-	public List<JochreXmlParagraph> getParagraphs();
+public interface AltoPage {
+	public AltoDocument getDocument();
+	public List<AltoTextBlock> getTextBlocks();
 	public int getWidth();
 	public int getHeight();
 	public int getPageIndex();
-	public int getImageIndex();
 	public int wordCount();
+	public double getConfidence();
+	public void setConfidence(double confidence);
 }

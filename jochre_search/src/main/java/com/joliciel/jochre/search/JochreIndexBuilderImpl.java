@@ -24,13 +24,12 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -40,8 +39,7 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -49,39 +47,51 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+
+import com.joliciel.jochre.search.alto.AltoDocument;
+import com.joliciel.jochre.search.alto.AltoPage;
+import com.joliciel.jochre.search.alto.AltoReader;
+import com.joliciel.jochre.search.alto.AltoService;
+import com.joliciel.jochre.search.alto.AltoString;
+import com.joliciel.jochre.search.alto.AltoTextBlock;
+import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.talismane.utils.LogUtils;
 
 
-class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver {
+class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private static final Log LOG = LogFactory.getLog(JochreIndexBuilderImpl.class);
-	private static String[] imageExtensions = new String[] {"png","jpg","jpeg","gif","tiff"};
 	private File indexDir;
-	private Map<Integer, JochreXmlLetter> offsetLetterMap;
-	private CoordinateStorage coordinateStorage;
 	private int wordsPerDoc=3000;
 	private IndexWriter indexWriter;
 	
 	private SearchServiceInternal searchService;
-
+	private AltoService altoService;
+	private List<AltoString> currentStrings = null;
+	
 	public JochreIndexBuilderImpl(File indexDir) {
-		try {
-			this.indexDir = indexDir;
-			Directory directory = FSDirectory.open(this.indexDir);
-			
-			JochreAnalyzer analyzer = new JochreAnalyzer(Version.LUCENE_46);
-			analyzer.setObserver(this);
-			IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46, analyzer);
-			iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
-			this.indexWriter = new IndexWriter(directory, iwc);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+		this.indexDir = indexDir;
+	}
+	
+	private void initialise() {
+		if (this.indexWriter==null) {
+			try {
+				Directory directory = FSDirectory.open(this.indexDir);
+				
+				Analyzer analyzer = searchService.getJochreAnalyser(this);
+				IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46, analyzer);
+				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+				this.indexWriter = new IndexWriter(directory, iwc);
+			} catch (IOException ioe) {
+				LogUtils.logError(LOG, ioe);
+				throw new RuntimeException(ioe);
+			}
 		}
 	}
 	
 	public void updateIndex(File contentDir, boolean forceUpdate) {
 		long startTime = System.currentTimeMillis();
 		try {
+			this.initialise();
 			File[] subdirs = contentDir.listFiles(new FileFilter() {
 				
 				@Override
@@ -111,6 +121,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 	public void updateDocument(File documentDir) {
 		long startTime = System.currentTimeMillis();
 		try {
+			this.initialise();
 			this.updateDocumentInternal(documentDir);
 			indexWriter.commit();
 			indexWriter.close();
@@ -126,6 +137,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 
 	public void deleteDocument(File documentDir) {
 		try {
+			this.initialise();
 			this.deleteDocumentInternal(documentDir);
 			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
 			if (lastIndexDateFile.exists())
@@ -229,22 +241,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 	
 			this.deleteDocumentInternal(documentDir);
 			
-			File[] offsetFiles = documentDir.listFiles(new FilenameFilter() {
-				
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.endsWith(".obj");
-				}
-			});
-			
-			for (File offsetFile : offsetFiles) {
-				offsetFile.delete();
-			}
-			
 			int i = 0;
 			
 			Map<String,String> fields = new TreeMap<String, String>();
-			File metaDataFile = new File(documentDir, "metadata.txt");
+			File metaDataFile = new File(documentDir, documentDir.getName() + "_metadata.txt");
 			Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(metaDataFile), "UTF-8")));
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
@@ -254,8 +254,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			}
 			scanner.close();
 			
-			JochreXmlDocument xmlDoc = this.searchService.newDocument();
-			JochreXmlReader reader = this.searchService.getJochreXmlReader(xmlDoc);
+			AltoDocument altoDoc = this.altoService.newDocument(documentDir.getName());
+			AltoReader reader = this.altoService.getAltoReader(altoDoc);
 			
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
 			ZipEntry ze = null;
@@ -269,76 +269,40 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		    zis.close();
 			
 			i = 0;
-			StringBuilder sb = new StringBuilder();
-			coordinateStorage = searchService.getCoordinateStorage();
-			offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
-			int startPage = -1;
-			int endPage = -1;
 			int docCount = 0;
 			int wordCount = 0;
 			int cumulWordCount = 0;
-			for (JochreXmlImage image : xmlDoc.getImages()) {
-				if (startPage<0) startPage = image.getPageIndex();
-				endPage = image.getPageIndex();
-				int remainingWords = xmlDoc.wordCount() - (cumulWordCount + wordCount);
-				LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount + ", total xml words: " + xmlDoc.wordCount() + ", remaining words: " + remainingWords);
+			currentStrings = new ArrayList<AltoString>();
+			List<AltoPage> currentPages = new ArrayList<AltoPage>();
+			for (AltoPage page : altoDoc.getPages()) {
+				int remainingWords = altoDoc.wordCount() - (cumulWordCount + wordCount);
+				LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount + ", total xml words: " + altoDoc.wordCount() + ", remaining words: " + remainingWords);
 				if (wordsPerDoc>0 && wordCount >= wordsPerDoc && remainingWords >= wordsPerDoc) {
 					LOG.debug("Creating new index doc: " + docCount);
-					JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
+					JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, currentPages, fields);
 					indexDoc.save(indexWriter);
 					docCount++;
 					
-					sb = new StringBuilder();
-					coordinateStorage = searchService.getCoordinateStorage();
-					startPage = image.getPageIndex();
-					offsetLetterMap = new HashMap<Integer, JochreXmlLetter>();
 					cumulWordCount += wordCount;
 					wordCount = 0;
+					currentStrings = new ArrayList<AltoString>();
+					currentPages = new ArrayList<AltoPage>();
 				}
+				currentPages.add(page);
 				
-				LOG.debug("Processing page: " + image.getFileNameBase());
+				LOG.debug("Processing page: " + page.getPageIndex());
 				
-				File imageFile = null;
-				for (String imageExtension : imageExtensions) {
-					imageFile = new File(documentDir, image.getFileNameBase() + "." + imageExtension);
-					if (imageFile.exists())
-						break;
-					imageFile = null;
-				}
-				if (imageFile==null)
-					throw new RuntimeException("No image found in directory " + documentDir.getAbsolutePath() + ", baseName " + image.getFileNameBase());
-	
-				coordinateStorage.addImage(sb.length(), imageFile.getName(), image.getPageIndex());
-				
-				for (JochreXmlParagraph par : image.getParagraphs()) {
-					coordinateStorage.addParagraph(sb.length(), new Rectangle(par.getLeft(), par.getTop(), par.getRight(), par.getBottom()));
-					for (JochreXmlRow row : par.getRows()) {
-						coordinateStorage.addRow(sb.length(), new Rectangle(row.getLeft(), row.getTop(), row.getRight(), row.getBottom()));
-						int k=0;
-						for (JochreXmlWord word : row.getWords()) {
+				for (AltoTextBlock textBlock : page.getTextBlocks()) {
+					for (AltoTextLine textLine : textBlock.getTextLines()) {
+						for (AltoString string : textLine.getStrings()) {
+							currentStrings.add(string);
 							wordCount++;
-							for (JochreXmlLetter letter : word.getLetters()) {
-								offsetLetterMap.put(sb.length(), letter);
-								if (letter.getText().length()>1) {
-									for (int j=1; j<letter.getText().length(); j++) {
-										offsetLetterMap.put(sb.length()+j, letter);
-									}
-								}
-								sb.append(letter.getText());
-							}
-							k++;
-							boolean finalDash = false;
-							if (k==row.getWords().size() && word.getText().endsWith("-") && word.getText().length()>1)
-								finalDash = true;
-							if (!finalDash)
-								sb.append(" ");
 						}
 					}
-					sb.append("\n");
 				}
 				i++;
 			}
-			JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, sb, coordinateStorage, startPage, endPage, fields);
+			JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, currentPages, fields);
 			indexDoc.save(indexWriter);
 			
 			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
@@ -346,7 +310,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 			Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(lastIndexDateFile, false),"UTF8"));
 			writer.write("" + zipDate);
 			writer.flush();
-	
+			
 			writer.close();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
@@ -356,7 +320,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 
 	private void deleteDocumentInternal(File documentDir) {
 		try {
-			Term term = new Term("id", documentDir.getName());
+			Term term = new Term("name", documentDir.getName());
 			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
@@ -372,33 +336,6 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		this.searchService = searchService;
 	}
 
-	@Override
-	public void onNewToken(CharTermAttribute termAtt, OffsetAttribute offsetAtt) {
-		List<Rectangle> rectangles = new ArrayList<Rectangle>();
-		JochreXmlWord currentWord = null;
-		Rectangle currentRectangle = null;
-		for (int i=offsetAtt.startOffset(); i<offsetAtt.endOffset(); i++) {
-			JochreXmlLetter letter = offsetLetterMap.get(i);
-			if (letter.getWord().equals(currentWord)) {
-				currentRectangle.expand(letter.getLeft(), letter.getTop(), letter.getRight(), letter.getBottom());
-			} else {
-				if (currentRectangle!=null) {
-					rectangles.add(currentRectangle);
-				}
-				currentWord = letter.getWord();
-				currentRectangle = new Rectangle(letter.getLeft(), letter.getTop(), letter.getRight(), letter.getBottom());
-			}
-		}
-		if (currentRectangle!=null)
-			rectangles.add(currentRectangle);
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Adding term " + termAtt.toString() + ", offset " + offsetAtt.startOffset() + ", rectangles: " + rectangles.toString());
-		}
-		
-		coordinateStorage.setRectangles(offsetAtt.startOffset(), rectangles);
-	}
-
 	public int getWordsPerDoc() {
 		return wordsPerDoc;
 	}
@@ -407,4 +344,19 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenOffsetObserver 
 		this.wordsPerDoc = wordsPerDoc;
 	}
 
+	public AltoService getAltoService() {
+		return altoService;
+	}
+
+	public void setAltoService(AltoService altoService) {
+		this.altoService = altoService;
+	}
+
+	@Override
+	public List<AltoString> findTokens(String fieldName, Reader input) {
+		return currentStrings;
+	}
+
+	
+	
 }

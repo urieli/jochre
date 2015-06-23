@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.util.Set;
+
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.JochreQuery;
@@ -28,4 +30,11 @@ public interface HighlightService {
 	Highlighter getHighlighter(JochreQuery query, IndexSearcher indexSearcher);
 	
 	SnippetFinder getSnippetFinder(IndexSearcher indexSearcher);
+	
+	/**
+	 * If any highlight terms overlap, combine them into a single term that spans all overlaps.
+	 * @param terms
+	 * @return
+	 */
+	public Set<HighlightTerm> combineOverlaps(Set<HighlightTerm> terms);
 }

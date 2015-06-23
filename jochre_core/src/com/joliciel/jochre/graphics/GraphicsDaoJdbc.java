@@ -42,6 +42,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.talismane.utils.DaoUtils;
@@ -133,7 +134,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 				" ORDER BY the_count, shape_letter, shape_id";
 		
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		Linguistics linguistics = Linguistics.getInstance(locale);
+		Linguistics linguistics = JochreSession.getInstance().getLinguistics();
 
 		paramSource.addValue("dual_character_letters", linguistics.getDualCharacterLetters());
 		List<Integer> imageStatusList = new ArrayList<Integer>();

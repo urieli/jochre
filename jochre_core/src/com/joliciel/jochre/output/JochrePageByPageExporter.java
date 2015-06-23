@@ -11,11 +11,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,21 +34,16 @@ import freemarker.template.TemplateException;
 **/
 class JochrePageByPageExporter implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(JochrePageByPageExporter.class);
-	private static String SUFFIX = "png";
 	private Template template;
-	private File outDir;
 	private String baseName;
 	private ZipOutputStream zos;
 	private Writer zipWriter;
 
 	JochreImage jochreImage = null;
 	
-	public JochrePageByPageExporter(File outDir, String baseName) {
+	public JochrePageByPageExporter(File zipFile, String baseName) {
 		super();
 		try {
-			this.outDir = outDir;
-			outDir.mkdirs();
-			File zipFile = new File(outDir, baseName + ".zip");
 			zos = new ZipOutputStream(new FileOutputStream(zipFile, false));
 			zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 
@@ -71,14 +63,6 @@ class JochrePageByPageExporter implements DocumentObserver {
 	@Override
 	public void onImageStart(JochreImage jochreImage) {
 		this.jochreImage = jochreImage;
-		File outputFile = new File(outDir, this.getImageBaseName(jochreImage) + "." + SUFFIX);
-		try {
-			outputFile.delete();
-			ImageIO.write(jochreImage.getOriginalImage(),SUFFIX,outputFile);
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
-		}
 	}
 
 	@Override
@@ -124,14 +108,6 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zipWriter.flush();
 			zos.flush();
 			zos.close();
-			
-			File metaDataFile = new File(outDir, "metadata.txt");
-			Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaDataFile, false),"UTF8"));
-			for (Entry<String, String> field : jochreDocument.getFields().entrySet()) {
-				writer.write(field.getKey() + "\t" + field.getValue() + "\n");
-				writer.flush();
-			}
-			writer.close();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

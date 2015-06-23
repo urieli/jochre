@@ -7,7 +7,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -120,6 +119,7 @@ class AltoXMLExporter implements DocumentObserver {
 			Template template = new Template("alto_footer", templateReader, cfg);
 			template.process(model, writer);
 			writer.flush();
+			writer.close();
 		} catch (TemplateException te) {
 			LogUtils.logError(LOG, te);
 			throw new RuntimeException(te);

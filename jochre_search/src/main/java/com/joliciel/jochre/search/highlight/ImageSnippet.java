@@ -26,38 +26,31 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.jochre.search.CoordinateStorage;
+import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageSnippet {
 	private static final Log LOG = LogFactory.getLog(ImageSnippet.class);
-	private CoordinateStorage coordinateStorage;
 	private Snippet snippet;
 	private Rectangle rectangle;
 	private List<Rectangle> highlights;
-	private File imageFile;
+	private JochreIndexDocument jochreDoc;
 	
-	public ImageSnippet(CoordinateStorage coordinateStorage, Snippet snippet, File imageFile) {
-		this.coordinateStorage = coordinateStorage;
+	public ImageSnippet(JochreIndexDocument jochreDoc, Snippet snippet) {
 		this.snippet = snippet;
-		this.imageFile = imageFile;
+		this.jochreDoc = jochreDoc;
 		this.initialize();
 	}
 	
 	private void initialize() {
-		rectangle = new Rectangle(coordinateStorage.getRowCoordinates(snippet.getStartOffset()));
-		if (LOG.isDebugEnabled())
-			LOG.debug("start offset " + snippet.getStartOffset() + " rect: " + rectangle.toString());
-		Rectangle endOffsetRect = coordinateStorage.getRowCoordinates(snippet.getEndOffset()-1);
-		if (LOG.isDebugEnabled())
-			LOG.debug("end offset " + snippet.getEndOffset() + " rect : " + endOffsetRect.toString());
-		rectangle.expand(endOffsetRect);
+		rectangle = snippet.getRectangle(jochreDoc);
 		if (LOG.isDebugEnabled())
 			LOG.debug("new rect: " + rectangle.toString());
 		
@@ -68,13 +61,8 @@ public class ImageSnippet {
 		
 		highlights = new ArrayList<Rectangle>();
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
-			List<Rectangle> termRects = coordinateStorage.getRectangles(term.getStartOffset());
-			if (termRects==null) {
-				throw new RuntimeException("No rectangles for offset " + term.getStartOffset());
-			}
-			for (Rectangle termRect : termRects) {
-				highlights.add(termRect);
-			}
+			Rectangle rect = new Rectangle(term.getPayload().getLeft(), term.getPayload().getTop(), term.getPayload().getRight(), term.getPayload().getBottom());
+			highlights.add(rect);
 		}
 	}
 	
@@ -88,6 +76,7 @@ public class ImageSnippet {
 
 	public BufferedImage getImage() {
 		try {
+			File imageFile = jochreDoc.getImageFile(snippet.getPageIndex());
 			BufferedImage originalImage = ImageIO.read(imageFile);
 			BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());

@@ -19,16 +19,18 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
+import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.Tokenizer;
+
+import com.joliciel.jochre.search.alto.AltoPage;
+
 interface SearchServiceInternal extends SearchService {
-	public JochreXmlLetter newLetter(JochreXmlWord word, String text, int left, int top, int right, int bottom);
-	public JochreXmlWord newWord(JochreXmlRow row, String text, int left, int top, int right, int bottom);
-	public JochreXmlRow newRow(JochreXmlParagraph paragraph, int left, int top, int right, int bottom);
-	public JochreXmlParagraph newParagraph(JochreXmlImage page, int left, int top, int right, int bottom);
-	public JochreXmlImage newImage(String fileNameBase, int pageIndex, int imageIndex, int width, int height);
-	public JochreXmlDocument newDocument();
-	public JochreXmlReader getJochreXmlReader(JochreXmlDocument doc);
-	public CoordinateStorage getCoordinateStorage();
-	public JochreIndexDocument newJochreIndexDocument(File directory, int index, StringBuilder sb, CoordinateStorage coordinateStorage, int startPage, int endPage, Map<String,String> fields);
+	public JochreIndexDocument newJochreIndexDocument(File directory, int index, List<AltoPage> currentPages, Map<String,String> fields);
+	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
+			String fieldName, Reader reader);
+	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor);
 }

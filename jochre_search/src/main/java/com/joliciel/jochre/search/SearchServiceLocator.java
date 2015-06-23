@@ -18,6 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import com.joliciel.jochre.search.alto.AltoServiceLocator;
+
 public class SearchServiceLocator {
 	private static SearchServiceLocator instance;
 	private SearchServiceImpl searchService;
@@ -34,6 +36,7 @@ public class SearchServiceLocator {
 	public SearchService getSearchService() {
 		if (searchService==null) {
 			searchService = new SearchServiceImpl();
+			searchService.setAltoService(AltoServiceLocator.getInstance(this).getAltoService());
 		}
 		return searchService;
 	}

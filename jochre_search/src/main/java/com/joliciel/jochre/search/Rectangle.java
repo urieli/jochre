@@ -35,6 +35,15 @@ public class Rectangle implements Serializable {
 	public Rectangle(Rectangle source) {
 		this(source.getLeft(), source.getTop(), source.getRight(), source.getBottom());
 	}
+	
+	public Rectangle(String fromString) {
+		String[] parts = fromString.split("\\|");
+		this.left = Integer.parseInt(parts[0]);
+		this.top = Integer.parseInt(parts[1]);
+		this.right = Integer.parseInt(parts[2]);
+		this.bottom = Integer.parseInt(parts[3]);
+	}
+
 
 	public void expand(Rectangle source) {
 		this.expand(source.getLeft(), source.getTop(), source.getRight(), source.getBottom());
@@ -124,5 +133,8 @@ public class Rectangle implements Serializable {
 				+ ", bottom=" + bottom + "]";
 	}
 	
+	public String getString() {
+		return this.getLeft() + "|" + this.getTop() + "|" + this.getRight() + "|" + this.getBottom();
+	}
 	
 }

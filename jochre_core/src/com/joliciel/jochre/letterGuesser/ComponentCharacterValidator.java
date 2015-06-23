@@ -20,7 +20,7 @@ package com.joliciel.jochre.letterGuesser;
 
 import java.util.Locale;
 
-import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * Returns true if all component characters of this letter are valid
@@ -29,12 +29,10 @@ import com.joliciel.jochre.lang.Linguistics;
  *
  */
 public class ComponentCharacterValidator implements LetterValidator {
-	private Linguistics linguistics;
 	private Locale locale;
 	
 	public ComponentCharacterValidator(Locale locale) {
 		super();
-		this.linguistics = Linguistics.getInstance(locale);
 		this.locale = locale;
 	}
 
@@ -47,7 +45,7 @@ public class ComponentCharacterValidator implements LetterValidator {
 				char c = letter.charAt(i);
 				if (c=='|')
 					continue;
-				if (!linguistics.getValidCharacters().contains(c)) {
+				if (!JochreSession.getInstance().getLinguistics().getValidCharacters().contains(c)) {
 					return false;
 				}
 			}

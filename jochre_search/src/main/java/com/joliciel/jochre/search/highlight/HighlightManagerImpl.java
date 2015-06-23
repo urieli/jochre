@@ -18,7 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -27,7 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
@@ -35,7 +36,6 @@ import org.apache.lucene.search.IndexSearcher;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.joliciel.jochre.search.CoordinateStorage;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.jochre.search.SearchService;
@@ -70,7 +70,7 @@ class HighlightManagerImpl implements HighlightManager {
 	@Override
 	public void highlight(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) {
 		try {
-			Map<Integer,Set<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
+			Map<Integer,NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
@@ -111,7 +111,7 @@ class HighlightManagerImpl implements HighlightManager {
 	}
 	
 	@Override
-	public Map<Integer,List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer,Set<HighlightTerm>> termMap,
+	public Map<Integer,List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer, NavigableSet<HighlightTerm>> termMap,
 			int maxSnippets, int snippetSize) {
 		SnippetFinder snippetFinder = this.getSnippetFinder();
 
@@ -128,7 +128,7 @@ class HighlightManagerImpl implements HighlightManager {
 	@Override
 	public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) {
 		try {
-			Map<Integer,Set<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
+			Map<Integer,NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
 			Map<Integer,List<Snippet>> snippetMap = this.findSnippets(docIds, fields, termMap, this.getSnippetCount(), this.getSnippetSize());
 			
 			JsonFactory jsonFactory = new JsonFactory();
@@ -138,7 +138,7 @@ class HighlightManagerImpl implements HighlightManager {
 			
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
-				jsonGen.writeObjectFieldStart(doc.get("id"));
+				jsonGen.writeObjectFieldStart(doc.get("name"));
 				jsonGen.writeStringField("path", doc.get("path"));
 				jsonGen.writeNumberField("docId", docId);
 
@@ -351,12 +351,7 @@ class HighlightManagerImpl implements HighlightManager {
 	@Override
 	public ImageSnippet getImageSnippet(Snippet snippet) {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
-		CoordinateStorage coordinateStorage = jochreDoc.getCoordinateStorage();
-		
-		int pageIndex = coordinateStorage.getImageIndex(snippet.getStartOffset());
-		String imageFileName = coordinateStorage.getImageName(pageIndex);
-		File imageFile = new File(jochreDoc.getDirectory(), imageFileName);
-		ImageSnippet imageSnippet = new ImageSnippet(coordinateStorage, snippet, imageFile);
+		ImageSnippet imageSnippet = new ImageSnippet(jochreDoc, snippet);
 		return imageSnippet;
 	}
 

@@ -29,7 +29,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
-import com.joliciel.jochre.search.CoordinateStorage;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
@@ -59,7 +58,6 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 			for (HighlightTerm term : highlightTerms) {
 				i++;
 				String content = jochreDoc.getContents();
-				CoordinateStorage coordinateStorage = jochreDoc.getCoordinateStorage();
 				if (term.getStartOffset()>=content.length()) {
 					String title = doc.get("title");
 					String startPage = doc.get("startPage");
@@ -75,7 +73,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					j++;
 					if (j<=i)
 						continue;
-					if (otherTerm.getImageIndex()!=term.getImageIndex()) {
+					if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex()) {
 						if (foundImage)
 							break;
 						else
@@ -116,16 +114,8 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					}
 				}
 				
-				int imageStartOffset = coordinateStorage.getImageStartOffset(term.getImageIndex());
-				int imageEndOffset = Integer.MAX_VALUE;
-				if (term.getImageIndex()+1<coordinateStorage.getImageCount()) {
-					imageEndOffset = coordinateStorage.getImageStartOffset(term.getImageIndex()+1);
-				}
-				
-				if (start<imageStartOffset)
-					start = imageStartOffset;
-				if (end>imageEndOffset)
-					end = imageEndOffset;
+				if (start<0)
+					start = 0;
 				
 				Snippet snippet = new Snippet(docId, term.getField(), start, end);
 				snippet.setHighlightTerms(snippetTerms);
@@ -144,6 +134,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					}
 				}
 				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end);
+				snippet.setPageIndex(jochreDoc.getStartPage());
 				heap.add(snippet);
 			}
 			

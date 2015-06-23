@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.Jochre;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lexicon.FakeLexicon;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
@@ -36,6 +37,7 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 	public JochreYiddish() {
 		super();
 		this.setLocale(new Locale("yi"));
+		JochreSession.getInstance().setLinguistics(new YiddishLinguistics());
 	}
 
 	@SuppressWarnings("unused")

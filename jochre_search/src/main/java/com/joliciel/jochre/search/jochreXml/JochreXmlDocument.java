@@ -16,18 +16,13 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
+import java.io.File;
 import java.util.List;
 
-public interface JochreXmlWord {
-	public String getText();
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
-	public boolean isKnown();
-	public void setKnown(boolean known);
-	public List<JochreXmlLetter> getLetters();
-	public JochreXmlRow getRow();
+public interface JochreXmlDocument {
+	public File getDirectory();
+	public List<JochreXmlImage> getImages();
+	public int wordCount();
 }

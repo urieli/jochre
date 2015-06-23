@@ -27,6 +27,7 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.talismane.utils.CountedOutcome;
 
@@ -65,7 +66,7 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	@Override
 	public List<CountedOutcome<String>> getFrequencies(String initialWord) {
 		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
-		String word = YiddishWordSplitter.standardiseWord(initialWord);
+		String word = JochreSession.getInstance().getLinguistics().standardiseWord(initialWord);
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
 		}

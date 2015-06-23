@@ -18,6 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.JochreQuery;
@@ -38,7 +43,6 @@ class HighlightServiceImpl implements HighlightService {
 	public Highlighter getHighlighter(JochreQuery query,
 			IndexSearcher indexSearcher) {
 		LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher);
-		highlighter.setSearchService(this.getSearchService());
 		return highlighter;
 	}
 
@@ -57,5 +61,52 @@ class HighlightServiceImpl implements HighlightService {
 		return snippetFinder;
 	}
 	
-	
+	public Set<HighlightTerm> combineOverlaps(Set<HighlightTerm> terms) {
+		Set<HighlightTerm> fixedTerms = new TreeSet<HighlightTerm>();
+		HighlightTerm previousTerm = null;
+		List<TreeSet<HighlightTerm>> setsToCombine = new ArrayList<TreeSet<HighlightTerm>>();
+		TreeSet<HighlightTerm> combinedSet = null;
+		Set<HighlightTerm> termsToCombine = new TreeSet<HighlightTerm>();
+		int endOffset = -1;
+		for (HighlightTerm term : terms) {
+			if (previousTerm!=null) {
+				if (term.getDocId()==previousTerm.getDocId() && term.getStartOffset()<endOffset) {
+					if (combinedSet==null) {
+						combinedSet = new TreeSet<HighlightTerm>();
+						setsToCombine.add(combinedSet);
+					}
+					combinedSet.add(previousTerm);
+					combinedSet.add(term);
+					termsToCombine.add(previousTerm);
+					termsToCombine.add(term);
+					endOffset = previousTerm.getEndOffset() > term.getEndOffset() ? previousTerm.getEndOffset() : term.getEndOffset();
+				} else {
+					combinedSet = null;
+					endOffset = term.getEndOffset();
+				}
+			} else {
+				endOffset = term.getEndOffset();
+			}
+			previousTerm = term;
+		}
+		
+		if (termsToCombine.size()>0) {
+			fixedTerms.addAll(terms);
+			fixedTerms.removeAll(termsToCombine);
+			
+			for (TreeSet<HighlightTerm> setToCombine : setsToCombine) {
+				HighlightTerm firstTerm = setToCombine.first();
+				HighlightTerm lastTerm = setToCombine.last();
+				HighlightTerm combinedTerm = new HighlightTerm(firstTerm.getDocId(), firstTerm.getField(), firstTerm.getStartOffset(), lastTerm.getEndOffset(), firstTerm.getPayload());
+				// for now, we simply add their weights together
+				for (HighlightTerm termToCombine : setToCombine) {
+					combinedTerm.setWeight(combinedTerm.getWeight() + termToCombine.getWeight());
+				}
+				fixedTerms.add(combinedTerm);
+			}
+			return fixedTerms;
+		} else {
+			return terms;
+		}
+	}
 }

@@ -42,7 +42,9 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -102,6 +104,8 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.UnknownWordListWriter;
 import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.output.ImageExtractor;
+import com.joliciel.jochre.output.MetaDataExporter;
 import com.joliciel.jochre.output.OutputService;
 import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.output.OutputService.ExportFormat;
@@ -141,9 +145,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 		Jochre,
 		JochrePageByPage,
 		Alto3,
+		Alto3zip,
 		AbbyyFineReader8,
 		HTML,
-		UnknownWords
+		UnknownWords,
+		Metadata,
+		ImageExtractor
 	}
 	
 	GraphicsService graphicsService;
@@ -573,6 +580,21 @@ public class Jochre implements LocaleSpecificLexiconService {
         				observers.add(observer);
         				break;
         			}
+        			case Alto3zip:
+        			{
+        	    		String outputFileName = baseName+ ".zip";
+        				File zipFile = new File(outputDir, outputFileName);
+        				zipFile.delete();
+
+        				ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile, false));
+        				ZipEntry zipEntry = new ZipEntry(baseName+ "_alto3.xml");
+        				zos.putNextEntry(zipEntry);
+        				Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
+       				
+        				DocumentObserver observer = outputService.getExporter(zipWriter, ExportFormat.Alto);
+        				observers.add(observer);
+        				break;
+        			}
         			case HTML:
         			{
         		       	Writer htmlWriter = null;
@@ -584,6 +606,12 @@ public class Jochre implements LocaleSpecificLexiconService {
         				
         				DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
         				observers.add(textGetter);
+        				break;
+        			}
+        			case ImageExtractor:
+        			{
+        				DocumentObserver imageExtractor = new ImageExtractor(outputDir, baseName);
+        				observers.add(imageExtractor);
         				break;
         			}
         			case Jochre:
@@ -600,14 +628,23 @@ public class Jochre implements LocaleSpecificLexiconService {
         			}
            			case JochrePageByPage:
         			{
-         				DocumentObserver observer = outputService.getJochrePageByPageExporter(outputDir, baseName);
+        				outputDir.mkdirs();
+        				File zipFile = new File(outputDir, baseName + "_jochre.zip");
+
+         				DocumentObserver observer = outputService.getJochrePageByPageExporter(zipFile, baseName);
         				observers.add(observer);
         				break;
         			}
+           			case Metadata:
+           			{
+           				DocumentObserver observer = new MetaDataExporter(outputDir, baseName);
+           				observers.add(observer);
+           				break;
+           			}
         			case UnknownWords:
         			{
         				if (this.getLexicon()!=null) {
-        					File unknownWordFile = new File(outputDir, "unknownWords.txt");
+        					File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
         					unknownWordFile.delete();
         					Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true),"UTF8"));
 

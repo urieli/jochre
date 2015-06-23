@@ -16,7 +16,7 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,10 +31,12 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+
 class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
-    private String tempVal = null;
+    @SuppressWarnings("unused")
+	private String tempVal = null;
     private JochreXmlDocument doc = null;
-    private SearchServiceInternal searchService;
+    private JochreXmlService jochreXmlService;
     private String fileNameBase;
     private JochreXmlImage currentPage;
     private JochreXmlParagraph currentParagraph;
@@ -82,21 +84,21 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int pageIndex = Integer.parseInt(attributes.getValue("pageIndex"));
         	int imageIndex = Integer.parseInt(attributes.getValue("imageIndex"));
 //        	String lang = attributes.getValue("lang");
-        	currentPage = searchService.newImage(fileNameBase, pageIndex, imageIndex, width, height);
+        	currentPage = jochreXmlService.newImage(fileNameBase, pageIndex, imageIndex, width, height);
         	this.doc.getImages().add(currentPage);
         } else if (qName.equals("paragraph")) {
         	int left = Integer.parseInt(attributes.getValue("l"));
         	int top = Integer.parseInt(attributes.getValue("t"));
         	int right = Integer.parseInt(attributes.getValue("r"));
         	int bottom = Integer.parseInt(attributes.getValue("b"));
-        	currentParagraph = searchService.newParagraph(currentPage, left, top, right, bottom);
+        	currentParagraph = jochreXmlService.newParagraph(currentPage, left, top, right, bottom);
         	currentPage.getParagraphs().add(currentParagraph);
         } else if (qName.equals("row")) {
            	int left = Integer.parseInt(attributes.getValue("l"));
         	int top = Integer.parseInt(attributes.getValue("t"));
         	int right = Integer.parseInt(attributes.getValue("r"));
         	int bottom = Integer.parseInt(attributes.getValue("b"));
-        	currentRow = searchService.newRow(currentParagraph, left, top, right, bottom);
+        	currentRow = jochreXmlService.newRow(currentParagraph, left, top, right, bottom);
         	currentParagraph.getRows().add(currentRow);
         } else if (qName.equals("word")) {
            	int left = Integer.parseInt(attributes.getValue("l"));
@@ -105,7 +107,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int bottom = Integer.parseInt(attributes.getValue("b"));
         	String text = attributes.getValue("text").replace("&quot;", "\"");
         	boolean known = attributes.getValue("known").equals("true");
-        	currentWord = searchService.newWord(currentRow, text, left, top, right, bottom);
+        	currentWord = jochreXmlService.newWord(currentRow, text, left, top, right, bottom);
         	currentWord.setKnown(known);
         	currentRow.getWords().add(currentWord);
         } else if (qName.equals("char")) {
@@ -115,7 +117,7 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
         	int bottom = Integer.parseInt(attributes.getValue("b"));
         	String text = attributes.getValue("letter").replace("&quot;", "\"");
         	int confidence = Integer.parseInt(attributes.getValue("confidence"));
-        	JochreXmlLetter letter = searchService.newLetter(currentWord, text, left, top, right, bottom);
+        	JochreXmlLetter letter = jochreXmlService.newLetter(currentWord, text, left, top, right, bottom);
         	letter.setConfidence(confidence);
         	currentWord.getLetters().add(letter);
         } 
@@ -130,13 +132,13 @@ class JochreXmlReaderImpl extends DefaultHandler implements JochreXmlReader {
     	// do nothing for now
     }
 
-	public SearchServiceInternal getSearchService() {
-		return searchService;
+	public JochreXmlService getJochreXmlService() {
+		return jochreXmlService;
 	}
 
-	public void setSearchService(SearchServiceInternal searchService) {
-		this.searchService = searchService;
+	public void setJochreXmlService(JochreXmlService jochreXmlService) {
+		this.jochreXmlService = jochreXmlService;
 	}
-    
+
     
 }

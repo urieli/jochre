@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
@@ -38,7 +39,6 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
@@ -192,7 +192,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							}
 							LogUtils.logMemory(LOG);
 							int position = 0;
-							if (Linguistics.getInstance(image.getPage().getDocument().getLocale()).isLeftToRight()) {
+							if (JochreSession.getInstance().getLinguistics().isLeftToRight()) {
 								position = shape.getRight() - group.getLeft() + 1;
 							} else {
 								position = group.getRight() - shape.getLeft() + 1;

@@ -16,28 +16,31 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class JochreXmlParagraphImpl implements JochreXmlParagraph {
-	private List<JochreXmlRow> rows = new ArrayList<JochreXmlRow>();
+class AltoTextBlockImpl implements AltoTextBlock {
+	private List<AltoTextLine> rows = new ArrayList<AltoTextLine>();
 	private int left, top, right, bottom;
-	private JochreXmlImage page;
+	private AltoPage page;
 	private int wordCount = -1;
+	private int index = -1;
 	
-	public JochreXmlParagraphImpl(JochreXmlImage page, int left, int top, int right, int bottom) {
+	public AltoTextBlockImpl(AltoPage page, int left, int top, int right, int bottom) {
 		super();
 		this.page = page;
 		this.left = left;
 		this.top = top;
 		this.right = right;
 		this.bottom = bottom;
+		this.index = this.page.getTextBlocks().size();
+		this.page.getTextBlocks().add(this);
 	}
 
 	@Override
-	public List<JochreXmlRow> getRows() {
+	public List<AltoTextLine> getTextLines() {
 		return rows;
 	}
 
@@ -49,15 +52,15 @@ class JochreXmlParagraphImpl implements JochreXmlParagraph {
 		return top;
 	}
 
-	public int getRight() {
+	public int getWidth() {
 		return right;
 	}
 
-	public int getBottom() {
+	public int getHeight() {
 		return bottom;
 	}
 
-	public JochreXmlImage getPage() {
+	public AltoPage getPage() {
 		return page;
 	}
 
@@ -65,12 +68,14 @@ class JochreXmlParagraphImpl implements JochreXmlParagraph {
 	public int wordCount() {
 		if (wordCount<0) {
 			wordCount = 0;
-			for (JochreXmlRow row : this.getRows()) {
+			for (AltoTextLine row : this.getTextLines()) {
 				wordCount += row.wordCount();
 			}
 		}
 		return wordCount;
 	}
 	
-	
+	public int getIndex() {
+		return index;
+	}
 }

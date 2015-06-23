@@ -19,6 +19,7 @@
 package com.joliciel.jochre.search.highlight;
 
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
 
 /**
@@ -31,5 +32,5 @@ public interface Highlighter {
 	 * @param docs 
 	 * @return
 	 */
-	public Map<Integer,Set<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
+	public Map<Integer,NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
 }

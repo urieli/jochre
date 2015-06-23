@@ -16,16 +16,13 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
-import java.util.List;
+import java.io.File;
+import java.io.InputStream;
 
-public interface JochreXmlRow {
-	public List<JochreXmlWord> getWords();
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
-	public JochreXmlParagraph getParagraph();
-	public int wordCount();
+public interface JochreXmlReader {
+	public void parseFile(InputStream inputStream, String fileNameBase);
+	public void parseFile(File xmlFile);
+
 }

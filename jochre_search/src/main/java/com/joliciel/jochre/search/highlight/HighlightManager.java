@@ -21,6 +21,7 @@ package com.joliciel.jochre.search.highlight;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
 
 public interface HighlightManager {
@@ -43,7 +44,7 @@ public interface HighlightManager {
 	 * @return
 	 */
 	public Map<Integer, List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields,
-			Map<Integer, Set<HighlightTerm>> termMap,
+			Map<Integer, NavigableSet<HighlightTerm>> termMap,
 			int maxSnippets, int snippetSize);
 	
 	/**

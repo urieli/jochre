@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.EntityImpl;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -187,7 +188,7 @@ class JochreDocumentImpl extends EntityImpl implements
 	}
 	
 	public boolean isLeftToRight() {
-		Linguistics linguistics = Linguistics.getInstance(locale);
+		Linguistics linguistics = JochreSession.getInstance().getLinguistics();
 		return linguistics.isLeftToRight();
 	}
 

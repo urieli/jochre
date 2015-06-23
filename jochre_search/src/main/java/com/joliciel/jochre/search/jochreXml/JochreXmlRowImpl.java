@@ -16,29 +16,29 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.jochreXml;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class JochreXmlWordImpl implements JochreXmlWord {
-	private String text;
+class JochreXmlRowImpl implements JochreXmlRow {
+	private List<JochreXmlWord> words = new ArrayList<JochreXmlWord>();
 	private int left, top, right, bottom;
-	private boolean known;
-	private List<JochreXmlLetter> letters = new ArrayList<JochreXmlLetter>();
-	private JochreXmlRow row;
+	private JochreXmlParagraph paragraph;
+	private int wordCount = -1;
 	
-	public JochreXmlWordImpl(JochreXmlRow row, String text, int left, int top, int right, int bottom) {
+	public JochreXmlRowImpl(JochreXmlParagraph paragraph, int left, int top, int right, int bottom) {
 		super();
-		this.row = row;
-		this.text = text;
+		this.paragraph = paragraph;
 		this.left = left;
 		this.top = top;
 		this.right = right;
 		this.bottom = bottom;
 	}
-	public String getText() {
-		return text;
+
+	@Override
+	public List<JochreXmlWord> getWords() {
+		return words;
 	}
 
 	public int getLeft() {
@@ -56,17 +56,18 @@ class JochreXmlWordImpl implements JochreXmlWord {
 	public int getBottom() {
 		return bottom;
 	}
-	public boolean isKnown() {
-		return known;
-	}
-	public void setKnown(boolean known) {
-		this.known = known;
-	}
-	public List<JochreXmlLetter> getLetters() {
-		return letters;
-	}
-	public JochreXmlRow getRow() {
-		return row;
+
+	public JochreXmlParagraph getParagraph() {
+		return paragraph;
 	}
 
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = this.getWords().size();
+		}
+		return wordCount;
+	}
+	
+	
 }

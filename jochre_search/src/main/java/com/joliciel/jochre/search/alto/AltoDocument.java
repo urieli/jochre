@@ -16,11 +16,12 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import java.util.List;
 
-public interface TokenOffsetObserver {
-	public void onNewToken(CharTermAttribute termAtt, OffsetAttribute offsetAtt);
+public interface AltoDocument {
+	public String getName();
+	public List<AltoPage> getPages();
+	public int wordCount();
 }

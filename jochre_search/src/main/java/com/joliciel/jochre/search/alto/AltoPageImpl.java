@@ -16,57 +16,68 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class JochreXmlRowImpl implements JochreXmlRow {
-	private List<JochreXmlWord> words = new ArrayList<JochreXmlWord>();
-	private int left, top, right, bottom;
-	private JochreXmlParagraph paragraph;
+public class AltoPageImpl implements AltoPage {
+	private AltoDocument document;
+	private List<AltoTextBlock> textBlocks = new ArrayList<AltoTextBlock>();
+	private int pageIndex;
+	private int width;
+	private int height;
 	private int wordCount = -1;
+	private double confidence = 0;
 	
-	public JochreXmlRowImpl(JochreXmlParagraph paragraph, int left, int top, int right, int bottom) {
+	public AltoPageImpl(AltoDocument doc, int pageIndex, int width, int height) {
 		super();
-		this.paragraph = paragraph;
-		this.left = left;
-		this.top = top;
-		this.right = right;
-		this.bottom = bottom;
+		this.document = doc;
+		this.pageIndex = pageIndex;
+		this.width = width;
+		this.height = height;
+		this.document.getPages().add(this);
 	}
 
 	@Override
-	public List<JochreXmlWord> getWords() {
-		return words;
+	public List<AltoTextBlock> getTextBlocks() {
+		return textBlocks;
 	}
 
-	public int getLeft() {
-		return left;
+	public int getWidth() {
+		return width;
 	}
 
-	public int getTop() {
-		return top;
+	public int getHeight() {
+		return height;
 	}
 
-	public int getRight() {
-		return right;
+	public int getPageIndex() {
+		return pageIndex;
 	}
 
-	public int getBottom() {
-		return bottom;
-	}
 
-	public JochreXmlParagraph getParagraph() {
-		return paragraph;
+	public AltoDocument getDocument() {
+		return document;
 	}
 
 	@Override
 	public int wordCount() {
 		if (wordCount<0) {
-			wordCount = this.getWords().size();
+			wordCount = 0;
+			for (AltoTextBlock block : this.getTextBlocks()) {
+				wordCount += block.wordCount();
+			}
 		}
 		return wordCount;
+	}
+
+	public double getConfidence() {
+		return confidence;
+	}
+
+	public void setConfidence(double confidence) {
+		this.confidence = confidence;
 	}
 	
 	

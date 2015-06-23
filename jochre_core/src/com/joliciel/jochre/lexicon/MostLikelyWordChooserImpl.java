@@ -75,7 +75,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			for (int j = sequenceWithDash.getLetters().size()-1; j>=0; j--) {
 				String outcome = sequenceWithDash.getLetters().get(j);
 				if (outcome.equals("-")) {
-					sequenceWithDash.setDashToSkip(j);
+					sequenceWithDash.setEndOfLineHyphenIndex(j);
 					break;
 				}
 			}
@@ -252,6 +252,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 						LetterSequence prevCurrentSequence = letterGuesserService.getLetterSequence(prevSequence, subsequence);
 						LetterSequence currentNextSequence = letterGuesserService.getLetterSequence(subsequence, nextSequence);
 						LetterSequence prevCurrentNextSequence = letterGuesserService.getLetterSequence(prevCurrentSequence, nextSequence);
+						
 						if (word.equals("-")) {
 							if (prevSequence==null && nextSequence==null) {
 								newPossibilities.add(possibility);
@@ -290,12 +291,20 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 								newPossibilities.add(newPoss);
 								
 								//add skipped dash possibility
-								if (lastIndex==letterSequence.getDashToSkip()) {
-									LetterSequence prevNextSequence = letterGuesserService.getLetterSequence(prevSequence, nextSequence);
+								if (lastIndex==letterSequence.getEndOfLineHyphenIndex()) {
+									subsequence.setHyphenSubsequence(subsequence);
+									prevCurrentNextSequence.setHyphenSubsequence(subsequence);
+									prevCurrentSequence.setHyphenSubsequence(subsequence);
+									currentNextSequence.setHyphenSubsequence(subsequence);
+									
+									LetterSequence prevNextSequence = letterGuesserService.getLetterSequence(prevCurrentSequence, nextSequence);
+									prevNextSequence.setHyphenSubsequence(subsequence);
+									prevNextSequence.setSoftHyphen(true);
+									
 									newPoss = new ArrayList<LetterSequence>(possibility);
 									newPoss.remove(newPoss.size()-1);
 									newPoss.add(prevNextSequence);
-									prevNextSequence.setSoftHyphenSubsequence(subsequence);
+									
 									newPossibilities.add(newPoss);
 								}
 							}
@@ -402,9 +411,18 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		frequency = freqPossibilityMap.lastEntry().getKey();
 		letterSequence.setSubsequences(maxLengthList);
 		
+		String hyphenatedString = "";
 		for (LetterSequence subsequence : maxLengthList) {
-			if (subsequence.getSoftHyphenSubsequence()!=null)
-				letterSequence.setSoftHyphenSubsequence(subsequence.getSoftHyphenSubsequence());
+			if (subsequence.getHyphenSubsequence()!=null) {
+				letterSequence.setHyphenSubsequence(subsequence.getHyphenSubsequence());
+			}
+			hyphenatedString += subsequence.getGuessedWord();
+		}
+		if (letterSequence.isSplit()) {
+			letterSequence.setHyphenatedString(hyphenatedString);
+			for (LetterSequence subsequence : maxLengthList) {
+				subsequence.setHyphenatedString(hyphenatedString);
+			}
 		}
 		
 		return frequency;

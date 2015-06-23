@@ -519,8 +519,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 
 	@Override
 	public String getWordForIndex() {
-		JochreSession jochreSession = JochreSession.getInstance();
-		Linguistics linguistics = Linguistics.getInstance(jochreSession.getLocale());
+		Linguistics linguistics = JochreSession.getInstance().getLinguistics();
 		String word = this.getWord();
 		int wordStart = 0;
 		for (int i=0; i<word.length(); i++) {

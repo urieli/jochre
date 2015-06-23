@@ -16,34 +16,41 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.alto;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.lucene.analysis.TokenFilter;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-
-class LocationTokenFilter extends TokenFilter {
-	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
-	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-
-	private TokenOffsetObserver observer;
-
-	public LocationTokenFilter(TokenOffsetObserver observer, TokenStream input) {
-		super(input);
-		this.observer = observer;
+public class AltoDocumentImpl implements AltoDocument {
+	private String name;
+	private List<AltoPage> pages = new ArrayList<AltoPage>();
+	private int wordCount = -1;
+	
+	public AltoDocumentImpl(String name) {
+		super();
+		this.name = name;
 	}
 
 	@Override
-	public boolean incrementToken() throws IOException {
-		if (input.incrementToken()) {
-			if (observer!=null)
-				observer.onNewToken(termAtt, offsetAtt);       
-			return true;
-		} else {
-			return false;
-		}
+	public List<AltoPage> getPages() {
+		return pages;
 	}
+
+
+	@Override
+	public int wordCount() {
+		if (wordCount<0) {
+			wordCount = 0;
+			for (AltoPage page : this.getPages()) {
+				wordCount += page.wordCount();
+			}
+		}
+		return wordCount;
+	}
+
+	public String getName() {
+		return name;
+	}
+	
+	
 }

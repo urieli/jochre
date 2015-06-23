@@ -20,7 +20,7 @@ package com.joliciel.jochre.letterGuesser;
 
 import java.util.Locale;
 
-import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * Returns true only if the entire letter is valid. Empty strings are allowed.
@@ -28,18 +28,16 @@ import com.joliciel.jochre.lang.Linguistics;
  *
  */
 public class FullLetterValidator implements LetterValidator {
-	private Linguistics linguistics;
 	private Locale locale;
 	
 	public FullLetterValidator(Locale locale) {
 		super();
-		this.linguistics = Linguistics.getInstance(locale);
 		this.locale = locale;
 	}
 
 	@Override
 	public boolean validate(String letter) {
-		return (letter.length()==0||linguistics.getValidLetters().contains(letter));
+		return (letter.length()==0||JochreSession.getInstance().getLinguistics().getValidLetters().contains(letter));
 	}
 
 	public Locale getLocale() {
