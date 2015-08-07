@@ -110,8 +110,12 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		if (sequence2!=null) {
 			this.letters.addAll(sequence2.getLetters());
 			this.decisions.addAll(sequence2.getDecisions());
-			if (sequence2.getEndOfLineHyphenIndex()>=0)
-				this.setEndOfLineHyphenIndex(sequence1.getLetters().size() + sequence2.getEndOfLineHyphenIndex());
+			if (sequence2.getEndOfLineHyphenIndex()>=0) {
+				if (sequence1!=null)
+					this.setEndOfLineHyphenIndex(sequence1.getLetters().size() + sequence2.getEndOfLineHyphenIndex());
+				else
+					this.setEndOfLineHyphenIndex(sequence2.getEndOfLineHyphenIndex());
+			}
 		}
 		
 		if (sequence1!=null && sequence2!=null) {
