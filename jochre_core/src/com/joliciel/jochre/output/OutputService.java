@@ -42,7 +42,11 @@ public interface OutputService {
 		/**
 		 * Outputs to the XML spec indicated by http://finereader.abbyy.com/
 		 */
-		Abbyy
+		Abbyy,
+		/**
+		 * Outputs plain text.
+		 */
+		Text
 	}
 	
 	/**
