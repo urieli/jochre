@@ -426,5 +426,13 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		return criteria;
 	}
 
+	@Override
+	public JochreCorpusImageProcessor getJochreCorpusImageProcessor(
+			CorpusSelectionCriteria corpusSelectionCriteria) {
+		JochreCorpusImageProcessorImpl processor = new JochreCorpusImageProcessorImpl(corpusSelectionCriteria);
+		processor.setGraphicsService(this);
+		return processor;
+	}
+
 	
 }

@@ -31,6 +31,7 @@ import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
@@ -354,7 +355,6 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			}
 			possibilities = newPossibilities;
 		}
-		
 
 		
 		TreeMap<Integer, List<List<LetterSequence>>> freqPossibilityMap = new TreeMap<Integer, List<List<LetterSequence>>>();
@@ -372,6 +372,14 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 				String word = subsequence.getGuessedWord();
 				int freq = 0;
 				List<CountedOutcome<String>> frequencies = lexicon.getFrequencies(word);
+				
+				if (frequencies.size()==0) {
+					// check whether word is impossible
+					if (JochreSession.getInstance().getLinguistics().isWordPossible(word)) {
+						frequencies.add(new CountedOutcome<String>(word, -1));
+					}
+				}
+				
 				if (frequencies!=null && frequencies.size()>0) {
 					subsequence.setWordFrequencies(frequencies);
 					letterSequence.getWordFrequencies().add(frequencies.get(0));

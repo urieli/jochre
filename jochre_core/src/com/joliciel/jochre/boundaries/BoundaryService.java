@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +58,8 @@ public interface BoundaryService {
 	 *
 	 */
 	public BoundaryDetector getOriginalBoundaryDetector();
+	
+	public BoundaryDetector getBoundaryDetector(File splitModelFile, File mergeModelFile);
 	
 	/**
 	 * Get an empty shape sequence.

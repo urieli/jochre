@@ -2,11 +2,14 @@ package com.joliciel.jochre.doc;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -39,6 +42,7 @@ class JochreDocumentImpl extends EntityImpl implements
 	
 	private String fileName = "";
 	private String name = "";
+	private String fileBase = null;
 	private List<JochrePage> pages;
 	private Locale locale;
 
@@ -55,6 +59,8 @@ class JochreDocumentImpl extends EntityImpl implements
 	
 	private int totalPageCount;
 	private Map<String,String> fields = new TreeMap<String, String>();
+
+	private static Pattern diacriticPattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
 
 	@Override
 	public List<JochrePage> getPages() {
@@ -371,5 +377,13 @@ class JochreDocumentImpl extends EntityImpl implements
 
 	public Map<String, String> getFields() {
 		return fields;
+	}
+	
+	public String getFileBase() {
+		if (fileBase==null) {
+			fileBase = diacriticPattern.matcher(Normalizer.normalize(name, Form.NFD)).replaceAll("");
+			fileBase = fileBase.replaceAll("[^A-Za-z0-9\\_-]+", "");
+		}
+		return fileBase;
 	}
 }

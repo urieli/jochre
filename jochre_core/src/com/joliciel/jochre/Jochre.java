@@ -77,6 +77,7 @@ import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
+import com.joliciel.jochre.graphics.JochreCorpusImageProcessor;
 import com.joliciel.jochre.graphics.JochreCorpusImageReader;
 import com.joliciel.jochre.graphics.JochreCorpusShapeReader;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -175,6 +176,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 	Lexicon lexicon = null;
 	Map<String,Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
 	
+	private int beamWidth = 5;
+	private List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
+	
 	public Jochre() { }
 
 	private void initialise() {
@@ -240,7 +244,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		File performanceConfigFile = null;
 
 		String command = "";
-		String filename = "";
+		String inFilePath = "";
 		String userFriendlyName = "";
 		String outputDirPath = null;
 		String outputFilePath = null;
@@ -252,7 +256,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		int userId = -1;
 		int imageCount = 0;
 		int multiplier = 0;
-		int beamWidth = 5;
 		boolean showSegmentation = false;
 		boolean drawPixelSpread = false;
 		boolean save = false;
@@ -270,15 +273,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 		int excludeIndex = -1;
 		Set<Integer> documentSet = null;
 		boolean frequencyAdjusted = false;
-		double smoothing = 0.3;
+		double smoothing = -1;
 		double frequencyLogBase = 10.0;
 		String suffix = "";
 		String dataSourcePath = null;
 		String docGroupPath = null;
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
-		outputFormats.add(OutputFormat.Jochre);
-		outputFormats.add(OutputFormat.HTML);
 		
 		TrainingParameters trainingParameters = new TrainingParameters("");
 		Set<String> propsRead = trainingParameters.load(null, argMap);
@@ -290,7 +291,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			if (argName.equals("command"))
 				command = argValue;
 			else if (argName.equals("file"))
-				filename = argValue;
+				inFilePath = argValue;
 			else if (argName.equals("name"))
 				userFriendlyName = argValue;
 			else if (argName.equals("lang"))
@@ -413,7 +414,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		PerformanceMonitor.start(performanceConfigFile);
 		try {
 			if (userFriendlyName.length()==0)
-				userFriendlyName = filename;
+				userFriendlyName = inFilePath;
 			
 			if (locale==null) {
 				throw new JochreException("Argument lang is required");
@@ -467,32 +468,64 @@ public class Jochre implements LocaleSpecificLexiconService {
 			LexiconService lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 
         	wordChooser = lexiconService.getMostLikelyWordChooser(this.getLexicon(), this.getWordSplitter());
-        	wordChooser.setAdditiveSmoothing(smoothing);
+        	if (smoothing > 0)
+        		wordChooser.setAdditiveSmoothing(smoothing);
         	wordChooser.setFrequencyLogBase(frequencyLogBase);
         	wordChooser.setFrequencyAdjusted(frequencyAdjusted);
 			
         	jochreSession.setJunkConfidenceThreshold(junkThreshold);
+        	
+        	File outputDir = null;
+        	File outputFile = null;
+			if (outputDirPath!=null) {
+				outputDir = new File(outputDirPath);
+			} else if (outputFilePath!=null) {
+				outputFile = new File(outputFilePath);
+				outputDir = outputFile.getParentFile();
+			}
+			if (outputDir!=null)
+				outputDir.mkdirs();
+        	
+        	if (outputFormats.size()>0) {
+				if (outputDir==null) {
+					throw new JochreException("Either outputDir our outputFile are required with outputFormats");
+				}
+        		String baseName = null;
+        		if (userFriendlyName!=null && userFriendlyName.length()>0) {
+        			baseName = userFriendlyName;
+        		} else if (inFilePath!=null && inFilePath.length()>0) {
+	        		baseName = inFilePath;
+	        		if (baseName.lastIndexOf('.')>0)
+	        			baseName = inFilePath.substring(0, inFilePath.lastIndexOf('.'));
+		    		if (baseName.lastIndexOf('/')>0)
+		    			baseName = baseName.substring(baseName.lastIndexOf('/')+1);
+		    		if (baseName.lastIndexOf('\\')>0)
+		    			baseName = baseName.substring(baseName.lastIndexOf('\\')+1);
+        		}
+
+	    		this.observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
+        	}
 			
 			if (command.equals("segment")) {
-				this.doCommandSegment(filename, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
+				this.doCommandSegment(inFilePath, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
 			} else if (command.equals("extract")) {
-				this.doCommandExtractImages(filename, outputDirPath, firstPage, lastPage);
+				this.doCommandExtractImages(inFilePath, outputDirPath, firstPage, lastPage);
 			} else if (command.equals("updateImages")) {
-				this.doCommandUpdateImages(filename, docId, firstPage, lastPage);
+				this.doCommandUpdateImages(inFilePath, docId, firstPage, lastPage);
 			} else if (command.equals("applyFeatures")) {
 				this.doCommandApplyFeatures(imageId, shapeId, trainingParameters);
 			} else if (command.equals("train")) {
 				this.doCommandTrain(letterModelPath, trainingParameters, criteria, reconstructLetters);
 			} else if (command.equals("evaluate")||command.equals("evaluateComplex")) {
-				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, beamWidth, reconstructLetters, save, suffix, includeBeam);
+				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam);
 			} else if (command.equals("evaluateFull")) {
-				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, beamWidth, boundaryDetectorType, minProbForDecision, suffix);
+				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix);
 			} else if (command.equals("analyse")) {
 				this.doCommandAnalyse(letterModelPath, docId, criteria, wordChooser);
 			} else if (command.equals("trainSplits")) {
 				this.doCommandTrainSplits(splitModelPath, trainingParameters, criteria);
 			} else if (command.equals("evaluateSplits")) {
-				this.doCommandEvaluateSplits(splitModelPath, criteria, beamWidth, minProbForDecision);
+				this.doCommandEvaluateSplits(splitModelPath, criteria, minProbForDecision);
 			} else if (command.equals("trainMerge")) {
 				this.doCommandTrainMerge(mergeModelPath, trainingParameters, multiplier, criteria);	
 			} else if (command.equals("evaluateMerge")) {
@@ -502,19 +535,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 			} else if (command.equals("testFeature")) {
 				this.doCommandTestFeature(shapeId);
 			} else if (command.equals("serializeLexicon")) {
-				File outputDir = null;
-				File outputFile = null;
-				if (outputDirPath!=null) {
-					outputDir = new File(outputDirPath);
-				} else if (outputFilePath!=null) {
-					outputFile = new File(outputFilePath);
-					outputDir = outputFile.getParentFile();
-				} else {
+				if (outputDir==null) {
 					throw new JochreException("Either outputDir our outputFile are required for " + command);
 				}
-        		outputDir.mkdirs();
 	        		
-        		File inputFile = new File(filename);
+        		File inputFile = new File(inFilePath);
         		if (inputFile.isDirectory()) {
         			File[] lexiconFiles = inputFile.listFiles();
         			for (File oneLexFile : lexiconFiles) {
@@ -530,11 +555,11 @@ public class Jochre implements LocaleSpecificLexiconService {
     	        		lexicon.serialize(lexiconFile);
         			}
         		} else {
-	        		LOG.debug(filename + ": " + inputFile.exists() + ", size: " + inputFile.length());
+	        		LOG.debug(inFilePath + ": " + inputFile.exists() + ", size: " + inputFile.length());
 	
 	        		TextFileLexicon lexicon = new TextFileLexicon(inputFile, encoding);
 	        		
-	        		String baseName = filename.substring(0, filename.indexOf("."));
+	        		String baseName = inFilePath.substring(0, inFilePath.indexOf("."));
 		    		if (baseName.lastIndexOf("/")>0)
 		    			baseName = baseName.substring(baseName.lastIndexOf("/")+1);
 		    		
@@ -544,145 +569,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 	        		lexicon.serialize(lexiconFile);
         		}
 			} else if (command.equals("analyseFile")) {
-				File pdfFile = new File(filename);
+				File pdfFile = new File(inFilePath);
 				File letterModelFile = new File(letterModelPath);
 				File splitModelFile = null;
 				File mergeModelFile = null;
 				if (splitModelPath.length()>0)
 					splitModelFile = new File(splitModelPath);
 				if (mergeModelPath.length()>0)
-					mergeModelFile = new File(mergeModelPath);
-				
-        		File outputDir = new File(outputDirPath);
-        		outputDir.mkdirs();
-
-        		String baseName = filename;
-        		if (baseName.lastIndexOf('.')>0)
-        			baseName = filename.substring(0, filename.lastIndexOf('.'));
-	    		if (baseName.lastIndexOf('/')>0)
-	    			baseName = baseName.substring(baseName.lastIndexOf('/')+1);
-	    		if (baseName.lastIndexOf('\\')>0)
-	    			baseName = baseName.substring(baseName.lastIndexOf('\\')+1);
-	    		
-        		List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
-        		
-        		for (OutputFormat outputFormat : outputFormats) {
-        			switch (outputFormat) {
-        			case AbbyyFineReader8:
-        			{
-        		       	Writer analysisFileWriter = null;
-        	    		String outputFileName = baseName+ "_abbyy8.xml";
-        				File analysisFile = new File(outputDir, outputFileName);
-        				analysisFile.delete();
-        				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
-        				
-        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Abbyy);
-        				observers.add(observer);
-        				break;
-        			}
-        			case Alto3:
-        			{
-        		       	Writer analysisFileWriter = null;
-        	    		String outputFileName = baseName+ "_alto3.xml";
-        				File analysisFile = new File(outputDir, outputFileName);
-        				analysisFile.delete();
-        				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
-        				
-        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Alto);
-        				observers.add(observer);
-        				break;
-        			}
-        			case Alto3zip:
-        			{
-        	    		String outputFileName = baseName+ ".zip";
-        				File zipFile = new File(outputDir, outputFileName);
-        				zipFile.delete();
-
-        				ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile, false));
-        				ZipEntry zipEntry = new ZipEntry(baseName+ "_alto3.xml");
-        				zos.putNextEntry(zipEntry);
-        				Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
-       				
-        				DocumentObserver observer = outputService.getExporter(zipWriter, ExportFormat.Alto);
-        				observers.add(observer);
-        				break;
-        			}
-        			case HTML:
-        			{
-        		       	Writer htmlWriter = null;
-        	    		String htmlFileName = baseName+ ".html";
-        	    		
-        				File htmlFile = new File(outputDir, htmlFileName);
-        				htmlFile.delete();
-        				htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true),"UTF8"));
-        				
-        				DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
-        				observers.add(textGetter);
-        				break;
-        			}
-           			case Text:
-        			{
-        		       	Writer htmlWriter = null;
-        	    		String htmlFileName = baseName+ ".txt";
-        	    		
-        				File htmlFile = new File(outputDir, htmlFileName);
-        				htmlFile.delete();
-        				htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true),"UTF8"));
-        				
-        				DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
-        				observers.add(textGetter);
-        				break;
-        			}
-        			case ImageExtractor:
-        			{
-        				DocumentObserver imageExtractor = new ImageExtractor(outputDir, baseName);
-        				observers.add(imageExtractor);
-        				break;
-        			}
-        			case Jochre:
-        			{
-        		       	Writer analysisFileWriter = null;
-        	    		String outputFileName = baseName+ ".xml";
-        				File analysisFile = new File(outputDir, outputFileName);
-        				analysisFile.delete();
-        				analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
-        				
-        				DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Jochre);
-        				observers.add(observer);
-        				break;
-        			}
-           			case JochrePageByPage:
-        			{
-        				outputDir.mkdirs();
-        				File zipFile = new File(outputDir, baseName + "_jochre.zip");
-
-         				DocumentObserver observer = outputService.getJochrePageByPageExporter(zipFile, baseName);
-        				observers.add(observer);
-        				break;
-        			}
-           			case Metadata:
-           			{
-           				DocumentObserver observer = new MetaDataExporter(outputDir, baseName);
-           				observers.add(observer);
-           				break;
-           			}
-        			case UnknownWords:
-        			{
-        				if (this.getLexicon()!=null) {
-        					File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
-        					unknownWordFile.delete();
-        					Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true),"UTF8"));
-
-        					UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
-        					observers.add(unknownWordListWriter);
-        				}
-        				break;
-        			}
-        			}
-        		}
-				
-				
-				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, observers, firstPage, lastPage);
+					mergeModelFile = new File(mergeModelPath);	    						
+				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage);
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
@@ -888,7 +783,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param minProbForDecision 
 	 * @throws IOException
 	 */
-	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, int beamWidth, double minProbForDecision) throws IOException {
+	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
 		if (splitModelPath.length()==0)
 			throw new RuntimeException("Missing argument: splitModel");
 		if (!splitModelPath.endsWith(".zip"))
@@ -971,7 +866,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param lexicon the lexicon to use for word correction
 	 * @throws IOException
 	 */
-	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, boolean reconstructLetters, boolean save, String suffix, boolean includeBeam) throws IOException {
+	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, boolean reconstructLetters, boolean save, String suffix, boolean includeBeam) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		if (!letterModelPath.endsWith(".zip"))
@@ -1029,7 +924,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			
 			fScoreObserver = new SimpleLetterFScoreObserver(letterValidator);
 		}
-		    	
+		
 		evaluator.addObserver(fScoreObserver);
 		
 		ErrorLogger errorLogger = new ErrorLogger();	
@@ -1073,12 +968,13 @@ public class Jochre implements LocaleSpecificLexiconService {
     	
 		evaluator.addObserver(lexiconErrorWriter);
 		
-    	JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
-    	imageReader.setSelectionCriteria(criteria);
+    	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
+    	imageProcessor.addObserver(evaluator);
+		for (DocumentObserver observer : this.observers)
+			imageProcessor.addObserver(observer);
     	
-//			evaluator.setOutcomesToAnalyse(new String[] {"מ"});
 		try {
-			evaluator.analyse(imageReader);
+			imageProcessor.process();
 		} finally {
 			if (errorWriter!=null)
 				errorWriter.close();
@@ -1117,75 +1013,34 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
 		analyser.setLetterGuesser(letterGuesser);
 		analyser.setMostLikelyWordChooser(wordChooser);
-		
-		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
-		imageReader.setSelectionCriteria(criteria);
-		
 		LetterAssigner letterAssigner = new LetterAssigner();
-
 		analyser.addObserver(letterAssigner);
 		
-		if (docId>0) {
-			JochreDocument doc = documentService.loadJochreDocument(docId);
-			for (JochrePage page : doc.getPages()) {
-				for (JochreImage image : page.getImages()) {
-					if (image.getImageStatus().equals(ImageStatus.AUTO_NEW)) {
-						analyser.analyse(image);
-					}
-					image.clearMemory();
-				}
-			}
-		} else {
-			analyser.analyse(imageReader);
-		}
-
+    	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
+    	imageProcessor.addObserver(analyser);
+		for (DocumentObserver observer : this.observers)
+			imageProcessor.addObserver(observer);
+		
+		imageProcessor.process();
 	}
 	
-	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers, int firstPage, int lastPage) throws IOException {
+	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage) throws IOException {
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
 		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
 		analyser.setLetterGuesser(letterGuesser);
 		analyser.setMostLikelyWordChooser(wordChooser);
 		BoundaryDetector boundaryDetector = null;
 		
 		if (splitModelFile!=null && mergeModelFile!=null) {
-			double minWidthRatioForSplit = 1.1;
-			double minHeightRatioForSplit = 1.0;
-			int splitBeamWidth = 5;
-			int maxSplitDepth = 2;
-			
-			SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
-			splitCandidateFinder.setMinDistanceBetweenSplits(5);
-			
-			ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
-			List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-			Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
-			ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
-		
-			ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
-			List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-			Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
-			double maxWidthRatioForMerge = 1.2;
-			double maxDistanceRatioForMerge = 0.15;
-			double minProbForDecision = 0.5;
-			
-			ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
-
-			boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
-			boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
-			boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
-			boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
-			boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
+			boundaryDetector = boundaryService.getBoundaryDetector(splitModelFile, mergeModelFile);
 			analyser.setBoundaryDetector(boundaryDetector);
 			
 			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
@@ -1202,7 +1057,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 		
 		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(sourceFile.getName(), "", locale);
-		documentGenerator.requestAnalysis(analyser);
+		documentGenerator.addDocumentObserver(analyser);
 		
 		for (DocumentObserver observer : observers)
 			documentGenerator.addDocumentObserver(observer);
@@ -1243,7 +1098,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @throws IOException
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, 
-			boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, int beamWidth, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix) throws IOException {
+			boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 	   	if (outputDirPath==null||outputDirPath.length()==0)
@@ -1298,9 +1153,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		double maxDistanceRatioForMerge = 0.15;
 		
 		ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
-			
-		JochreCorpusImageReader imageReader = graphicsService.getJochreCorpusImageReader();
-		imageReader.setSelectionCriteria(criteria);
 		
 		BoundaryDetector boundaryDetector = null;
 		switch (boundaryDetectorType) {
@@ -1343,15 +1195,12 @@ public class Jochre implements LocaleSpecificLexiconService {
     	
     	errorLogger.setErrorWriter(errorWriter);
     	evaluator.addObserver(errorLogger);
-		
-//			evaluator.setOutcomesToAnalyse(new String[] {"מ"});
-		
-		try {
-			evaluator.analyse(imageReader);
-		} finally {
-			if (errorWriter!=null)
-				errorWriter.close();
-		}
+    	
+    	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
+    	imageProcessor.addObserver(evaluator);
+		for (DocumentObserver observer : this.observers)
+			imageProcessor.addObserver(observer);
+		imageProcessor.process();
 		
 		LOG.debug("F-score for " + letterModelPath + ": " + shapeLetterAssigner.getFScoreCalculator().getTotalFScore());
 		
@@ -1623,5 +1472,143 @@ public class Jochre implements LocaleSpecificLexiconService {
 		this.lexiconPath = lexiconPath;
 	}
 
+	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir, OutputService outputService) {
+		try {
+			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
+			
+			for (OutputFormat outputFormat : outputFormats) {
+				switch (outputFormat) {
+				case AbbyyFineReader8:
+				{
+			       	Writer analysisFileWriter = null;
+		    		String outputFileName = baseName+ "_abbyy8.xml";
+					File analysisFile = new File(outputDir, outputFileName);
+					analysisFile.delete();
+					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+					
+					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Abbyy);
+					observers.add(observer);
+					break;
+				}
+				case Alto3:
+				{
+					if (baseName!=null) {
+				       	Writer analysisFileWriter = null;
+			    		String outputFileName = baseName+ "_alto3.xml";
+						File analysisFile = new File(outputDir, outputFileName);
+						analysisFile.delete();
+						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+						
+						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Alto);
+						observers.add(observer);
+					} else {
+						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.Alto);
+						observers.add(observer);
+					}
+					break;
+				}
+				case Alto3zip:
+				{
+		    		String outputFileName = baseName+ ".zip";
+					File zipFile = new File(outputDir, outputFileName);
+					zipFile.delete();
 	
+					ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile, false));
+					ZipEntry zipEntry = new ZipEntry(baseName+ "_alto3.xml");
+					zos.putNextEntry(zipEntry);
+					Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
+					
+					DocumentObserver observer = outputService.getExporter(zipWriter, ExportFormat.Alto);
+					observers.add(observer);
+					break;
+				}
+				case HTML:
+				{
+					if (baseName!=null) {
+				       	Writer htmlWriter = null;
+			    		String htmlFileName = baseName+ ".html";
+			    		
+						File htmlFile = new File(outputDir, htmlFileName);
+						htmlFile.delete();
+						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true),"UTF8"));
+						
+						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
+						observers.add(textGetter);
+					} else {
+						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.XHTML, this.getLexicon());
+						observers.add(textGetter);
+					}
+					break;
+				}
+	   			case Text:
+				{
+					if (baseName!=null) {
+				       	Writer htmlWriter = null;
+			    		String htmlFileName = baseName+ ".txt";
+			    		
+						File htmlFile = new File(outputDir, htmlFileName);
+						htmlFile.delete();
+						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true),"UTF8"));
+						
+						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
+						observers.add(textGetter);
+					} else {
+						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
+						observers.add(textGetter);
+					}
+					break;
+				}
+				case ImageExtractor:
+				{
+					DocumentObserver imageExtractor = new ImageExtractor(outputDir, baseName);
+					observers.add(imageExtractor);
+					break;
+				}
+				case Jochre:
+				{
+			       	Writer analysisFileWriter = null;
+		    		String outputFileName = baseName+ ".xml";
+					File analysisFile = new File(outputDir, outputFileName);
+					analysisFile.delete();
+					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+					
+					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Jochre);
+					observers.add(observer);
+					break;
+				}
+	   			case JochrePageByPage:
+				{
+					outputDir.mkdirs();
+					File zipFile = new File(outputDir, baseName + "_jochre.zip");
+	
+	 				DocumentObserver observer = outputService.getJochrePageByPageExporter(zipFile, baseName);
+					observers.add(observer);
+					break;
+				}
+	   			case Metadata:
+	   			{
+	   				DocumentObserver observer = new MetaDataExporter(outputDir, baseName);
+	   				observers.add(observer);
+	   				break;
+	   			}
+				case UnknownWords:
+				{
+					if (this.getLexicon()!=null) {
+						File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
+						unknownWordFile.delete();
+						Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true),"UTF8"));
+	
+						UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
+						observers.add(unknownWordListWriter);
+					}
+					break;
+				}
+				}
+			}
+			return observers;
+		} catch (IOException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
+	}
 }

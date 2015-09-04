@@ -20,8 +20,10 @@ package com.joliciel.jochre.lexicon;
 
 import java.io.IOException;
 import java.io.Writer;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
@@ -92,11 +94,17 @@ public class UnknownWordListWriter implements DocumentObserver {
 
 	@Override
 	public void onPageComplete(JochrePage jochrePage) {
-
 	}
 
 	@Override
 	public void onDocumentComplete(JochreDocument jochreDocument) {
+	}
 	
+	@Override
+	public void onStart() {
+	}
+
+	@Override
+	public void onComplete() {
 	}
 }

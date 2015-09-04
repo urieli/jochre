@@ -135,4 +135,10 @@ public interface JochreDocument extends Entity {
 	 * @return
 	 */
 	public Map<String,String> getFields();
+	
+	/**
+	 * Get a file base useful for saving files based on this document.
+	 * @return
+	 */
+	public String getFileBase();
 }

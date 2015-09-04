@@ -1,6 +1,7 @@
 package com.joliciel.jochre.output;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,30 +27,38 @@ import freemarker.template.TemplateException;
 /**
 * Outputs to Jochre's lossless XML format.
 **/
-class JochreXMLExporter implements DocumentObserver {
+class JochreXMLExporter extends AbstractExporter implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(JochreXMLExporter.class);
 	private Writer writer;
 	private Template template;
 
 	JochreImage jochreImage = null;
-	public JochreXMLExporter(Writer writer) {
-		this(writer, new BufferedReader(new InputStreamReader(JochreXMLExporter.class.getResourceAsStream("jochre.ftl"))));
+	
+
+	public JochreXMLExporter(File outDir) {
+		super(outDir,"_jochre.xml");
+		this.initialize();
 	}
 	
-	JochreXMLExporter(Writer writer, Reader templateReader) {
-		super();
+	public JochreXMLExporter(Writer writer) {
+		super(writer);
+		this.initialize();
+	}
+	
+	private void initialize() {
 		try {
-			this.writer = writer;
 			Configuration cfg = new Configuration();
 			cfg.setCacheStorage(new NullCacheStorage());
 			cfg.setObjectWrapper(new DefaultObjectWrapper());
-	
+		
+			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("jochre.ftl")));
 			this.template = new Template("freemarkerTemplate", templateReader, cfg);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
 		}
 	}
+	
 	
 	@Override
 	public void onImageStart(JochreImage jochreImage) {
@@ -70,7 +79,7 @@ class JochreXMLExporter implements DocumentObserver {
 	}
 
 	@Override
-	public void onDocumentStart(JochreDocument jochreDocument) {
+	public void onDocumentStartInternal(JochreDocument jochreDocument) {
 		try {
 			writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			writer.write("<document version=\"1.0\" producer=\"Jochre XML Exporter\"" +
@@ -111,14 +120,21 @@ class JochreXMLExporter implements DocumentObserver {
 	}
 
 	@Override
-	public void onDocumentComplete(JochreDocument jochreDocument) {
+	public void onDocumentCompleteInternal(JochreDocument jochreDocument) {
 		try {
 			writer.write("</document>\n");
 			writer.flush();
-			writer.close();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
 		}
+	}
+	
+	@Override
+	public void onStart() {
+	}
+
+	@Override
+	public void onComplete() {
 	}
 }

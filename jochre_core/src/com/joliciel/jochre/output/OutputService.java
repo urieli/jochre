@@ -68,6 +68,8 @@ public interface OutputService {
 	 */
 	public DocumentObserver getTextGetter(Writer writer, TextFormat textFormat, Lexicon lexicon);
 	
+	public DocumentObserver getTextGetter(File outDir, TextFormat textFormat, Lexicon lexicon);
+	
 	/**
 	 * Outputs to Jochre's lossless XML format on a page-by-page basis, along with the image.
 	 * @return
@@ -78,4 +80,9 @@ public interface OutputService {
 	 * Returns an exporter in a particular export format.
 	 */
 	public DocumentObserver getExporter(Writer writer, ExportFormat exportFormat);
+	
+	/**
+	 * Returns an exporter in a particular export format.
+	 */
+	public DocumentObserver getExporter(File outputDir, ExportFormat exportFormat);
 }

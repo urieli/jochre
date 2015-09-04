@@ -41,10 +41,7 @@ import com.joliciel.talismane.utils.CountedOutcome;
 public class YiddishWordFrequencyFinder implements Lexicon {
 	private static final Log LOG = LogFactory.getLog(YiddishWordFrequencyFinder.class);
 	Lexicon baseLexicon;
-	
-	// notice there is a dash in the punctuation
-    private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„-";
-	
+		
 	public YiddishWordFrequencyFinder(Lexicon baseLexicon) {
 		super();
 		this.baseLexicon = baseLexicon;
@@ -152,31 +149,9 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		}
 		results.addAll(orderedResults);
 		
-		if (results.size()==0) {
-			// check whether word is impossible
-			if (!isWordPossible(initialWord)) {
-				results.add(new CountedOutcome<String>(initialWord, -1));
-			}
-		}
 		return results;
 	}
 
-	boolean isWordPossible(String word) {
-		boolean possible = true;
-		char lastChar = ' ';
-		// cannot have "langer" letters in the middle of a word
-		for (int i=0;i<word.length(); i++) {
-			char c = word.charAt(i);
-			if (lastChar=='ם'||lastChar=='ן'||lastChar=='ך'||lastChar=='ף'||lastChar=='ץ') {
-				if (PUNCTUATION.indexOf(c)<0) {
-					possible = false;
-					break;
-				}
-			}
-			lastChar = c;
-		}
-		return possible;
-	}
 	
 	Set<String> addVariants(Set<String> variants, String regex, String replacement) {
 		Set<String> newVariants = new TreeSet<String>();

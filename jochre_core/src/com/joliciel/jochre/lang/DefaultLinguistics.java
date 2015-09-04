@@ -85,4 +85,11 @@ public class DefaultLinguistics implements Linguistics {
 	public String standardiseWord(String originalWord) {
 		return originalWord;
 	}
+	
+	@Override
+	public boolean isWordPossible(String word) {
+		if (word.indexOf('|')>=0)
+			return false;
+		return true;
+	}
 }

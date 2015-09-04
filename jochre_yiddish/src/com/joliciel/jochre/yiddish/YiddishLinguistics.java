@@ -12,6 +12,8 @@ public class YiddishLinguistics implements Linguistics {
 	private Set<Character> diacritics = null;
 	private Set<Character> singleCharacterLetters = null;
 	private Set<Character> punctuation = null;
+	
+    private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„-";
 
 	@Override
 	public Set<String> getValidLetters() {
@@ -163,6 +165,26 @@ public class YiddishLinguistics implements Linguistics {
 		
 		return endForm;
 		
+	}
+	
+	public boolean isWordPossible(String word) {
+		if (word.indexOf('|')>=0)
+			return false;
+
+		boolean possible = true;
+		char lastChar = ' ';
+		// cannot have "langer" letters in the middle of a word
+		for (int i=0;i<word.length(); i++) {
+			char c = word.charAt(i);
+			if (lastChar=='ם'||lastChar=='ן'||lastChar=='ך'||lastChar=='ף'||lastChar=='ץ') {
+				if (PUNCTUATION.indexOf(c)<0) {
+					possible = false;
+					break;
+				}
+			}
+			lastChar = c;
+		}
+		return possible;
 	}
 
 }

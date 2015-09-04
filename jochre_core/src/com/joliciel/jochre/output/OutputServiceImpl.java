@@ -21,6 +21,7 @@ package com.joliciel.jochre.output;
 import java.io.File;
 import java.io.Writer;
 
+import com.joliciel.jochre.JochreException;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.lexicon.Lexicon;
 
@@ -36,6 +37,14 @@ class OutputServiceImpl implements OutputService {
 		TextGetterImpl textGetter =  new TextGetterImpl(writer, textFormat, lexicon);
 		return textGetter;
 	}
+	
+
+	@Override
+	public DocumentObserver getTextGetter(File outDir, TextFormat textFormat,
+			Lexicon lexicon) {
+		TextGetterImpl textGetter =  new TextGetterImpl(outDir, textFormat, lexicon);
+		return textGetter;
+	}
 
 	@Override
 	public DocumentObserver getJochrePageByPageExporter(File outputDir,
@@ -44,27 +53,53 @@ class OutputServiceImpl implements OutputService {
 		return exporter;
 	}
 
+	public DocumentObserver getExporter(File outputDir, ExportFormat exportFormat) {
+		return this.getExporter(outputDir, null, exportFormat);
+	}
+
 	@Override
 	public DocumentObserver getExporter(Writer writer, ExportFormat exportFormat) {
+		return this.getExporter(null, writer, exportFormat);
+	}
+	
+	public DocumentObserver getExporter(File outputDir, Writer writer, ExportFormat exportFormat) {
 		DocumentObserver exporter = null;
 		switch (exportFormat) {
 		case Abbyy: {
-			AbbyyFineReader8Exporter myExporter = new AbbyyFineReader8Exporter(writer);
-			exporter = myExporter;
+			if (outputDir==null) {
+				AbbyyFineReader8Exporter myExporter = new AbbyyFineReader8Exporter(writer);
+				exporter = myExporter;
+			} else {
+				AbbyyFineReader8Exporter myExporter = new AbbyyFineReader8Exporter(outputDir);
+				exporter = myExporter;
+			}
 			break;
 		}
 		case Alto: {
-			AltoXMLExporter myExporter = new AltoXMLExporter(writer);
-			exporter = myExporter;
+			if (outputDir==null) {
+				AltoXMLExporter myExporter = new AltoXMLExporter(writer);
+				exporter = myExporter;
+			} else {
+				AltoXMLExporter myExporter = new AltoXMLExporter(outputDir);
+				exporter = myExporter;
+			}
 			break;
 		}
 		case Jochre: {
-			JochreXMLExporter myExporter = new JochreXMLExporter(writer);
-			exporter = myExporter;
+			if (outputDir==null) {
+				JochreXMLExporter myExporter = new JochreXMLExporter(writer);
+				exporter = myExporter;
+			} else {
+				JochreXMLExporter myExporter = new JochreXMLExporter(outputDir);
+				exporter = myExporter;
+			}
 			break;
 		}
+		default:
+			throw new JochreException("Export format currently unsupported: " + exportFormat);
 		}
 		return exporter;
 	}
+
 
 }

@@ -41,6 +41,7 @@ public class BoundaryServiceLocator {
 			boundaryService.setBoundaryDao(this.getBoundaryDao());
 			boundaryService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
 			boundaryService.setFeatureService(this.jochreServiceLocator.getFeatureService());
+			boundaryService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 		}
 		return boundaryService;
 	}

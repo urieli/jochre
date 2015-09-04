@@ -19,7 +19,7 @@
 package com.joliciel.jochre.analyser;
 
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.graphics.JochreCorpusImageReader;
+import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
@@ -31,14 +31,10 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
  * @author Assaf Urieli
  *
  */
-public interface ImageAnalyser {
+public interface ImageAnalyser extends DocumentObserver {
 	/**
-	 * Analyse the letters in a set of images.
-	 * @param letterGuesser the letter guesser to use
-	 * @param imageStatus which image status to evaluate (typically held-out or test)
+	 * Analyse the letters in an image.
 	 */
-	public void analyse(JochreCorpusImageReader imageReader);
-
 	public abstract void analyse(JochreImage image);
 
 	public abstract void addObserver(LetterGuessObserver letterGuessObserver);

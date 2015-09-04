@@ -32,9 +32,10 @@ import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
+import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
-import com.joliciel.jochre.graphics.JochreCorpusImageReader;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
@@ -84,25 +85,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 		if (beamWidth>0)
 			this.beamWidth = beamWidth;
 		this.minOutcomeWeight = minOutcomeWeight;
-	}
-	
-	@Override
-	public void analyse(JochreCorpusImageReader imageReader) {
-		MONITOR.startTask("analyse(JochreCorpusImageReader)");
-		try {
-			
-			while (imageReader.hasNext()) {
-				JochreImage image = imageReader.next();
-				this.analyseInternal(image);
-				image.clearMemory();
-			} // next image
-	
-			for (LetterGuessObserver observer : observers) {
-				observer.onFinish();
-			}
-		} finally {
-			MONITOR.endTask();
-		}
 	}
 	
 	@Override
@@ -426,6 +408,40 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	public void setMinOutcomeWeight(double minOutcomeWeight) {
 		this.minOutcomeWeight = minOutcomeWeight;
 	}
-	
-	
+
+	@Override
+	public void onDocumentStart(JochreDocument jochreDocument) {
+	}
+
+	@Override
+	public void onPageStart(JochrePage jochrePage) {
+	}
+
+	@Override
+	public void onImageStart(JochreImage jochreImage) {
+	}
+
+	@Override
+	public void onImageComplete(JochreImage jochreImage) {
+		this.analyseInternal(jochreImage);
+	}
+
+	@Override
+	public void onPageComplete(JochrePage jochrePage) {
+	}
+
+	@Override
+	public void onDocumentComplete(JochreDocument jochreDocument) {
+	}
+
+	@Override
+	public void onStart() {
+	}
+
+	@Override
+	public void onComplete() {
+		for (LetterGuessObserver observer : observers) {
+			observer.onFinish();
+		}
+	}
 }

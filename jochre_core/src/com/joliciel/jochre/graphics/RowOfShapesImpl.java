@@ -20,11 +20,9 @@ package com.joliciel.jochre.graphics;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -381,7 +379,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 			right = Integer.MIN_VALUE;
 			bottom = Integer.MIN_VALUE;
 			
-			for (Shape shape : shapes) {
+			for (Shape shape : this.getShapes()) {
 				if (shape.getLeft() < left)
 					left = shape.getLeft();
 				if (shape.getTop() < top)
@@ -408,22 +406,14 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 			}
 			BufferedImage rowImage = this.container.getOriginalImage().getSubimage(0, this.getTop() - buffer, width, height);
 
-			double scale = (double) ROW_IMAGE_WIDTH / (double) width;
-			int newHeight = (int) Math.floor(scale * height);
-			if ( this.container.getOriginalImage().getColorModel() instanceof IndexColorModel) {
-				image = new BufferedImage(ROW_IMAGE_WIDTH, newHeight, this.container.getOriginalImage().getType(), (IndexColorModel) this.container.getOriginalImage().getColorModel());
-			} else {
-				image = new BufferedImage(ROW_IMAGE_WIDTH, newHeight, this.container.getOriginalImage().getType());				
-			}
-			Graphics2D graphics2d = image.createGraphics();
+			Graphics2D graphics2d = rowImage.createGraphics();
 
-			AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
-			graphics2d.drawRenderedImage(rowImage,at);
 			
 			// white out the space to the right & left of this row
 			graphics2d.setColor(Color.WHITE);
-			graphics2d.fillRect(0, 0, (int) Math.round((this.getLeft()-5) * scale), (int) Math.round(height * scale));
-			graphics2d.fillRect((int) Math.round((this.getRight()+5)*scale), 0, (int) Math.round((width-this.getRight())*scale), (int) Math.round(height*scale));
+			graphics2d.fillRect(0, 0, this.getLeft()-5, height);
+			graphics2d.fillRect(this.getRight()+5, 0, width-this.getRight(), height);
+			this.image = rowImage;
 			
 		}
 		return image;

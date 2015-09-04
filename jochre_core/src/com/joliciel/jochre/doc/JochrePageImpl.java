@@ -148,22 +148,4 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 		this.documentService = documentService;
 	}
 	
-
-	@Override
-	public int hashCode() {
-		if (this.isNew())
-			return super.hashCode();
-		else
-			return ((Integer)this.getId()).hashCode();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this.isNew()) {
-			return super.equals(obj);
-		} else {
-			JochrePage other = (JochrePage) obj;
-			return (this.getId()==other.getId());
-		}
-	}
 }

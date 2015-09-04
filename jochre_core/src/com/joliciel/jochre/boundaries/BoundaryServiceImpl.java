@@ -18,22 +18,35 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipInputStream;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
+import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.utils.LogUtils;
 
 class BoundaryServiceImpl implements BoundaryServiceInternal {
+	private static final Log LOG = LogFactory.getLog(BoundaryServiceImpl.class);
 	private MachineLearningService machineLearningService;
 	private GraphicsService graphicsService;
 	private FeatureService featureService;
+	private BoundaryFeatureService boundaryFeatureService;
 	private BoundaryDao boundaryDao;
 	
 	public BoundaryServiceImpl() {
@@ -288,5 +301,55 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	public void setFeatureService(FeatureService featureService) {
 		this.featureService = featureService;
 	}
+
+	@Override
+	public BoundaryDetector getBoundaryDetector(File splitModelFile,
+			File mergeModelFile) {
+		try {
+			double minWidthRatioForSplit = 1.1;
+			double minHeightRatioForSplit = 1.0;
+			int splitBeamWidth = 5;
+			int maxSplitDepth = 2;
+			
+			SplitCandidateFinder splitCandidateFinder = this.getSplitCandidateFinder();
+			splitCandidateFinder.setMinDistanceBetweenSplits(5);
+			
+			ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
+			ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
+			List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
+			Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+			ShapeSplitter shapeSplitter = this.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
+		
+			ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
+			ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
+			List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
+			Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
+			double maxWidthRatioForMerge = 1.2;
+			double maxDistanceRatioForMerge = 0.15;
+			double minProbForDecision = 0.5;
+			
+			ShapeMerger shapeMerger = this.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+	
+			BoundaryDetector boundaryDetector = this.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
+			boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
+			boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
+			boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
+			boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
+			
+			return boundaryDetector;
+		} catch (IOException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public BoundaryFeatureService getBoundaryFeatureService() {
+		return boundaryFeatureService;
+	}
+
+	public void setBoundaryFeatureService(
+			BoundaryFeatureService boundaryFeatureService) {
+		this.boundaryFeatureService = boundaryFeatureService;
+	} 
 
 }

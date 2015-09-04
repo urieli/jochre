@@ -40,12 +40,7 @@ import com.joliciel.jochre.analyser.LetterAssigner;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
-import com.joliciel.jochre.boundaries.ShapeMerger;
-import com.joliciel.jochre.boundaries.ShapeSplitter;
-import com.joliciel.jochre.boundaries.SplitCandidateFinder;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
-import com.joliciel.jochre.boundaries.features.MergeFeature;
-import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -65,12 +60,6 @@ import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
-/**
- * A utility class to create and analyse JochreDocuments out of a source file
- * containing multiple pages and images (typically a PDF file).
- * @author Assaf Urieli
- *
- */
 class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	private static final Log LOG = LogFactory.getLog(JochreDocumentGeneratorImpl.class);
 
@@ -89,14 +78,11 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	String userFriendlyName = "";
 	Locale locale = null;
 	boolean save = false;
-	boolean analyse = false;
 	JochreDocument doc = null;
 	User currentUser = null;
 	File letterModelFile = null;
 	File splitModelFile = null;
 	File mergeModelFile = null;
-	
-	ImageAnalyser analyser = null;
 	
 	boolean showSegmentation = false;
 	boolean drawPixelSpread = false;
@@ -191,6 +177,11 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			int imageIndex) {
 		LOG.debug("JochreDocumentGeneratorImpl.onImageFound");
 		try {
+			int monitorableCount = 0;
+			for (DocumentObserver observer : documentObservers) {
+				if (observer instanceof Monitorable) monitorableCount++;
+			}
+		
 			if (currentMonitor != null) {
 				currentMonitor.setCurrentAction("imageMonitor.segmentingImage", new Object[] {jochrePage.getIndex()});
 			}
@@ -211,9 +202,9 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			if (currentMonitor!=null) {
 				ProgressMonitor monitor = segmenter.monitorTask();
 				double percentAlloted = 1;
-				if (analyse&&save) {
+				if (monitorableCount>0&&save) {
 					percentAlloted = 0.3;
-				} else if (analyse) {
+				} else if (monitorableCount>0) {
 					percentAlloted = 0.4;
 				} else if (save) {
 					percentAlloted = 0.8;
@@ -243,7 +234,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 					SimpleProgressMonitor monitor = new SimpleProgressMonitor();
 					monitor.setCurrentAction("imageMonitor.savingImage", new Object[] {jochrePage.getIndex()});
 					double percentAlloted = 0.2;
-					if (analyse)
+					if (monitorableCount>0)
 						percentAlloted = 0.1;
 					currentMonitor.startTask(monitor, percentAlloted);
 				}
@@ -253,24 +244,17 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				}
 			}
 			
-			if (analyse) {
-				LOG.debug("Analysing image");
-					
-				if (currentMonitor!=null&&analyser instanceof Monitorable) {
-					ProgressMonitor monitor = ((Monitorable)analyser).monitorTask();
-					currentMonitor.startTask(monitor, 0.6);
-				}
+			LOG.debug("Running observers onImageComplete");
 
-				analyser.analyse(sourceImage);
-				
-				if (currentMonitor!=null&&analyser instanceof Monitorable) {
+			for (DocumentObserver observer : documentObservers) {
+				if (currentMonitor!=null&&observer instanceof Monitorable) {
+					ProgressMonitor monitor = ((Monitorable)observer).monitorTask();
+					currentMonitor.startTask(monitor, 0.6 / monitorableCount);
+				}
+				observer.onImageComplete(sourceImage);
+				if (currentMonitor!=null&&observer instanceof Monitorable) {
 					currentMonitor.endTask();
 				}
-			}
-			
-			LOG.debug("Running observers onImageComplete");
-			for (DocumentObserver observer : documentObservers) {
-				observer.onImageComplete(sourceImage);
 			}
 			return sourceImage;
 		} catch (IOException ioe) {
@@ -409,27 +393,15 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	public boolean isShowSegmentation() {
 		return showSegmentation;
 	}
-
-	@Override
-	public boolean isAnalyse() {
-		return analyse;
-	}
-
 	@Override
 	public void requestAnalysis(File letterModelFile,
 			MostLikelyWordChooser wordChooser) {
 		this.requestAnalysis(null, null, letterModelFile, wordChooser);
 	}
-
-	public void requestAnalysis(ImageAnalyser analyser) {
-		this.analyse = true;
-		this.analyser = analyser;
-	}
 	
 	@Override
 	public void requestAnalysis(File splitModelFile, File mergeModelFile,
 			File letterModelFile, MostLikelyWordChooser wordChooser) {
-		this.analyse = true;
 		this.letterModelFile = letterModelFile;
 		this.splitModelFile = splitModelFile;
 		this.mergeModelFile = mergeModelFile;
@@ -441,42 +413,14 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
 			LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-			analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
+			ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(5, 0.01);
 			analyser.setLetterGuesser(letterGuesser);
 			analyser.setMostLikelyWordChooser(wordChooser);
 
 			BoundaryDetector boundaryDetector = null;
 			
 			if (splitModelFile!=null && mergeModelFile!=null) {
-				double minWidthRatioForSplit = 1.1;
-				double minHeightRatioForSplit = 1.0;
-				int splitBeamWidth = 5;
-				int maxSplitDepth = 2;
-				
-				SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
-				splitCandidateFinder.setMinDistanceBetweenSplits(5);
-				
-				ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
-				ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
-				List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-				Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
-				ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit, splitBeamWidth, maxSplitDepth);
-			
-				ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
-				ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
-				List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-				Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
-				double maxWidthRatioForMerge = 1.2;
-				double maxDistanceRatioForMerge = 0.15;
-				double minProbForDecision = 0.5;
-				
-				ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
-
-				boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
-				boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
-				boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
-				boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
-				boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
+				boundaryDetector = boundaryService.getBoundaryDetector(splitModelFile, mergeModelFile);
 				analyser.setBoundaryDetector(boundaryDetector);
 				
 				OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
@@ -494,7 +438,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 				analyser.addObserver(letterAssigner);
 			}
 			
-
+			this.documentObservers.add(0, analyser);
 		} catch (Exception e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);

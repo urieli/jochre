@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.output;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -47,9 +48,9 @@ import com.joliciel.talismane.utils.LogUtils;
  * @author Assaf Urieli
  *
  */
-class TextGetterImpl implements DocumentObserver {
+class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(TextGetterImpl.class);
-	private Writer writer;
+
 	private TextFormat textFormat = TextFormat.PLAIN;
 	private Lexicon lexicon;
 	
@@ -58,25 +59,33 @@ class TextGetterImpl implements DocumentObserver {
 	}
 	
 	public TextGetterImpl(Writer writer, TextFormat textFormat, Lexicon lexicon) {
+		super(writer);
 		this.writer = writer;
+		this.textFormat = textFormat;
+		this.lexicon = lexicon;
+	}
+	
+	public TextGetterImpl(File outputDir, TextFormat textFormat, Lexicon lexicon) {
+		super(outputDir, textFormat==TextFormat.PLAIN ? ".txt" : ".htm");
 		this.textFormat = textFormat;
 		this.lexicon = lexicon;
 	}
 
 	@Override
-	public void onDocumentStart(JochreDocument jochreDocument) {
-		if (textFormat.equals(TextFormat.XHTML)) {
-			try {
+	protected void onDocumentStartInternal(JochreDocument jochreDocument) {
+		try {
+			if (textFormat.equals(TextFormat.XHTML)) {
 				writer.write("<html>\n");
 				writer.write("<head>\n");
 				writer.write("<meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\" />\n");
 				writer.write("<title>" + jochreDocument.getName() + "</title>\n");
 				writer.write("</head>\n");
 				writer.write("<body>\n");
-			} catch (IOException ioe) {
-				LogUtils.logError(LOG, ioe);
-				throw new RuntimeException(ioe);
+				writer.flush();
 			}
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
 		}
 	}
 
@@ -318,18 +327,18 @@ class TextGetterImpl implements DocumentObserver {
 	}
 
 	@Override
-	public void onDocumentComplete(JochreDocument jochreDocument) {
-		if (textFormat.equals(TextFormat.XHTML)) {
-			try {
+	protected void onDocumentCompleteInternal(JochreDocument jochreDocument) {
+		try {
+			if (textFormat.equals(TextFormat.XHTML)) {
 				writer.write("</body>\n");
 				writer.write("</html>\n");
-			} catch (IOException ioe) {
-				LogUtils.logError(LOG, ioe);
-				throw new RuntimeException(ioe);
+				writer.flush();
 			}
+		} catch (IOException ioe) {
+			LogUtils.logError(LOG, ioe);
+			throw new RuntimeException(ioe);
 		}
 	}
-
 
 	void appendBidiText(String text, Writer writer) {
 		try {
@@ -363,5 +372,13 @@ class TextGetterImpl implements DocumentObserver {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
 		}
+	}
+	
+	@Override
+	public void onStart() {
+	}
+
+	@Override
+	public void onComplete() {
 	}
 }

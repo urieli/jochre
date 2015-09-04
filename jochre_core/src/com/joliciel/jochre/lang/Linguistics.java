@@ -38,4 +38,6 @@ public interface Linguistics {
 	public boolean isLeftToRight();
 	
 	public String standardiseWord(String originalWord);
+	
+	public boolean isWordPossible(String word);
 }

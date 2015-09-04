@@ -223,8 +223,9 @@ public class ImageController extends GenericForwardComposer<Window> {
 				Image gridRowImage = new Image();
 				gridRowImage.setContent(row.getImage());
 				gridRowImage.setId("RowImage" + row.getId());
-				int imageWidth = row.getImage().getWidth();
-				int imageHeight = row.getImage().getHeight();
+
+				int imageWidth = RowOfShapes.ROW_IMAGE_WIDTH;
+				int imageHeight = (int) (((double) row.getImage().getHeight()) * ((double) RowOfShapes.ROW_IMAGE_WIDTH / (double) row.getImage().getWidth()));
 				gridRowImage.setWidth(imageWidth + "px");
 				gridRowImage.setHeight(imageHeight + "px");
 				//gridRowImage.setStyle("position: absolute;  left: 0px;");
@@ -321,7 +322,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 		private Div getLetterDiv(RowOfShapes row, boolean realLetter) {
 			// Now comes the fun part: a bunch of span tags to show how the letters align!
 			Div letterDiv = new Div();
-			int imageWidth = row.getImage().getWidth();
+			int imageWidth = RowOfShapes.ROW_IMAGE_WIDTH;
 			boolean leftToRight = (row.getParagraph().getImage().getPage().getDocument().isLeftToRight());
 
 			letterDiv.setWidth(imageWidth + "px");
@@ -378,7 +379,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 		public void onEvent(MouseEvent mouseEvent) throws Exception {
 			try {
 				int x = mouseEvent.getX();
-				int imageWidth = row.getImage().getWidth();
+				int imageWidth = RowOfShapes.ROW_IMAGE_WIDTH;
 				double scale = (double) imageWidth / (double) row.getParagraph().getImage().getWidth();
 				int clickPos = (int) Math.floor(x / scale);
 				GroupOfShapes clickedGroup = null;

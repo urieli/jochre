@@ -1,6 +1,7 @@
 package com.joliciel.jochre.output;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,25 +27,31 @@ import freemarker.template.TemplateException;
 /**
 * Outputs to the XML spec indicated by http://finereader.abbyy.com/
 **/
-class AbbyyFineReader8Exporter implements DocumentObserver {
+class AbbyyFineReader8Exporter extends AbstractExporter implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(AbbyyFineReader8Exporter.class);
 	private Writer writer;
 	private Template template;
 	private boolean firstPage = true;
 
 	JochreImage jochreImage = null;
-	public AbbyyFineReader8Exporter(Writer writer) {
-		this(writer, new BufferedReader(new InputStreamReader(AbbyyFineReader8Exporter.class.getResourceAsStream("abbyy_8.ftl"))));
+
+	public AbbyyFineReader8Exporter(File outDir) {
+		super(outDir,"_abbyy8.xml");
+		this.initialize();
 	}
 	
-	AbbyyFineReader8Exporter(Writer writer, Reader templateReader) {
-		super();
+	public AbbyyFineReader8Exporter(Writer writer) {
+		super(writer);
+		this.initialize();
+	}
+	
+	private void initialize() {
 		try {
-			this.writer = writer;
 			Configuration cfg = new Configuration();
 			cfg.setCacheStorage(new NullCacheStorage());
 			cfg.setObjectWrapper(new DefaultObjectWrapper());
-	
+		
+			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("abbyy_8.ftl")));
 			this.template = new Template("freemarkerTemplate", templateReader, cfg);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
@@ -71,7 +78,7 @@ class AbbyyFineReader8Exporter implements DocumentObserver {
 	}
 
 	@Override
-	public void onDocumentStart(JochreDocument jochreDocument) {
+	public void onDocumentStartInternal(JochreDocument jochreDocument) {
 		try {
 			writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 			writer.write("<document version=\"1.0\" producer=\"Jochre XML Exporter for ABBYY FineReader\"" +
@@ -116,14 +123,21 @@ class AbbyyFineReader8Exporter implements DocumentObserver {
 	}
 
 	@Override
-	public void onDocumentComplete(JochreDocument jochreDocument) {
+	public void onDocumentCompleteInternal(JochreDocument jochreDocument) {
 		try {
 			writer.write("</document>\n");
 			writer.flush();
-			writer.close();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void onStart() {
+	}
+
+	@Override
+	public void onComplete() {
 	}
 }

@@ -20,19 +20,18 @@ package com.joliciel.jochre.doc;
 
 import java.io.File;
 
-import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.Monitorable;
 
+/**
+ * A utility interface to create and analyse JochreDocuments out of a source file
+ * containing multiple pages and images (typically a PDF file).
+ * @author Assaf Urieli
+ *
+ */
 public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorable {
 	public void addDocumentObserver(DocumentObserver observer);
-	
-	/**
-	 * Request analysis using a pre-constructed analyser.
-	 * @param analyser
-	 */
-	public void requestAnalysis(ImageAnalyser analyser);
 	
 	/**
 	 * Call if this document should be analysed for letters.
@@ -61,13 +60,7 @@ public interface JochreDocumentGenerator extends SourceFileProcessor, Monitorabl
 	 * @param outputDirectory
 	 */
 	public void requestSegmentation(File outputDirectory);
-
-	/**
-	 * Should the document be analysed?
-	 * @return
-	 */
-	public abstract boolean isAnalyse();
-
+	
 	/**
 	 * Should segmented images be generated?
 	 * @return

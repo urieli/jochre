@@ -288,8 +288,10 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 	public List<JochreImage> findImages(ImageStatus[] imageStatuses) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_IMAGE + " FROM ocr_image WHERE image_imgstatus_id in (:image_imgstatus_id)" +
-		" ORDER BY image_id";
+		String sql = "SELECT " + SELECT_IMAGE + " FROM ocr_image"
+				+ " INNER JOIN ocr_page ON page_id=image_page_id"
+				+ " WHERE image_imgstatus_id in (:image_imgstatus_id)"
+				+ " ORDER BY page_doc_id, page_index, image_index, image_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		List<Integer> imageStatusList = new ArrayList<Integer>();
 		for (ImageStatus imageStatus : imageStatuses)
