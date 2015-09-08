@@ -124,6 +124,7 @@ import com.joliciel.talismane.machineLearning.TrainingParameters;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
+import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
@@ -134,7 +135,7 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  */
 public class Jochre implements LocaleSpecificLexiconService {
 	private static final Log LOG = LogFactory.getLog(Jochre.class);
-
+	
 	public enum BoundaryDetectorType {
 		LetterByLetter,
 		Deterministic
@@ -242,7 +243,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 		
 		File performanceConfigFile = null;
-
+		
 		String command = "";
 		String inFilePath = "";
 		String userFriendlyName = "";
@@ -280,6 +281,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String docGroupPath = null;
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
+		String csvSeparator = "\t";
 		
 		TrainingParameters trainingParameters = new TrainingParameters("");
 		Set<String> propsRead = trainingParameters.load(null, argMap);
@@ -407,6 +409,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				if (outputFormats.size()==0)
 					throw new JochreException("At least one outputFormat required.");
 			}
+			else if (argName.equals("csvSeparator"))
+				csvSeparator = argValue;
 			else
 				throw new RuntimeException("Unknown argument: " + argName);
 		}
@@ -424,6 +428,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 			
     		if (encoding==null)
     			encoding = Charset.defaultCharset().name();
+    		
+    		CSVFormatter.setGlobalCsvSeparator(csvSeparator);
     		
 			JochreServiceLocator locator = JochreServiceLocator.getInstance();
 			if (dataSourcePath!=null)
