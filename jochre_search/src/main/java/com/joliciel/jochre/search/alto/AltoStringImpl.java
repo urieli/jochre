@@ -20,8 +20,10 @@ package com.joliciel.jochre.search.alto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 class AltoStringImpl implements AltoString {
+	private static Pattern whiteSpacePattern = Pattern.compile("[\\s\ufeff]+", Pattern.UNICODE_CHARACTER_CLASS);
 	private String content;
 	private int left, top, width, height;
 	private AltoTextLine textLine;
@@ -33,6 +35,7 @@ class AltoStringImpl implements AltoString {
 	private int index = -1;
 	private int spanStart = -1;
 	private int spanEnd = -1;
+	private boolean whiteSpace = false;
 	
 	public AltoStringImpl(AltoTextLine textLine, String content, int left, int top, int width, int height) {
 		super();
@@ -44,6 +47,8 @@ class AltoStringImpl implements AltoString {
 		this.height = height;
 		this.index = this.textLine.getStrings().size();
 		this.textLine.getStrings().add(this);
+		if (whiteSpacePattern.matcher(content).matches())
+			this.whiteSpace = true;
 	}
 	
 	public String getContent() {
@@ -127,5 +132,8 @@ class AltoStringImpl implements AltoString {
 				+ ", spanStart=" + spanStart + ", spanEnd=" + spanEnd + "]";
 	}
 
+	public boolean isWhiteSpace() {
+		return whiteSpace;
+	}
 
 }

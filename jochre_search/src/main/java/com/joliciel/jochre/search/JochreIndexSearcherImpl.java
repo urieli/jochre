@@ -3,22 +3,29 @@ package com.joliciel.jochre.search;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.talismane.utils.LogUtils;
@@ -48,7 +55,8 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			if (!indexDir.exists()) {
 				throw new RuntimeException("Index directory does not exist: " + indexDir.getAbsolutePath());
 			}
-			Directory directory = FSDirectory.open(this.indexDir);
+			Path path = this.indexDir.toPath();
+			Directory directory = FSDirectory.open(path);
 			indexReader = DirectoryReader.open(directory);
 			
 			indexSearcher = new IndexSearcher(indexReader);		
@@ -93,6 +101,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeObjectFieldStart(doc.get("id"));
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
+				jsonGen.writeStringField("name", doc.get("name"));
 				jsonGen.writeNumberField("startPage", Integer.parseInt(doc.get("startPage")));
 				jsonGen.writeNumberField("endPage", Integer.parseInt(doc.get("endPage")));
 				jsonGen.writeNumberField("index", Integer.parseInt(doc.get("index")));
@@ -153,5 +162,22 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 
 	public void setSearchService(SearchService searchService) {
 		this.searchService = searchService;
+	}
+
+	@Override
+	public List<Document> findDocuments(String docId) {
+		try {
+			List<Document> docs = new ArrayList<Document>();
+			TermQuery termQuery = new TermQuery(new Term("name", docId));
+			TopDocs topDocs = indexSearcher.search(termQuery, 200);
+			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+				Document doc = indexSearcher.doc(scoreDoc.doc);
+				docs.add(doc);
+			}
+			return docs;
+		} catch (IOException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
 	}
 }

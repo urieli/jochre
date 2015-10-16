@@ -1,7 +1,6 @@
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +37,6 @@ class JochreTokeniser extends Tokenizer {
 	private int currentIndex = 0;
 	private AltoString currentToken;
 	private AltoPage currentPage;
-	private int offsetBase = 0;
-	private int currentOffset = 0;
 	private List<String> currentAlternatives = null;
 	private int currentAlternativeIndex = 0;
 	private String fieldName;
@@ -51,12 +48,12 @@ class JochreTokeniser extends Tokenizer {
 	 * @param input the text field contents, ignored since we've already analysed them
 	 * @return
 	 */
-	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName, Reader input) {
-		super(input);
+	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
+		super();
 		this.tokenExtractor = tokenExtractor;
 		this.fieldName = fieldName;
 	}
-	
+
 	@Override
 	public boolean incrementToken() throws IOException {
 		clearAttributes();
@@ -73,16 +70,12 @@ class JochreTokeniser extends Tokenizer {
 			currentToken = tokens.get(currentIndex++);
 			if (!currentToken.getTextLine().getTextBlock().getPage().equals(currentPage)) {
 				// new page
-				if (currentPage !=null)
-					offsetBase += 1;
-				offsetBase += currentOffset;
 				currentPage = currentToken.getTextLine().getTextBlock().getPage();
 				if (LOG.isTraceEnabled()) {
-					LOG.trace("New page: " + currentPage.getPageIndex() + ", offsetBase: " + offsetBase);
+					LOG.trace("New page: " + currentPage.getPageIndex());
 				}
 
 			}
-			currentOffset = currentToken.getSpanEnd();
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(currentToken.toString());
 			}
@@ -99,10 +92,7 @@ class JochreTokeniser extends Tokenizer {
 
 		if (currentToken!=null) {
 			String content = currentAlternatives.get(currentAlternativeIndex++);
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("content: " + content);
-			}
-			
+
 			// add the term itself
 			termAtt.append(content);
 			
@@ -118,9 +108,9 @@ class JochreTokeniser extends Tokenizer {
 				posIncrAtt.setPositionIncrement(1);
 			}
 			
-			offsetAtt.setOffset(offsetBase + currentToken.getSpanStart(), offsetBase + currentToken.getSpanEnd());
+			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
 			
-			// store the language and feature type in the payload, in case we need them
+			// store the coordinates in the payload
 			JochrePayload payload = new JochrePayload(currentToken);
 			payloadAtt.setPayload(payload.getBytesRef());
 

@@ -2,6 +2,9 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 import java.io.Writer;
+import java.util.List;
+
+import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 
@@ -17,6 +20,8 @@ public interface JochreIndexSearcher {
 	 * @return
 	 */
 	public TopDocs search(JochreQuery query);
+	
+	public List<Document> findDocuments(String docId);
 
 	/**
 	 * Write query results in JSON to the provided Writer.

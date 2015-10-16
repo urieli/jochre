@@ -78,7 +78,7 @@ class HighlightManagerImpl implements HighlightManager {
 			
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
-				jsonGen.writeObjectFieldStart(doc.get("id"));
+				jsonGen.writeObjectFieldStart(doc.get("name"));
 				jsonGen.writeStringField("path", doc.get("path"));
 				jsonGen.writeNumberField("docId", docId);
 				

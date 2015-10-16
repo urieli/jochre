@@ -15,11 +15,11 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.AtomicReader;
-import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.ReaderUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
@@ -30,7 +30,6 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.PrefixTermsEnum;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
@@ -59,7 +58,7 @@ class LuceneQueryHighlighter implements Highlighter {
 			IndexReader reader = indexSearcher.getIndexReader();
 
 			IndexReaderContext readerContext = reader.getContext();
-			List<AtomicReaderContext> leaves = readerContext.leaves();
+			List<LeafReaderContext> leaves = readerContext.leaves();
 
 			Map<Integer,NavigableSet<HighlightTerm>> termMap = new HashMap<Integer, NavigableSet<HighlightTerm>>();
 
@@ -108,6 +107,12 @@ class LuceneQueryHighlighter implements Highlighter {
 					}
 				}
 			}
+			for (Term prefixTerm : prefixes) {
+				Automaton automaton = WildcardQuery.toAutomaton(prefixTerm);
+				CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
+				automatons.add(compiledAutomaton);
+			}
+			
 			for (Term wildcardTerm : wildcardTerms) {
 				Automaton automaton = WildcardQuery.toAutomaton(wildcardTerm);
 				CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
@@ -139,8 +144,8 @@ class LuceneQueryHighlighter implements Highlighter {
 				if (LOG.isTraceEnabled())
 					LOG.trace("Searching leaf " + leaf);
 				Set<Integer> docsPerLeaf = myLeaves.get(leaf);
-				AtomicReaderContext subContext = leaves.get(leaf);
-				AtomicReader atomicReader = subContext.reader();
+				LeafReaderContext subContext = leaves.get(leaf);
+				LeafReader atomicReader = subContext.reader();
 				
 				int fieldCounter = 0;
 				for (String field : fields) {
@@ -153,7 +158,7 @@ class LuceneQueryHighlighter implements Highlighter {
 						continue; // nothing to do
 					}
 					
-					TermsEnum termsEnum = atomicReaderTerms.iterator(TermsEnum.EMPTY);
+					TermsEnum termsEnum = atomicReaderTerms.iterator();
 					
 					int termCounter = 0;
 					for (Term term : fieldTerms.get(field)) {
@@ -169,16 +174,6 @@ class LuceneQueryHighlighter implements Highlighter {
 						allHighlights.addAll(highlights);
 						
 					} // next term
-					
-					for (Term prefix : prefixes) {
-						TermsEnum prefixEnum = new PrefixTermsEnum(termsEnum, prefix.bytes());
-						BytesRef nextBytesRef = prefixEnum.next();
-						while (nextBytesRef!=null) {
-							List<HighlightPassage> highlights = this.findHighlights(field, prefixEnum, subContext, luceneIdToLuceneDocMap, docsPerLeaf);
-							allHighlights.addAll(highlights);
-							nextBytesRef = prefixEnum.next();
-						}
-					}
 					
 					for (CompiledAutomaton automaton : automatons) {
 						TermsEnum automatonEnum = automaton.getTermsEnum(atomicReaderTerms);
@@ -228,7 +223,7 @@ class LuceneQueryHighlighter implements Highlighter {
 		}
 	}
 	
-	private List<HighlightPassage> findHighlights(String field, TermsEnum termsEnum, AtomicReaderContext subContext,
+	private List<HighlightPassage> findHighlights(String field, TermsEnum termsEnum, LeafReaderContext subContext,
 			Map<Integer,Document> luceneIdToLuceneDocMap,
 			Set<Integer> docsPerLeaf) throws IOException {
 		List<HighlightPassage> highlights = new ArrayList<HighlightPassage>();

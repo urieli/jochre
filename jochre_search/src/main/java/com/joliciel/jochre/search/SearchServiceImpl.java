@@ -19,7 +19,6 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
-import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
@@ -67,8 +66,8 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	@Override
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
-			String fieldName, Reader reader) {
-		JochreTokeniser jochreTokeniser = new JochreTokeniser(tokenExtractor, fieldName, reader);
+			String fieldName) {
+		JochreTokeniser jochreTokeniser = new JochreTokeniser(tokenExtractor, fieldName);
 		jochreTokeniser.setSearchService(this);
 		return jochreTokeniser;
 	}

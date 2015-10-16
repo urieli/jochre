@@ -312,6 +312,7 @@ public class Snippet implements Comparable<Snippet> {
 				int endBlockIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextBlockIndex();
 				int endLineIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextLineIndex();
 				
+				LOG.debug("Getting rectangle for snippet " + this.highlightTerms.toString());
 				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex));
 				LOG.debug("Original rect: " + rect);
 				Rectangle otherRect = jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex);

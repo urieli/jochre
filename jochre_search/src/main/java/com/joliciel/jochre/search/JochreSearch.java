@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -36,9 +37,13 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
@@ -103,7 +108,7 @@ public class JochreSearch {
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
 				builder.updateIndex(documentDir, forceUpdate);
-			} else if (command.equals("search")) {
+			} else if (command.equals("search")||command.equals("highlight")) {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				
@@ -117,6 +122,12 @@ public class JochreSearch {
 				Set<Integer> docIds = new LinkedHashSet<Integer>();
 				for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 					docIds.add(scoreDoc.doc);
+					LOG.debug("### Next document");
+					Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
+					for (IndexableField field : doc.getFields()) {
+						if (!field.name().equals("text"))
+							LOG.debug(field);
+					}
 				}
 				Set<String> fields = new HashSet<String>();
 				fields.add("text");
@@ -134,6 +145,26 @@ public class JochreSearch {
 				} else {
 					highlightManager.findSnippets(highlighter, docIds, fields, out);
 				}
+			} else if (command.equals("view")) {
+				String docId = argMap.get("docId");
+				String indexDirPath = argMap.get("indexDir");
+				File indexDir = new File(indexDirPath);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				List<Document> docs = searcher.findDocuments(docId);
+				JsonFactory jsonFactory = new JsonFactory();
+				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
+				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+
+				jsonGen.writeStartArray();
+				for (Document doc : docs) {
+					jsonGen.writeStartObject();
+					for (IndexableField field : doc.getFields()) {
+						jsonGen.writeStringField(field.name(), field.stringValue());
+					}
+					jsonGen.writeEndObject();
+				}
+				jsonGen.writeEndArray();
+				jsonGen.flush();
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}

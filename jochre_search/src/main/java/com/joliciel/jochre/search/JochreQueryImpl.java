@@ -33,11 +33,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.FieldCacheTermsFilter;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.Version;
-
 import com.joliciel.talismane.utils.LogUtils;
 
 class JochreQueryImpl implements JochreQuery {
@@ -209,8 +206,8 @@ class JochreQueryImpl implements JochreQuery {
 			if (luceneQuery==null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
-				Analyzer analyzer = new WhitespaceAnalyzer(Version.LUCENE_46);
-				QueryParser queryParser = new QueryParser(Version.LUCENE_46, "text", analyzer);
+				Analyzer analyzer = new WhitespaceAnalyzer();
+				QueryParser queryParser = new QueryParser("text", analyzer);
 				luceneQuery = queryParser.parse(this.getQueryString());
 			}
 			return luceneQuery;
@@ -223,7 +220,7 @@ class JochreQueryImpl implements JochreQuery {
 	@Override
 	public Filter getLuceneFilter() {
 		if (luceneFilter==null && this.getDocFilter()!=null) {
-			luceneFilter = new FieldCacheTermsFilter(this.getFilterField(), this.getDocFilter());
+//			luceneFilter = new FieldCacheTermsFilter(this.getFilterField(), this.getDocFilter());
 		}
 		return luceneFilter;
 	}

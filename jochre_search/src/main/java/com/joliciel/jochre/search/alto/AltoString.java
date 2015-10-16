@@ -86,4 +86,10 @@ public interface AltoString {
 	public abstract int getSpanEnd();
 	public abstract void setSpanEnd(int spanEnd);
 
+	/**
+	 * Does this string represent white space?
+	 * @return
+	 */
+	public boolean isWhiteSpace();
+
 }

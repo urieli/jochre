@@ -1,5 +1,7 @@
 package com.joliciel.jochre.search;
 
+import java.util.Arrays;
+
 import org.apache.lucene.util.BytesRef;
 
 import com.joliciel.jochre.search.alto.AltoString;
@@ -17,11 +19,13 @@ public class JochrePayload {
 	public JochrePayload(BytesRef bytesRef) {
 		this.bytesRef = bytesRef;
 		byte[] bytes = bytesRef.bytes;
-		this.left = bytes[0] * 256 + bytes[1];
-		this.top = bytes[2] * 256 + bytes[3];
-		this.width = bytes[4] * 256 + bytes[5];
-		this.height = bytes[6] * 256 + bytes[7];
-		this.pageIndex = bytes[8] * 256 + bytes[9];
+		if (bytes.length!=12)
+			throw new RuntimeException("bytes wrong size, should be 12, was " + bytes.length + ": " + Arrays.toString(bytes));
+		this.left = bytes[0] * 256 + (bytes[1]<0 ? 256 - bytes[1] : bytes[1]);
+		this.top = bytes[2] * 256 + (bytes[3]<0 ? 256 - bytes[3] : bytes[3]);
+		this.width = bytes[4] * 256 + (bytes[5]<0 ? 256 - bytes[5] : bytes[5]);
+		this.height = bytes[6] * 256 + (bytes[7]<0 ? 256 - bytes[7] : bytes[7]);
+		this.pageIndex = bytes[8] * 256 + (bytes[9]<0 ? 256 - bytes[9] : bytes[9]);
 		this.textBlockIndex = bytes[10];
 		this.textLineIndex = bytes[11];
 	}

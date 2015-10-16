@@ -416,10 +416,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 		
 		PerformanceMonitor.start(performanceConfigFile);
-		try {
-			if (userFriendlyName.length()==0)
-				userFriendlyName = inFilePath;
-			
+		try {			
 			if (locale==null) {
 				throw new JochreException("Argument lang is required");
 			}
@@ -502,7 +499,7 @@ public class Jochre implements LocaleSpecificLexiconService {
         		} else if (inFilePath!=null && inFilePath.length()>0) {
 	        		baseName = inFilePath;
 	        		if (baseName.lastIndexOf('.')>0)
-	        			baseName = inFilePath.substring(0, inFilePath.lastIndexOf('.'));
+	        			baseName = baseName.substring(0, baseName.lastIndexOf('.'));
 		    		if (baseName.lastIndexOf('/')>0)
 		    			baseName = baseName.substring(baseName.lastIndexOf('/')+1);
 		    		if (baseName.lastIndexOf('\\')>0)
@@ -511,6 +508,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 	    		this.observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
         	}
+        	
+			if (userFriendlyName.length()==0)
+				userFriendlyName = inFilePath;
 			
 			if (command.equals("segment")) {
 				this.doCommandSegment(inFilePath, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);

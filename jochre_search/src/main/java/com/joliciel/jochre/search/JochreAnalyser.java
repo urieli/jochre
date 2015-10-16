@@ -1,6 +1,5 @@
 package com.joliciel.jochre.search;
 
-import java.io.Reader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
@@ -24,12 +23,11 @@ class JochreAnalyser extends Analyzer {
 	}
 
 	@Override
-	protected TokenStreamComponents createComponents(String fieldName,
-			Reader reader) {
+	protected TokenStreamComponents createComponents(String fieldName) {
 		if (LOG.isTraceEnabled())
 			LOG.trace("Analysing field " + fieldName);
 
-		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName, reader);	
+		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);	
 		TokenStream result = source;
 		return new TokenStreamComponents(source, result);
 	}

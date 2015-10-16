@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +47,9 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
-
 import com.joliciel.jochre.search.alto.AltoDocument;
 import com.joliciel.jochre.search.alto.AltoPage;
+import com.joliciel.jochre.search.alto.AltoPageConsumer;
 import com.joliciel.jochre.search.alto.AltoReader;
 import com.joliciel.jochre.search.alto.AltoService;
 import com.joliciel.jochre.search.alto.AltoString;
@@ -63,10 +63,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private File indexDir;
 	private int wordsPerDoc=3000;
 	private IndexWriter indexWriter;
+	private List<AltoString> currentStrings = null;		
 	
 	private SearchServiceInternal searchService;
 	private AltoService altoService;
-	private List<AltoString> currentStrings = null;
 	
 	public JochreIndexBuilderImpl(File indexDir) {
 		this.indexDir = indexDir;
@@ -75,10 +75,11 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private void initialise() {
 		if (this.indexWriter==null) {
 			try {
-				Directory directory = FSDirectory.open(this.indexDir);
+				Path path = this.indexDir.toPath();
+				Directory directory = FSDirectory.open(path);
 				
 				Analyzer analyzer = searchService.getJochreAnalyser(this);
-				IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_46, analyzer);
+				IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 				this.indexWriter = new IndexWriter(directory, iwc);
 			} catch (IOException ioe) {
@@ -256,6 +257,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 			AltoDocument altoDoc = this.altoService.newDocument(documentDir.getName());
 			AltoReader reader = this.altoService.getAltoReader(altoDoc);
+			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, documentDir, fields);
+			reader.addConsumer(altoPageIndexer);
 			
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
 			ZipEntry ze = null;
@@ -267,43 +270,6 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		    	i++;
 		    }
 		    zis.close();
-			
-			i = 0;
-			int docCount = 0;
-			int wordCount = 0;
-			int cumulWordCount = 0;
-			currentStrings = new ArrayList<AltoString>();
-			List<AltoPage> currentPages = new ArrayList<AltoPage>();
-			for (AltoPage page : altoDoc.getPages()) {
-				int remainingWords = altoDoc.wordCount() - (cumulWordCount + wordCount);
-				LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount + ", total xml words: " + altoDoc.wordCount() + ", remaining words: " + remainingWords);
-				if (wordsPerDoc>0 && wordCount >= wordsPerDoc && remainingWords >= wordsPerDoc) {
-					LOG.debug("Creating new index doc: " + docCount);
-					JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, currentPages, fields);
-					indexDoc.save(indexWriter);
-					docCount++;
-					
-					cumulWordCount += wordCount;
-					wordCount = 0;
-					currentStrings = new ArrayList<AltoString>();
-					currentPages = new ArrayList<AltoPage>();
-				}
-				currentPages.add(page);
-				
-				LOG.debug("Processing page: " + page.getPageIndex());
-				
-				for (AltoTextBlock textBlock : page.getTextBlocks()) {
-					for (AltoTextLine textLine : textBlock.getTextLines()) {
-						for (AltoString string : textLine.getStrings()) {
-							currentStrings.add(string);
-							wordCount++;
-						}
-					}
-				}
-				i++;
-			}
-			JochreIndexDocument indexDoc = searchService.newJochreIndexDocument(documentDir, docCount, currentPages, fields);
-			indexDoc.save(indexWriter);
 			
 			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
 	
@@ -318,6 +284,74 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 
+	private static final class AltoPageIndexer implements AltoPageConsumer {
+		private JochreIndexBuilderImpl parent;
+		private int docCount = 0;
+		private int cumulWordCount = 0;
+		private List<AltoPage> currentPages = new ArrayList<AltoPage>();
+		private List<AltoPage> previousPages = new ArrayList<AltoPage>();
+		private List<AltoString> previousStrings = new ArrayList<AltoString>();
+		private List<AltoString> currentStrings = new ArrayList<AltoString>();
+		
+		private File documentDir;
+		private Map<String,String> fields;
+		
+		public AltoPageIndexer(JochreIndexBuilderImpl parent, File documentDir, Map<String,String> fields) {
+			super();
+			this.parent = parent;
+			this.documentDir = documentDir;
+			this.fields = fields;
+		}
+
+		@Override
+		public void onNextPage(AltoPage page) {
+			LOG.debug("Processing page: " + page.getPageIndex());
+			currentPages.add(page);
+			for (AltoTextBlock textBlock : page.getTextBlocks()) {
+				for (AltoTextLine textLine : textBlock.getTextLines()) {
+					for (AltoString string : textLine.getStrings()) {
+						if (!string.isWhiteSpace())
+							currentStrings.add(string);
+					}
+				}
+			}
+			
+			int wordCount = page.wordCount();
+			cumulWordCount += wordCount;
+			LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount);
+			if (parent.getWordsPerDoc()>0 && cumulWordCount >= parent.getWordsPerDoc()) {
+				if (previousPages.size()>0) {
+					parent.setCurrentStrings(previousStrings);
+					LOG.debug("Creating new index doc: " + docCount);
+					JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(documentDir, docCount, previousPages, fields);
+					indexDoc.save(parent.getIndexWriter());
+					docCount++;
+				}
+
+				previousPages = currentPages;
+				previousStrings = currentStrings;
+				
+				cumulWordCount = 0;
+				parent.setCurrentStrings(new ArrayList<AltoString>());
+				currentPages = new ArrayList<AltoPage>();
+				currentStrings = new ArrayList<AltoString>();
+			}
+		}
+
+		@Override
+		public void onComplete() {
+			previousPages.addAll(currentPages);
+			previousStrings.addAll(currentStrings);
+			parent.setCurrentStrings(previousStrings);
+			LOG.debug("Creating new index doc: " + docCount);
+			JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(documentDir, docCount, previousPages, fields);
+			indexDoc.save(parent.getIndexWriter());
+			docCount++;
+		}
+
+	}
+
+	
 	private void deleteDocumentInternal(File documentDir) {
 		try {
 			Term term = new Term("name", documentDir.getName());
@@ -352,9 +386,21 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		this.altoService = altoService;
 	}
 
+	public IndexWriter getIndexWriter() {
+		return indexWriter;
+	}
+
 	@Override
 	public List<AltoString> findTokens(String fieldName, Reader input) {
 		return currentStrings;
+	}
+
+	public List<AltoString> getCurrentStrings() {
+		return currentStrings;
+	}
+
+	public void setCurrentStrings(List<AltoString> currentStrings) {
+		this.currentStrings = currentStrings;
 	}
 
 	

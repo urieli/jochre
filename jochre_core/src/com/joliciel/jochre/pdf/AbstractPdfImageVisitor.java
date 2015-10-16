@@ -21,6 +21,7 @@ package com.joliciel.jochre.pdf;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,6 +29,7 @@ import java.util.TreeMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
@@ -49,6 +51,28 @@ abstract class AbstractPdfImageVisitor {
 			this.pdfFile = pdfFile;
 	
 			pdfDocument = PDDocument.load(pdfFile);
+			PDDocumentInformation info = pdfDocument.getDocumentInformation();
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+			fields.put("PageCount",  "" + pdfDocument.getNumberOfPages());
+			if (info.getTitle()!=null)
+				fields.put("Title", info.getTitle());
+			if (info.getAuthor()!=null)
+				fields.put("Author", info.getAuthor());
+			if (info.getSubject()!=null)
+				fields.put("Subject", info.getSubject());
+			if (info.getKeywords()!=null)
+				fields.put("Keywords", info.getKeywords());
+			if (info.getCreator()!=null)
+				fields.put("Creator", info.getCreator());
+			if (info.getProducer()!=null)
+				fields.put("Producer", info.getProducer());
+			if (info.getCreationDate()!=null)
+				fields.put("CreateDate", dateFormat.format(info.getCreationDate().getTime()));
+			if (info.getModificationDate()!=null)
+				fields.put("ModificationDate",  dateFormat.format(info.getModificationDate().getTime()));
+			for (String metaDataField : info.getMetadataKeys()) {
+				fields.put(metaDataField, info.getCustomMetadataValue(metaDataField));
+			}
 
 		} catch (FileNotFoundException fnfe) {
 			throw new RuntimeException(fnfe);

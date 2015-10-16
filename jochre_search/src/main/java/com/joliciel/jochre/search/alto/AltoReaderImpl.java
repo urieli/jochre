@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -47,6 +49,10 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
     private AltoString currentString;
     private int currentOffset;
     private boolean addedHyphen = false;
+    private boolean prevTextLineEndedWithHyphen = false;
+    private List<AltoPageConsumer> consumers = new ArrayList<AltoPageConsumer>();
+    private boolean buildEntireDocument = false;
+    private String documentName;
     
     public AltoReaderImpl() {
     }
@@ -56,25 +62,25 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
     }
     
     @Override
-	public AltoDocument parseFile(File altoFile) {
+	public void parseFile(File altoFile) {
     	try {
 	    	InputStream inputStream = new FileInputStream(altoFile);
-	    	AltoDocument doc = this.parseFile(inputStream, altoFile.getParentFile().getName());
-	    	return doc;
+	    	this.parseFile(inputStream, altoFile.getParentFile().getName());
         } catch (IOException e) {
             LogUtils.logError(LOG, e);
             throw new RuntimeException(e);
         }
     }
     	
-    public AltoDocument parseFile(InputStream inputStream, String documentName) {
-    	if (this.doc==null)
-    		this.doc = this.altoService.newDocument(documentName);
+    public void parseFile(InputStream inputStream, String documentName) {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         try {
+        	this.documentName = documentName;
             SAXParser sp = spf.newSAXParser();
             sp.parse(inputStream, this);
-            return this.doc;
+            
+            for (AltoPageConsumer consumer : consumers)
+            	consumer.onComplete();
         } catch(SAXException e) {
             LogUtils.logError(LOG, e);
             throw new RuntimeException(e);
@@ -91,6 +97,8 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
     	// clear out tempVal whenever a new element is started
     	tempVal = "";
         if (qName.equals("Page")) {
+        	if (this.doc==null || !buildEntireDocument)
+        		this.doc = this.altoService.newDocument(documentName);
         	int width = Integer.parseInt(attributes.getValue("WIDTH"));
         	int height = Integer.parseInt(attributes.getValue("HEIGHT"));
         	int pageIndex = Integer.parseInt(attributes.getValue("PHYSICAL_IMG_NR"));
@@ -116,7 +124,16 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
         	currentTextLine = altoService.nextTextLine(currentTextBlock, left, top, width, height);
         } else if (qName.equals("SP")) {
         	// a space
-        	currentOffset += 1;
+           	int left = Integer.parseInt(attributes.getValue("HPOS"));
+        	int top = Integer.parseInt(attributes.getValue("VPOS"));
+        	int width = Integer.parseInt(attributes.getValue("WIDTH"));
+        	int height = 0;
+        	String content = " ";
+        	currentString = altoService.newString(currentTextLine, content, left, top, width, height);
+        	
+        	currentString.setSpanStart(currentOffset);
+        	currentOffset += content.length();
+        	currentString.setSpanEnd(currentOffset);
         	addedHyphen = false;
         } else if (qName.equals("HYP")) {
         	// a hyphen
@@ -178,9 +195,22 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
     		currentString.getAlternatives().add(tempVal);
     	} else if (qName.equals("TextLine")) {
         	// an end of line is either a space or true end-of-line, add an offset unless there's a dash at the end of the previous line
-        	if (!addedHyphen)
+    		if (addedHyphen) {
+    			prevTextLineEndedWithHyphen = true;
+    		} else {
+    			prevTextLineEndedWithHyphen = false;
         		currentOffset += 1;
+    		}
         	addedHyphen = false;
+    	} else if (qName.equals("TextBlock")) {
+    		// if the text line for which we didn't add a space was at the end of a paragraph, we add the space anyway.
+    		if (prevTextLineEndedWithHyphen) {
+    			prevTextLineEndedWithHyphen = false;
+    			currentOffset += 1;
+    		}
+    	} else if (qName.equals("Page")) {
+    		for (AltoPageConsumer consumer : consumers)
+    			consumer.onNextPage(currentPage);
     	}
     }
 
@@ -192,5 +222,22 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
 		this.altoService = altoService;
 	}
 
+    public void addConsumer(AltoPageConsumer consumer) {
+    	this.consumers.add(consumer);
+    }
+
+	public boolean isBuildEntireDocument() {
+		return buildEntireDocument;
+	}
+
+	public void setBuildEntireDocument(boolean buildEntireDocument) {
+		this.buildEntireDocument = buildEntireDocument;
+	}
+
+	@Override
+	public AltoDocument getDocument() {
+		return this.doc;
+	}
+    
     
 }

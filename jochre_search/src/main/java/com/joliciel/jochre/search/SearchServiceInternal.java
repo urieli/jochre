@@ -19,7 +19,6 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
-import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +30,6 @@ import com.joliciel.jochre.search.alto.AltoPage;
 interface SearchServiceInternal extends SearchService {
 	public JochreIndexDocument newJochreIndexDocument(File directory, int index, List<AltoPage> currentPages, Map<String,String> fields);
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
-			String fieldName, Reader reader);
+			String fieldName);
 	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor);
 }

@@ -14,8 +14,9 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.alto.AltoPage;
@@ -54,22 +55,19 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	public static final FieldType TYPE_NOT_INDEXED = new FieldType();
 
 	static {
-	    TYPE_NOT_STORED.setIndexed(true);
 	    TYPE_NOT_STORED.setTokenized(true);
 	    TYPE_NOT_STORED.setStoreTermVectors(true);
 	    TYPE_NOT_STORED.setStoreTermVectorPositions(true);
-	    TYPE_NOT_STORED.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+	    TYPE_NOT_STORED.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
 	    TYPE_NOT_STORED.freeze();
 
-	    TYPE_STORED.setIndexed(true);
 	    TYPE_STORED.setTokenized(true);
 	    TYPE_STORED.setStored(true);
 	    TYPE_STORED.setStoreTermVectors(true);
 	    TYPE_STORED.setStoreTermVectorPositions(true);
-	    TYPE_STORED.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+	    TYPE_STORED.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
 	    TYPE_STORED.freeze();
 	    
-	    TYPE_NOT_INDEXED.setIndexed(false);
 	    TYPE_NOT_INDEXED.setTokenized(false);
 	    TYPE_NOT_INDEXED.setStored(true);
 	    TYPE_NOT_INDEXED.setStoreTermVectors(false);
@@ -98,9 +96,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		
 		StringBuilder sb = new StringBuilder();
 		rectangles = new TIntObjectHashMap<TIntObjectMap<TIntObjectMap<Rectangle>>>();
-		int offsetBase = 0;
+
 		for (AltoPage page : pages) {
-			int lastOffset = 0;
 			TIntObjectMap<TIntObjectMap<Rectangle>> blockRectangles = rectangles.get(page.getPageIndex());
 			if (blockRectangles==null) {
 				blockRectangles = new TIntObjectHashMap<TIntObjectMap<Rectangle>>();
@@ -114,27 +111,31 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 				}
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					rowRectangles.put(textLine.getIndex(), textLine.getRectangle());
+					AltoString lastString = null;
 					for (AltoString string : textLine.getStrings()) {
-						if (string.getSpanStart()>lastOffset) {
-							sb.append(" ");
-							LOG.debug("Added space before " + string);
+						if (string.isWhiteSpace())
+							sb.append(' ');
+						else {
+							int newSpanStart = sb.length();
+							sb.append(string.getContent());
+							int newSpanEnd = sb.length();
+							
+							LOG.trace("Added " + string + ". Offset: " + sb.length());
+							
+							string.setSpanStart(newSpanStart);
+							string.setSpanEnd(newSpanEnd);
 						}
-						
-						sb.append(string.getContent());
-						lastOffset = string.getSpanEnd();
-						
-						if (offsetBase + lastOffset != sb.length()) {
-							LOG.debug("offsetBase: " + offsetBase + " +  lastOffset " + lastOffset + " = " + (offsetBase + lastOffset));
-							LOG.debug("sb.length(): " + sb.length());
-							LOG.debug("sb: " + sb.toString().replace('\n', '|'));
-							LOG.debug("");
-						}
+						lastString = string;
+					}
+					if (lastString!=null && lastString.getContent().endsWith("-")) {
+						// no space added after hyphen at end of line
+					} else {
+						sb.append(' ');
 					}
 				}
 				sb.append("\n");
-				lastOffset+=1;
+				LOG.trace("Added newline. Offset: " + sb.length());
 			}
-			offsetBase += lastOffset;
 		}
 		this.contents = sb.toString();
 		
@@ -176,6 +177,11 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			}
 
 			indexWriter.addDocument(doc);
+			
+			for (IndexableField field : doc.getFields()) {
+				if (!field.name().equals("text"))
+					LOG.debug(field);
+			}
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
@@ -217,6 +223,10 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		} else if (doc!=null) {
 			String fieldName = "r" + pageIndex + "_" + textBlockIndex + "_" + textLineIndex;
 			String rectString = this.doc.get(fieldName);
+			if (rectString==null) {
+				throw new RuntimeException("No rectangle found for " + fieldName + " in document " + this.doc.get("name")
+						+ ", pages " + this.doc.get("startPage") + " to " + this.doc.get("endPage"));
+			}
 			rect = new Rectangle(rectString);
 		}
 		return rect;

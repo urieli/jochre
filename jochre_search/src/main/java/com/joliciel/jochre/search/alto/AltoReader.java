@@ -21,8 +21,45 @@ package com.joliciel.jochre.search.alto;
 import java.io.File;
 import java.io.InputStream;
 
+/**
+ * A reader for files in Alto 3 format.
+ * By default, the reader feeds pages read to consumers via {@link #addConsumer(AltoPageConsumer)}.
+ * If the client wishes to parse an entire document into memory rather than using consumers,
+ * it needs to use {@link #setBuildEntireDocument(boolean)}.
+ * @author Assaf Urieli
+ *
+ */
 public interface AltoReader {
-	public AltoDocument parseFile(InputStream inputStream, String fileNameBase);
-	public AltoDocument parseFile(File altoFile);
+	/**
+	 * Parse an input stream, with the given file name.
+	 * @param inputStream
+	 * @param fileNameBase
+	 */
+	public void parseFile(InputStream inputStream, String fileNameBase);
+	
+	/**
+	 * Parse a file.
+	 * @param altoFile
+	 */
+	public void parseFile(File altoFile);
 
+	/**
+	 * Add a consumer which gets notified of pages when processing completes.
+	 * @param consumer
+	 */
+	public void addConsumer(AltoPageConsumer consumer);
+	
+	/**
+	 * Should the AltoReader construct an entire document? Requires a lot more memory.
+	 * Default is false, in which case the reader is only usable with AltoPageConsumers.
+	 * @param buildEntireDocument
+	 */
+	public void setBuildEntireDocument(boolean buildEntireDocument);
+	public boolean isBuildEntireDocument();
+	
+	/**
+	 * Get the document built.
+	 * @return
+	 */
+	public AltoDocument getDocument();
 }

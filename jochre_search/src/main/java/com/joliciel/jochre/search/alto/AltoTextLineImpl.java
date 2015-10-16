@@ -70,7 +70,10 @@ class AltoTextLineImpl implements AltoTextLine {
 	@Override
 	public int wordCount() {
 		if (wordCount<0) {
-			wordCount = this.getStrings().size();
+			for (AltoString string : this.strings) {
+				if (!string.isWhiteSpace())
+					wordCount++;
+			}
 		}
 		return wordCount;
 	}
