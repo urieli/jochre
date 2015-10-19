@@ -16,7 +16,7 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.pdf;
+package com.joliciel.jochre.utils.pdf;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -40,7 +40,7 @@ import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
  * @author Assaf Urieli
  *
  */
-abstract class AbstractPdfImageVisitor {
+public abstract class AbstractPdfImageVisitor {
 	private static final Log LOG = LogFactory.getLog(AbstractPdfImageVisitor.class);
 	private PDDocument pdfDocument = null;
 	private File pdfFile;
@@ -87,7 +87,7 @@ abstract class AbstractPdfImageVisitor {
 	 * @param firstPage a value of -1 means no first page
 	 * @param lastPage a value of -1 means no last page
 	 */
-	final void visitImages(int firstPage, int lastPage) {
+	final protected void visitImages(int firstPage, int lastPage) {
 		try {
 			@SuppressWarnings("unchecked")
 			Iterator<PDPage> pageIterator = pdfDocument.getDocumentCatalog().getAllPages().iterator();
@@ -134,7 +134,7 @@ abstract class AbstractPdfImageVisitor {
 	 * @param pageIndex
 	 * @param imageIndex
 	 */
-	abstract void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex);
+	protected abstract void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex);
 	
 	public int getPageCount() {
 		return pdfDocument.getNumberOfPages();

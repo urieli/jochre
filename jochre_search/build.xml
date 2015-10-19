@@ -35,6 +35,7 @@
 			<fileset dir="${jochreLib}">
 				<include name="talismane-utils*" />
 			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<!-- build output path -->
 			<pathelement location="${classes}"/>
 		</path>
@@ -42,6 +43,7 @@
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar" />
 			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<fileset dir="${jochreLib}">
 				<include name="talismane-utils*" />
 			</fileset>
@@ -109,6 +111,10 @@
 			<fileset dir="${lib}">
 				<exclude name="servlet-api.jar" />
 			</fileset>
+			<fileset dir="${dist}/lib">
+				<include name="*.jar" />
+			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 		</copy>
 	</target>

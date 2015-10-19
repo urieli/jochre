@@ -27,6 +27,8 @@ import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
+
 public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfImageSaver {
 	private static final Log LOG = LogFactory.getLog(PdfImageSaverImpl.class);
 
@@ -54,7 +56,7 @@ public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfIma
 	}
 
 	@Override
-	void visitImage(BufferedImage image, String imageName, int pageIndex,
+	protected void visitImage(BufferedImage image, String imageName, int pageIndex,
 			int imageIndex) {
 		
 		// Each page gets its own directory

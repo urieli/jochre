@@ -67,7 +67,7 @@ public interface HighlightManager {
 	 * Get a textual representation of the snippet.
 	 * @return
 	 */
-	public String displaySnippet(int docId, Snippet snippet);
+	public String displaySnippet(Snippet snippet);
 
 	/**
 	 * How many decimal places to write in the JSON.

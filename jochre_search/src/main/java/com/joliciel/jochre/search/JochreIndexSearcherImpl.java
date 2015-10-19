@@ -69,7 +69,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	@Override
 	public TopDocs search(JochreQuery jochreQuery) {
 		try {
-			TopDocs topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getLuceneFilter(), jochreQuery.getMaxDocs());
+			TopDocs topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
 
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Search results: ");
@@ -95,11 +95,11 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
-			jsonGen.writeStartObject();
+			jsonGen.writeStartArray();
 			
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
-				jsonGen.writeObjectFieldStart(doc.get("id"));
+				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
 				jsonGen.writeStringField("name", doc.get("name"));
 				jsonGen.writeNumberField("startPage", Integer.parseInt(doc.get("startPage")));
@@ -122,7 +122,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				jsonGen.writeEndObject();
 			}
 
-			jsonGen.writeEndObject();
+			jsonGen.writeEndArray();
 			jsonGen.flush();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);

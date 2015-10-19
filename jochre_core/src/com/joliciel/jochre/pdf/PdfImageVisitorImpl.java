@@ -11,6 +11,7 @@ import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
@@ -79,7 +80,7 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 	}
 
 	@Override
-	void visitImage(BufferedImage image, String imageName, int pageIndex,
+	protected void visitImage(BufferedImage image, String imageName, int pageIndex,
 			int imageIndex) {
 		LOG.debug("visitImage " + imageName + ", " + pageIndex + ", " + imageIndex);
 		if (this.currentMonitor!=null)

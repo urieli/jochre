@@ -43,7 +43,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.SearchService;
@@ -191,6 +194,22 @@ public class JochreSearchServlet extends HttpServlet {
 					highlightManager.highlight(highlighter, docIds, fields, out);
 				else
 					highlightManager.findSnippets(highlighter, docIds, fields, out);
+				out.flush();
+			} else if (command.equals("textSnippet")) {
+				response.setContentType("text/plain;charset=UTF-8");
+				Snippet snippet = new Snippet(snippetJson);
+				
+				if (LOG.isDebugEnabled()) {
+					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
+					LOG.debug("Snippet in " + doc.get("id") + ", path: " + doc.get("path"));
+				}
+				
+				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
+				HighlightService highlightService = highlightServiceLocator.getHighlightService();
+				HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
+				String text = highlightManager.displaySnippet(snippet);
+				PrintWriter out = response.getWriter();
+				out.write(text);
 				out.flush();
 			} else if (command.equals("imageSnippet")) {
 				String mimeType="image/png";

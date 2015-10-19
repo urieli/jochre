@@ -19,15 +19,16 @@ public class JochrePayload {
 	public JochrePayload(BytesRef bytesRef) {
 		this.bytesRef = bytesRef;
 		byte[] bytes = bytesRef.bytes;
-		if (bytes.length!=12)
-			throw new RuntimeException("bytes wrong size, should be 12, was " + bytes.length + ": " + Arrays.toString(bytes));
-		this.left = bytes[0] * 256 + (bytes[1]<0 ? 256 - bytes[1] : bytes[1]);
-		this.top = bytes[2] * 256 + (bytes[3]<0 ? 256 - bytes[3] : bytes[3]);
-		this.width = bytes[4] * 256 + (bytes[5]<0 ? 256 - bytes[5] : bytes[5]);
-		this.height = bytes[6] * 256 + (bytes[7]<0 ? 256 - bytes[7] : bytes[7]);
-		this.pageIndex = bytes[8] * 256 + (bytes[9]<0 ? 256 - bytes[9] : bytes[9]);
-		this.textBlockIndex = bytes[10];
-		this.textLineIndex = bytes[11];
+		if (bytesRef.length!=12)
+			throw new RuntimeException("bytesRef wrong size, should be 12, was " + bytesRef.length + ": " + Arrays.toString(bytes));
+		int i = bytesRef.offset;
+		this.left = bytes[i+0] * 256 + (bytes[i+1]<0 ? 256 - bytes[i+1] : bytes[i+1]);
+		this.top = bytes[i+2] * 256 + (bytes[i+3]<0 ? 256 - bytes[i+3] : bytes[i+3]);
+		this.width = bytes[i+4] * 256 + (bytes[i+5]<0 ? 256 - bytes[i+5] : bytes[i+5]);
+		this.height = bytes[i+6] * 256 + (bytes[i+7]<0 ? 256 - bytes[i+7] : bytes[i+7]);
+		this.pageIndex = bytes[i+8] * 256 + (bytes[i+9]<0 ? 256 - bytes[i+9] : bytes[i+9]);
+		this.textBlockIndex = bytes[i+10];
+		this.textLineIndex = bytes[i+11];
 	}
 	
 	public JochrePayload(AltoString string) {

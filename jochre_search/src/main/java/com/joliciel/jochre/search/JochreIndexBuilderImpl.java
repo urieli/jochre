@@ -250,7 +250,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				String key = line.substring(0, line.indexOf('\t'));
-				String value = line.substring(line.indexOf('\t'));
+				String value = line.substring(line.indexOf('\t')+1);
 				fields.put(key, value);
 			}
 			scanner.close();

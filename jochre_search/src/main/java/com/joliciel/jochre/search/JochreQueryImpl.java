@@ -220,6 +220,7 @@ class JochreQueryImpl implements JochreQuery {
 	@Override
 	public Filter getLuceneFilter() {
 		if (luceneFilter==null && this.getDocFilter()!=null) {
+			
 //			luceneFilter = new FieldCacheTermsFilter(this.getFilterField(), this.getDocFilter());
 		}
 		return luceneFilter;

@@ -1,5 +1,6 @@
 package com.joliciel.jochre.search;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 
 import org.apache.lucene.index.IndexWriter;
@@ -69,10 +70,9 @@ public interface JochreIndexDocument {
 	public String getName();
 	
 	/**
-	 * Get the file corresponding to a particular page index (if it exists),
-	 * or null if it doesn't.
+	 * Get the image corresponding to a particular page index.
 	 * @param pageIndex
 	 * @return
 	 */
-	public File getImageFile(int pageIndex);
+	public BufferedImage getImage(int pageIndex);
 }

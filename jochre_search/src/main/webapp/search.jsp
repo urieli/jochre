@@ -71,8 +71,16 @@ if (queryString.length()>0) {
 			<font size="+1"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= result.getTitle() %></a></font><br/>
 			<b>Author:</b> <%= result.getAuthor() %><br/>
 			<b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td><td align="right">score <%= result.getScore() %></td></tr>
+			<tr><td colspan="2">
 			<%
 			List<Snippet> snippets = snippetResults.getSnippetMap().get(result.getDocId());
+			for (Snippet snippet : snippets) {
+				String textUrl = "search?command=textSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
+				url = new URL(myPage, textUrl);
+				String snippetText = SearchWebClientUtils.getJson(url);
+				%><%= snippetText %> ... <%
+			}
+			%></td></tr><%
 			for (Snippet snippet : snippets) {
 				String imageUrl = "search?command=imageSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
 				url = new URL(myPage, imageUrl);

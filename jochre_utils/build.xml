@@ -1,7 +1,6 @@
 <!-- this file uses Apache Ant 1.5.3 beta 1 -->
-<project name="jochre-yiddish" default="about" basedir=".">
+<project name="jochre-utils" default="about" basedir=".">
 	<import file="../ant/global.xml"/>
-    <import file="../ant/one-jar-ant-task.xml"/>
 	
 	<target name="about">
 		<echo message="try targets jar, etc." />
@@ -9,23 +8,22 @@
 	
 	<target name="init" description="Initializes properties that are used by other targets.">
 		<property name="project" value="${ant.project.name}" />
-		<property name="prettyName" value="Jochre Yiddish" />
+		<property name="prettyName" value="Jochre Utilities" />
 		<property name="dist" value="../dist"/>
+		<property name="lib" value="../lib"/>
 		<property name="src" value="src"/>
 		<property name="build" value="build"/>
 		<property name="classes" location="${build}/classes" />
 		<property name="doc" location="${build}/doc" />
-		<property name="jochreLib" location="../lib" />
-		<property name="jochre-web" location="../jochre_web" />
-		<property name="web" location="web" />
-		<property name="webapp" location="../jochre_web/webapp" />
-		<property name="myWebApp" location="webapp" />
-		<path id="classpath">
-			<fileset dir="${jochreLib}">
+		<copy todir="${dist}/lib">
+			<fileset dir="${lib}">
 				<include name="**/*.jar" />
 			</fileset>
-			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
-			<fileset file="${dist}/jochre-${jochre.version}.jar" />
+		</copy>
+		<path id="classpath">
+			<fileset dir="${lib}">
+				<include name="**/*.jar" />
+			</fileset>
 			<!-- build output path -->
 			<pathelement location="${classes}"/>
 		</path>
@@ -33,19 +31,15 @@
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar" />
 			</fileset>
-			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
-			<fileset file="${dist}/jochre-${jochre.version}.jar" />
 		</path>
 		<mkdir dir="${build}" />
 		<mkdir dir="${classes}" />
 		<mkdir dir="${doc}" />
 		<mkdir dir="${dist}" />
-		<mkdir dir="${myWebApp}" />
 	</target>
 	
 	<target name="clean" depends="init" description="removes all directories related to this build">
 		<delete dir="${build}"/>
-		<delete dir="${myWebApp}"/>
 	</target>
 		
 	<target name="compile" depends="init">
@@ -65,10 +59,10 @@
 	    </manifestclasspath>
 		<jar jarfile="${dist}/${project}-${jochre.version}.jar" basedir="${classes}">
 			<manifest>
-	    		<attribute name="Main-Class" value="com.joliciel.jochre.yiddish.JochreYiddish"/>
+	    		<attribute name="Main-Class" value="com.joliciel.jochre.Jochre"/>
 	    		<attribute name="Class-Path" value="${jar.classpath}"/>
 		        <attribute name="Implementation-Version" value="${jochre.version}"/> 
-	    	</manifest>
+			</manifest>
 		</jar>
 	</target>
 	
@@ -77,31 +71,9 @@
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 			<fileset dir="${dist}">
 				<include name="lib/*.jar" />
-				<include name="jochre-${jochre.version}.jar" />
 			</fileset>
 		</zip>
 	</target>
-		
-	<target name="one-jar" depends="jar">
-        <!-- Construct the One-JAR file -->   
-        <one-jar destfile="${dist}/${project}-${jochre.version}-allDeps.jar">
-        	<manifest>
-        		<attribute name="One-Jar-Main-Class" value="com.joliciel.jochre.yiddish.JochreYiddish" />
-        	</manifest>
-            <main>
-                <!-- Construct main.jar from classes and source code -->
-                <fileset dir="${classes}"/>
-            </main>
-            <lib>
-		<fileset dir="${jochreLib}">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${dist}">
-			<include name="jochre-${jochre.version}.jar" />
-		</fileset>
-            </lib>
-        </one-jar>
-    </target>
 	
 	<target name="javadoc" depends="compile">
 	  <javadoc packagenames="com.joliciel.*"
@@ -117,15 +89,5 @@
 	    <bottom><![CDATA[<i>Copyright &#169; 2012 Joliciel Informatique SARL. All Rights Reserved.</i>]]></bottom>
 	    <tag name="todo" scope="all" description="To do:"/>
 	  </javadoc>
-	</target>
-	
-	<target name="webapp" depends="compile,jar">
-		<copy todir="${myWebApp}">
-			<fileset dir="${webapp}" />
-			<fileset dir="${web}" />
-		</copy>
-		<copy todir="${myWebApp}/WEB-INF/lib">
-			<fileset file="${dist}/${project}-${jochre.version}.jar" />
-		</copy>
 	</target>
 </project>

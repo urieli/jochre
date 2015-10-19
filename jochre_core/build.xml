@@ -24,6 +24,7 @@
 			<fileset dir="${lib}">
 				<include name="**/*.jar" />
 			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<!-- build output path -->
 			<pathelement location="${classes}"/>
 		</path>
@@ -31,6 +32,7 @@
 			<fileset dir="${dist}/lib">
 				<include name="**/*.jar" />
 			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 		</path>
 		<mkdir dir="${build}" />
 		<mkdir dir="${classes}" />

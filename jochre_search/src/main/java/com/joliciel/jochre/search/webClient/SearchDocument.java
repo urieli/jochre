@@ -12,7 +12,6 @@ import com.fasterxml.jackson.core.JsonToken;
 public class SearchDocument {
 	private static final Log LOG = LogFactory.getLog(SearchDocument.class);
 	private int docId;
-	private String baseName;
 	private String path;
 	private int startPage;
 	private int endPage;
@@ -22,12 +21,17 @@ public class SearchDocument {
 	private String title;
 	private String url;
 	
-	public SearchDocument(String baseName, JsonParser jsonParser) {
+	public SearchDocument(JsonParser jsonParser) {
 		try {
-			this.baseName = baseName;
 			while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(jsonParser.getCurrentToken());
+					LOG.trace(jsonParser.getCurrentName());
+					LOG.trace(jsonParser.getCurrentLocation());
+				}
+
 				String fieldName = jsonParser.getCurrentName();
-			
+				
 				if (fieldName.equals("docId")) {
 					docId = jsonParser.nextIntValue(0);
 				} else if (fieldName.equals("path")) {
@@ -49,6 +53,7 @@ public class SearchDocument {
 					score = jsonParser.getDoubleValue();
 				}
 			}
+			LOG.debug("Loaded document " + docId);
 		} catch (JsonParseException e) {
 			LOG.error(e);
 			throw new RuntimeException(e);
@@ -64,12 +69,7 @@ public class SearchDocument {
 	public void setDocId(int docId) {
 		this.docId = docId;
 	}
-	public String getBaseName() {
-		return baseName;
-	}
-	public void setBaseName(String baseName) {
-		this.baseName = baseName;
-	}
+
 	public String getPath() {
 		return path;
 	}
@@ -133,8 +133,6 @@ public class SearchDocument {
 	}
 
 	public String getTitle() {
-		if (title==null)
-			return baseName;
 		return title;
 	}
 

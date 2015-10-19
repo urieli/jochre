@@ -13,6 +13,7 @@
 		<delete dir="${dist}"/>
 		<subant target="clean">
 			<fileset dir=".">
+				<include name="jochre_utils/build.xml"/>
 				<include name="jochre_core/build.xml"/>
 				<include name="jochre_web/build.xml"/>
 				<include name="jochre_yiddish/build.xml"/>
@@ -22,6 +23,11 @@
 	</target>
 
 	<target name="jar" depends="init">
+		<subant target="jar">
+			<fileset dir=".">
+				<include name="jochre_utils/build.xml"/>
+			</fileset>
+		</subant>
 		<subant target="jar">
 			<fileset dir=".">
 				<include name="jochre_core/build.xml"/>

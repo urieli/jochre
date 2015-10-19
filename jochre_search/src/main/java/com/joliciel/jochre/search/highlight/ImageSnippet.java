@@ -22,19 +22,14 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.Rectangle;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageSnippet {
 	private static final Log LOG = LogFactory.getLog(ImageSnippet.class);
@@ -75,25 +70,19 @@ public class ImageSnippet {
 	}
 
 	public BufferedImage getImage() {
-		try {
-			File imageFile = jochreDoc.getImageFile(snippet.getPageIndex());
-			BufferedImage originalImage = ImageIO.read(imageFile);
-			BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
-			originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());
-			Graphics2D graphics2D = imageSnippet.createGraphics();
-			graphics2D.drawImage(originalImage, 0, 0, this.rectangle.getWidth(), this.rectangle.getHeight(), null);
-			int extra=2;
-			for (Rectangle rect : this.highlights) {
-				graphics2D.setStroke(new BasicStroke(1));
-				graphics2D.setPaint(Color.BLACK);
-				graphics2D.drawRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
-				graphics2D.setColor(new Color(255, 255, 0, 127));
-				graphics2D.fillRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
-			}
-			return imageSnippet;
-		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+		BufferedImage originalImage = jochreDoc.getImage(snippet.getPageIndex());
+		BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());
+		Graphics2D graphics2D = imageSnippet.createGraphics();
+		graphics2D.drawImage(originalImage, 0, 0, this.rectangle.getWidth(), this.rectangle.getHeight(), null);
+		int extra=2;
+		for (Rectangle rect : this.highlights) {
+			graphics2D.setStroke(new BasicStroke(1));
+			graphics2D.setPaint(Color.BLACK);
+			graphics2D.drawRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
+			graphics2D.setColor(new Color(255, 255, 0, 127));
+			graphics2D.fillRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
 		}
+		return imageSnippet;
 	}
 }

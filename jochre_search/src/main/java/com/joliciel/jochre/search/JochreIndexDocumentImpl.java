@@ -3,7 +3,9 @@ package com.joliciel.jochre.search;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
@@ -27,7 +30,6 @@ import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private static final Log LOG = LogFactory.getLog(JochreIndexDocumentImpl.class);
-	private static String[] imageExtensions = new String[] {"png","jpg","jpeg","gif","tiff"};
 
 	private String contents;
 	private Document doc;
@@ -41,6 +43,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private int startPage = -1;
 	private int endPage = -1;
 	private TIntObjectMap<TIntObjectMap<TIntObjectMap<Rectangle>>> rectangles = null;
+	private File pdfFile;
 	
 	@SuppressWarnings("unused")
 	private Map<String,String> fields;
@@ -156,6 +159,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			doc.add(new Field("index", "" + index, TYPE_NOT_INDEXED));
 			doc.add(new Field("text", contents, TYPE_STORED));
 			doc.add(new Field("path", directory.getAbsolutePath(), TYPE_NOT_INDEXED));
+			doc.add(new LongField("indexTime", System.currentTimeMillis(), Field.Store.YES));
 			
 			if (author!=null)
 				doc.add(new StringField("author", author, Field.Store.YES));
@@ -250,17 +254,33 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		return name;
 	}
 
-	@Override
-	public File getImageFile(int pageIndex) {
-		File imageFile = null;
-		for (String imageExtension : imageExtensions) {
-			String formatted = this.getName() + String.format("%04d", pageIndex);
-
-			imageFile = new File(this.getDirectory(), formatted + "." + imageExtension);
-			if (imageFile.exists())
-				break;
-			imageFile = null;
+	public File getPdfFile() {
+		if (this.pdfFile==null) {
+			File pdfFile = new File(this.directory, this.name + ".pdf");
+			if (!pdfFile.exists()) {
+				pdfFile = null;
+				File[] pdfFiles = this.directory.listFiles(new FilenameFilter() {
+					
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.endsWith(".pdf");
+					}
+				});
+				if (pdfFiles.length>0) {
+					pdfFile = pdfFiles[0];
+				}
+			}
+			if (pdfFile==null)
+				throw new RuntimeException("Could not find PDF file in " + this.directory.getAbsolutePath());
+			this.pdfFile = pdfFile;
 		}
-		return imageFile;
+		return this.pdfFile;
+	}
+	
+	@Override
+	public BufferedImage getImage(int pageIndex) {
+		PdfImageReader pdfImageReader = new PdfImageReader(this.getPdfFile());
+		BufferedImage image = pdfImageReader.readImage(pageIndex);
+		return image;
 	}
 }

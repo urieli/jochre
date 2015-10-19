@@ -15,11 +15,11 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.ReaderUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
@@ -27,6 +27,7 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.PrefixQuery;
@@ -230,33 +231,33 @@ class LuceneQueryHighlighter implements Highlighter {
 		
 		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
 		
-		DocsAndPositionsEnum docPosEnum = termsEnum.docsAndPositions(null, null, DocsAndPositionsEnum.FLAG_OFFSETS | DocsAndPositionsEnum.FLAG_PAYLOADS);
-		int relativeId = docPosEnum.nextDoc();
-		while (relativeId!=DocsAndPositionsEnum.NO_MORE_DOCS) {
+		PostingsEnum postingsEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
+		int relativeId = postingsEnum.nextDoc();
+		while (relativeId!=DocIdSetIterator.NO_MORE_DOCS) {
 			int luceneId = subContext.docBase + relativeId;
             if (docsPerLeaf.contains(luceneId)) {
             	//Retrieve the term frequency in the current document
-                int freq=docPosEnum.freq();
+                int freq=postingsEnum.freq();
                 
                 if (LOG.isTraceEnabled()) {
                 	LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + luceneId + ", field " + field);
                 }
                 for(int i=0; i<freq; i++){
-                    int position=docPosEnum.nextPosition();
-                    int start=docPosEnum.startOffset();
-                    int end=docPosEnum.endOffset();
+                    int position=postingsEnum.nextPosition();
+                    int start=postingsEnum.startOffset();
+                    int end=postingsEnum.endOffset();
 
                     if (LOG.isTraceEnabled())
                     	LOG.trace("Found match " + position + " at luceneId " + luceneId + ", field " + field + " start=" + start + ", end=" + end);
                     
-                    BytesRef bytesRef = docPosEnum.getPayload();
+                    BytesRef bytesRef = postingsEnum.getPayload();
                 	JochrePayload payload = new JochrePayload(bytesRef);
                     
                     HighlightPassage highlight = new HighlightPassage(luceneId, field, term, payload, position, start, end);
                     highlights.add(highlight);
 				}
             }
-            relativeId = docPosEnum.nextDoc();
+            relativeId = postingsEnum.nextDoc();
 		}
 		return highlights;
 	}
@@ -654,7 +655,7 @@ class LuceneQueryHighlighter implements Highlighter {
 		} else if (query instanceof WildcardQuery) {
 			wildcardTerms.add(((WildcardQuery) query).getTerm());
 		} else if (query instanceof BooleanQuery) {
-			for (BooleanClause clause : ((BooleanQuery) query).getClauses()) {
+			for (BooleanClause clause : ((BooleanQuery) query).clauses()) {
 				if (clause.getOccur() != Occur.MUST_NOT) {
 					this.extractTerms(clause.getQuery(), terms, phrases, prefixes, wildcardTerms);
 				}

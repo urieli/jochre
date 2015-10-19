@@ -43,17 +43,17 @@ public class SearchResults {
 			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
 			JsonParser jsonParser = jsonFactory.createJsonParser(reader); 
 			// Sanity check: verify that we got "Json Object":
-			if (jsonParser.nextToken() != JsonToken.START_OBJECT)
-				throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
-			while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-				
-				String baseName = jsonParser.getCurrentName();
-				LOG.debug("Found baseName: " + baseName);
-				if (jsonParser.nextToken() != JsonToken.START_OBJECT)
-					throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
+			if (jsonParser.nextToken() != JsonToken.START_ARRAY)
+				throw new RuntimeException("Expected " + JsonToken.START_ARRAY + ", but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
+			while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+				LOG.trace(jsonParser.getCurrentToken());
+				LOG.trace(jsonParser.getCurrentName());
+				LOG.trace(jsonParser.getCurrentLocation());
+				if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT)
+					throw new RuntimeException("Expected " + JsonToken.START_OBJECT + ", but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
 
 
-				SearchDocument doc = new SearchDocument(baseName, jsonParser);
+				SearchDocument doc = new SearchDocument(jsonParser);
 				scoreDocs.add(doc);
 				
 			} // next scoreDoc

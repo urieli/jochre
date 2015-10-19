@@ -78,8 +78,9 @@ class HighlightManagerImpl implements HighlightManager {
 			
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
-				jsonGen.writeObjectFieldStart(doc.get("name"));
+				jsonGen.writeObjectFieldStart(docId + "");
 				jsonGen.writeStringField("path", doc.get("path"));
+				jsonGen.writeStringField("name", doc.get("name"));
 				jsonGen.writeNumberField("docId", docId);
 				
 				jsonGen.writeArrayFieldStart("terms");
@@ -138,8 +139,9 @@ class HighlightManagerImpl implements HighlightManager {
 			
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
-				jsonGen.writeObjectFieldStart(doc.get("name"));
+				jsonGen.writeObjectFieldStart(docId + "");
 				jsonGen.writeStringField("path", doc.get("path"));
+				jsonGen.writeStringField("name", doc.get("name"));
 				jsonGen.writeNumberField("docId", docId);
 
 				jsonGen.writeArrayFieldStart("snippets");
@@ -152,7 +154,7 @@ class HighlightManagerImpl implements HighlightManager {
 					jsonGen.writeArrayFieldStart("snippetText");
 					for (Snippet snippet : snippetMap.get(docId)) {
 						jsonGen.writeStartObject();
-						jsonGen.writeStringField("snippet", this.displaySnippet(docId, snippet));
+						jsonGen.writeStringField("snippet", this.displaySnippet(snippet));
 						jsonGen.writeEndObject();
 					}
 					jsonGen.writeEndArray();
@@ -227,12 +229,12 @@ class HighlightManagerImpl implements HighlightManager {
 	}
 	
 	@Override
-	public String displaySnippet(int docId, Snippet snippet) {
-		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
+	public String displaySnippet(Snippet snippet) {
+		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
 		String content = jochreDoc.getContents();
 
 		if (LOG.isTraceEnabled()) {
-			LOG.trace("Displaying snippet for doc " + docId + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
+			LOG.trace("Displaying snippet for doc " + snippet.getDocId() + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
 		}
 
 		StringBuilder sb = new StringBuilder();

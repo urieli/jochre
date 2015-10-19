@@ -108,7 +108,7 @@ public class JochreSearch {
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
 				builder.updateIndex(documentDir, forceUpdate);
-			} else if (command.equals("search")||command.equals("highlight")) {
+			} else if (command.equals("search")||command.equals("highlight")||command.equals("snippets")) {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				
@@ -117,33 +117,37 @@ public class JochreSearch {
 				JochreQuery query = searchService.getJochreQuery(argMap);
 				
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
-				TopDocs topDocs = searcher.search(query);
-				
-				Set<Integer> docIds = new LinkedHashSet<Integer>();
-				for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-					docIds.add(scoreDoc.doc);
-					LOG.debug("### Next document");
-					Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
-					for (IndexableField field : doc.getFields()) {
-						if (!field.name().equals("text"))
-							LOG.debug(field);
-					}
-				}
-				Set<String> fields = new HashSet<String>();
-				fields.add("text");
-				
-				Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
-				HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
-				highlightManager.setDecimalPlaces(query.getDecimalPlaces());
-				highlightManager.setMinWeight(0.0);
-				highlightManager.setIncludeText(true);
-				highlightManager.setIncludeGraphics(true);
-
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
-				if (command.equals("highlight")) {
-					highlightManager.highlight(highlighter, docIds, fields, out);
+				if (command.equals("search")) {
+					searcher.search(query, out);
 				} else {
-					highlightManager.findSnippets(highlighter, docIds, fields, out);
+					TopDocs topDocs = searcher.search(query);
+					
+					Set<Integer> docIds = new LinkedHashSet<Integer>();
+					for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+						docIds.add(scoreDoc.doc);
+						LOG.debug("### Next document");
+						Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
+						for (IndexableField field : doc.getFields()) {
+							if (!field.name().equals("text"))
+								LOG.debug(field);
+						}
+					}
+					Set<String> fields = new HashSet<String>();
+					fields.add("text");
+					
+					Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
+					HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
+					highlightManager.setDecimalPlaces(query.getDecimalPlaces());
+					highlightManager.setMinWeight(0.0);
+					highlightManager.setIncludeText(true);
+					highlightManager.setIncludeGraphics(true);
+	
+					if (command.equals("highlight")) {
+						highlightManager.highlight(highlighter, docIds, fields, out);
+					} else {
+						highlightManager.findSnippets(highlighter, docIds, fields, out);
+					}
 				}
 			} else if (command.equals("view")) {
 				String docId = argMap.get("docId");
