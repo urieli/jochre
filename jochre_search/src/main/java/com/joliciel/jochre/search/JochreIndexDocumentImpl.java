@@ -215,27 +215,35 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	public String getUrl() {
 		return url;
 	}
-
+	
 	@Override
 	public Rectangle getRectangle(int pageIndex, int textBlockIndex,
 			int textLineIndex) {
 		Rectangle rect = null;
 		if (rectangles!=null) {
 			TIntObjectMap<TIntObjectMap<Rectangle>> blockRectangles = rectangles.get(pageIndex);
+			if (blockRectangles==null)
+				throw new RectangleNotFoundException("No rectangles for pageIndex " + pageIndex);
+			
 			TIntObjectMap<Rectangle> rowRectangles = blockRectangles.get(textBlockIndex);
+			if (rowRectangles==null)
+				throw new RectangleNotFoundException("No rectangles for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex);
+			
 			rect = rowRectangles.get(textLineIndex);
+			if (rect==null)
+				throw new RectangleNotFoundException("No rectangles for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex + ", textLineIndex " + textLineIndex);
 		} else if (doc!=null) {
 			String fieldName = "r" + pageIndex + "_" + textBlockIndex + "_" + textLineIndex;
 			String rectString = this.doc.get(fieldName);
 			if (rectString==null) {
-				throw new RuntimeException("No rectangle found for " + fieldName + " in document " + this.doc.get("name")
+				throw new RectangleNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get("name")
 						+ ", pages " + this.doc.get("startPage") + " to " + this.doc.get("endPage"));
 			}
 			rect = new Rectangle(rectString);
 		}
 		return rect;
 	}
-
+	
 	public int getStartPage() {
 		if (startPage<0 && this.doc!=null) {
 			startPage = Integer.parseInt(doc.get("startPage"));

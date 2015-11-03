@@ -24,6 +24,7 @@ public class SnippetResults {
 	
 	public SnippetResults(String json) {
 		try {
+			LOG.debug("Reading snippets from: " + json);
 			Reader reader = new StringReader(json);
 			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
 			JsonParser jsonParser = jsonFactory.createJsonParser(reader); 

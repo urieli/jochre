@@ -39,6 +39,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
+import com.joliciel.jochre.search.RectangleNotFoundException;
 import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.talismane.utils.LogUtils;
@@ -135,7 +136,7 @@ public class Snippet implements Comparable<Snippet> {
 			 				} else if (termFieldName.equals("textBlockIndex")) {
 			 					textBlockIndex = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("textLineIndex")) {
-			 					textBlockIndex = jsonParser.nextIntValue(0);
+			 					textLineIndex = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("left")) {
 			 					left = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("top")) {
@@ -313,11 +314,29 @@ public class Snippet implements Comparable<Snippet> {
 				int endLineIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextLineIndex();
 				
 				LOG.debug("Getting rectangle for snippet " + this.highlightTerms.toString());
+				LOG.debug("startPageIndex: " + startPageIndex + ", startBlockIndex: " + startBlockIndex + ", startLineIndex: " + startLineIndex);
+				LOG.debug("endPageIndex: " + endPageIndex + ", endBlockIndex: " + endBlockIndex + ", endLineIndex: " + endLineIndex);
 				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex));
 				LOG.debug("Original rect: " + rect);
 				Rectangle otherRect = jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex);
-				LOG.debug("Expanding by: " + otherRect);
+				LOG.debug("Expanding by last highlight: " + otherRect);
 				rect.expand(otherRect);
+				
+				try {
+					Rectangle previousRect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex-1));
+					LOG.debug("Expanding by prev rect: " + previousRect);
+					rect.expand(previousRect);
+				} catch (RectangleNotFoundException e) {
+					// do nothing
+				}
+				
+				try {
+					Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+1));
+					LOG.debug("Expanding by next rect: " + nextRect);
+					rect.expand(nextRect);
+				} catch (RectangleNotFoundException e) {
+					// do nothing
+				}
 				
 			} else {
 				int startPageIndex = jochreDoc.getStartPage();

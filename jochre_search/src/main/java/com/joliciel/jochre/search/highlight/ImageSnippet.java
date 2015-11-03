@@ -57,6 +57,7 @@ public class ImageSnippet {
 		highlights = new ArrayList<Rectangle>();
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
 			Rectangle rect = new Rectangle(term.getPayload().getLeft(), term.getPayload().getTop(), term.getPayload().getRight(), term.getPayload().getBottom());
+			LOG.debug("Added highlight: " + rect.toString());
 			highlights.add(rect);
 		}
 	}

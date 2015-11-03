@@ -120,6 +120,7 @@ public abstract class AbstractPdfImageVisitor {
 		        }
 				
 			}
+			pdfDocument.close();
 		} catch (FileNotFoundException fnfe) {
 			throw new RuntimeException(fnfe);
 		} catch (Exception e) {
