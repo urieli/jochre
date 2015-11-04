@@ -26,4 +26,5 @@ A.darklink {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: b
 A:hover { text-decoration: underline; }
 A.simple:hover {  text-decoration: underline; }
 .bigText { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 14px; font-weight: bold; }
+.snippet { COLOR: #660033; FONT-FAMILY: Narkisim, "Times New Roman", Times; FONT-SIZE: 18px; }
 </style>

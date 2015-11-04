@@ -68,18 +68,18 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
 				int j=-1;
-				boolean foundImage = false;
+				boolean foundPage = false;
 				for (HighlightTerm otherTerm : highlightTerms) {
 					j++;
 					if (j<=i)
 						continue;
 					if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex()) {
-						if (foundImage)
+						if (foundPage)
 							break;
 						else
 							continue;
 					}
-					foundImage = true;
+					foundPage = true;
 					
 					if (otherTerm.getStartOffset()<term.getStartOffset()+snippetSize) {
 						snippetTerms.add(otherTerm);

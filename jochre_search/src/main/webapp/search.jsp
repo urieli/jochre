@@ -26,6 +26,7 @@ if (queryString==null) queryString = "";
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <%@ include file="Styles.css" %>
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 </head>
 <body>
 <form method="post" accept-charset="UTF-8">
@@ -61,6 +62,7 @@ if (queryString.length()>0) {
 		%>
 		<table width="720px">
 		<%
+		int i=0;
 		for (SearchDocument result : results.getScoreDocs()) {
 			String bookId = result.getUrl().substring(result.getUrl().lastIndexOf('/')+1);
 			int startPageUrl = result.getStartPage() / 2 * 2;
@@ -74,27 +76,41 @@ if (queryString.length()>0) {
 			<tr><td colspan="2">
 			<%
 			List<Snippet> snippets = snippetResults.getSnippetMap().get(result.getDocId());
+			int j=0;
 			for (Snippet snippet : snippets) {
 				String textUrl = "search?command=textSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
 				url = new URL(myPage, textUrl);
 				String snippetText = SearchWebClientUtils.getJson(url);
-				%><%= snippetText %> ... <%
-			}
-			%></td></tr><%
-			for (Snippet snippet : snippets) {
-				String imageUrl = "search?command=imageSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
-				url = new URL(myPage, imageUrl);
+				String imageUrlAddress = "search?command=imageSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
 				int pageNumber = snippet.getPageIndex();
 				int urlPageNumber = pageNumber / 2 * 2;
 				readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + urlPageNumber + "/mode/2up";
 				%>
-				<tr><td colspan="2"><a href="<%= readOnlineURL %>" target="_blank">Page <%= pageNumber %></a>:</td></tr>
-				<tr><td colspan="2"><img src="<%= url %>" width="720px" border="1" /></td></tr>
+				<p>
+				<a href="<%= readOnlineURL %>" target="_blank">Page <%= pageNumber %></a> : <span id="snippet<%=i %>_<%=j %>" class="snippet" dir="rtl"><%= snippetText %></span>
+				</p>
+				<div id="image<%=i %>_<%=j %>" style="display: none;"></div>
+				<script>
+				$loaded<%=i %>_<%=j %>=false;
+				$("#snippet<%=i %>_<%=j %>").on("click",function(){
+					//alert("<%= imageUrlAddress %>");
+					if (!$loaded<%=i %>_<%=j %>) {
+						$("#image<%=i %>_<%=j %>").html('<img src="<%= imageUrlAddress %>" width="720px" border="1" />');
+						$loaded<%=i %>_<%=j %> = true;
+					}
+					$("#image<%=i %>_<%=j %>").toggle();
+			    });
+				$("#image<%=i %>_<%=j %>").on("click",function(){
+					window.open('<%= readOnlineURL %>', '_blank');
+				});
+				</script>
 				<%
+				j++;
 			}
-			%>
+			%></td></tr>
 			<tr><td colspan="2" height="10px"></td></tr>
 			<%
+			i++;
 		}
 		%>
 		</table>
