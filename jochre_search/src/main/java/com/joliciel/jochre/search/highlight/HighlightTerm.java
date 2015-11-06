@@ -114,7 +114,7 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 		if (this.endOffset!=o.getEndOffset())
 			return this.endOffset - o.getEndOffset();
 		
-		return this.hashCode() - o.hashCode();
+		return 0;
 	}
 
 	@Override

@@ -35,6 +35,10 @@ public class UnclosableInputStream extends InputStream {
 	public void close() throws IOException {
 		// do nothing
 	}
+	
+	public void reallyClose() throws IOException {
+		wrappedStream.close();
+	}
 
 	@Override
 	public synchronized void mark(int readlimit) {

@@ -46,7 +46,7 @@ class JochreAnalyser extends Analyzer {
 			LOG.trace("Analysing field " + fieldName);
 
 		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);	
-		TokenStream result = source;
+		TokenStream result = new YiddishNormalisingFilter(source);
 		return new TokenStreamComponents(source, result);
 	}
 

@@ -129,12 +129,4 @@ class JochreXMLExporter extends AbstractExporter implements DocumentObserver {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	@Override
-	public void onStart() {
-	}
-
-	@Override
-	public void onComplete() {
-	}
 }

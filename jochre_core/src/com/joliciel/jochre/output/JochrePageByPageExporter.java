@@ -113,12 +113,4 @@ class JochrePageByPageExporter implements DocumentObserver {
 			throw new RuntimeException(ioe);
 		}
 	}
-	
-	@Override
-	public void onStart() {
-	}
-
-	@Override
-	public void onComplete() {
-	}
 }

@@ -20,11 +20,11 @@ OPTION { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; FONT-SIZE: 12px
 .mainmenu		{ font-size : 11px; color : #000000 }
 a.mainmenu		{ text-decoration: none; font-weight: normal; color : #660033;  }
 a.mainmenu:hover{ text-decoration: underline; font-weight: normal; color : #000000; }
-A {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #CC6600; text-decoration: none}
+A {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #CC6600; text-decoration: none; vertical-align: top; }
 A.simple {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: normal; color: #660000; text-decoration: none}
 A.darklink {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #660000; text-decoration: none}
 A:hover { text-decoration: underline; }
 A.simple:hover {  text-decoration: underline; }
 .bigText { COLOR: #660033; FONT-FAMILY: Verdana, Helvetica, Arial; font-size: 14px; font-weight: bold; }
-.snippet { COLOR: #660033; FONT-FAMILY: Narkisim, "Times New Roman", Times; FONT-SIZE: 18px; }
+.snippet { COLOR: #660033; FONT-FAMILY: Narkisim, "Times New Roman", Times; FONT-SIZE: 18px; text-align: right; vertical-align: top; direction: rtl; }
 </style>

@@ -28,6 +28,8 @@ class AltoStringImpl implements AltoString {
 	private int left, top, width, height;
 	private AltoTextLine textLine;
 	private List<String> alternatives = new ArrayList<String>();
+	private List<String> contentStrings = null;
+	private List<String> hyphenatedContentStrings = null;
 	private double confidence;
 	private boolean hyphenStart = false;
 	private boolean hyphenEnd = false;
@@ -134,6 +136,53 @@ class AltoStringImpl implements AltoString {
 
 	public boolean isWhiteSpace() {
 		return whiteSpace;
+	}
+
+	@Override
+	public int getPageIndex() {
+		return this.getTextLine().getTextBlock().getPage().getPageIndex();
+	}
+
+	@Override
+	public int getParagraphIndex() {
+		return this.getTextLine().getTextBlock().getIndex();
+	}
+
+	@Override
+	public int getRowIndex() {
+		return this.getTextLine().getIndex();
+	}
+
+	@Override
+	public List<String> getContentStrings() {
+		if (contentStrings==null) {
+			contentStrings = new ArrayList<String>();
+			contentStrings.add(this.content);
+			contentStrings.addAll(this.alternatives);
+			if (this.isHyphenStart() && this.getHyphenatedContent()!=null) {
+				contentStrings.add(this.getHyphenatedContent());
+			}
+		}
+		return contentStrings;
+	}
+
+	@Override
+	public List<String> getHyphenatedContentStrings() {
+		if (hyphenatedContentStrings==null) {
+			hyphenatedContentStrings = new ArrayList<String>(1);
+			if (this.isHyphenStart() && this.getHyphenatedContent()!=null) {
+				hyphenatedContentStrings.add(this.getHyphenatedContent());
+			}
+		}
+		return hyphenatedContentStrings;
+	}
+
+	public void setContentStrings(List<String> contentStrings) {
+		this.contentStrings = contentStrings;
+	}
+
+	public void setHyphenatedContentStrings(List<String> hyphenatedContentStrings) {
+		this.hyphenatedContentStrings = hyphenatedContentStrings;
 	}
 
 }

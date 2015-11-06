@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.apache.lucene.util.BytesRef;
 
-import com.joliciel.jochre.search.alto.AltoString;
-
 public class JochrePayload {
 	private BytesRef bytesRef;
 	private int left;
@@ -31,20 +29,20 @@ public class JochrePayload {
 		this.textLineIndex = bytes[i+11];
 	}
 	
-	public JochrePayload(AltoString string) {
+	public JochrePayload(JochreToken token) {
 		byte[] bytes = new byte[12];
-		bytes[0] = (byte) (string.getLeft() / 256);
-		bytes[1] = (byte) (string.getLeft() % 256);
-		bytes[2] = (byte) (string.getTop() / 256);
-		bytes[3] = (byte) (string.getTop() % 256);
-		bytes[4] = (byte) (string.getWidth() / 256);
-		bytes[5] = (byte) (string.getWidth() % 256);
-		bytes[6] = (byte) (string.getHeight() / 256);
-		bytes[7] = (byte) (string.getHeight() % 256);
-		bytes[8] = (byte) (string.getTextLine().getTextBlock().getPage().getPageIndex() / 256);
-		bytes[9] = (byte) (string.getTextLine().getTextBlock().getPage().getPageIndex() % 256);
-		bytes[10] = (byte) (string.getTextLine().getTextBlock().getIndex());
-		bytes[11] = (byte) (string.getTextLine().getIndex());
+		bytes[0] = (byte) (token.getLeft() / 256);
+		bytes[1] = (byte) (token.getLeft() % 256);
+		bytes[2] = (byte) (token.getTop() / 256);
+		bytes[3] = (byte) (token.getTop() % 256);
+		bytes[4] = (byte) (token.getWidth() / 256);
+		bytes[5] = (byte) (token.getWidth() % 256);
+		bytes[6] = (byte) (token.getHeight() / 256);
+		bytes[7] = (byte) (token.getHeight() % 256);
+		bytes[8] = (byte) (token.getPageIndex() / 256);
+		bytes[9] = (byte) (token.getPageIndex() % 256);
+		bytes[10] = (byte) (token.getParagraphIndex());
+		bytes[11] = (byte) (token.getRowIndex());
 		bytesRef = new BytesRef(bytes);
 	}
 	

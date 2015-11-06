@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Filter;
@@ -206,7 +205,7 @@ class JochreQueryImpl implements JochreQuery {
 			if (luceneQuery==null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
-				Analyzer analyzer = new WhitespaceAnalyzer();
+				Analyzer analyzer = new JochreWhitespaceAnalyser();
 				QueryParser queryParser = new QueryParser("text", analyzer);
 				luceneQuery = queryParser.parse(this.getQueryString());
 			}

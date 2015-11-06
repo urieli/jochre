@@ -1,7 +1,24 @@
+///////////////////////////////////////////////////////////////////////////////
+//Copyright (C) 2015 Assaf Urieli
+//
+//This file is part of Jochre.
+//
+//Jochre is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//Jochre is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+//
+//You should have received a copy of the GNU Affero General Public License
+//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
+//////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -12,9 +29,6 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
-
-import com.joliciel.jochre.search.alto.AltoPage;
-import com.joliciel.jochre.search.alto.AltoString;
 
 /**
  * A very simple "dummy" tokeniser wrapping a TokenExtractor, which is in charge of the actual tokenisation.
@@ -33,12 +47,12 @@ class JochreTokeniser extends Tokenizer {
 	private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
 
 	private TokenExtractor tokenExtractor;
-	private List<AltoString> tokens;
+	private List<JochreToken> tokens;
 	private int currentIndex = 0;
-	private AltoString currentToken;
-	private AltoPage currentPage;
+	private JochreToken currentToken;
 	private List<String> currentAlternatives = null;
 	private int currentAlternativeIndex = 0;
+	private int hyphenatedContentIndex = -1;
 	private String fieldName;
 	
 	/**
@@ -68,25 +82,14 @@ class JochreTokeniser extends Tokenizer {
 		
 		if (currentToken==null && currentIndex<tokens.size()) {
 			currentToken = tokens.get(currentIndex++);
-			if (!currentToken.getTextLine().getTextBlock().getPage().equals(currentPage)) {
-				// new page
-				currentPage = currentToken.getTextLine().getTextBlock().getPage();
-				if (LOG.isTraceEnabled()) {
-					LOG.trace("New page: " + currentPage.getPageIndex());
-				}
 
-			}
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(currentToken.toString());
 			}
-			currentAlternatives = new ArrayList<String>();
-			if (currentToken.isHyphenStart() && currentToken.getHyphenatedContent()!=null) {
-				currentAlternatives.add(currentToken.getHyphenatedContent());
-			}
-			currentAlternatives.add(currentToken.getContent());
-			for (String alternative : currentToken.getAlternatives()) {
-				currentAlternatives.add(alternative);
-			}
+			currentAlternatives = currentToken.getContentStrings();
+			hyphenatedContentIndex = currentAlternatives.size();
+			currentAlternatives.addAll(currentToken.getHyphenatedContentStrings());
+			
 			currentAlternativeIndex = 0;
 		}
 
@@ -96,13 +99,13 @@ class JochreTokeniser extends Tokenizer {
 			// add the term itself
 			termAtt.append(content);
 			
-			if (currentToken.isHyphenStart() && currentToken.getHyphenatedContent()!=null && currentAlternativeIndex==0) {
+			if (currentAlternativeIndex>=hyphenatedContentIndex) {
 				posLengthAtt.setPositionLength(2);
 			} else {
 				posLengthAtt.setPositionLength(1);
 			}
 			
-			if (currentAlternativeIndex<currentToken.getAlternatives().size()-1) {
+			if (currentAlternativeIndex<currentAlternatives.size()-1) {
 				posIncrAtt.setPositionIncrement(0);
 			} else {
 				posIncrAtt.setPositionIncrement(1);

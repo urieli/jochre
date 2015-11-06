@@ -56,10 +56,8 @@ public abstract class AbstractExporter implements DocumentObserver {
 	public final void onDocumentComplete(JochreDocument jochreDocument) {
 		try {
 			this.onDocumentCompleteInternal(jochreDocument);
-			if (this.outputDir!=null) {
-				this.writer.flush();
-				this.writer.close();
-			}
+			this.writer.flush();
+			this.writer.close();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

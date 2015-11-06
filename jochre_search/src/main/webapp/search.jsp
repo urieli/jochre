@@ -1,3 +1,4 @@
+<%@page import="java.util.ArrayList"%>
 <%@page import="com.joliciel.jochre.search.highlight.Snippet"%>
 <%@page import="java.util.List"%>
 <%@page import="com.joliciel.jochre.search.webClient.SnippetResults"%>
@@ -21,22 +22,32 @@ request.setCharacterEncoding("UTF-8");
 response.setCharacterEncoding("UTF-8");
 String queryString = request.getParameter("query");
 if (queryString==null) queryString = "";
+String queryStringInput = queryString.replace("\"", "&quot;");
+int pagination = 0;
+if (request.getParameter("page")!=null)
+	pagination = Integer.parseInt(request.getParameter("page"));
 %>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <%@ include file="Styles.css" %>
-<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="jquery-1.11.3.min.js"></script>
 </head>
 <body>
-<form method="post" accept-charset="UTF-8">
+<form id="frmQuery" method="get" accept-charset="UTF-8" action="search.jsp">
+<input type="hidden" name="page" id="hdnPage" value="0" />
 <table>
-<tr><td><img src="images/jochreLogo.png"/></td><td><input type="text" name="query" style="width:200px;" value="<%= queryString %>" />&nbsp;<input type="submit" value="Search" /></td></tr>
+<tr>
+<td><img src="images/jochreLogo.png" width="150px" /></td>
+<td style="vertical-align: bottom;"><input type="text" name="query" style="width:200px;" value="<%= queryStringInput %>" />&nbsp;<input type="submit" value="Search" /></td>
+</tr>
 </table>
 <%
 if (queryString.length()>0) {
+	int MAX_DOCS=1000;
+	int RESULTS_PER_PAGE=10;
 	URL myPage = new URL(request.getRequestURL().toString());
-	String searchURL = "search?command=search&query=" + URLEncoder.encode(queryString, "UTF-8");
+	String searchURL = "search?command=search&maxDocs=" + MAX_DOCS + "&query=" + URLEncoder.encode(queryString, "UTF-8");
 	URL url = new URL(myPage, searchURL);
 	String json = SearchWebClientUtils.getJson(url);
 	SearchResults results = new SearchResults(json);
@@ -44,11 +55,36 @@ if (queryString.length()>0) {
 	if (results.getScoreDocs().size()==0) {
 		%><p>No results</p><%
 	} else {
-		for (SearchDocument result : results.getScoreDocs()) {
+		int max = results.getScoreDocs().size() / RESULTS_PER_PAGE;
+		if (pagination>max) pagination = max;
+		int start = pagination*RESULTS_PER_PAGE;
+		while (start>results.getScoreDocs().size()-1) {
+			start -= RESULTS_PER_PAGE;
+			pagination-=1;
+		}
+		int end = start+RESULTS_PER_PAGE;
+		if (end>results.getScoreDocs().size()) end=results.getScoreDocs().size();
+		
+		int startRange = pagination - 3;
+		int endRange = pagination + 3;
+		while (startRange<0) {
+			startRange += 1;
+			endRange += 1;
+		}
+		while (endRange>max) {
+			startRange -= 1;
+			endRange -= 1;
+		}
+		if (startRange<0) startRange=0;
+		
+		List<SearchDocument> paginatedResults = new ArrayList<SearchDocument>(RESULTS_PER_PAGE);
+		for (int i=start; i<end; i++) {
+			SearchDocument result = results.getScoreDocs().get(i);
+			paginatedResults.add(result);
 			docIds.add(result.getDocId());
 		}
 
-		String snippetUrl = "search?command=snippets&query=" + URLEncoder.encode(queryString, "UTF-8")
+		String snippetUrl = "search?command=snippets&snippetCount=8&snippetSize=160&query=" + URLEncoder.encode(queryString, "UTF-8")
 			+ "&docIds=";
 		boolean first = true;
 		for (int docId : docIds) {
@@ -59,21 +95,26 @@ if (queryString.length()>0) {
 		url = new URL(myPage, snippetUrl);
 		json = SearchWebClientUtils.getJson(url);
 		SnippetResults snippetResults = new SnippetResults(json);
+		
+		String resultText = "" + results.getScoreDocs().size();
+		if (results.getScoreDocs().size()==MAX_DOCS) resultText = "оver " + resultText;
 		%>
-		<table width="720px">
+		<p><b>Found <%= resultText %> results. Results <%= start+1 %> to <%= end %>:</b></p>
+		
+		<table width="740px">
 		<%
 		int i=0;
-		for (SearchDocument result : results.getScoreDocs()) {
+		for (SearchDocument result : paginatedResults) {
 			String bookId = result.getUrl().substring(result.getUrl().lastIndexOf('/')+1);
 			int startPageUrl = result.getStartPage() / 2 * 2;
 			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
 			%>
-			<tr><td colspan="2" height="5px" bgcolor="black"></td></tr>
+			<tr><td height="5px" bgcolor="black"></td></tr>
 			<tr><td align="left">
 			<font size="+1"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= result.getTitle() %></a></font><br/>
 			<b>Author:</b> <%= result.getAuthor() %><br/>
-			<b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td><td align="right">score <%= result.getScore() %></td></tr>
-			<tr><td colspan="2">
+			<b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td></tr>
+			<tr><td>
 			<%
 			List<Snippet> snippets = snippetResults.getSnippetMap().get(result.getDocId());
 			int j=0;
@@ -86,14 +127,18 @@ if (queryString.length()>0) {
 				int urlPageNumber = pageNumber / 2 * 2;
 				readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + urlPageNumber + "/mode/2up";
 				%>
-				<p>
-				<a href="<%= readOnlineURL %>" target="_blank">Page <%= pageNumber %></a> : <span id="snippet<%=i %>_<%=j %>" class="snippet" dir="rtl"><%= snippetText %></span>
-				</p>
+				<table width="100%" border="0">
+				<tr>
+				<td><div id="snippet<%=i %>_<%=j %>" class="snippet"><%= snippetText %></div></td>
+				<td align="center" valign="top" width="30px"><span id="img<%=i %>_<%=j %>" ><img src="images/image.png" border="0" /></span></td>
+				<td align="center" valign="top" width="30px"><a href="<%= readOnlineURL %>" target="_blank"><img src="images/text.png" border="0" /></a></td>
+				<td align="right" valign="top" width="30px"><a href="<%= readOnlineURL %>" target="_blank"><%= pageNumber %></a></td>
+				</tr>
+				</table>
 				<div id="image<%=i %>_<%=j %>" style="display: none;"></div>
 				<script>
 				$loaded<%=i %>_<%=j %>=false;
-				$("#snippet<%=i %>_<%=j %>").on("click",function(){
-					//alert("<%= imageUrlAddress %>");
+				$("#img<%=i %>_<%=j %>").on("click",function(){
 					if (!$loaded<%=i %>_<%=j %>) {
 						$("#image<%=i %>_<%=j %>").html('<img src="<%= imageUrlAddress %>" width="720px" border="1" />');
 						$loaded<%=i %>_<%=j %> = true;
@@ -108,13 +153,76 @@ if (queryString.length()>0) {
 				j++;
 			}
 			%></td></tr>
-			<tr><td colspan="2" height="10px"></td></tr>
+			<tr><td height="10px"></td></tr>
 			<%
 			i++;
 		}
 		%>
 		</table>
+		
 		<%
+		// pagination links
+		if (max>0) {
+			%>
+			<div style="width: 740px; text-align: left; ">
+			<table style="margin: auto;"><tr>
+			<td>
+			<%
+			if (pagination>0) {
+				%><a href="#" id="pagePrev">Prev</a><%
+			} else {
+				%><span style="font-weight: bold; color: gray;">Prev</span><%
+			}
+			%>
+			</td>
+			<%
+			for (i=startRange; i<=endRange; i++) {
+				%><td style="width:40px; text-align: center;"><%
+				if (i==pagination) {
+					%><b><%=i+1 %></b><%
+				} else {
+					%><a href="#" id="page<%= i%>"><%= i+1 %></a><%
+				}
+				%></td><%
+			}
+			%>
+			<td>
+			<%
+			if (pagination<max) {
+				%><a href="#" id="pageNext">Next</a><%
+			} else {
+				%><span style="font-weight: bold; color: gray;">Next</span><%
+			}
+			%>
+			</td>
+			</tr></table></div>
+			<%
+			for (i=startRange; i<=endRange; i++) {
+				%>
+				<script>
+				$("#page<%=i %>").on("click",function(){
+					$("#hdnPage").val("<%=i%>");
+					$("#frmQuery").submit();
+					return false;
+			    });
+				</script>
+				<%
+			}
+			%>
+			<script>
+			$("#pagePrev").on("click",function(){
+				$("#hdnPage").val("<%=pagination-1%>");
+				$("#frmQuery").submit();
+				return false;
+		    });
+			$("#pageNext").on("click",function(){
+				$("#hdnPage").val("<%=pagination+1%>");
+				$("#frmQuery").submit();
+				return false;
+		    });
+			</script>
+			<%
+		} // pagination links
 	}
 }
 %>

@@ -59,9 +59,15 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	
 	@Override
-	public JochreIndexDocument newJochreIndexDocument(File directory,
-			int index, List<AltoPage> currentPages, Map<String, String> fields) {
-		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, currentPages, fields);
+	public JochreIndexDirectory getJochreIndexDirectory(File dir) {
+		JochreIndexDirectoryImpl directory = new JochreIndexDirectoryImpl(dir);
+		return directory;
+	}
+
+	@Override
+	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory,
+			int index, List<AltoPage> currentPages) {
+		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, currentPages);
 		return doc;
 	}
 	@Override
@@ -83,6 +89,18 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	public void setAltoService(AltoService altoService) {
 		this.altoService = altoService;
+	}
+
+	@Override
+	public JochreToken getJochreToken(JochreToken jochreToken) {
+		JochreTokenImpl token = new JochreTokenImpl(jochreToken);
+		return token;
+	}
+
+	@Override
+	public JochreToken getJochreToken(String text) {
+		JochreTokenImpl token = new JochreTokenImpl(text);
+		return token;
 	}
 
 }

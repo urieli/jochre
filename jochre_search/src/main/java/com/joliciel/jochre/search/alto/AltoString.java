@@ -20,7 +20,9 @@ package com.joliciel.jochre.search.alto;
 
 import java.util.List;
 
-public interface AltoString {
+import com.joliciel.jochre.search.JochreToken;
+
+public interface AltoString extends JochreToken {
 	public String getContent();
 	public int getLeft();
 	public int getTop();

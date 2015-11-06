@@ -1,16 +1,9 @@
 package com.joliciel.jochre.search;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-
 import org.apache.lucene.index.IndexWriter;
 
 public interface JochreIndexDocument {
-	/**
-	 * The directory containing this documents files (OCR analysis typically in Alto format, metadata.txt, image files, etc.).
-	 * @return
-	 */
-	public File getDirectory();
 	
 	/**
 	 * The full string contents of the document.

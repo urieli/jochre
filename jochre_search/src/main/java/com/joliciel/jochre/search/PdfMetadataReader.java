@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2014 Assaf Urieli
+//Copyright (C) 2015 Assaf Urieli
 //
 //This file is part of Jochre.
 //
@@ -16,13 +16,22 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search.jochreXml;
+package com.joliciel.jochre.search;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.InputStream;
 
-public interface JochreXmlReader {
-	public void parseFile(InputStream inputStream, String fileNameBase);
-	public void parseFile(File xmlFile);
+import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
+
+public class PdfMetadataReader extends AbstractPdfImageVisitor {
+
+	public PdfMetadataReader(File pdfFile) {
+		super(pdfFile);
+	}
+
+	@Override
+	protected void visitImage(BufferedImage image, String imageName,
+			int pageIndex, int imageIndex) {
+	}
 
 }

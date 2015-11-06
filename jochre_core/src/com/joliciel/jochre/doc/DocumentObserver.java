@@ -21,12 +21,10 @@ package com.joliciel.jochre.doc;
 import com.joliciel.jochre.graphics.JochreImage;
 
 public interface DocumentObserver {
-	public void onStart();
 	public void onDocumentStart(JochreDocument jochreDocument);
 	public void onPageStart(JochrePage jochrePage);
 	public void onImageStart(JochreImage jochreImage);
 	public void onImageComplete(JochreImage jochreImage);
 	public void onPageComplete(JochrePage jochrePage);
 	public void onDocumentComplete(JochreDocument jochreDocument);
-	public void onComplete();
 }

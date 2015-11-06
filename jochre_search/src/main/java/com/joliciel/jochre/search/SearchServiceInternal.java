@@ -20,16 +20,17 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
 
 import com.joliciel.jochre.search.alto.AltoPage;
 
 interface SearchServiceInternal extends SearchService {
-	public JochreIndexDocument newJochreIndexDocument(File directory, int index, List<AltoPage> currentPages, Map<String,String> fields);
+	public JochreIndexDirectory getJochreIndexDirectory(File dir);
+	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages);
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
 			String fieldName);
 	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor);
+	public JochreToken getJochreToken(JochreToken jochreToken);
+	public JochreToken getJochreToken(String text);
 }

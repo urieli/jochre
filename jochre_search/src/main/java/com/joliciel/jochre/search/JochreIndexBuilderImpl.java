@@ -18,35 +18,32 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexNotFoundException;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+
 import com.joliciel.jochre.search.alto.AltoDocument;
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoPageConsumer;
@@ -63,7 +60,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private File indexDir;
 	private int wordsPerDoc=3000;
 	private IndexWriter indexWriter;
-	private List<AltoString> currentStrings = null;		
+	private IndexReader indexReader;
+	private IndexSearcher indexSearcher;
+
+	private List<JochreToken> currentStrings = null;		
 	
 	private SearchServiceInternal searchService;
 	private AltoService altoService;
@@ -82,6 +82,14 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 				this.indexWriter = new IndexWriter(directory, iwc);
+
+				try {
+					indexReader = DirectoryReader.open(directory);
+					
+					indexSearcher = new IndexSearcher(indexReader);
+				} catch (IndexNotFoundException e) {
+					LOG.debug("No index at : " + indexDir.getAbsolutePath());
+				}
 			} catch (IOException ioe) {
 				LogUtils.logError(LOG, ioe);
 				throw new RuntimeException(ioe);
@@ -123,7 +131,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		long startTime = System.currentTimeMillis();
 		try {
 			this.initialise();
-			this.updateDocumentInternal(documentDir);
+			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(documentDir);
+			this.updateDocumentInternal(directory);
 			indexWriter.commit();
 			indexWriter.close();
 		} catch (IOException e) {
@@ -153,74 +162,49 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	
 	private void processDocument(File documentDir, boolean forceUpdate) {
 		try {
-			File instructionsFile = new File(documentDir, "instructions.txt");
+			
 			boolean updateIndex = false;
-			if (instructionsFile.exists()) {
-				String instructions = null;
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(instructionsFile), "UTF-8")));
-				while (scanner.hasNextLine()) {
-					instructions = scanner.nextLine();
-					break;
-				}
-				scanner.close();
-				
-				LOG.info("Instructions: " + instructions + " for " + documentDir.getName());
-				if (instructions.equals("delete")) {
-					this.deleteDocumentInternal(documentDir);
-					File lastIndexDateFile = new File(documentDir, "indexDate.txt");
-					if (lastIndexDateFile.exists())
-						lastIndexDateFile.delete();
-
-					return;
-				} else if (instructions.equals("skip")) {
-					return;
-				} else if (instructions.equals("update")) {
-					updateIndex = true;
-				} else {
-					LOG.info("Unknown instructions.");
-				}
-			}
 			
-			File zipFile = new File(documentDir, documentDir.getName() + ".zip");
-			if (!zipFile.exists()) {
-				LOG.info("Nothing to index in " + documentDir.getName());
+			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(documentDir);
+			switch (jochreIndexDirectory.getInstructions()) {
+			case Delete:
+				this.deleteDocumentInternal(documentDir);
 				return;
-			}
-			
-			File metaDataFile = new File(documentDir, "metadata.txt");
-			if (!metaDataFile.exists()) {
-				LOG.info("Skipping: OCR analysis incomplete for " + documentDir.getName());
+			case Skip:
 				return;
+			case Update:
+				updateIndex = true;
+			case None:
+				// do nothing
+				break;
 			}
-
+	
 			if (forceUpdate)
 				updateIndex = true;
 			
 			if (!updateIndex) {
-				
-				LOG.debug("Checking last update date on " + documentDir.getName());
-				long zipDate = zipFile.lastModified();
-				
-				File lastIndexDateFile = new File(documentDir, "indexDate.txt");
-				
+				long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
 				long lastIndexDate = Long.MIN_VALUE;
 				
-				if (lastIndexDateFile.exists()) {
-					Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(lastIndexDateFile), "UTF-8")));
-					while (scanner.hasNextLine()) {
-						lastIndexDate = Long.parseLong(scanner.nextLine());
-						break;
+				if (indexSearcher!=null) {
+					Term term = new Term("name", jochreIndexDirectory.getName());
+					Query termQuery = new TermQuery(term);
+					TopDocs topDocs = indexSearcher.search(termQuery, 1);
+					if (topDocs.scoreDocs.length>0) {
+						Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+						lastIndexDate = Long.parseLong(doc.get("indexTime"));
 					}
-					scanner.close();
 				}
-				if (zipDate>lastIndexDate)
+				
+				LOG.debug("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
+				if (ocrDate>lastIndexDate)
 					updateIndex = true;
 			}
 			
 			if (updateIndex) {
-				this.updateDocumentInternal(documentDir);
+				this.updateDocumentInternal(jochreIndexDirectory);
 			} else {
-				LOG.info("Index for " + documentDir.getName() + "already up-to-date.");
+				LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
 			} // should update index?
 			
 		} catch (IOException ioe) {
@@ -229,55 +213,20 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 	
-	private void updateDocumentInternal(File documentDir) {
+	private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
 		try {
-			LOG.info("Updating index for " + documentDir.getName());
+			LOG.info("Updating index for " + jochreIndexDirectory.getName());
 			
-			File zipFile = new File(documentDir, documentDir.getName() + ".zip");
-			if (!zipFile.exists()) {
-				LOG.info("Nothing to index in " + documentDir.getName());
-				return;
-			}
-			long zipDate = zipFile.lastModified();
-	
-			this.deleteDocumentInternal(documentDir);
+			this.deleteDocumentInternal(jochreIndexDirectory.getDirectory());
 			
-			int i = 0;
-			
-			Map<String,String> fields = new TreeMap<String, String>();
-			File metaDataFile = new File(documentDir, documentDir.getName() + "_metadata.txt");
-			Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(metaDataFile), "UTF-8")));
-			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
-				String key = line.substring(0, line.indexOf('\t'));
-				String value = line.substring(line.indexOf('\t')+1);
-				fields.put(key, value);
-			}
-			scanner.close();
-			
-			AltoDocument altoDoc = this.altoService.newDocument(documentDir.getName());
+			AltoDocument altoDoc = this.altoService.newDocument(jochreIndexDirectory.getName());
 			AltoReader reader = this.altoService.getAltoReader(altoDoc);
-			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, documentDir, fields);
+			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory);
 			reader.addConsumer(altoPageIndexer);
 			
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-			ZipEntry ze = null;
-		    while ((ze = zis.getNextEntry()) != null) {
-				LOG.debug("Adding zipEntry " + i + ": " + ze.getName());
-				String baseName = ze.getName().substring(0, ze.getName().lastIndexOf('.'));
-				UnclosableInputStream uis = new UnclosableInputStream(zis);
-				reader.parseFile(uis, baseName);
-		    	i++;
-		    }
-		    zis.close();
-			
-			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
-	
-			Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(lastIndexDateFile, false),"UTF8"));
-			writer.write("" + zipDate);
-			writer.flush();
-			
-			writer.close();
+			UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
+			reader.parseFile(uis, jochreIndexDirectory.getName());
+			uis.reallyClose();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);
@@ -290,17 +239,15 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private int cumulWordCount = 0;
 		private List<AltoPage> currentPages = new ArrayList<AltoPage>();
 		private List<AltoPage> previousPages = new ArrayList<AltoPage>();
-		private List<AltoString> previousStrings = new ArrayList<AltoString>();
-		private List<AltoString> currentStrings = new ArrayList<AltoString>();
+		private List<JochreToken> previousStrings = new ArrayList<JochreToken>();
+		private List<JochreToken> currentStrings = new ArrayList<JochreToken>();
 		
-		private File documentDir;
-		private Map<String,String> fields;
+		private JochreIndexDirectory directory;
 		
-		public AltoPageIndexer(JochreIndexBuilderImpl parent, File documentDir, Map<String,String> fields) {
+		public AltoPageIndexer(JochreIndexBuilderImpl parent, JochreIndexDirectory directory) {
 			super();
 			this.parent = parent;
-			this.documentDir = documentDir;
-			this.fields = fields;
+			this.directory = directory;
 		}
 
 		@Override
@@ -323,7 +270,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				if (previousPages.size()>0) {
 					parent.setCurrentStrings(previousStrings);
 					LOG.debug("Creating new index doc: " + docCount);
-					JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(documentDir, docCount, previousPages, fields);
+					JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
 					indexDoc.save(parent.getIndexWriter());
 					docCount++;
 				}
@@ -332,9 +279,9 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				previousStrings = currentStrings;
 				
 				cumulWordCount = 0;
-				parent.setCurrentStrings(new ArrayList<AltoString>());
+				parent.setCurrentStrings(new ArrayList<JochreToken>());
 				currentPages = new ArrayList<AltoPage>();
-				currentStrings = new ArrayList<AltoString>();
+				currentStrings = new ArrayList<JochreToken>();
 			}
 		}
 
@@ -344,11 +291,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			previousStrings.addAll(currentStrings);
 			parent.setCurrentStrings(previousStrings);
 			LOG.debug("Creating new index doc: " + docCount);
-			JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(documentDir, docCount, previousPages, fields);
+			JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
 			indexDoc.save(parent.getIndexWriter());
 			docCount++;
 		}
-
 	}
 
 	
@@ -391,15 +337,15 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	@Override
-	public List<AltoString> findTokens(String fieldName, Reader input) {
+	public List<JochreToken> findTokens(String fieldName, Reader input) {
 		return currentStrings;
 	}
 
-	public List<AltoString> getCurrentStrings() {
+	public List<JochreToken> getCurrentStrings() {
 		return currentStrings;
 	}
 
-	public void setCurrentStrings(List<AltoString> currentStrings) {
+	public void setCurrentStrings(List<JochreToken> currentStrings) {
 		this.currentStrings = currentStrings;
 	}
 

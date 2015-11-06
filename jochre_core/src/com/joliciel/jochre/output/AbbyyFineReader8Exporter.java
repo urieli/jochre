@@ -132,12 +132,4 @@ class AbbyyFineReader8Exporter extends AbstractExporter implements DocumentObser
 			throw new RuntimeException(e);
 		}
 	}
-
-	@Override
-	public void onStart() {
-	}
-
-	@Override
-	public void onComplete() {
-	}
 }

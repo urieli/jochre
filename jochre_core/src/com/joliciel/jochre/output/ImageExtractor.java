@@ -64,12 +64,4 @@ public class ImageExtractor implements DocumentObserver {
 	@Override
 	public void onDocumentComplete(JochreDocument jochreDocument) {
 	}
-
-	@Override
-	public void onStart() {
-	}
-
-	@Override
-	public void onComplete() {
-	}
 }
