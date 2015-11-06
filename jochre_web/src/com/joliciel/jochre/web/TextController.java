@@ -431,14 +431,5 @@ public class TextController extends GenericForwardComposer<Window> {
 		@Override
 		public void onDocumentComplete(JochreDocument jochreDocument) {	
 		}
-
-		@Override
-		public void onStart() {
-		}
-
-		@Override
-		public void onComplete() {
-		}
-
 	}
 }
