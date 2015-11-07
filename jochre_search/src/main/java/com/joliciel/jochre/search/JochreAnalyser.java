@@ -47,6 +47,7 @@ class JochreAnalyser extends Analyzer {
 
 		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);	
 		TokenStream result = new YiddishNormalisingFilter(source);
+		result = new PunctuationFilter(result);
 		return new TokenStreamComponents(source, result);
 	}
 

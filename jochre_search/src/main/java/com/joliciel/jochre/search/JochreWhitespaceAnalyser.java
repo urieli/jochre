@@ -14,6 +14,7 @@ public class JochreWhitespaceAnalyser extends Analyzer {
 	protected TokenStreamComponents createComponents(final String fieldName) {
 		Tokenizer source = new WhitespaceTokenizer();
 		TokenStream result = new YiddishNormalisingFilter(source);
+		result = new PunctuationFilter(result);
 		return new TokenStreamComponents(source, result);
 	}
 

@@ -25,6 +25,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -234,6 +235,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	private static final class AltoPageIndexer implements AltoPageConsumer {
+		public static final Pattern PUNCTUATION = Pattern.compile("\\p{Punct}", Pattern.UNICODE_CHARACTER_CLASS);
 		private JochreIndexBuilderImpl parent;
 		private int docCount = 0;
 		private int cumulWordCount = 0;
@@ -257,7 +259,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					for (AltoString string : textLine.getStrings()) {
-						if (!string.isWhiteSpace())
+						if (!string.isWhiteSpace() && !PUNCTUATION.matcher(string.getContent()).matches())
 							currentStrings.add(string);
 					}
 				}
