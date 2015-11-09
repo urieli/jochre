@@ -401,6 +401,11 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 
 		}
 		
+		// Out of all of the sub-sequences possibilities giving the max frequency in the lexicon
+		// we choose the one containing the single longest word to populate the subsequences for this letter sequence
+		// and select its hyphenated content.
+		// Thus if both halves of an existing hyphenated word also happen to exist independently as words in the lexicon,
+		// we'll still take the longer hyphenated word.
 		List<List<LetterSequence>> maxFreqPossibilities = freqPossibilityMap.lastEntry().getValue();
 		List<LetterSequence> maxLengthList = null;
 		int maxLengthForList = -1;
@@ -419,12 +424,24 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 		frequency = freqPossibilityMap.lastEntry().getKey();
 		letterSequence.setSubsequences(maxLengthList);
 		
+		// construct the hyphenated string out of the subsequences directly surrounding the hyphen
+		// making sure to leave out any opening and closing punctuation
 		String hyphenatedString = "";
+		boolean foundFirstWord = false;
+		String punctuationString = "";
 		for (LetterSequence subsequence : maxLengthList) {
 			if (subsequence.getHyphenSubsequence()!=null) {
 				letterSequence.setHyphenSubsequence(subsequence.getHyphenSubsequence());
 			}
-			hyphenatedString += subsequence.getGuessedWord();
+			if (!foundFirstWord && !subsequence.isPunctation())
+				foundFirstWord = true;
+			if (foundFirstWord && subsequence.isPunctation()) {
+				punctuationString += subsequence.getGuessedWord();
+			} else if (foundFirstWord) {
+				hyphenatedString += punctuationString;
+				punctuationString = "";
+				hyphenatedString += subsequence.getGuessedWord();
+			}
 		}
 		if (letterSequence.isSplit()) {
 			letterSequence.setHyphenatedString(hyphenatedString);
