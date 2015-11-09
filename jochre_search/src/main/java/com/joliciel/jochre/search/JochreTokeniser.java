@@ -19,6 +19,7 @@
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -86,9 +87,14 @@ class JochreTokeniser extends Tokenizer {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(currentToken.toString());
 			}
-			currentAlternatives = currentToken.getContentStrings();
+			
+			// need to add hyphenated content first, since they have a position length of 2
+			// otherwise, if we give a position length of 2 and an increment of 1, the following token will appear to be 2 away from the present one
+			currentAlternatives = new ArrayList<String>();
+			if (currentToken.getHyphenatedContentStrings()!=null)
+				currentAlternatives.addAll(currentToken.getHyphenatedContentStrings());
 			hyphenatedContentIndex = currentAlternatives.size();
-			currentAlternatives.addAll(currentToken.getHyphenatedContentStrings());
+			currentAlternatives.addAll(currentToken.getContentStrings());
 			
 			currentAlternativeIndex = 0;
 		}
@@ -99,7 +105,7 @@ class JochreTokeniser extends Tokenizer {
 			// add the term itself
 			termAtt.append(content);
 			
-			if (currentAlternativeIndex>=hyphenatedContentIndex) {
+			if (currentAlternativeIndex<hyphenatedContentIndex) {
 				posLengthAtt.setPositionLength(2);
 			} else {
 				posLengthAtt.setPositionLength(1);
@@ -112,6 +118,13 @@ class JochreTokeniser extends Tokenizer {
 			}
 			
 			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
+			
+			if (LOG.isTraceEnabled()) {
+				LOG.trace("Added \"" + content + "\""
+						+ ", length: " + posLengthAtt.getPositionLength()
+						+ ", increment: " + posIncrAtt.getPositionIncrement()
+						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset());
+			}
 			
 			// store the coordinates in the payload
 			JochrePayload payload = new JochrePayload(currentToken);

@@ -150,9 +150,6 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		try {
 			this.initialise();
 			this.deleteDocumentInternal(documentDir);
-			File lastIndexDateFile = new File(documentDir, "indexDate.txt");
-			if (lastIndexDateFile.exists())
-				lastIndexDateFile.delete();
 			indexWriter.commit();
 			indexWriter.close();
 		} catch (IOException e) {
@@ -302,7 +299,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	
 	private void deleteDocumentInternal(File documentDir) {
 		try {
-			Term term = new Term("name", documentDir.getName());
+			Term term = new Term("path", documentDir.getAbsolutePath());
 			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);

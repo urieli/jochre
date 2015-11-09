@@ -23,25 +23,24 @@ import java.io.File;
 public interface JochreIndexBuilder {
 	/**
 	 * Update the index by scanning all of the sub-directories of this contentDir for updates.
-	 * Each sub-directory name should uniquely identify a document set contained inside it.
-	 * The sub-directory can contain a file called "instructions.txt".
-	 * This file can contain a single word: "delete" or "skip", in which case the document set
-	 * will be deleted from the index or skipped.
-	 * Otherwise, the index will be updated if the zip file in the document set has a later modify
-	 * date than the one located in the file "indexDate.txt".
+	 * The sub-directory path is considered to uniquely identify a work.
+	 * Sub-directory contents are described in {@link JochreIndexDirectory}.
+	 * A work will only be updated if the date of it's text layer is later than the previous index date (stored in the index),
+	 * or if forceUpdate=true. If the work is updated, any previous documents with the same path are first deleted.
+	 * Multiple Lucene documents can be created from a single work, if {@link #getWordsPerDoc()}&gt;0.
 	 * @param contentDir the parent directory to scan
 	 * @param forceUpdate if true, all docs will be updated regardless of last update date
 	 */
 	public void updateIndex(File contentDir, boolean forceUpdate);
 	
 	/**
-	 * Add or update a single document set to the index. The directory name should uniquely identify the document set.
+	 * Add or update a single directory to the index.
 	 * @param documentDir the directory containing the document set
 	 */
 	public void updateDocument(File documentDir);
 	
 	/**
-	 * Delete a single document set from the index. The directory name should uniquely identify the document set.
+	 * Delete a single work from the index. The directory path is considered to identify the work.
 	 * @param documentDir the directory containing the document set
 	 */
 	public void deleteDocument(File documentDir);

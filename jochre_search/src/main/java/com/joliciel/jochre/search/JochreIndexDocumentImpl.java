@@ -15,7 +15,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
@@ -150,12 +149,12 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	public void save(IndexWriter indexWriter) {
 		try {
 			doc = new Document();
-			doc.add(new StringField("name", directory.getName(), Store.YES));
+			doc.add(new StringField("name", directory.getName(), Field.Store.YES));
+			doc.add(new StringField("path",directory.getDirectory().getAbsolutePath(), Field.Store.YES));
 			doc.add(new Field("startPage", "" + startPage, TYPE_NOT_INDEXED));
 			doc.add(new Field("endPage", "" + endPage, TYPE_NOT_INDEXED));
 			doc.add(new Field("index", "" + index, TYPE_NOT_INDEXED));
 			doc.add(new Field("text", contents, TYPE_STORED));
-			doc.add(new Field("path", directory.getDirectory().getAbsolutePath(), TYPE_NOT_INDEXED));
 			doc.add(new LongField("indexTime", System.currentTimeMillis(), Field.Store.YES));
 			
 			if (author!=null)
