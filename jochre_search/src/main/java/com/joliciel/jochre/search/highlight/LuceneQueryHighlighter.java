@@ -599,8 +599,8 @@ class LuceneQueryHighlighter implements Highlighter {
 		}
 		valid = difference <= slop;
 
-		if (!valid && LOG.isTraceEnabled()) {
-			LOG.trace("requiredDistance: " + requiredDistance + ", distance: " + distance + ", difference: " + difference + ", baseTerm: " + baseTerm + ", otherTerm: " + otherTerm);
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("valid? " + valid + " requiredDistance: " + requiredDistance + ", distance: " + distance + ", difference: " + difference + ", baseTerm: " + baseTerm + ", otherTerm: " + otherTerm);
 		}
 		return valid;
 	}

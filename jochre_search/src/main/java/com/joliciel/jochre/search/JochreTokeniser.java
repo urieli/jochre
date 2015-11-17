@@ -100,7 +100,7 @@ class JochreTokeniser extends Tokenizer {
 		}
 
 		if (currentToken!=null) {
-			String content = currentAlternatives.get(currentAlternativeIndex++);
+			String content = currentAlternatives.get(currentAlternativeIndex);
 
 			// add the term itself
 			termAtt.append(content);
@@ -111,10 +111,10 @@ class JochreTokeniser extends Tokenizer {
 				posLengthAtt.setPositionLength(1);
 			}
 			
-			if (currentAlternativeIndex<currentAlternatives.size()-1) {
-				posIncrAtt.setPositionIncrement(0);
-			} else {
+			if (currentAlternativeIndex==0) {
 				posIncrAtt.setPositionIncrement(1);
+			} else {
+				posIncrAtt.setPositionIncrement(0);
 			}
 			
 			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
@@ -130,6 +130,8 @@ class JochreTokeniser extends Tokenizer {
 			JochrePayload payload = new JochrePayload(currentToken);
 			payloadAtt.setPayload(payload.getBytesRef());
 
+			currentAlternativeIndex++;
+			
 			return true;
 		} else {
 			tokens = null;

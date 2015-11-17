@@ -159,9 +159,6 @@ class AltoStringImpl implements AltoString {
 			contentStrings = new ArrayList<String>();
 			contentStrings.add(this.content);
 			contentStrings.addAll(this.alternatives);
-			if (this.isHyphenStart() && this.getHyphenatedContent()!=null) {
-				contentStrings.add(this.getHyphenatedContent());
-			}
 		}
 		return contentStrings;
 	}

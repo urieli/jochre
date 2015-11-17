@@ -121,7 +121,7 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	public String toString() {
 		return "HighlightTerm [startOffset=" + startOffset + ", endOffset="
 				+ endOffset + ", weight=" + weight + ", docId=" + docId
-				+ ", field=" + field + "]";
+				+ ", field=" + field + ", position=" + position + "]";
 	}
 
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {

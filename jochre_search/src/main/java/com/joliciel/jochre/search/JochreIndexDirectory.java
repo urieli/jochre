@@ -33,9 +33,9 @@ import java.util.Map;
  * <li><i>filename</i>.zip/.xml: a file in Alto3 format (either zipped or not) containing the OCR text layer of the PDF. If a zip file is found,
  * it is used, otherwise an XML file is used.</li>
  * <li>delete|delete.txt|skip|skip.txt|update|update.txt: if one of these files is present (processed in this order),
- * provides explicit instructions on what to do when indexing this directory</li>
+ * provides explicit instructions on what to do when indexing this directory. The file contents are ignored, and can be empty - only the filename is important.</li>
  * </ul>
- * The filename above is arbitrary: only the extension is required. However, the system will first look for a file
+ * The PDF/ZIP/XML filename above is arbitrary: only the extension is required. However, the system will first look for a file
  * with the same name as the directory name, and only then look for any arbitrary file.<br/>
  * 
  * @author Assaf Urieli
