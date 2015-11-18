@@ -18,18 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.List;
-
-import com.joliciel.jochre.search.Rectangle;
 
 public interface AltoTextLine {
 	public List<AltoString> getStrings();
-	public int getLeft();
-	public int getTop();
-	public int getWidth();
-	public int getHeight();
+	public Rectangle getRectangle();
 	public AltoTextBlock getTextBlock();
 	public int wordCount();
 	public int getIndex();
-	public Rectangle getRectangle();
 }

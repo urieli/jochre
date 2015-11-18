@@ -220,6 +220,9 @@ class LuceneQueryHighlighter implements Highlighter {
 		if (LOG.isTraceEnabled()) {
 			for (int docId : docTermMap.keySet()) {
 				LOG.trace("Document: " + docId + ". Terms: " + docTermMap.get(docId));
+				for (HighlightTerm term : docTermMap.get(docId)) {
+					LOG.trace(term.toString() + ", " + term.getPayload().toString());
+				}
 			}
 		}
 	}
@@ -251,8 +254,10 @@ class LuceneQueryHighlighter implements Highlighter {
                     	LOG.trace("Found match " + position + " at luceneId " + luceneId + ", field " + field + " start=" + start + ", end=" + end);
                     
                     BytesRef bytesRef = postingsEnum.getPayload();
-                	JochrePayload payload = new JochrePayload(bytesRef);
-                    
+                	JochrePayload payload = new JochrePayload(bytesRef);                    
+                	if (LOG.isTraceEnabled())
+                		LOG.trace("Payload: " + payload.toString());
+                	
                     HighlightPassage highlight = new HighlightPassage(luceneId, field, term, payload, position, start, end);
                     highlights.add(highlight);
 				}

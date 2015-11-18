@@ -1,12 +1,12 @@
 package com.joliciel.jochre.search;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
 class JochreTokenImpl implements JochreToken {
-	private int left, top, width, height;
+	private Rectangle rectangle, secondaryRectangle;
 	private List<String> contentStrings = null;
-	private List<String> hyphenatedContentStrings = null;
 	private int index = -1;
 	private int pageIndex = -1;
 	private int paragraphIndex = -1;
@@ -15,15 +15,13 @@ class JochreTokenImpl implements JochreToken {
 	private int spanEnd = -1;
 	
 	public JochreTokenImpl(JochreToken jochreToken) {
-		this.left = jochreToken.getLeft();
-		this.top = jochreToken.getTop();
-		this.width = jochreToken.getWidth();
-		this.height = jochreToken.getHeight();
+		this.rectangle = new Rectangle(jochreToken.getRectangle());
+		if (jochreToken.getSecondaryRectangle()!=null)
+			this.secondaryRectangle = new Rectangle(jochreToken.getSecondaryRectangle());
 		this.index = jochreToken.getIndex();
 		this.spanStart = jochreToken.getSpanStart();
 		this.spanEnd = jochreToken.getSpanEnd();
 		this.contentStrings = new ArrayList<String>(jochreToken.getContentStrings());
-		this.hyphenatedContentStrings = new ArrayList<String>(jochreToken.getHyphenatedContentStrings());
 		this.pageIndex = jochreToken.getPageIndex();
 		this.paragraphIndex = jochreToken.getParagraphIndex();
 		this.rowIndex = jochreToken.getRowIndex();
@@ -32,39 +30,26 @@ class JochreTokenImpl implements JochreToken {
 	public JochreTokenImpl(String text) {
 		this.contentStrings = new ArrayList<String>(1);
 		contentStrings.add(text);
-		this.hyphenatedContentStrings = new ArrayList<String>(0);
 	}
 
-	public int getLeft() {
-		return left;
+	public Rectangle getSecondaryRectangle() {
+		return secondaryRectangle;
 	}
 
-	public int getTop() {
-		return top;
+	public void setSecondaryRectangle(Rectangle secondaryRectangle) {
+		this.secondaryRectangle = secondaryRectangle;
 	}
 
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
+	public Rectangle getRectangle() {
+		return rectangle;
 	}
 
 	public List<String> getContentStrings() {
 		return contentStrings;
 	}
 
-	public List<String> getHyphenatedContentStrings() {
-		return hyphenatedContentStrings;
-	}
-
 	public void setContentStrings(List<String> contentStrings) {
 		this.contentStrings = contentStrings;
-	}
-
-	public void setHyphenatedContentStrings(List<String> hyphenatedContentStrings) {
-		this.hyphenatedContentStrings = hyphenatedContentStrings;
 	}
 
 	public int getIndex() {

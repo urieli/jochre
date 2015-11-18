@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -25,12 +26,13 @@ import java.util.regex.Pattern;
 class AltoStringImpl implements AltoString {
 	private static Pattern whiteSpacePattern = Pattern.compile("[\\s\ufeff]+", Pattern.UNICODE_CHARACTER_CLASS);
 	private String content;
-	private int left, top, width, height;
+	private Rectangle rectangle;
+	private Rectangle secondaryRectangle;
 	private AltoTextLine textLine;
 	private List<String> alternatives = new ArrayList<String>();
 	private List<String> contentStrings = null;
-	private List<String> hyphenatedContentStrings = null;
 	private double confidence;
+	private boolean hyphen = false;
 	private boolean hyphenStart = false;
 	private boolean hyphenEnd = false;
 	private String hyphenatedContent = null;
@@ -43,10 +45,7 @@ class AltoStringImpl implements AltoString {
 		super();
 		this.textLine = textLine;
 		this.content = content;
-		this.left = left;
-		this.top = top;
-		this.width = width;
-		this.height = height;
+		this.rectangle = new Rectangle(left, top, width, height);
 		this.index = this.textLine.getStrings().size();
 		this.textLine.getStrings().add(this);
 		if (whiteSpacePattern.matcher(content).matches())
@@ -57,25 +56,18 @@ class AltoStringImpl implements AltoString {
 		return content;
 	}
 
-	public int getLeft() {
-		return left;
-	}
-
-	public int getTop() {
-		return top;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
+	public void setContent(String content) {
+		this.content = content;
 	}
 
 	public List<String> getAlternatives() {
 		return alternatives;
 	}
+	
+	public void setAlternatives(List<String> alternatives) {
+		this.alternatives = alternatives;
+	}
+
 	public AltoTextLine getTextLine() {
 		return textLine;
 	}
@@ -85,6 +77,14 @@ class AltoStringImpl implements AltoString {
 	public void setConfidence(double confidence) {
 		this.confidence = confidence;
 	}
+	
+	public boolean isHyphen() {
+		return hyphen;
+	}
+	public void setHyphen(boolean hyphen) {
+		this.hyphen = hyphen;
+	}
+
 	public boolean isHyphenStart() {
 		return hyphenStart;
 	}
@@ -102,6 +102,23 @@ class AltoStringImpl implements AltoString {
 	}
 	public void setHyphenatedContent(String hyphenatedContent) {
 		this.hyphenatedContent = hyphenatedContent;
+	}
+
+	@Override
+	public Rectangle getRectangle() {
+		return rectangle;
+	}
+
+	public void setRectangle(Rectangle rectangle) {
+		this.rectangle = rectangle;
+	}
+
+	public Rectangle getSecondaryRectangle() {
+		return secondaryRectangle;
+	}
+
+	public void setSecondaryRectangle(Rectangle secondaryRectangle) {
+		this.secondaryRectangle = secondaryRectangle;
 	}
 
 	public int getIndex() {
@@ -163,23 +180,8 @@ class AltoStringImpl implements AltoString {
 		return contentStrings;
 	}
 
-	@Override
-	public List<String> getHyphenatedContentStrings() {
-		if (hyphenatedContentStrings==null) {
-			hyphenatedContentStrings = new ArrayList<String>(1);
-			if (this.isHyphenStart() && this.getHyphenatedContent()!=null) {
-				hyphenatedContentStrings.add(this.getHyphenatedContent());
-			}
-		}
-		return hyphenatedContentStrings;
-	}
-
 	public void setContentStrings(List<String> contentStrings) {
 		this.contentStrings = contentStrings;
-	}
-
-	public void setHyphenatedContentStrings(List<String> hyphenatedContentStrings) {
-		this.hyphenatedContentStrings = hyphenatedContentStrings;
 	}
 
 }

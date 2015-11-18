@@ -18,16 +18,15 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.List;
 
 import com.joliciel.jochre.search.JochreToken;
 
 public interface AltoString extends JochreToken {
 	public String getContent();
-	public int getLeft();
-	public int getTop();
-	public int getWidth();
-	public int getHeight();
+	public void setContent(String content);
+	
 	public AltoTextLine getTextLine();
 	
 	/**
@@ -35,6 +34,7 @@ public interface AltoString extends JochreToken {
 	 * @return
 	 */
 	public List<String> getAlternatives();
+	public void setAlternatives(List<String> alternatives);
 	
 	/**
 	 * The confidence assigned by the OCR model to this string,
@@ -43,6 +43,13 @@ public interface AltoString extends JochreToken {
 	 */
 	public double getConfidence();
 	public void setConfidence(double confidence);
+	
+	/**
+	 * Is this string a hyphen within a hyphenated word?
+	 * @return
+	 */
+	public boolean isHyphen();
+	public void setHyphen(boolean hyphen);
 	
 	/**
 	 * Is this string the first half of a hyphenated word
@@ -94,4 +101,5 @@ public interface AltoString extends JochreToken {
 	 */
 	public boolean isWhiteSpace();
 
+	public void setRectangle(Rectangle rectangle);
 }

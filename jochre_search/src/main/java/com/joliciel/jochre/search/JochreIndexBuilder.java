@@ -36,8 +36,10 @@ public interface JochreIndexBuilder {
 	/**
 	 * Add or update a single directory to the index.
 	 * @param documentDir the directory containing the document set
+	 * @param startPage the first page to process, or all if -1
+	 * @param endPage the last page to process, or all if -1
 	 */
-	public void updateDocument(File documentDir);
+	public void updateDocument(File documentDir, int startPage, int endPage);
 	
 	/**
 	 * Delete a single work from the index. The directory path is considered to identify the work.

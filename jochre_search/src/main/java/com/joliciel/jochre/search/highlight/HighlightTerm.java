@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
@@ -130,10 +131,18 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			jsonGen.writeStringField("field", this.getField());
 			jsonGen.writeNumberField("start", this.getStartOffset());
 			jsonGen.writeNumberField("end", this.getEndOffset());
-			jsonGen.writeNumberField("left", this.getPayload().getLeft());
-			jsonGen.writeNumberField("top", this.getPayload().getTop());
-			jsonGen.writeNumberField("width", this.getPayload().getWidth());
-			jsonGen.writeNumberField("height", this.getPayload().getHeight());
+			Rectangle rect = this.getPayload().getRectangle();
+			jsonGen.writeNumberField("left", rect.x);
+			jsonGen.writeNumberField("top", rect.y);
+			jsonGen.writeNumberField("width", rect.width);
+			jsonGen.writeNumberField("height", rect.height);
+			Rectangle secondaryRect = this.getPayload().getSecondaryRectangle();
+			if (secondaryRect!=null) {
+				jsonGen.writeNumberField("left2", rect.x);
+				jsonGen.writeNumberField("top2", rect.y);
+				jsonGen.writeNumberField("width2", rect.width);
+				jsonGen.writeNumberField("height2", rect.height);
+			}
 			jsonGen.writeNumberField("pageIndex", this.getPayload().getPageIndex());
 			jsonGen.writeNumberField("textBlockIndex", this.getPayload().getTextBlockIndex());
 			jsonGen.writeNumberField("textLineIndex", this.getPayload().getTextLineIndex());

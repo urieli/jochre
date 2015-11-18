@@ -18,23 +18,21 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
 class AltoTextBlockImpl implements AltoTextBlock {
 	private List<AltoTextLine> rows = new ArrayList<AltoTextLine>();
-	private int left, top, right, bottom;
+	private Rectangle rectangle;
 	private AltoPage page;
 	private int wordCount = -1;
 	private int index = -1;
 	
-	public AltoTextBlockImpl(AltoPage page, int left, int top, int right, int bottom) {
+	public AltoTextBlockImpl(AltoPage page, int left, int top, int width, int height) {
 		super();
 		this.page = page;
-		this.left = left;
-		this.top = top;
-		this.right = right;
-		this.bottom = bottom;
+		this.rectangle = new Rectangle(left, top, width, height);
 		this.index = this.page.getTextBlocks().size();
 		this.page.getTextBlocks().add(this);
 	}
@@ -43,21 +41,10 @@ class AltoTextBlockImpl implements AltoTextBlock {
 	public List<AltoTextLine> getTextLines() {
 		return rows;
 	}
-
-	public int getLeft() {
-		return left;
-	}
-
-	public int getTop() {
-		return top;
-	}
-
-	public int getWidth() {
-		return right;
-	}
-
-	public int getHeight() {
-		return bottom;
+	
+	@Override
+	public Rectangle getRectangle() {
+		return rectangle;
 	}
 
 	public AltoPage getPage() {
@@ -77,5 +64,48 @@ class AltoTextBlockImpl implements AltoTextBlock {
 	
 	public int getIndex() {
 		return index;
+	}
+
+	@Override
+	public void joinHyphens() {
+		for (int i=0; i<this.rows.size(); i++) {
+			AltoTextLine row = this.rows.get(i);
+			for (int j=0; j<row.getStrings().size(); j++) {
+				AltoString string = row.getStrings().get(j);
+				if (string.isHyphenStart() && string.getHyphenatedContent()!=null) {
+					if (i+1<this.rows.size()) {
+						if (j+1<row.getStrings().size()) {
+							AltoString hyphen = row.getStrings().get(j+1);
+							if (hyphen.isHyphen()) {
+								string.getRectangle().add(hyphen.getRectangle());
+								row.getStrings().remove(j+1);
+								j++;
+							}
+						}
+						AltoTextLine nextRow = this.rows.get(i+1);
+						if (nextRow.getStrings().size()>0) {
+							AltoString nextString = nextRow.getStrings().get(0);
+							
+							List<String> alternatives = new ArrayList<String>();
+							for (String contentA : string.getContentStrings()) {
+								for (String contentB : nextString.getContentStrings()) {
+									String alternative = contentA + "-" + contentB;
+									if (!string.getHyphenatedContent().equals(alternative))
+										alternatives.add(contentA + "-" + contentB);
+								}
+							}
+							string.setAlternatives(alternatives);
+							string.setContent(string.getHyphenatedContent());
+							string.setContentStrings(null);
+							
+							string.setSpanEnd(nextString.getSpanEnd());
+							string.setSecondaryRectangle(nextString.getRectangle());
+							nextRow.getStrings().remove(0);
+						}
+					}
+
+				}
+			}
+		}
 	}
 }

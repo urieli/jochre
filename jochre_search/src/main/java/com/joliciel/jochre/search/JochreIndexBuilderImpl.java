@@ -128,12 +128,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	@Override
-	public void updateDocument(File documentDir) {
+	public void updateDocument(File documentDir, int startPage, int endPage) {
 		long startTime = System.currentTimeMillis();
 		try {
 			this.initialise();
 			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(documentDir);
-			this.updateDocumentInternal(directory);
+			this.updateDocumentInternal(directory, startPage, endPage);
 			indexWriter.commit();
 			indexWriter.close();
 		} catch (IOException e) {
@@ -200,7 +200,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			}
 			
 			if (updateIndex) {
-				this.updateDocumentInternal(jochreIndexDirectory);
+				this.updateDocumentInternal(jochreIndexDirectory, -1, -1);
 			} else {
 				LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
 			} // should update index?
@@ -211,7 +211,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 	
-	private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
+	private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory, int startPage, int endPage) {
 		try {
 			LOG.info("Updating index for " + jochreIndexDirectory.getName());
 			
@@ -219,7 +219,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 			AltoDocument altoDoc = this.altoService.newDocument(jochreIndexDirectory.getName());
 			AltoReader reader = this.altoService.getAltoReader(altoDoc);
-			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory);
+			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory, startPage, endPage);
 			reader.addConsumer(altoPageIndexer);
 			
 			UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
@@ -240,24 +240,35 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private List<AltoPage> previousPages = new ArrayList<AltoPage>();
 		private List<JochreToken> previousStrings = new ArrayList<JochreToken>();
 		private List<JochreToken> currentStrings = new ArrayList<JochreToken>();
+		private int startPage = -1;
+		private int endPage = -1;
 		
 		private JochreIndexDirectory directory;
 		
-		public AltoPageIndexer(JochreIndexBuilderImpl parent, JochreIndexDirectory directory) {
+		public AltoPageIndexer(JochreIndexBuilderImpl parent, JochreIndexDirectory directory, int startPage, int endPage) {
 			super();
 			this.parent = parent;
 			this.directory = directory;
+			this.startPage = startPage;
+			this.endPage = endPage;
 		}
 
 		@Override
 		public void onNextPage(AltoPage page) {
+			if (startPage>=0 && page.getPageIndex()<startPage)
+				return;
+			if (endPage>=0 && page.getPageIndex()>endPage)
+				return;
 			LOG.debug("Processing page: " + page.getPageIndex());
 			currentPages.add(page);
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
+				textBlock.joinHyphens();
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					for (AltoString string : textLine.getStrings()) {
-						if (!string.isWhiteSpace() && !PUNCTUATION.matcher(string.getContent()).matches())
-							currentStrings.add(string);
+						if (string.isWhiteSpace() || PUNCTUATION.matcher(string.getContent()).matches())
+							continue;
+						
+						currentStrings.add(string);
 					}
 				}
 			}

@@ -3,6 +3,7 @@ package com.joliciel.jochre.search;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -171,7 +172,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 					for (int rowIndex : rowRectangles.keys()) {
 						Rectangle rect = rowRectangles.get(rowIndex);
 						String fieldName = "r" + pageIndex + "_" + blockIndex + "_" + rowIndex;
-						doc.add(new Field(fieldName, rect.getString(), TYPE_NOT_INDEXED));
+						doc.add(new Field(fieldName, this.rectToString(rect), TYPE_NOT_INDEXED));
 					}
 				}
 			}
@@ -233,7 +234,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 				throw new RectangleNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get("name")
 						+ ", pages " + this.doc.get("startPage") + " to " + this.doc.get("endPage"));
 			}
-			rect = new Rectangle(rectString);
+			rect = this.stringToRect(rectString);
 		}
 		return rect;
 	}
@@ -261,5 +262,19 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		PdfImageReader pdfImageReader = new PdfImageReader(this.directory.getPdfFile());
 		BufferedImage image = pdfImageReader.readImage(pageIndex);
 		return image;
+	}
+	
+	private String rectToString(Rectangle rect) {
+		return rect.x + "|" + rect.y + "|" + rect.width + "|" + rect.height;
+	}
+	
+	private Rectangle stringToRect(String string) {
+		String[] parts = string.split("\\|");
+		int x = Integer.parseInt(parts[0]);
+		int y = Integer.parseInt(parts[1]);
+		int width = Integer.parseInt(parts[2]);
+		int height = Integer.parseInt(parts[3]);
+		Rectangle rect = new Rectangle(x, y, width, height);
+		return rect;
 	}
 }

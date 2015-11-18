@@ -21,6 +21,7 @@ package com.joliciel.jochre.search.highlight;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.search.JochreIndexDocument;
-import com.joliciel.jochre.search.Rectangle;
 
 public class ImageSnippet {
 	private static final Log LOG = LogFactory.getLog(ImageSnippet.class);
@@ -49,16 +49,18 @@ public class ImageSnippet {
 		if (LOG.isDebugEnabled())
 			LOG.debug("new rect: " + rectangle.toString());
 		
-		rectangle.setLeft(rectangle.getLeft()-5);
-		rectangle.setTop(rectangle.getTop()-5);
-		rectangle.setRight(rectangle.getRight()+5);
-		rectangle.setBottom(rectangle.getBottom()+5);
+		rectangle.grow(5, 5);
 		
 		highlights = new ArrayList<Rectangle>();
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
-			Rectangle rect = new Rectangle(term.getPayload().getLeft(), term.getPayload().getTop(), term.getPayload().getRight(), term.getPayload().getBottom());
+			Rectangle rect = term.getPayload().getRectangle();
 			LOG.debug("Added highlight: " + rect.toString());
 			highlights.add(rect);
+			Rectangle secondaryRect = term.getPayload().getSecondaryRectangle();
+			if (secondaryRect!=null) {
+				LOG.debug("Added highlight: " + secondaryRect.toString());
+				highlights.add(secondaryRect);
+			}
 		}
 	}
 	
@@ -72,17 +74,17 @@ public class ImageSnippet {
 
 	public BufferedImage getImage() {
 		BufferedImage originalImage = jochreDoc.getImage(snippet.getPageIndex());
-		BufferedImage imageSnippet = new BufferedImage(this.rectangle.getWidth(), this.rectangle.getHeight(), BufferedImage.TYPE_INT_ARGB);
-		originalImage = originalImage.getSubimage(this.rectangle.getLeft(), this.rectangle.getTop(), this.rectangle.getWidth(), this.rectangle.getHeight());
+		BufferedImage imageSnippet = new BufferedImage(this.rectangle.width, this.rectangle.height, BufferedImage.TYPE_INT_ARGB);
+		originalImage = originalImage.getSubimage(this.rectangle.x, this.rectangle.y, this.rectangle.width, this.rectangle.height);
 		Graphics2D graphics2D = imageSnippet.createGraphics();
-		graphics2D.drawImage(originalImage, 0, 0, this.rectangle.getWidth(), this.rectangle.getHeight(), null);
+		graphics2D.drawImage(originalImage, 0, 0, this.rectangle.width, this.rectangle.height, null);
 		int extra=2;
 		for (Rectangle rect : this.highlights) {
 			graphics2D.setStroke(new BasicStroke(1));
 			graphics2D.setPaint(Color.BLACK);
-			graphics2D.drawRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
+			graphics2D.drawRect(rect.x-this.rectangle.x-extra, rect.y-this.rectangle.y-extra, rect.width + (extra*2), rect.height + (extra*2));
 			graphics2D.setColor(new Color(255, 255, 0, 127));
-			graphics2D.fillRect(rect.getLeft()-this.rectangle.getLeft()-extra, rect.getTop()-this.rectangle.getTop()-extra, rect.getWidth() + (extra*2), rect.getHeight() + (extra*2));
+			graphics2D.fillRect(rect.x-this.rectangle.x-extra, rect.y-this.rectangle.y-extra, rect.width + (extra*2), rect.height + (extra*2));
 		}
 		return imageSnippet;
 	}

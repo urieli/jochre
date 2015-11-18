@@ -18,15 +18,19 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.List;
 
 public interface AltoTextBlock {
 	public List<AltoTextLine> getTextLines();
-	public int getLeft();
-	public int getTop();
-	public int getWidth();
-	public int getHeight();
+	public Rectangle getRectangle();
 	public int wordCount();
 	public AltoPage getPage();
 	public int getIndex();
+	
+	/**
+	 * For any hyphenated words at end-of-line, replace the two parts of the hyphens
+	 * by a single string, where the secondary rectangle is set to contain the second word.
+	 */
+	public void joinHyphens();
 }

@@ -83,25 +83,54 @@ public class JochreSearch {
 				LOG.debug(arg.getKey() + ": " + arg.getValue());
 			}
 			
+			String indexDirPath = null;
+			String documentDirPath = null;
+			int startPage = -1;
+			int endPage = -1;
+			boolean forceUpdate = false;
+			String docId = null;
+			
+			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+				String argName = argMapEntry.getKey();
+				String argValue = argMapEntry.getValue();
+				
+				if (argName.equals("indexDir")) {
+					indexDirPath = argValue;
+				} else if (argName.equals("documentDir")) {
+					documentDirPath = argValue;
+				} else if (argName.equals("startPage")) {
+					startPage = Integer.parseInt(argValue);
+				} else if (argName.equals("endPage")) {
+					endPage = Integer.parseInt(argValue);
+				} else if (argName.equals("forceUpdate")) {
+					forceUpdate = argValue.equals("true");
+				} else if (argName.equals("docId")) {
+					docId = argValue;
+				} else {
+					LOG.info("Unknown option: " + argName);
+				}
+			}
+			
+			if (indexDirPath==null)
+				throw new RuntimeException("for command " + command + ", indexDir is required");
+			
 			SearchServiceLocator locator = SearchServiceLocator.getInstance();
 			SearchService searchService = locator.getSearchService();
 			
 			if (command.equals("buildIndex")) {
-				String indexDirPath = argMap.get("indexDir");
-				String documentDirPath = argMap.get("documentDir");
+				if (documentDirPath==null)
+					throw new RuntimeException("for command " + command + ", documentDir is required");
+
 				File indexDir = new File(indexDirPath);
 				indexDir.mkdirs();
 				File documentDir = new File(documentDirPath);
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
-				builder.updateDocument(documentDir);
+				builder.updateDocument(documentDir, startPage, endPage);
 			} else if (command.equals("updateIndex")) {
-				String indexDirPath = argMap.get("indexDir");
-				String documentDirPath = argMap.get("documentDir");
-				boolean forceUpdate = false;
-				if (argMap.containsKey("forceUpdate")) {
-					forceUpdate = argMap.get("forceUpdate").equals("true");
-				}
+				if (documentDirPath==null)
+					throw new RuntimeException("for command " + command + ", documentDir is required");
+
 				File indexDir = new File(indexDirPath);
 				indexDir.mkdirs();
 				File documentDir = new File(documentDirPath);
@@ -112,7 +141,6 @@ public class JochreSearch {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				
-				String indexDirPath = argMap.get("indexDir");
 				File indexDir = new File(indexDirPath);
 				JochreQuery query = searchService.getJochreQuery(argMap);
 				
@@ -150,8 +178,6 @@ public class JochreSearch {
 					}
 				}
 			} else if (command.equals("view")) {
-				String docId = argMap.get("docId");
-				String indexDirPath = argMap.get("indexDir");
 				File indexDir = new File(indexDirPath);
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 				List<Document> docs = searcher.findDocuments(docId);

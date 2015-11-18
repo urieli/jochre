@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -37,7 +38,6 @@ import org.apache.lucene.search.IndexSearcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexDocument;
-import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -165,18 +165,18 @@ class HighlightManagerImpl implements HighlightManager {
 					for (Snippet snippet : snippetMap.get(docId)) {
 						jsonGen.writeStartObject();
 						ImageSnippet imageSnippet = this.getImageSnippet(snippet);
-						jsonGen.writeNumberField("left", imageSnippet.getRectangle().getLeft());
-						jsonGen.writeNumberField("top", imageSnippet.getRectangle().getTop());
-						jsonGen.writeNumberField("right", imageSnippet.getRectangle().getRight());
-						jsonGen.writeNumberField("bottom", imageSnippet.getRectangle().getBottom());
+						jsonGen.writeNumberField("left", imageSnippet.getRectangle().x);
+						jsonGen.writeNumberField("top", imageSnippet.getRectangle().y);
+						jsonGen.writeNumberField("width", imageSnippet.getRectangle().width );
+						jsonGen.writeNumberField("height", imageSnippet.getRectangle().height);
 						
 						jsonGen.writeArrayFieldStart("highlights");
 						for (Rectangle highlight : imageSnippet.getHighlights()) {
 							jsonGen.writeStartObject();
-							jsonGen.writeNumberField("left", highlight.getLeft());
-							jsonGen.writeNumberField("top", highlight.getTop());
-							jsonGen.writeNumberField("right", highlight.getRight());
-							jsonGen.writeNumberField("bottom", highlight.getBottom());
+							jsonGen.writeNumberField("left", highlight.x);
+							jsonGen.writeNumberField("top", highlight.y);
+							jsonGen.writeNumberField("width", highlight.width);
+							jsonGen.writeNumberField("height", highlight.height);
 							jsonGen.writeEndObject();
 						}
 						jsonGen.writeEndArray();

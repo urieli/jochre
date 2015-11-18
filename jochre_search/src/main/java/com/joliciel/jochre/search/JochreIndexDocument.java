@@ -1,6 +1,8 @@
 package com.joliciel.jochre.search;
 
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+
 import org.apache.lucene.index.IndexWriter;
 
 public interface JochreIndexDocument {

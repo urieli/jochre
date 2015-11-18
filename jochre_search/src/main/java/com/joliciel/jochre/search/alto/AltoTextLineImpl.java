@@ -18,26 +18,21 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.joliciel.jochre.search.Rectangle;
-
 class AltoTextLineImpl implements AltoTextLine {
 	private List<AltoString> strings = new ArrayList<AltoString>();
-	private int left, top, width, height;
+	private Rectangle rectangle;
 	private AltoTextBlock textBlock;
 	private int wordCount = -1;
 	private int index = -1;
-	private Rectangle rectangle = null;
 	
 	public AltoTextLineImpl(AltoTextBlock textBlock, int left, int top, int width, int height) {
 		super();
 		this.textBlock = textBlock;
-		this.left = left;
-		this.top = top;
-		this.width = width;
-		this.height = height;
+		this.rectangle = new Rectangle(left, top, width, height);
 		this.index = this.textBlock.getTextLines().size();
 		this.textBlock.getTextLines().add(this);
 	}
@@ -46,22 +41,12 @@ class AltoTextLineImpl implements AltoTextLine {
 	public List<AltoString> getStrings() {
 		return strings;
 	}
-
-	public int getLeft() {
-		return left;
+	
+	@Override
+	public Rectangle getRectangle() {
+		return rectangle;
 	}
 
-	public int getTop() {
-		return top;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
 
 	public AltoTextBlock getTextBlock() {
 		return textBlock;
@@ -80,13 +65,5 @@ class AltoTextLineImpl implements AltoTextLine {
 	
 	public int getIndex() {
 		return index;
-	}
-
-	@Override
-	public Rectangle getRectangle() {
-		if (rectangle==null) {
-			rectangle = new Rectangle(left, top, left + width -1, top + height -1);
-		}
-		return rectangle;
 	}
 }

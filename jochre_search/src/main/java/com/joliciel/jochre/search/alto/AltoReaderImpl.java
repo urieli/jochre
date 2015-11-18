@@ -143,6 +143,7 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
         	int height = Integer.parseInt(attributes.getValue("HEIGHT"));
         	String content = attributes.getValue("CONTENT").replace("&quot;", "\"");
         	currentString = altoService.newString(currentTextLine, content, left, top, width, height);
+        	currentString.setHyphen(true);
         	
         	currentString.setSpanStart(currentOffset);
         	currentOffset += content.length();

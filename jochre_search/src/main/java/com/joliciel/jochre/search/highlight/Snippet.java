@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -41,7 +42,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.RectangleNotFoundException;
 import com.joliciel.jochre.search.JochrePayload;
-import com.joliciel.jochre.search.Rectangle;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -120,6 +120,11 @@ public class Snippet implements Comparable<Snippet> {
 		 	 			int top = 0;
 		 	 			int width = 0;
 		 	 			int height = 0;
+		 	 			int left2 = -1;
+		 	 			int top2 = -1;
+		 	 			int width2 = -1;
+		 	 			int height2 = -1;
+		 	 			
 		 	 			double weight = 0.0;
 		 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 			 				String termFieldName = jsonParser.getCurrentName();
@@ -145,6 +150,14 @@ public class Snippet implements Comparable<Snippet> {
 			 					width = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("height")) {
 			 					height = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("left2")) {
+			 					left2 = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("top2")) {
+			 					top2 = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("width2")) {
+			 					width2 = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("height2")) {
+			 					height2 = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("weight")) {
 								jsonParser.nextValue();
 								weight = jsonParser.getDoubleValue();
@@ -152,7 +165,11 @@ public class Snippet implements Comparable<Snippet> {
 								throw new RuntimeException("Unexpected term field name: " + termFieldName + " at " + jsonParser.getCurrentLocation());
 							}
 			 			}
-		 				JochrePayload payload = new JochrePayload(left, top, width, height, pageIndex, textBlockIndex, textLineIndex);
+		 				Rectangle rect = new Rectangle(left, top, width, height);
+		 				Rectangle secondaryRect = null;
+		 				if (left2>=0)
+		 					secondaryRect = new Rectangle(left2, top2, width2, height2);
+		 				JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, textBlockIndex, textLineIndex);
 	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
 	 	 				highlightTerm.setWeight(weight);
 	 	 				this.highlightTerms.add(highlightTerm);
@@ -304,7 +321,7 @@ public class Snippet implements Comparable<Snippet> {
 	}
 
 	public Rectangle getRectangle(JochreIndexDocument jochreDoc) {
-		if (rect==null) {
+		if (this.rect==null) {
 			if (this.highlightTerms.size()>0) {
 				int startPageIndex =  this.highlightTerms.get(0).getPayload().getPageIndex();
 				int startBlockIndex =  this.highlightTerms.get(0).getPayload().getTextBlockIndex();
@@ -320,12 +337,12 @@ public class Snippet implements Comparable<Snippet> {
 				LOG.debug("Original rect: " + rect);
 				Rectangle otherRect = jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex);
 				LOG.debug("Expanding by last highlight: " + otherRect);
-				rect.expand(otherRect);
+				rect.add(otherRect);
 				
 				try {
 					Rectangle previousRect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex-1));
 					LOG.debug("Expanding by prev rect: " + previousRect);
-					rect.expand(previousRect);
+					rect.add(previousRect);
 				} catch (RectangleNotFoundException e) {
 					// do nothing
 				}
@@ -333,7 +350,7 @@ public class Snippet implements Comparable<Snippet> {
 				try {
 					Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+1));
 					LOG.debug("Expanding by next rect: " + nextRect);
-					rect.expand(nextRect);
+					rect.add(nextRect);
 				} catch (RectangleNotFoundException e) {
 					// do nothing
 				}
@@ -342,6 +359,7 @@ public class Snippet implements Comparable<Snippet> {
 				int startPageIndex = jochreDoc.getStartPage();
 				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, 0, 0));
 			}
+			this.rect = new Rectangle((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
 		}
 		return rect;
 	}

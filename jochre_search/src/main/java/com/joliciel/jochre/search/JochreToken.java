@@ -1,5 +1,6 @@
 package com.joliciel.jochre.search;
 
+import java.awt.Rectangle;
 import java.util.List;
 
 public interface JochreToken {	
@@ -9,13 +10,6 @@ public interface JochreToken {
 	 */
 	public List<String> getContentStrings();
 	public void setContentStrings(List<String> contentStrings);
-	
-	/**
-	 * Any hyphenated content strings for the current token.
-	 * @return
-	 */
-	public List<String> getHyphenatedContentStrings();
-	public void setHyphenatedContentStrings(List<String> hyphenatedContentStrings);
 	
 	/**
 	 * The index of this token within the current row.
@@ -37,10 +31,19 @@ public interface JochreToken {
 	public int getSpanEnd();
 	public void setSpanEnd(int spanEnd);
 	
-	public int getLeft();
-	public int getTop();
-	public int getWidth();
-	public int getHeight();
+	/**
+	 * The main rectangle containing this token.
+	 * @return
+	 */
+	public Rectangle getRectangle();
+	
+	/**
+	 * The secondary rectangle, when this token is spread across two rows.
+	 * @return
+	 */
+	public Rectangle getSecondaryRectangle();
+	public void setSecondaryRectangle(Rectangle secondaryRectangle);
+	
 	public int getPageIndex();
 	public int getParagraphIndex();
 	public int getRowIndex();

@@ -19,7 +19,6 @@
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -53,7 +52,6 @@ class JochreTokeniser extends Tokenizer {
 	private JochreToken currentToken;
 	private List<String> currentAlternatives = null;
 	private int currentAlternativeIndex = 0;
-	private int hyphenatedContentIndex = -1;
 	private String fieldName;
 	
 	/**
@@ -88,14 +86,7 @@ class JochreTokeniser extends Tokenizer {
 				LOG.trace(currentToken.toString());
 			}
 			
-			// need to add hyphenated content first, since they have a position length of 2
-			// otherwise, if we give a position length of 2 and an increment of 1, the following token will appear to be 2 away from the present one
-			currentAlternatives = new ArrayList<String>();
-			if (currentToken.getHyphenatedContentStrings()!=null)
-				currentAlternatives.addAll(currentToken.getHyphenatedContentStrings());
-			hyphenatedContentIndex = currentAlternatives.size();
-			currentAlternatives.addAll(currentToken.getContentStrings());
-			
+			currentAlternatives = currentToken.getContentStrings();
 			currentAlternativeIndex = 0;
 		}
 
@@ -105,11 +96,7 @@ class JochreTokeniser extends Tokenizer {
 			// add the term itself
 			termAtt.append(content);
 			
-			if (currentAlternativeIndex<hyphenatedContentIndex) {
-				posLengthAtt.setPositionLength(2);
-			} else {
-				posLengthAtt.setPositionLength(1);
-			}
+			posLengthAtt.setPositionLength(1);
 			
 			if (currentAlternativeIndex==0) {
 				posIncrAtt.setPositionIncrement(1);
@@ -119,16 +106,17 @@ class JochreTokeniser extends Tokenizer {
 			
 			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
 			
+			// store the coordinates in the payload
+			JochrePayload payload = new JochrePayload(currentToken);
+			payloadAtt.setPayload(payload.getBytesRef());
+			
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Added \"" + content + "\""
 						+ ", length: " + posLengthAtt.getPositionLength()
 						+ ", increment: " + posIncrAtt.getPositionIncrement()
-						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset());
+						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset()
+						+ ", payload: " + payload.toString());
 			}
-			
-			// store the coordinates in the payload
-			JochrePayload payload = new JochrePayload(currentToken);
-			payloadAtt.setPayload(payload.getBytesRef());
 
 			currentAlternativeIndex++;
 			
