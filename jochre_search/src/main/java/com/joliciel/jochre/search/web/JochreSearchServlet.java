@@ -197,7 +197,7 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
-					LOG.debug("Snippet in " + doc.get("id") + ", path: " + doc.get("path"));
+					LOG.debug("Snippet in: " + doc.get("path"));
 				}
 				
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
@@ -216,7 +216,7 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
-					LOG.debug("Snippet in " + doc.get("id") + ", path: " + doc.get("path"));
+					LOG.debug("Snippet in: " + doc.get("path"));
 				}
 				
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);

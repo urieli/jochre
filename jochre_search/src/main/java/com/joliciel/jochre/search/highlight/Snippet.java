@@ -330,7 +330,12 @@ public class Snippet implements Comparable<Snippet> {
 				int endBlockIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextBlockIndex();
 				int endLineIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextLineIndex();
 				
-				LOG.debug("Getting rectangle for snippet " + this.highlightTerms.toString());
+				LOG.debug("Getting rectangle for snippet with terms " + this.highlightTerms.toString());
+				if (LOG.isTraceEnabled()) {
+					for (HighlightTerm term : this.highlightTerms) {
+						LOG.trace(term.toString() + ", " + term.getPayload().toString());
+					}
+				}
 				LOG.debug("startPageIndex: " + startPageIndex + ", startBlockIndex: " + startBlockIndex + ", startLineIndex: " + startLineIndex);
 				LOG.debug("endPageIndex: " + endPageIndex + ", endBlockIndex: " + endBlockIndex + ", endLineIndex: " + endLineIndex);
 				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex));
@@ -355,11 +360,21 @@ public class Snippet implements Comparable<Snippet> {
 					// do nothing
 				}
 				
+				// add an extra row at the end if we have a secondary rectangle
+				if (this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getSecondaryRectangle()!=null) {
+					try {
+						Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+2));
+						LOG.debug("Expanding by line after secondary rect: " + nextRect);
+						rect.add(nextRect);
+					} catch (RectangleNotFoundException e) {
+						// do nothing
+					}
+				}
+				
 			} else {
 				int startPageIndex = jochreDoc.getStartPage();
 				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, 0, 0));
 			}
-			this.rect = new Rectangle((int)rect.getX(), (int)rect.getY(), (int)rect.getWidth(), (int)rect.getHeight());
 		}
 		return rect;
 	}

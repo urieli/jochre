@@ -138,10 +138,10 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			jsonGen.writeNumberField("height", rect.height);
 			Rectangle secondaryRect = this.getPayload().getSecondaryRectangle();
 			if (secondaryRect!=null) {
-				jsonGen.writeNumberField("left2", rect.x);
-				jsonGen.writeNumberField("top2", rect.y);
-				jsonGen.writeNumberField("width2", rect.width);
-				jsonGen.writeNumberField("height2", rect.height);
+				jsonGen.writeNumberField("left2", secondaryRect.x);
+				jsonGen.writeNumberField("top2", secondaryRect.y);
+				jsonGen.writeNumberField("width2", secondaryRect.width);
+				jsonGen.writeNumberField("height2", secondaryRect.height);
 			}
 			jsonGen.writeNumberField("pageIndex", this.getPayload().getPageIndex());
 			jsonGen.writeNumberField("textBlockIndex", this.getPayload().getTextBlockIndex());

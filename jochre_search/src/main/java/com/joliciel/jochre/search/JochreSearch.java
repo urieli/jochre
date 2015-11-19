@@ -189,7 +189,8 @@ public class JochreSearch {
 				for (Document doc : docs) {
 					jsonGen.writeStartObject();
 					for (IndexableField field : doc.getFields()) {
-						jsonGen.writeStringField(field.name(), field.stringValue());
+						if (!field.name().equals("text"))
+							jsonGen.writeStringField(field.name(), field.stringValue());
 					}
 					jsonGen.writeEndObject();
 				}

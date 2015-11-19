@@ -9,7 +9,7 @@ public class JochrePayload {
 	private BytesRef bytesRef;
 	
 	public JochrePayload(BytesRef bytesRef) {
-		this.bytesRef = bytesRef.clone();
+		this.bytesRef = BytesRef.deepCopyOf(bytesRef);
 		if (bytesRef.length!=12&&bytesRef.length!=20)
 			throw new RuntimeException("bytesRef wrong size, should be 12 or 20, was " + bytesRef.length + ": " + Arrays.toString(bytesRef.bytes));
 	}
