@@ -116,6 +116,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 			indexWriter.commit();
 			indexWriter.close();
+			searchService.purgeSearcher();
 
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -136,6 +137,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.updateDocumentInternal(directory, startPage, endPage);
 			indexWriter.commit();
 			indexWriter.close();
+			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
@@ -152,6 +154,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.deleteDocumentInternal(documentDir);
 			indexWriter.commit();
 			indexWriter.close();
+			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);

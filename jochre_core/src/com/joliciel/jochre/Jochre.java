@@ -24,11 +24,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,7 +181,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	Map<String,Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
 	
 	private int beamWidth = 5;
-	private List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 	
 	public Jochre() { }
 
@@ -246,6 +248,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
 		String command = "";
 		String inFilePath = "";
+		String inDirPath = null;
 		String userFriendlyName = "";
 		String outputDirPath = null;
 		String outputFilePath = null;
@@ -302,7 +305,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 				firstPage = Integer.parseInt(argValue);
 			else if (argName.equals("last"))
 				lastPage = Integer.parseInt(argValue);
-			else if (argName.equals("outputDir"))
+			else if (argName.equals("inDir"))
+				inDirPath = argValue;
+			else if (argName.equals("outDir"))
 				outputDirPath = argValue;
 			else if (argName.equals("outputFile"))
 				outputFilePath = argValue;
@@ -489,7 +494,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 			if (outputDir!=null)
 				outputDir.mkdirs();
         	
-        	if (outputFormats.size()>0) {
+			List<DocumentObserver> observers = null;
+        	if (outputFormats.size()>0 && !command.equals("analyseFolder")) {
 				if (outputDir==null) {
 					throw new JochreException("Either outputDir our outputFile are required with outputFormats");
 				}
@@ -497,16 +503,11 @@ public class Jochre implements LocaleSpecificLexiconService {
         		if (userFriendlyName!=null && userFriendlyName.length()>0) {
         			baseName = userFriendlyName;
         		} else if (inFilePath!=null && inFilePath.length()>0) {
-	        		baseName = inFilePath;
-	        		if (baseName.lastIndexOf('.')>0)
-	        			baseName = baseName.substring(0, baseName.lastIndexOf('.'));
-		    		if (baseName.lastIndexOf('/')>0)
-		    			baseName = baseName.substring(baseName.lastIndexOf('/')+1);
-		    		if (baseName.lastIndexOf('\\')>0)
-		    			baseName = baseName.substring(baseName.lastIndexOf('\\')+1);
+        			File inFile = new File(inFilePath);
+	        		baseName = this.getBaseName(inFile);
         		}
 
-	    		this.observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
+	    		observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
         	}
         	
 			if (userFriendlyName.length()==0)
@@ -523,11 +524,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 			} else if (command.equals("train")) {
 				this.doCommandTrain(letterModelPath, trainingParameters, criteria, reconstructLetters);
 			} else if (command.equals("evaluate")||command.equals("evaluateComplex")) {
-				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam);
+				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
 			} else if (command.equals("evaluateFull")) {
-				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix);
+				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix, observers);
 			} else if (command.equals("analyse")) {
-				this.doCommandAnalyse(letterModelPath, docId, criteria, wordChooser);
+				this.doCommandAnalyse(letterModelPath, docId, criteria, wordChooser, observers);
 			} else if (command.equals("trainSplits")) {
 				this.doCommandTrainSplits(splitModelPath, trainingParameters, criteria);
 			} else if (command.equals("evaluateSplits")) {
@@ -574,6 +575,42 @@ public class Jochre implements LocaleSpecificLexiconService {
 		    			lexiconFile = new File(outputDir, baseName + ".obj");
 	        		lexicon.serialize(lexiconFile);
         		}
+			} else if (command.equals("analyseFolder")) {
+				File inDir = new File(inDirPath);
+				File[] pdfFiles = inDir.listFiles(new FilenameFilter() {
+					
+					@Override
+					public boolean accept(File dir, String name) {
+						return (name.toLowerCase().endsWith(".pdf"));
+					}
+				});
+				for (File pdfFile : pdfFiles) {
+					LOG.info("Analysing file: " + pdfFile.getAbsolutePath());
+					String baseName = this.getBaseName(pdfFile);
+					File analysisDir = new File(inDir, baseName);
+					analysisDir.mkdirs();
+					List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, outputService);
+					File letterModelFile = new File(letterModelPath);
+					File splitModelFile = null;
+					File mergeModelFile = null;
+					if (splitModelPath.length()>0)
+						splitModelFile = new File(splitModelPath);
+					if (mergeModelPath.length()>0)
+						mergeModelFile = new File(mergeModelPath);	    						
+					this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, pdfObservers);
+					
+					File pdfOutputDir = new File(outputDir, baseName);
+					pdfOutputDir.mkdirs();
+					
+					File targetFile = new File(pdfOutputDir, pdfFile.getName());
+					Files.move(pdfFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					File[] analysisFiles = analysisDir.listFiles();
+					for (File analysisFile : analysisFiles) {
+						targetFile = new File(pdfOutputDir, analysisFile.getName());
+						Files.move(analysisFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					}
+					Files.delete(analysisDir.toPath());
+				}
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);
 				File letterModelFile = new File(letterModelPath);
@@ -583,7 +620,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					splitModelFile = new File(splitModelPath);
 				if (mergeModelPath.length()>0)
 					mergeModelFile = new File(mergeModelPath);	    						
-				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage);
+				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, observers);
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
@@ -596,6 +633,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 		LOG.debug("#### finished #####");
 	}
 
+	private String getBaseName(File file) {
+		String baseName = file.getName();
+		if (baseName.lastIndexOf('.')>0)
+			baseName = baseName.substring(0, baseName.lastIndexOf('.'));
+		return baseName;
+	}
+	
 	/**
 	 * Test a feature on a particular shape.
 	 * @param shapeId
@@ -872,7 +916,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param lexicon the lexicon to use for word correction
 	 * @throws IOException
 	 */
-	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, boolean reconstructLetters, boolean save, String suffix, boolean includeBeam) throws IOException {
+	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, boolean reconstructLetters, boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		if (!letterModelPath.endsWith(".zip"))
@@ -976,7 +1020,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
     	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
     	imageProcessor.addObserver(evaluator);
-		for (DocumentObserver observer : this.observers)
+		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
     	
 		try {
@@ -1004,7 +1048,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param testSet the test set to be analysed
 	 * @throws IOException
 	 */
-	public void doCommandAnalyse(String letterModelPath, int docId, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser) throws IOException {
+	public void doCommandAnalyse(String letterModelPath, int docId, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 		if (!letterModelPath.endsWith(".zip"))
@@ -1027,13 +1071,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 		
     	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
     	imageProcessor.addObserver(analyser);
-		for (DocumentObserver observer : this.observers)
+		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
 		
 		imageProcessor.process();
 	}
 	
-	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage) throws IOException {
+	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage, List<DocumentObserver> observers) throws IOException {
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
 		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
 
@@ -1104,7 +1148,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @throws IOException
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, 
-			boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix) throws IOException {
+			boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix, List<DocumentObserver> observers) throws IOException {
 		if (letterModelPath.length()==0)
 			throw new RuntimeException("Missing argument: letterModel");
 	   	if (outputDirPath==null||outputDirPath.length()==0)
@@ -1204,7 +1248,7 @@ public class Jochre implements LocaleSpecificLexiconService {
     	
     	JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
     	imageProcessor.addObserver(evaluator);
-		for (DocumentObserver observer : this.observers)
+		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
 		imageProcessor.process();
 		

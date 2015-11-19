@@ -31,6 +31,7 @@ import com.joliciel.jochre.search.alto.AltoService;
 
 class SearchServiceImpl implements SearchServiceInternal {
 	private AltoService altoService;
+	private JochreIndexSearcher searcher;
 	
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir) {
@@ -47,10 +48,18 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	@Override
 	public JochreIndexSearcher getJochreIndexSearcher(File indexDir) {
-		JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir);
-		searcher.setSearchService(this);
-		return searcher;
+		if (this.searcher==null) {
+			JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir);
+			searcher.setSearchService(this);
+			this.searcher = searcher;
+		}
+		return this.searcher;
 	}
+	
+	public void purgeSearcher() {
+		this.searcher = null;
+	}
+	
 	@Override
 	public JochreIndexDocument getJochreIndexDocument(
 			IndexSearcher indexSearcher, int docId) {

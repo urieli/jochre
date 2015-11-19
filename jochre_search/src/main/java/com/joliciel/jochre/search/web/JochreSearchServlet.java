@@ -63,9 +63,7 @@ import com.joliciel.talismane.utils.LogUtils;
 public class JochreSearchServlet extends HttpServlet {
 	private static final Log LOG = LogFactory.getLog(JochreSearchServlet.class);
 	private static final long serialVersionUID = 1L;
-	
-	private JochreIndexSearcher searcher = null;
-	
+		
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -86,9 +84,12 @@ public class JochreSearchServlet extends HttpServlet {
 				command="search";
 			}
 			
+			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance();
+			SearchService searchService = searchServiceLocator.getSearchService();
+
 			if (command.equals("purge")) {
 				JochreSearchProperties.purgeInstance();
-				searcher = null;
+				searchService.purgeSearcher();
 				return;
 			}
 			
@@ -100,10 +101,7 @@ public class JochreSearchServlet extends HttpServlet {
 				String value = req.getParameter(paramName);
 				argMap.put(paramName, value);
 			}
-			
-			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance();
-			SearchService searchService = searchServiceLocator.getSearchService();
-	
+				
 			double minWeight = 0;
 			int titleSnippetCount = 1;
 			int snippetCount = 3;
@@ -151,12 +149,10 @@ public class JochreSearchServlet extends HttpServlet {
 			}
 			for (String argName : handledArgs) argMap.remove(argName);
 	
-			if (searcher==null) {
-				String indexDirPath = props.getIndexDirPath();
-				File indexDir = new File(indexDirPath);
-				LOG.info("Index dir: " + indexDir.getAbsolutePath());
-				searcher = searchService.getJochreIndexSearcher(indexDir);
-			}
+			String indexDirPath = props.getIndexDirPath();
+			File indexDir = new File(indexDirPath);
+			LOG.info("Index dir: " + indexDir.getAbsolutePath());
+			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 			
 			if (command.equals("search")) {		
 				response.setContentType("text/plain;charset=UTF-8");
