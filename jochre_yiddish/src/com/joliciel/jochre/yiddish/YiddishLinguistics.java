@@ -2,6 +2,7 @@ package com.joliciel.jochre.yiddish;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import com.joliciel.jochre.lang.Linguistics;
 
@@ -14,6 +15,7 @@ public class YiddishLinguistics implements Linguistics {
 	private Set<Character> punctuation = null;
 	
     private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„-";
+    private static final Pattern NUMBER = Pattern.compile("\\d+");
 
 	@Override
 	public Set<String> getValidLetters() {
@@ -146,6 +148,15 @@ public class YiddishLinguistics implements Linguistics {
 		word = word.replaceAll("(.)דיגן\\z", "$1דיקן");
 
 //		word = YiddishWordSplitter.getEndForm(word);
+		
+		if (NUMBER.matcher(word).matches()) {
+			// reverse numbers
+			char[] newWord = new char[word.length()];
+			for (int i=0; i< word.length(); i++) {
+				newWord[i] = word.charAt(word.length()-i-1);
+			}
+			word = new String(newWord);
+		}
 		return word;
 	}
 	

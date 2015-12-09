@@ -21,6 +21,8 @@ package com.joliciel.jochre.search.alto;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 class AltoTextBlockImpl implements AltoTextBlock {
 	private List<AltoTextLine> rows = new ArrayList<AltoTextLine>();
@@ -72,36 +74,62 @@ class AltoTextBlockImpl implements AltoTextBlock {
 			AltoTextLine row = this.rows.get(i);
 			for (int j=0; j<row.getStrings().size(); j++) {
 				AltoString string = row.getStrings().get(j);
-				if (string.isHyphenStart() && string.getHyphenatedContent()!=null) {
-					if (i+1<this.rows.size()) {
-						if (j+1<row.getStrings().size()) {
-							AltoString hyphen = row.getStrings().get(j+1);
-							if (hyphen.isHyphen()) {
-								string.getRectangle().add(hyphen.getRectangle());
-								row.getStrings().remove(j+1);
-								j++;
-							}
+				if (string.isHyphen()) {
+					AltoString hyphen = string;
+					AltoString prevString = null;
+					AltoString nextString = null;
+					boolean endOfRowHyphen = false;
+					if (j>0 && !row.getStrings().get(j-1).isWhiteSpace()) {
+						prevString = row.getStrings().get(j-1);
+					}
+					
+					if (j+1<row.getStrings().size() && !row.getStrings().get(j+1).isWhiteSpace()) {
+						nextString = row.getStrings().get(j+1);
+					}
+					AltoTextLine nextRow = null;
+					if (nextString==null && j==row.getStrings().size()-1 && i+1<this.rows.size()) {
+						nextRow = this.rows.get(i+1);
+						if (nextRow.getStrings().size()>0 && !nextRow.getStrings().get(0).isWhiteSpace()) {
+							nextString = nextRow.getStrings().get(0);
+							endOfRowHyphen = true;
 						}
-						AltoTextLine nextRow = this.rows.get(i+1);
-						if (nextRow.getStrings().size()>0) {
-							AltoString nextString = nextRow.getStrings().get(0);
-							
-							List<String> alternatives = new ArrayList<String>();
-							for (String contentA : string.getContentStrings()) {
-								for (String contentB : nextString.getContentStrings()) {
-									String alternative = contentA + "-" + contentB;
-									if (!string.getHyphenatedContent().equals(alternative))
-										alternatives.add(contentA + "-" + contentB);
-								}
-							}
-							string.setAlternatives(alternatives);
-							string.setContent(string.getHyphenatedContent());
-							string.setContentStrings(null);
-							
-							string.setSpanEnd(nextString.getSpanEnd());
-							string.setSecondaryRectangle(nextString.getRectangle());
+					}
+						
+					if (prevString!=null && nextString!=null) {
+						prevString.getRectangle().add(hyphen.getRectangle());
+						row.getStrings().remove(j);
+												
+						if (!endOfRowHyphen) {
+							prevString.getRectangle().add(nextString.getRectangle());
+							row.getStrings().remove(j);
+						} else {
+							prevString.setSecondaryRectangle(nextString.getRectangle());
 							nextRow.getStrings().remove(0);
 						}
+						
+						prevString.setSpanEnd(nextString.getSpanEnd());
+						
+						Set<String> alternatives = new TreeSet<String>();
+						for (String contentA : prevString.getContentStrings()) {
+							for (String contentB : nextString.getContentStrings()) {
+								alternatives.add(contentA + "-" + contentB);
+								if (endOfRowHyphen)
+									alternatives.add(contentA + contentB);
+							}
+						}
+						if (endOfRowHyphen)
+							prevString.setContent(prevString.getContent() + nextString.getContent());
+						else
+							prevString.setContent(prevString.getContent() + "-" + nextString.getContent());
+						
+						alternatives.remove(prevString.getContent());
+						prevString.setAlternatives(new ArrayList<String>(alternatives));
+						prevString.setContentStrings(null);
+						
+						// since we removed the hyphen on which we were placed, we need to decrement j,
+						// so as to be placed on the word which followed the one after the hyphen, which
+						// has now taken its place
+						j--;
 					}
 
 				}
