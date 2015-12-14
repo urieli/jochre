@@ -15,6 +15,7 @@ public class YiddishLinguistics implements Linguistics {
 	private Set<Character> punctuation = null;
 	
     private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„-";
+    private static final String DIGITS = "0123456789";
     private static final Pattern NUMBER = Pattern.compile("\\d+");
 
 	@Override
@@ -194,6 +195,30 @@ public class YiddishLinguistics implements Linguistics {
 				}
 			}
 			lastChar = c;
+		}
+		
+		if (possible) {
+			// avoid mix of digits and other letters
+			boolean haveDigit = false;
+			boolean haveNonDigit = false;
+			for (int i=0;i<word.length(); i++) {
+				char c = word.charAt(i);
+				if (DIGITS.indexOf(c)>=0) {
+					haveDigit = true;
+				} else if (PUNCTUATION.indexOf(c)>=0) {
+					if (haveDigit&haveNonDigit) {
+						possible = false;
+						break;
+					}
+				
+					haveDigit = false;
+					haveNonDigit = false;
+				} else {
+					haveNonDigit = true;
+				}
+			}
+			if (haveDigit&haveNonDigit)
+				possible = false;
 		}
 		return possible;
 	}

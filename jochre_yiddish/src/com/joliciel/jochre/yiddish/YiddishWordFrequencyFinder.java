@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +41,7 @@ import com.joliciel.talismane.utils.CountedOutcome;
  */
 public class YiddishWordFrequencyFinder implements Lexicon {
 	private static final Log LOG = LogFactory.getLog(YiddishWordFrequencyFinder.class);
+    private static final Pattern NUMBER = Pattern.compile("\\d+");
 	Lexicon baseLexicon;
 		
 	public YiddishWordFrequencyFinder(Lexicon baseLexicon) {
@@ -67,6 +69,15 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
 		}
+		
+		if (NUMBER.matcher(word).matches()) {
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(word + " is a number, setting freq to 1");
+			}
+			results.add(new CountedOutcome<String>(word, 1));
+			return results;
+		}
+
 
 		// systematic replacements for non-hebraic words
 		Set<String> variants = new TreeSet<String>();

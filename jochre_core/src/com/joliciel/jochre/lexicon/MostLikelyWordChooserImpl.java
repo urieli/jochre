@@ -375,7 +375,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 				
 				if (frequencies.size()==0) {
 					// check whether word is impossible
-					if (JochreSession.getInstance().getLinguistics().isWordPossible(word)) {
+					if (!JochreSession.getInstance().getLinguistics().isWordPossible(word)) {
 						frequencies.add(new CountedOutcome<String>(word, -1));
 					}
 				}
