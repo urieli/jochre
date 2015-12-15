@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
@@ -57,9 +58,14 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			}
 			Path path = this.indexDir.toPath();
 			Directory directory = FSDirectory.open(path);
-			indexReader = DirectoryReader.open(directory);
 			
-			indexSearcher = new IndexSearcher(indexReader);		
+			try {
+				indexReader = DirectoryReader.open(directory);
+				
+				indexSearcher = new IndexSearcher(indexReader);
+			} catch (IndexNotFoundException e) {
+				LOG.info("No index at : " + indexDir.getAbsolutePath());
+			}	
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
 			throw new RuntimeException(ioe);

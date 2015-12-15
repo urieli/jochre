@@ -94,7 +94,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 					
 					indexSearcher = new IndexSearcher(indexReader);
 				} catch (IndexNotFoundException e) {
-					LOG.debug("No index at : " + indexDir.getAbsolutePath());
+					LOG.info("No index at : " + indexDir.getAbsolutePath());
 				}
 			} catch (IOException ioe) {
 				LogUtils.logError(LOG, ioe);
