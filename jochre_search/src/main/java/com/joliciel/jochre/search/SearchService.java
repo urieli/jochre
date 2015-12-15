@@ -29,5 +29,8 @@ public interface SearchService {
 	public void purgeSearcher();
 	
 	public JochreQuery getJochreQuery(Map<String,String> argMap);
+	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
+	
+	public SearchStatusHolder getSearchStatusHolder();
 }

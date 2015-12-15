@@ -20,7 +20,7 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 
-public interface JochreIndexBuilder {
+public interface JochreIndexBuilder extends Runnable {
 	/**
 	 * Update the index by scanning all of the sub-directories of this contentDir for updates.
 	 * The sub-directory path is considered to uniquely identify a work.
@@ -58,4 +58,12 @@ public interface JochreIndexBuilder {
 	 */
 	public int getWordsPerDoc();
 	public void setWordsPerDoc(int pagesPerDoc);
+
+	/**
+	 * By default should all documents in the index be updated, or only
+	 * those with changes more recent than the update date.
+	 * @param forceUpdate
+	 */
+	public void setForceUpdate(boolean forceUpdate);
+	public boolean isForceUpdate();
 }

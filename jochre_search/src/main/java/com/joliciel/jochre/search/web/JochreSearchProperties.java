@@ -80,4 +80,9 @@ public class JochreSearchProperties {
 	public String getIndexDirPath() {
 		return this.properties.getProperty("index.dir");	
 	}
+	
+	public String getContentDirPath() {
+		return this.properties.getProperty("content.dir");	
+	}
+
 }

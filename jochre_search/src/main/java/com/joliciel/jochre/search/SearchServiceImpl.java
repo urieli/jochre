@@ -32,10 +32,17 @@ import com.joliciel.jochre.search.alto.AltoService;
 class SearchServiceImpl implements SearchServiceInternal {
 	private AltoService altoService;
 	private JochreIndexSearcher searcher;
+	private SearchStatusHolder searchStatusHolder;
 	
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir) {
-		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir);
+		return this.getJochreIndexBuilder(indexDir, null);
+	}
+
+	@Override
+	public JochreIndexBuilder getJochreIndexBuilder(File indexDir,
+			File contentDir) {
+		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir, contentDir);
 		builder.setSearchService(this);
 		builder.setAltoService(altoService);
 		return builder;
@@ -110,6 +117,14 @@ class SearchServiceImpl implements SearchServiceInternal {
 	public JochreToken getJochreToken(String text) {
 		JochreTokenImpl token = new JochreTokenImpl(text);
 		return token;
+	}
+
+	@Override
+	public SearchStatusHolder getSearchStatusHolder() {
+		if (searchStatusHolder==null) {
+			searchStatusHolder = new SearchStatusHolder();
+		}
+		return searchStatusHolder;
 	}
 
 }

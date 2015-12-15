@@ -45,6 +45,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import com.joliciel.jochre.search.SearchStatusHolder.SearchStatus;
 import com.joliciel.jochre.search.alto.AltoDocument;
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoPageConsumer;
@@ -55,10 +56,12 @@ import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.talismane.utils.LogUtils;
 
-
 class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private static final Log LOG = LogFactory.getLog(JochreIndexBuilderImpl.class);
 	private File indexDir;
+	private File contentDir;
+	private boolean forceUpdate = false;
+	
 	private int wordsPerDoc=3000;
 	private IndexWriter indexWriter;
 	private IndexReader indexReader;
@@ -69,10 +72,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	private SearchServiceInternal searchService;
 	private AltoService altoService;
 	
-	public JochreIndexBuilderImpl(File indexDir) {
+	public JochreIndexBuilderImpl(File indexDir, File contentDir) {
+		super();
 		this.indexDir = indexDir;
+		this.contentDir = contentDir;
 	}
-	
+
 	private void initialise() {
 		if (this.indexWriter==null) {
 			try {
@@ -98,9 +103,24 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 	
+
+	@Override
+	public void run() {
+		SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
+		
+		if (searchStatusHolder.getStatus()!=SearchStatus.WAITING) {
+			throw new JochreSearchException("Search index construction already underway. Try again later.");
+		}
+		
+		this.updateIndex(contentDir, forceUpdate);
+	}
+
 	public void updateIndex(File contentDir, boolean forceUpdate) {
 		long startTime = System.currentTimeMillis();
+		SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
 		try {
+			searchStatusHolder.setStatus(SearchStatus.PREPARING);
+			
 			this.initialise();
 			File[] subdirs = contentDir.listFiles(new FileFilter() {
 				
@@ -110,10 +130,16 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				}
 			});
 			
+			searchStatusHolder.setStatus(SearchStatus.BUSY);
+			searchStatusHolder.setTotalCount(subdirs.length);
+
 			for (File subdir : subdirs) {
+				searchStatusHolder.setAction("Indexing " + subdir.getName());
 				this.processDocument(subdir, forceUpdate);
+				searchStatusHolder.incrementSuccessCount(1);
 			}
 			
+			searchStatusHolder.setStatus(SearchStatus.COMMITING);
 			indexWriter.commit();
 			indexWriter.close();
 			searchService.purgeSearcher();
@@ -122,6 +148,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
 		} finally {
+			searchStatusHolder.setStatus(SearchStatus.WAITING);
 			long endTime = System.currentTimeMillis();
 			long totalTime = endTime - startTime;
 			LOG.info("Total time (ms): " + totalTime);
@@ -362,6 +389,13 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		this.currentStrings = currentStrings;
 	}
 
-	
-	
+	@Override
+	public boolean isForceUpdate() {
+		return forceUpdate;
+	}
+
+	@Override
+	public void setForceUpdate(boolean forceUpdate) {
+		this.forceUpdate = forceUpdate;
+	}
 }

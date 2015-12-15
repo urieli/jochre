@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,10 +46,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.jochre.search.JochreIndexBuilder;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
+import com.joliciel.jochre.search.SearchStatusHolder;
 import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
@@ -63,6 +71,7 @@ import com.joliciel.talismane.utils.LogUtils;
 public class JochreSearchServlet extends HttpServlet {
 	private static final Log LOG = LogFactory.getLog(JochreSearchServlet.class);
 	private static final long serialVersionUID = 1L;
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 		
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse response)
@@ -108,6 +117,7 @@ public class JochreSearchServlet extends HttpServlet {
 			int snippetSize = 80;
 			boolean includeText = false;
 			boolean includeGraphics = false;
+			boolean forceUpdate = false;
 			String snippetJson = null;
 			Set<Integer> docIds = null;
 			
@@ -131,6 +141,8 @@ public class JochreSearchServlet extends HttpServlet {
 					includeText = argValue.equalsIgnoreCase("true");
 				} else if (argName.equals("includeGraphics")) {
 					includeGraphics = argValue.equalsIgnoreCase("true");
+				} else if (argName.equals("forceUpdate")) {
+					forceUpdate = argValue.equalsIgnoreCase("true");
 				} else if (argName.equals("snippet")) {
 					snippetJson = argValue;
 				} else if (argName.equalsIgnoreCase("docIds")) {
@@ -149,6 +161,8 @@ public class JochreSearchServlet extends HttpServlet {
 			}
 			for (String argName : handledArgs) argMap.remove(argName);
 	
+			PrintWriter out = response.getWriter();
+			
 			String indexDirPath = props.getIndexDirPath();
 			File indexDir = new File(indexDirPath);
 			LOG.info("Index dir: " + indexDir.getAbsolutePath());
@@ -156,13 +170,11 @@ public class JochreSearchServlet extends HttpServlet {
 			
 			if (command.equals("search")) {		
 				response.setContentType("text/plain;charset=UTF-8");
-				PrintWriter out = response.getWriter();
 				JochreQuery query = searchService.getJochreQuery(argMap);
 				searcher.search(query, out);
-				out.flush();
+				
 			} else if (command.equals("highlight") || command.equals("snippets")) {
 				response.setContentType("text/plain;charset=UTF-8");
-				PrintWriter out = response.getWriter();
 				JochreQuery query = searchService.getJochreQuery(argMap);
 				if (docIds==null)
 					throw new RuntimeException("Command " + command + " requires docIds");
@@ -186,7 +198,6 @@ public class JochreSearchServlet extends HttpServlet {
 					highlightManager.highlight(highlighter, docIds, fields, out);
 				else
 					highlightManager.findSnippets(highlighter, docIds, fields, out);
-				out.flush();
 			} else if (command.equals("textSnippet")) {
 				response.setContentType("text/plain;charset=UTF-8");
 				Snippet snippet = new Snippet(snippetJson);
@@ -200,9 +211,8 @@ public class JochreSearchServlet extends HttpServlet {
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
 				String text = highlightManager.displaySnippet(snippet);
-				PrintWriter out = response.getWriter();
+				
 				out.write(text);
-				out.flush();
 			} else if (command.equals("imageSnippet")) {
 				String mimeType="image/png";
 				response.setContentType(mimeType);
@@ -227,9 +237,38 @@ public class JochreSearchServlet extends HttpServlet {
 				imageWriter.setOutput(ios);
 				imageWriter.write(image);
 				ios.flush();
+			} else if (command.equals("index")) {
+				File contentDir = new File(props.getContentDirPath());
+				
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
+				builder.setForceUpdate(forceUpdate);
+				
+				new Thread(builder).run();
+				out.write("{\"response\":\"index thread started\"}\n");
+			} else if (command.equals("status")) {
+				SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
+				JsonFactory jsonFactory = new JsonFactory();
+				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+
+				jsonGen.writeStartObject();
+				jsonGen.writeStringField("status", searchStatusHolder.getStatus().name());
+				jsonGen.writeStringField("message", searchStatusHolder.getMessage());
+				jsonGen.writeNumberField("total", searchStatusHolder.getTotalCount());
+				jsonGen.writeNumberField("processed", searchStatusHolder.getProcessedCount());
+				jsonGen.writeNumberField("success", searchStatusHolder.getSuccessCount());
+				jsonGen.writeNumberField("failure", searchStatusHolder.getFailureCount());
+				Date updateDate = new Date(searchStatusHolder.getLastUpdated());
+				jsonGen.writeStringField("lastUpdated", dateFormat.format(updateDate));
+				jsonGen.writeNumberField("totalTime", searchStatusHolder.getTotalTime());
+				
+				jsonGen.writeEndObject();
+				jsonGen.flush();
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
+			
+			out.flush();
+			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (RuntimeException e) {
 			LogUtils.logError(LOG, e);
 			throw e;
