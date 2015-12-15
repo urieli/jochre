@@ -161,7 +161,10 @@ public class JochreSearchServlet extends HttpServlet {
 			}
 			for (String argName : handledArgs) argMap.remove(argName);
 	
-			PrintWriter out = response.getWriter();
+			PrintWriter out = null;
+			
+			if (!command.equals("imageSnippet"))
+				out = response.getWriter();
 			
 			String indexDirPath = props.getIndexDirPath();
 			File indexDir = new File(indexDirPath);
@@ -243,7 +246,7 @@ public class JochreSearchServlet extends HttpServlet {
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
 				builder.setForceUpdate(forceUpdate);
 				
-				new Thread(builder).run();
+				new Thread(builder).start();
 				out.write("{\"response\":\"index thread started\"}\n");
 			} else if (command.equals("status")) {
 				SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
@@ -267,7 +270,8 @@ public class JochreSearchServlet extends HttpServlet {
 				throw new RuntimeException("Unknown command: " + command);
 			}
 			
-			out.flush();
+			if (out!=null)
+				out.flush();
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (RuntimeException e) {
 			LogUtils.logError(LOG, e);
