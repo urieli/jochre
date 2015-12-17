@@ -64,7 +64,7 @@ public interface JochreQuery {
 	public void setDocFilter(String[] docFilter);
 
 	/**
-	 * The field that will be used for filtering if a docFilter was set. Default is "id", the internal document id.
+	 * The field that will be used for filtering if a docFilter was set. Default is JochreIndexField.id.name(), the internal document id.
 	 * @return
 	 */
 	public String getFilterField();

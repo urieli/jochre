@@ -278,8 +278,8 @@ public class Snippet implements Comparable<Snippet> {
 		if (this==o)
 			return 0;
 		
-		if (this.score!=o.getScore())
-			return o.getScore() > this.score ? 1 : -1;
+		if (this.getScore()!=o.getScore())
+			return o.getScore() > this.getScore() ? 1 : -1;
 		
 		if (this.getDocId()!=o.getDocId())
 			return this.getDocId() - o.getDocId();
@@ -377,6 +377,14 @@ public class Snippet implements Comparable<Snippet> {
 			}
 		}
 		return rect;
+	}
+
+	@Override
+	public String toString() {
+		return "Snippet [docId=" + docId + ", field=" + field
+				+ ", startOffset=" + startOffset + ", endOffset=" + endOffset
+				+ ", score=" + score + ", highlightTerms=" + highlightTerms
+				+ ", pageIndex=" + pageIndex + "]";
 	}
 	
 }

@@ -30,6 +30,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.JochreIndexDocument;
+import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -59,9 +60,9 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				i++;
 				String content = jochreDoc.getContents();
 				if (term.getStartOffset()>=content.length()) {
-					String title = doc.get("title");
-					String startPage = doc.get("startPage");
-					String endPage = doc.get("endPage");
+					String title = doc.get(JochreIndexField.title.name());
+					String startPage = doc.get(JochreIndexField.startPage.name());
+					String endPage = doc.get(JochreIndexField.endPage.name());
 					LOG.debug("Content: " + content);
 					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage + ", length: " + content.length());
 				}

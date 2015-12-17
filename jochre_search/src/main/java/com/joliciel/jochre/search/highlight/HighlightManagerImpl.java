@@ -38,6 +38,7 @@ import org.apache.lucene.search.IndexSearcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexDocument;
+import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -79,8 +80,8 @@ class HighlightManagerImpl implements HighlightManager {
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
-				jsonGen.writeStringField("path", doc.get("path"));
-				jsonGen.writeStringField("name", doc.get("name"));
+				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
+				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
 				jsonGen.writeNumberField("docId", docId);
 				
 				jsonGen.writeArrayFieldStart("terms");
@@ -140,8 +141,8 @@ class HighlightManagerImpl implements HighlightManager {
 			for (int docId : docIds) {
 				Document doc = indexSearcher.doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
-				jsonGen.writeStringField("path", doc.get("path"));
-				jsonGen.writeStringField("name", doc.get("name"));
+				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
+				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
 				jsonGen.writeNumberField("docId", docId);
 
 				jsonGen.writeArrayFieldStart("snippets");

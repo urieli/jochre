@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.joliciel.jochre.search.JochreIndexField;
 
 public class SearchDocument {
 	private static final Log LOG = LogFactory.getLog(SearchDocument.class);
@@ -20,6 +21,12 @@ public class SearchDocument {
 	private String author;
 	private String title;
 	private String url;
+	private int date;
+	private String publisher;
+	private String authorLang;
+	private String titleLang;
+	private String id;
+	private String volume;
 	
 	public SearchDocument(JsonParser jsonParser) {
 		try {
@@ -34,20 +41,32 @@ public class SearchDocument {
 				
 				if (fieldName.equals("docId")) {
 					docId = jsonParser.nextIntValue(0);
-				} else if (fieldName.equals("path")) {
+				} else if (fieldName.equals(JochreIndexField.path.name())) {
 					path = jsonParser.nextTextValue();
-				} else if (fieldName.equals("author")) {
+				} else if (fieldName.equals(JochreIndexField.author.name())) {
 					author = jsonParser.nextTextValue();
-				} else if (fieldName.equals("title")) {
+				} else if (fieldName.equals(JochreIndexField.title.name())) {
 					title = jsonParser.nextTextValue();
-				} else if (fieldName.equals("url")) {
+				} else if (fieldName.equals(JochreIndexField.authorLang.name())) {
+					authorLang = jsonParser.nextTextValue();
+				} else if (fieldName.equals(JochreIndexField.titleLang.name())) {
+					titleLang = jsonParser.nextTextValue();
+				} else if (fieldName.equals(JochreIndexField.volume.name())) {
+					volume = jsonParser.nextTextValue();
+				} else if (fieldName.equals(JochreIndexField.publisher.name())) {
+					publisher = jsonParser.nextTextValue();
+				} else if (fieldName.equals(JochreIndexField.id.name())) {
+					id = jsonParser.nextTextValue();
+				} else if (fieldName.equals(JochreIndexField.url.name())) {
 					url = jsonParser.nextTextValue();
-				} else if (fieldName.equals("startPage")) {
+				} else if (fieldName.equals(JochreIndexField.startPage.name())) {
 					startPage = jsonParser.nextIntValue(0);
-				} else if (fieldName.equals("endPage")) {
+				} else if (fieldName.equals(JochreIndexField.endPage.name())) {
 					endPage = jsonParser.nextIntValue(0);
-				} else if (fieldName.equals("index")) {
+				} else if (fieldName.equals(JochreIndexField.index.name())) {
 					index = jsonParser.nextIntValue(0);
+				} else if (fieldName.equals(JochreIndexField.date.name())) {
+					date = jsonParser.nextIntValue(0);
 				} else if (fieldName.equals("score")) {
 					jsonParser.nextValue();
 					score = jsonParser.getDoubleValue();
@@ -66,44 +85,23 @@ public class SearchDocument {
 	public int getDocId() {
 		return docId;
 	}
-	public void setDocId(int docId) {
-		this.docId = docId;
-	}
 
 	public String getPath() {
 		return path;
 	}
-	public void setPath(String path) {
-		this.path = path;
-	}
-	
 	
 	public int getStartPage() {
 		return startPage;
 	}
-	public void setStartPage(int startPage) {
-		this.startPage = startPage;
-	}
 	public int getEndPage() {
 		return endPage;
-	}
-	public void setEndPage(int endPage) {
-		this.endPage = endPage;
 	}
 	public int getIndex() {
 		return index;
 	}
-	public void setIndex(int index) {
-		this.index = index;
-	}
-	
 	
 	public double getScore() {
 		return score;
-	}
-
-	public void setScore(double score) {
-		this.score = score;
 	}
 
 	@Override
@@ -128,24 +126,36 @@ public class SearchDocument {
 		return author;
 	}
 
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-
 	public String getTitle() {
 		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
 	}
 
 	public String getUrl() {
 		return url;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public int getDate() {
+		return date;
+	}
+
+	public String getPublisher() {
+		return publisher;
+	}
+
+	public String getAuthorLang() {
+		return authorLang;
+	}
+
+	public String getTitleLang() {
+		return titleLang;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getVolume() {
+		return volume;
 	}
 	
 	

@@ -20,24 +20,6 @@ public interface JochreIndexDocument {
 	public void save(IndexWriter indexWriter);
 	
 	/**
-	 * The document's author, from meta-data.
-	 * @return
-	 */
-	public String getAuthor();
-	
-	/**
-	 * The document's title, from meta-data.
-	 * @return
-	 */
-	public String getTitle();
-	
-	/**
-	 * A URL where the original document can be viewed.
-	 * @return
-	 */
-	public String getUrl();
-	
-	/**
 	 * Get the rectangle enclosing a particular text line.
 	 * @param pageIndex
 	 * @param textBlockIndex

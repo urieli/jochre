@@ -74,6 +74,12 @@ public interface JochreIndexDirectory {
 	File getAltoFile();
 	
 	/**
+	 * An optional file containing metadata, with the same name as the PDF file + _meta.xml.
+	 * @return
+	 */
+	File getMetaDataFile();
+	
+	/**
 	 * The metadata contained in the PDF file.
 	 * @return
 	 */

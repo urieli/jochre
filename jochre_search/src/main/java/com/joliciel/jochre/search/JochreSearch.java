@@ -98,9 +98,9 @@ public class JochreSearch {
 					indexDirPath = argValue;
 				} else if (argName.equals("documentDir")) {
 					documentDirPath = argValue;
-				} else if (argName.equals("startPage")) {
+				} else if (argName.equals(JochreIndexField.startPage.name())) {
 					startPage = Integer.parseInt(argValue);
-				} else if (argName.equals("endPage")) {
+				} else if (argName.equals(JochreIndexField.endPage.name())) {
 					endPage = Integer.parseInt(argValue);
 				} else if (argName.equals("forceUpdate")) {
 					forceUpdate = argValue.equals("true");
@@ -157,12 +157,12 @@ public class JochreSearch {
 						LOG.debug("### Next document");
 						Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
 						for (IndexableField field : doc.getFields()) {
-							if (!field.name().equals("text"))
+							if (!field.name().equals(JochreIndexField.text.name()))
 								LOG.debug(field);
 						}
 					}
 					Set<String> fields = new HashSet<String>();
-					fields.add("text");
+					fields.add(JochreIndexField.text.name());
 					
 					Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
 					HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
@@ -189,7 +189,7 @@ public class JochreSearch {
 				for (Document doc : docs) {
 					jsonGen.writeStartObject();
 					for (IndexableField field : doc.getFields()) {
-						if (!field.name().equals("text"))
+						if (!field.name().equals(JochreIndexField.text.name()))
 							jsonGen.writeStringField(field.name(), field.stringValue());
 					}
 					jsonGen.writeEndObject();

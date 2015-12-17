@@ -21,6 +21,7 @@ package com.joliciel.jochre.utils.pdf;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +46,7 @@ public abstract class AbstractPdfImageVisitor {
 	private PDDocument pdfDocument = null;
 	private File pdfFile;
 	private Map<String,String> fields = new TreeMap<String, String>();
+	private boolean docClosed = false;
 	
 	public AbstractPdfImageVisitor(File pdfFile) {
 		try {
@@ -120,7 +122,7 @@ public abstract class AbstractPdfImageVisitor {
 		        }
 				
 			}
-			pdfDocument.close();
+			this.close();
 		} catch (FileNotFoundException fnfe) {
 			throw new RuntimeException(fnfe);
 		} catch (Exception e) {
@@ -149,4 +151,14 @@ public abstract class AbstractPdfImageVisitor {
 		return fields;
 	}
 	
+	public void close() {
+		try {
+			if (!docClosed) {
+				pdfDocument.close();
+				docClosed = true;
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

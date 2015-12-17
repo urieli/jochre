@@ -81,7 +81,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				LOG.trace("Search results: ");
 				for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 					Document doc = indexSearcher.doc(scoreDoc.doc);
-					String extId = doc.get("id");
+					String extId = doc.get(JochreIndexField.id.name());
 					LOG.trace(extId + "(docId " + scoreDoc.doc + "): " + scoreDoc.score);
 				}
 			}
@@ -107,20 +107,36 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
-				jsonGen.writeStringField("name", doc.get("name"));
-				jsonGen.writeNumberField("startPage", Integer.parseInt(doc.get("startPage")));
-				jsonGen.writeNumberField("endPage", Integer.parseInt(doc.get("endPage")));
-				jsonGen.writeNumberField("index", Integer.parseInt(doc.get("index")));
-				jsonGen.writeStringField("path", doc.get("path"));
-				String author = doc.get("author");
+				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
+				jsonGen.writeNumberField(JochreIndexField.startPage.name(), Integer.parseInt(doc.get(JochreIndexField.startPage.name())));
+				jsonGen.writeNumberField(JochreIndexField.endPage.name(), Integer.parseInt(doc.get(JochreIndexField.endPage.name())));
+				jsonGen.writeNumberField(JochreIndexField.index.name(), Integer.parseInt(doc.get(JochreIndexField.index.name())));
+				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
+				jsonGen.writeStringField(JochreIndexField.id.name(), doc.get(JochreIndexField.id.name()));
+				String author = doc.get(JochreIndexField.author.name());
 				if (author!=null)
-					jsonGen.writeStringField("author", doc.get("author"));
-				String title = doc.get("title");
+					jsonGen.writeStringField(JochreIndexField.author.name(), author);
+				String title = doc.get(JochreIndexField.title.name());
 				if (title!=null)
-					jsonGen.writeStringField("title", doc.get("title"));
-				String keywords = doc.get("url");
-				if (keywords!=null)
-					jsonGen.writeStringField("url", doc.get("url"));
+					jsonGen.writeStringField(JochreIndexField.title.name(), title);
+				String url = doc.get(JochreIndexField.url.name());
+				if (url!=null)
+					jsonGen.writeStringField(JochreIndexField.url.name(), url);
+				String authorLang = doc.get(JochreIndexField.authorLang.name());
+				if (authorLang!=null)
+					jsonGen.writeStringField(JochreIndexField.authorLang.name(), authorLang);
+				String titleLang = doc.get(JochreIndexField.titleLang.name());
+				if (titleLang!=null)
+					jsonGen.writeStringField(JochreIndexField.titleLang.name(), titleLang);
+				String volume = doc.get(JochreIndexField.volume.name());
+				if (volume!=null)
+					jsonGen.writeStringField(JochreIndexField.volume.name(), volume);
+				String publisher = doc.get(JochreIndexField.publisher.name());
+				if (publisher!=null)
+					jsonGen.writeStringField(JochreIndexField.publisher.name(), publisher);
+				String date = doc.get(JochreIndexField.date.name());
+				if (date!=null)
+					jsonGen.writeNumberField(JochreIndexField.date.name(), Integer.parseInt(date));
 				
 				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
 				jsonGen.writeNumberField("score", roundedScore);
@@ -174,7 +190,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	public List<Document> findDocuments(String docId) {
 		try {
 			List<Document> docs = new ArrayList<Document>();
-			TermQuery termQuery = new TermQuery(new Term("name", docId));
+			TermQuery termQuery = new TermQuery(new Term(JochreIndexField.name.name(), docId));
 			TopDocs topDocs = indexSearcher.search(termQuery, 200);
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);

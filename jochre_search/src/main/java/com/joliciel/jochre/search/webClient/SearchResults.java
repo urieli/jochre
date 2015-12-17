@@ -38,6 +38,9 @@ public class SearchResults {
 	
 	public SearchResults(String json) {
 		try {
+			if (LOG.isTraceEnabled()) {
+				LOG.trace(json);
+			}
 			scoreDocs = new ArrayList<SearchDocument>();
 			Reader reader = new StringReader(json);
 			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 

@@ -108,11 +108,17 @@ if (queryString.length()>0) {
 			String bookId = result.getUrl().substring(result.getUrl().lastIndexOf('/')+1);
 			int startPageUrl = result.getStartPage() / 2 * 2;
 			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
+			String author = result.getAuthor();
+			if (result.getAuthorLang()!=null)
+				author = result.getAuthorLang();
+			String title = result.getTitle();
+			if (result.getTitleLang()!=null)
+				title = result.getTitleLang();
 			%>
 			<tr><td height="5px" bgcolor="black"></td></tr>
 			<tr><td align="left">
-			<font size="+1"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= result.getTitle() %></a></font><br/>
-			<b>Author:</b> <%= result.getAuthor() %><br/>
+			<font size="+1"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= title %></a></font><br/>
+			<b>Author:</b> <%= author %><br/>
 			<b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td></tr>
 			<tr><td>
 			<%

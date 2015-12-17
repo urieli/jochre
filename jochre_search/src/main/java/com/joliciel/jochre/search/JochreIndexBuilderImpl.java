@@ -212,15 +212,20 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 			if (!updateIndex) {
 				long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
+				if (jochreIndexDirectory.getMetaDataFile()!=null) {
+					long metaDate = jochreIndexDirectory.getMetaDataFile().lastModified();
+					if (metaDate>ocrDate)
+						ocrDate = metaDate;
+				}
 				long lastIndexDate = Long.MIN_VALUE;
 				
 				if (indexSearcher!=null) {
-					Term term = new Term("name", jochreIndexDirectory.getName());
+					Term term = new Term(JochreIndexField.name.name(), jochreIndexDirectory.getName());
 					Query termQuery = new TermQuery(term);
 					TopDocs topDocs = indexSearcher.search(termQuery, 1);
 					if (topDocs.scoreDocs.length>0) {
 						Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
-						lastIndexDate = Long.parseLong(doc.get("indexTime"));
+						lastIndexDate = Long.parseLong(doc.get(JochreIndexField.indexTime.name()));
 					}
 				}
 				
@@ -340,7 +345,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	
 	private void deleteDocumentInternal(File documentDir) {
 		try {
-			Term term = new Term("path", documentDir.getAbsolutePath());
+			Term term = new Term(JochreIndexField.path.name(), documentDir.getAbsolutePath());
 			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);

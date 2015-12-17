@@ -56,8 +56,23 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			argMap.put(argName, argValue);
 		}
 		
-		JochreYiddish jochre = new JochreYiddish();
-		jochre.execute(argMap);
+		String command = argMap.get("command");
+		if (command!=null && command.equals("metadata")) {
+			String inDirPath = argMap.get("inDir");
+			if (inDirPath==null)
+				throw new RuntimeException("For command " + command + ", inDir is required");
+			
+			File inDir = new File(inDirPath);
+			if (!inDir.exists() || !inDir.isDirectory()) {
+				throw new RuntimeException("inDir does not exist or is not a directory: " + inDir.getAbsolutePath());
+			}
+			
+			YiddishMetaFetcher fetcher = new YiddishMetaFetcher();
+			fetcher.fetchMetaData(inDir);
+		} else {
+			JochreYiddish jochre = new JochreYiddish();
+			jochre.execute(argMap);
+		}
 	}
 
 	@Override

@@ -43,7 +43,7 @@ class JochreQueryImpl implements JochreQuery {
 	private String queryString = null;
 	private String language = "en";
 	private String[] docFilter = null;
-	private String filterField = "id";
+	private String filterField = JochreIndexField.id.name();
 	private Query luceneQuery = null;
 	private Filter luceneFilter = null;
 	private int[] docIds = null;
@@ -206,7 +206,7 @@ class JochreQueryImpl implements JochreQuery {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
 				Analyzer analyzer = new JochreWhitespaceAnalyser();
-				QueryParser queryParser = new QueryParser("text", analyzer);
+				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
 				luceneQuery = queryParser.parse(this.getQueryString());
 			}
 			return luceneQuery;

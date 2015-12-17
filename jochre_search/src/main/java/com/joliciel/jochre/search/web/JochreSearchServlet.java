@@ -50,6 +50,7 @@ import org.apache.lucene.document.Document;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexBuilder;
+import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.SearchService;
@@ -195,7 +196,7 @@ public class JochreSearchServlet extends HttpServlet {
 				highlightManager.setSnippetSize(snippetSize);
 	
 				Set<String> fields = new HashSet<String>();
-				fields.add("text");
+				fields.add(JochreIndexField.text.name());
 				
 				if (command.equals("highlight"))
 					highlightManager.highlight(highlighter, docIds, fields, out);
@@ -207,7 +208,7 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
-					LOG.debug("Snippet in: " + doc.get("path"));
+					LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 				}
 				
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
@@ -225,7 +226,7 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
-					LOG.debug("Snippet in: " + doc.get("path"));
+					LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 				}
 				
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
