@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 
 import com.joliciel.jochre.utils.pdf.PdfMetadataReader;
 import com.joliciel.jochre.utils.text.DiacriticRemover;
+import com.joliciel.talismane.utils.LogUtils;
 
 public class YiddishMetaFetcher {
 	private static final Log LOG = LogFactory.getLog(YiddishMetaFetcher.class);
@@ -42,8 +43,13 @@ public class YiddishMetaFetcher {
 			String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length()-".pdf".length());
 			File metaFile = new File(dir, fileBase + "_meta.xml");
 			if (!metaFile.exists()) {
-				Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaFile, false), "UTF-8"));
-				this.fetchMetaData(pdfFile, writer);
+				try {
+					Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaFile, false), "UTF-8"));
+					this.fetchMetaData(pdfFile, writer);
+					writer.close();
+				} catch (Exception e) {
+					LogUtils.logError(LOG, e);
+				}
 			}
 		}
 		
