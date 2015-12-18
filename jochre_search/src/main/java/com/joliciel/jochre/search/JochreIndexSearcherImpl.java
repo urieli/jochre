@@ -7,9 +7,8 @@ import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -20,7 +19,12 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.NumericRangeQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
@@ -187,14 +191,31 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	}
 
 	@Override
-	public List<Document> findDocuments(String docId) {
+	public Map<Integer,Document> findDocuments(String name) {
+		return this.findDocumentsInternal(name, -1);
+	}
+	
+	public Map<Integer,Document> findDocument(String name, int index) {
+		return this.findDocumentsInternal(name, index);
+	}
+	
+	private Map<Integer,Document> findDocumentsInternal(String name, int index) {
 		try {
-			List<Document> docs = new ArrayList<Document>();
-			TermQuery termQuery = new TermQuery(new Term(JochreIndexField.name.name(), docId));
-			TopDocs topDocs = indexSearcher.search(termQuery, 200);
+			Map<Integer,Document> docs = new LinkedHashMap<Integer,Document>();
+			BooleanQuery.Builder builder = new Builder();
+			TermQuery termQuery = new TermQuery(new Term(JochreIndexField.name.name(), name));
+			builder.add(termQuery, Occur.MUST);
+			if (index>=0) {
+				NumericRangeQuery<Integer> indexQuery = NumericRangeQuery.newIntRange(JochreIndexField.index.name(), index, index, true, true);
+				builder.add(indexQuery, Occur.MUST);
+			}
+			Query query = builder.build();
+			LOG.info(query.toString());
+			TopDocs topDocs = indexSearcher.search(query, 200);
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
-				docs.add(doc);
+				docs.put(scoreDoc.doc, doc);
+				LOG.debug("Found doc " + scoreDoc.doc + ", name: " + doc.get(JochreIndexField.name.name()) + ", index: " + doc.get(JochreIndexField.index.name()));
 			}
 			return docs;
 		} catch (IOException e) {

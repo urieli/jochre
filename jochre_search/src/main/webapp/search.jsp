@@ -23,6 +23,16 @@ response.setCharacterEncoding("UTF-8");
 String queryString = request.getParameter("query");
 if (queryString==null) queryString = "";
 String queryStringInput = queryString.replace("\"", "&quot;");
+
+String authorQueryString = request.getParameter("author");
+if (authorQueryString==null) authorQueryString = "";
+String authorQueryStringInput = authorQueryString.replace("\"", "&quot;");
+String titleQueryString = request.getParameter("title");
+if (titleQueryString==null) titleQueryString = "";
+String titleQueryStringInput = titleQueryString.replace("\"", "&quot;");
+
+boolean advancedSearch = authorQueryString.length()>0 || titleQueryString.length()>0;
+
 int pagination = 0;
 if (request.getParameter("page")!=null)
 	pagination = Integer.parseInt(request.getParameter("page"));
@@ -39,15 +49,38 @@ if (request.getParameter("page")!=null)
 <table>
 <tr>
 <td><img src="images/jochreLogo.png" width="150px" /></td>
-<td style="vertical-align: bottom;"><input type="text" name="query" style="width:200px;" value="<%= queryStringInput %>" />&nbsp;<input type="submit" value="Search" /></td>
+<td style="vertical-align: bottom;" align="right" width="400px"><input type="text" name="query" style="width:300px;" value="<%= queryStringInput %>" />&nbsp;<input type="submit" value="Search" /></td>
+<td style="vertical-align: bottom;" width="20px"><span id="toggleAdvancedSearch" ><img src="images/plusInCircle.png" border="0" width="20px" /></span></td>
+</tr>
+<tr id="advancedSearch" style="display: <%= advancedSearch ? "visible" : "none" %>;">
+<td colspan="2" align="right">
+<table>
+<tr>
+<td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
+<td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
 </tr>
 </table>
+</td>
+<td>&nbsp;</td>
+</tr>
+</table>
+</div>
+<script>
+$("#toggleAdvancedSearch").on("click",function(){
+	$("#advancedSearch").toggle();
+   });
+</script>
 <%
 if (queryString.length()>0) {
 	int MAX_DOCS=1000;
 	int RESULTS_PER_PAGE=10;
 	URL myPage = new URL(request.getRequestURL().toString());
 	String searchURL = "search?command=search&maxDocs=" + MAX_DOCS + "&query=" + URLEncoder.encode(queryString, "UTF-8");
+	if (authorQueryString.length()>0)
+		searchURL += "&author=" + URLEncoder.encode(authorQueryString, "UTF-8");
+	if (titleQueryString.length()>0)
+		searchURL += "&title=" + URLEncoder.encode(titleQueryString, "UTF-8");
+	
 	URL url = new URL(myPage, searchURL);
 	String json = SearchWebClientUtils.getJson(url);
 	SearchResults results = new SearchResults(json);
@@ -108,18 +141,52 @@ if (queryString.length()>0) {
 			String bookId = result.getUrl().substring(result.getUrl().lastIndexOf('/')+1);
 			int startPageUrl = result.getStartPage() / 2 * 2;
 			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
-			String author = result.getAuthor();
-			if (result.getAuthorLang()!=null)
-				author = result.getAuthorLang();
 			String title = result.getTitle();
-			if (result.getTitleLang()!=null)
-				title = result.getTitleLang();
+			if (result.getVolume()!=null)
+				title += ", volume " + result.getVolume();
+			
+			String titleLang = result.getTitleLang();
+			if (titleLang!=null && result.getVolume()!=null)
+				titleLang += ", באַנד " + result.getVolume();
+			if (titleLang==null)
+				titleLang = "";
+			
+			String author = result.getAuthor();
+			String authorLang = result.getAuthorLang();
+			if (authorLang==null)
+				authorLang = "";
 			%>
 			<tr><td height="5px" bgcolor="black"></td></tr>
 			<tr><td align="left">
-			<font size="+1"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= title %></a></font><br/>
-			<b>Author:</b> <%= author %><br/>
-			<b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td></tr>
+			<table width="100%">
+			<tr>
+			<td class="Title" width="50%"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= title %></a></td>
+			<td class="RTLTitle"><b>טיטל:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= titleLang %></a></td>
+			</tr>
+			<tr>
+			<td class="Author" width="50%"><b>Author:</b> <%= author %></td>
+			<td class="RTLAuthor"><b>מחבר:</b> <%= authorLang %></td>
+			</tr>
+			<tr>
+			<td class="Author"  width="50%"><b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td>
+			<td class="RTLAuthor"><b>אָפּטײל:</b> זײַטן <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> ביז <%= result.getEndPage() %></a></td>
+			</tr>
+			<%
+			if (result.getPublisher()!=null) {
+				%>
+				<tr><td class="Author" colspan="2"><b>Publisher:</b> <%= result.getPublisher() %></td></tr>
+				<%
+			}
+			%>
+			<%
+			if (result.getDate()>0) {
+				%>
+				<tr><td class="Author" colspan="2"><b>Date:</b> <%= result.getDate() %></td></tr>
+				<%
+			}
+			%>
+			</table>
+			</td></tr>
 			<tr><td>
 			<%
 			List<Snippet> snippets = snippetResults.getSnippetMap().get(result.getDocId());

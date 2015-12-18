@@ -111,6 +111,7 @@ public class JochreSearchServlet extends HttpServlet {
 				String value = req.getParameter(paramName);
 				argMap.put(paramName, value);
 			}
+			argMap.remove("command");
 				
 			double minWeight = 0;
 			int titleSnippetCount = 1;
@@ -121,15 +122,18 @@ public class JochreSearchServlet extends HttpServlet {
 			boolean forceUpdate = false;
 			String snippetJson = null;
 			Set<Integer> docIds = null;
-			
-			Set<String> handledArgs = new HashSet<String>();
+			String queryString = null;
+			String authorQueryString = null;
+			String titleQueryString = null;
+			int maxDocs = -1;
+			int decimalPlaces = -1;
+
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
 				String argValue = argEntry.getValue();
 				argValue = URLDecoder.decode(argValue, "UTF-8");
 				LOG.debug(argName + ": " + argValue);
-				
-				boolean handled = true;
+
 				if (argName.equals("minWeight")) {
 					minWeight = Double.parseDouble(argValue);
 				} else if (argName.equals("titleSnippetCount")) {
@@ -153,14 +157,20 @@ public class JochreSearchServlet extends HttpServlet {
 						for (String id : idArray)
 							docIds.add(Integer.parseInt(id));
 					}
+				} else if (argName.equalsIgnoreCase("query")) {
+					queryString = argValue;
+				} else if (argName.equalsIgnoreCase("author")) {
+					authorQueryString = argValue;
+				} else if (argName.equalsIgnoreCase("title")) {
+					titleQueryString = argValue;
+				} else if (argName.equalsIgnoreCase("maxDocs")) {
+					maxDocs = Integer.parseInt(argValue);
+				} else if (argName.equalsIgnoreCase("decimalPlaces")) {
+					decimalPlaces = Integer.parseInt(argValue);
 				} else {
-					handled = false;
-				}
-				if (handled) {
-					handledArgs.add(argName);
+					throw new RuntimeException("Unknown option: " + argName);
 				}
 			}
-			for (String argName : handledArgs) argMap.remove(argName);
 	
 			PrintWriter out = null;
 			
@@ -172,36 +182,42 @@ public class JochreSearchServlet extends HttpServlet {
 			LOG.info("Index dir: " + indexDir.getAbsolutePath());
 			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 			
-			if (command.equals("search")) {		
+			if (command.equals("search") || command.equals("highlight") || command.equals("snippets")) {		
 				response.setContentType("text/plain;charset=UTF-8");
-				JochreQuery query = searchService.getJochreQuery(argMap);
-				searcher.search(query, out);
+				JochreQuery query = searchService.getJochreQuery();
+				query.setQueryString(queryString);
+				query.setAuthorQueryString(authorQueryString);
+				query.setTitleQueryString(titleQueryString);
+				if (decimalPlaces>=0)
+					query.setDecimalPlaces(decimalPlaces);
+				if (maxDocs>=0)
+					query.setMaxDocs(maxDocs);
 				
-			} else if (command.equals("highlight") || command.equals("snippets")) {
-				response.setContentType("text/plain;charset=UTF-8");
-				JochreQuery query = searchService.getJochreQuery(argMap);
-				if (docIds==null)
-					throw new RuntimeException("Command " + command + " requires docIds");
-				
-				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
-				HighlightService highlightService = highlightServiceLocator.getHighlightService();
-				Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
-				HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
-				highlightManager.setDecimalPlaces(query.getDecimalPlaces());
-				highlightManager.setMinWeight(minWeight);
-				highlightManager.setIncludeText(includeText);
-				highlightManager.setIncludeGraphics(includeGraphics);
-				highlightManager.setTitleSnippetCount(titleSnippetCount);
-				highlightManager.setSnippetCount(snippetCount);
-				highlightManager.setSnippetSize(snippetSize);
-	
-				Set<String> fields = new HashSet<String>();
-				fields.add(JochreIndexField.text.name());
-				
-				if (command.equals("highlight"))
-					highlightManager.highlight(highlighter, docIds, fields, out);
-				else
-					highlightManager.findSnippets(highlighter, docIds, fields, out);
+				if (command.equals("search")) {
+					searcher.search(query, out);
+				} else {
+					if (docIds==null)
+						throw new RuntimeException("Command " + command + " requires docIds");
+					HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
+					HighlightService highlightService = highlightServiceLocator.getHighlightService();
+					Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
+					HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
+					highlightManager.setDecimalPlaces(query.getDecimalPlaces());
+					highlightManager.setMinWeight(minWeight);
+					highlightManager.setIncludeText(includeText);
+					highlightManager.setIncludeGraphics(includeGraphics);
+					highlightManager.setTitleSnippetCount(titleSnippetCount);
+					highlightManager.setSnippetCount(snippetCount);
+					highlightManager.setSnippetSize(snippetSize);
+		
+					Set<String> fields = new HashSet<String>();
+					fields.add(JochreIndexField.text.name());
+					
+					if (command.equals("highlight"))
+						highlightManager.highlight(highlighter, docIds, fields, out);
+					else
+						highlightManager.findSnippets(highlighter, docIds, fields, out);
+				}
 			} else if (command.equals("textSnippet")) {
 				response.setContentType("text/plain;charset=UTF-8");
 				Snippet snippet = new Snippet(snippetJson);

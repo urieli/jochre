@@ -82,7 +82,7 @@ class LuceneQueryHighlighter implements Highlighter {
 
 			}
 			
-			Query query = jochreQuery.getLuceneQuery();
+			Query query = jochreQuery.getLuceneTextQuery();
 			
 			Set<Term> terms = new HashSet<Term>();
 			Set<TermPhrase> phrases = new HashSet<TermPhrase>();

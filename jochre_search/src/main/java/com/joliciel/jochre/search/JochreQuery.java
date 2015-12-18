@@ -18,7 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 
 /**
@@ -48,37 +47,21 @@ public interface JochreQuery {
 	 */
 	public String getQueryString();
 	public void setQueryString(String queryString);
-
-	/**
-	 * The query language. Default is "en".
-	 * @return
-	 */
-	public String getLanguage();
-	public void setLanguage(String language);
-
-	/**
-	 * The values that will be used for filtering.
-	 * @return
-	 */
-	public String[] getDocFilter();
-	public void setDocFilter(String[] docFilter);
-
-	/**
-	 * The field that will be used for filtering if a docFilter was set. Default is JochreIndexField.id.name(), the internal document id.
-	 * @return
-	 */
-	public String getFilterField();
-	public void setFilterField(String filterField);
 	
 	/**
-	 * A Lucene query corresponding to this CFH query.
+	 * A Lucene query corresponding to the text querystring of this Jochre query,
+	 * needed for highlighting.
+	 * @return
+	 */
+	public Query getLuceneTextQuery();
+	
+	/**
+	 * A Lucene query corresponding to this Jochre query.
 	 * @return
 	 */
 	public Query getLuceneQuery();
-
-	/**
-	 * A Lucene filter corresponcing to this CFH query.
-	 * @return
-	 */
-	public Filter getLuceneFilter();
+	public abstract void setTitleQueryString(String titleQueryString);
+	public abstract String getTitleQueryString();
+	public abstract void setAuthorQueryString(String authorQueryString);
+	public abstract String getAuthorQueryString();
 }

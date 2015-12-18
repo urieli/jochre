@@ -28,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -49,6 +48,7 @@ import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
 import com.joliciel.jochre.search.highlight.Highlighter;
 import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.talismane.utils.StringUtils;
 
 public class JochreSearch {
 	private static final Log LOG = LogFactory.getLog(JochreSearch.class);
@@ -88,7 +88,9 @@ public class JochreSearch {
 			int startPage = -1;
 			int endPage = -1;
 			boolean forceUpdate = false;
-			String docId = null;
+			String docName = null;
+			int docIndex = -1;
+			String queryPath = null;
 			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
@@ -104,8 +106,12 @@ public class JochreSearch {
 					endPage = Integer.parseInt(argValue);
 				} else if (argName.equals("forceUpdate")) {
 					forceUpdate = argValue.equals("true");
-				} else if (argName.equals("docId")) {
-					docId = argValue;
+				} else if (argName.equals("docName")) {
+					docName = argValue;
+				} else if (argName.equals("docIndex")) {
+					docIndex = Integer.parseInt(argValue);
+				} else if (argName.equals("queryFile")) {
+					queryPath = argValue;
 				} else {
 					LOG.info("Unknown option: " + argName);
 				}
@@ -142,7 +148,29 @@ public class JochreSearch {
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				
 				File indexDir = new File(indexDirPath);
-				JochreQuery query = searchService.getJochreQuery(argMap);
+				JochreQuery query = searchService.getJochreQuery();
+				
+				if (queryPath==null)
+					throw new RuntimeException("For command " + command + " queryFile is required");
+				
+				Map<String,String> queryArgs = StringUtils.getArgMap(queryPath);
+				for (String argName : queryArgs.keySet()) {
+					String argValue = queryArgs.get(argName);
+					if (argName.equals("query")) {
+						query.setQueryString(argValue);
+					} else if (argName.equals("author")) {
+						query.setAuthorQueryString(argValue);
+					} else if (argName.equals("title")) {
+						query.setTitleQueryString(argValue);
+					} else if (argName.equals("maxDocs")) {
+						query.setMaxDocs(Integer.parseInt(argValue));
+					} else if (argName.equals("decimalPlaces")) {
+						query.setDecimalPlaces(Integer.parseInt(argValue));
+					} else {
+						throw new RuntimeException("Unknown option in queryFile: " + argName);
+					}
+				}
+				
 				
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
@@ -178,15 +206,17 @@ public class JochreSearch {
 					}
 				}
 			} else if (command.equals("view")) {
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
 				File indexDir = new File(indexDirPath);
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
-				List<Document> docs = searcher.findDocuments(docId);
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				JsonFactory jsonFactory = new JsonFactory();
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
 				jsonGen.writeStartArray();
-				for (Document doc : docs) {
+				for (Document doc : docs.values()) {
 					jsonGen.writeStartObject();
 					for (IndexableField field : doc.getFields()) {
 						if (!field.name().equals(JochreIndexField.text.name()))
@@ -196,6 +226,18 @@ public class JochreSearch {
 				}
 				jsonGen.writeEndArray();
 				jsonGen.flush();
+			} else if (command.equals("list")) {
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				if (docIndex<0)
+					throw new RuntimeException("For command " + command + " docIndex is required");
+				File indexDir = new File(indexDirPath);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
+				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
+				lister.list(out);
+				out.flush();
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}

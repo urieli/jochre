@@ -20,8 +20,6 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.search.IndexSearcher;
@@ -49,8 +47,8 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 
 	@Override
-	public JochreQuery getJochreQuery(Map<String, String> argMap) {
-		JochreQueryImpl query = new JochreQueryImpl(argMap);
+	public JochreQuery getJochreQuery() {
+		JochreQuery query = new JochreQueryImpl();
 		return query;
 	}
 	@Override

@@ -24,12 +24,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
@@ -84,7 +87,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				Path path = this.indexDir.toPath();
 				Directory directory = FSDirectory.open(path);
 				
-				Analyzer analyzer = searchService.getJochreAnalyser(this);
+				Map<String,Analyzer> analyzerPerField = new HashMap<>();
+				analyzerPerField.put(JochreIndexField.text.name(), searchService.getJochreAnalyser(this));
+
+				PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreStandardAnalyser(), analyzerPerField);
 				IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 				this.indexWriter = new IndexWriter(directory, iwc);

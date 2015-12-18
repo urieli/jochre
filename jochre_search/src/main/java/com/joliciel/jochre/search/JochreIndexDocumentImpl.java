@@ -146,7 +146,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			doc.add(new StringField(JochreIndexField.path.name(),directory.getDirectory().getAbsolutePath(), Field.Store.YES));
 			doc.add(new Field(JochreIndexField.startPage.name(), "" + startPage, TYPE_NOT_INDEXED));
 			doc.add(new Field(JochreIndexField.endPage.name(), "" + endPage, TYPE_NOT_INDEXED));
-			doc.add(new Field(JochreIndexField.index.name(), "" + index, TYPE_NOT_INDEXED));
+			doc.add(new IntField(JochreIndexField.index.name(), index, Field.Store.YES));
 			doc.add(new Field(JochreIndexField.text.name(), contents, TYPE_STORED));
 			doc.add(new LongField(JochreIndexField.indexTime.name(), System.currentTimeMillis(), Field.Store.YES));
 			
