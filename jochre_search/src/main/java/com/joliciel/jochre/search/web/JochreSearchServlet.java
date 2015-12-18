@@ -46,12 +46,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexBuilder;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
+import com.joliciel.jochre.search.JochreIndexTermLister;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
@@ -127,6 +129,8 @@ public class JochreSearchServlet extends HttpServlet {
 			String titleQueryString = null;
 			int maxDocs = -1;
 			int decimalPlaces = -1;
+			String docName = null;
+			int docIndex = -1;
 
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
@@ -167,6 +171,10 @@ public class JochreSearchServlet extends HttpServlet {
 					maxDocs = Integer.parseInt(argValue);
 				} else if (argName.equalsIgnoreCase("decimalPlaces")) {
 					decimalPlaces = Integer.parseInt(argValue);
+				} else if (argName.equals("docName")) {
+					docName = argValue;
+				} else if (argName.equals("docIndex")) {
+					docIndex = Integer.parseInt(argValue);
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -283,6 +291,33 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				jsonGen.writeEndObject();
 				jsonGen.flush();
+			} else if (command.equals("view")) {
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				JsonFactory jsonFactory = new JsonFactory();
+				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+
+				jsonGen.writeStartArray();
+				for (Document doc : docs.values()) {
+					jsonGen.writeStartObject();
+					for (IndexableField field : doc.getFields()) {
+						if (!field.name().equals(JochreIndexField.text.name()))
+							jsonGen.writeStringField(field.name(), field.stringValue());
+					}
+					jsonGen.writeEndObject();
+				}
+				jsonGen.writeEndArray();
+				jsonGen.flush();
+			} else if (command.equals("list")) {
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				if (docIndex<0)
+					throw new RuntimeException("For command " + command + " docIndex is required");
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
+				lister.list(out);
+				out.flush();
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
