@@ -586,30 +586,35 @@ public class Jochre implements LocaleSpecificLexiconService {
 				});
 				for (File pdfFile : pdfFiles) {
 					LOG.info("Analysing file: " + pdfFile.getAbsolutePath());
-					String baseName = this.getBaseName(pdfFile);
-					File analysisDir = new File(inDir, baseName);
-					analysisDir.mkdirs();
-					List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, outputService);
-					File letterModelFile = new File(letterModelPath);
-					File splitModelFile = null;
-					File mergeModelFile = null;
-					if (splitModelPath.length()>0)
-						splitModelFile = new File(splitModelPath);
-					if (mergeModelPath.length()>0)
-						mergeModelFile = new File(mergeModelPath);	    						
-					this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, pdfObservers);
-					
-					File pdfOutputDir = new File(outputDir, baseName);
-					pdfOutputDir.mkdirs();
-					
-					File targetFile = new File(pdfOutputDir, pdfFile.getName());
-					Files.move(pdfFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					File[] analysisFiles = analysisDir.listFiles();
-					for (File analysisFile : analysisFiles) {
-						targetFile = new File(pdfOutputDir, analysisFile.getName());
-						Files.move(analysisFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					try {
+						String baseName = this.getBaseName(pdfFile);
+						File analysisDir = new File(inDir, baseName);
+						analysisDir.mkdirs();
+						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, outputService);
+						File letterModelFile = new File(letterModelPath);
+						File splitModelFile = null;
+						File mergeModelFile = null;
+						if (splitModelPath.length()>0)
+							splitModelFile = new File(splitModelPath);
+						if (mergeModelPath.length()>0)
+							mergeModelFile = new File(mergeModelPath);	    						
+						this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, pdfObservers);
+						
+						File pdfOutputDir = new File(outputDir, baseName);
+						pdfOutputDir.mkdirs();
+						
+						File targetFile = new File(pdfOutputDir, pdfFile.getName());
+						Files.move(pdfFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+						File[] analysisFiles = analysisDir.listFiles();
+						for (File analysisFile : analysisFiles) {
+							targetFile = new File(pdfOutputDir, analysisFile.getName());
+							Files.move(analysisFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+						}
+						Files.delete(analysisDir.toPath());
+					} catch (Exception e) {
+						// log errors, but continue processing
+						LogUtils.logError(LOG, e);
 					}
-					Files.delete(analysisDir.toPath());
 				}
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);

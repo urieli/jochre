@@ -42,13 +42,14 @@ public class YiddishMetaFetcher {
 		for (File pdfFile : pdfFiles) {
 			String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length()-".pdf".length());
 			File metaFile = new File(dir, fileBase + "_meta.xml");
-			if (!metaFile.exists()) {
+			if (!metaFile.exists()||metaFile.length()==0) {
 				try {
 					Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaFile, false), "UTF-8"));
 					this.fetchMetaData(pdfFile, writer);
 					writer.close();
 				} catch (Exception e) {
 					LogUtils.logError(LOG, e);
+					metaFile.delete();
 				}
 			}
 		}
