@@ -140,7 +140,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 					jsonGen.writeStringField(JochreIndexField.publisher.name(), publisher);
 				String date = doc.get(JochreIndexField.date.name());
 				if (date!=null)
-					jsonGen.writeNumberField(JochreIndexField.date.name(), Integer.parseInt(date));
+					jsonGen.writeStringField(JochreIndexField.date.name(), date);
 				
 				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
 				jsonGen.writeNumberField("score", roundedScore);

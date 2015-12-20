@@ -21,7 +21,7 @@ public class SearchDocument {
 	private String author;
 	private String title;
 	private String url;
-	private int date;
+	private String date;
 	private String publisher;
 	private String authorLang;
 	private String titleLang;
@@ -66,7 +66,7 @@ public class SearchDocument {
 				} else if (fieldName.equals(JochreIndexField.index.name())) {
 					index = jsonParser.nextIntValue(0);
 				} else if (fieldName.equals(JochreIndexField.date.name())) {
-					date = jsonParser.nextIntValue(0);
+					date = jsonParser.nextTextValue();
 				} else if (fieldName.equals("score")) {
 					jsonParser.nextValue();
 					score = jsonParser.getDoubleValue();
@@ -134,7 +134,8 @@ public class SearchDocument {
 		return url;
 	}
 
-	public int getDate() {
+
+	public String getDate() {
 		return date;
 	}
 

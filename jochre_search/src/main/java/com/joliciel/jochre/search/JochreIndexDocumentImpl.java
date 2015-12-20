@@ -159,7 +159,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			if (this.directory.getMetaData().containsKey(JochreIndexField.publisher.name()))
 				doc.add(new Field(JochreIndexField.publisher.name(), this.directory.getMetaData().get(JochreIndexField.publisher.name()), TYPE_STORED));
 			if (this.directory.getMetaData().containsKey(JochreIndexField.date.name()))
-				doc.add(new IntField(JochreIndexField.date.name(), Integer.parseInt(this.directory.getMetaData().get(JochreIndexField.date.name())), Field.Store.YES));
+				doc.add(new StringField(JochreIndexField.date.name(), this.directory.getMetaData().get(JochreIndexField.date.name()), Field.Store.YES));
 			if (this.directory.getMetaData().containsKey(JochreIndexField.authorLang.name()))
 				doc.add(new Field(JochreIndexField.authorLang.name(), this.directory.getMetaData().get(JochreIndexField.authorLang.name()), TYPE_STORED));
 			if (this.directory.getMetaData().containsKey(JochreIndexField.titleLang.name()))
