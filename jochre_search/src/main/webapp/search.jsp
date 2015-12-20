@@ -179,7 +179,7 @@ if (queryString.length()>0) {
 			}
 			%>
 			<%
-			if (result.getDate()>0) {
+			if (result.getDate()!=null) {
 				%>
 				<tr><td class="Author" colspan="2"><b>Date:</b> <%= result.getDate() %></td></tr>
 				<%
