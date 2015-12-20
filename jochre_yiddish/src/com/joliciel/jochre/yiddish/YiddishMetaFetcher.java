@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,6 +40,8 @@ public class YiddishMetaFetcher {
 			}
 		});
 		
+		Arrays.sort(pdfFiles);
+		
 		for (File pdfFile : pdfFiles) {
 			String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length()-".pdf".length());
 			File metaFile = new File(dir, fileBase + "_meta.xml");
@@ -61,6 +64,8 @@ public class YiddishMetaFetcher {
 				return pathname.isDirectory();
 			}
 		});
+		
+		Arrays.sort(subdirs);
 		
 		for (File subdir : subdirs) {
 			this.fetchMetaData(subdir);

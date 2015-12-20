@@ -19,12 +19,15 @@
 package com.joliciel.jochre.yiddish;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.joliciel.jochre.Jochre;
 import com.joliciel.jochre.JochreSession;
@@ -54,6 +57,14 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			String argName = arg.substring(0, equalsPos);
 			String argValue = arg.substring(equalsPos+1);
 			argMap.put(argName, argValue);
+		}
+		
+		String logConfigPath = argMap.get("logConfigFile");
+		if (logConfigPath!=null) {
+			argMap.remove("logConfigFile");
+			Properties props = new Properties();
+			props.load(new FileInputStream(logConfigPath));
+			PropertyConfigurator.configure(props);
 		}
 		
 		String command = argMap.get("command");

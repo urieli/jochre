@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -584,6 +585,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 						return (name.toLowerCase().endsWith(".pdf"));
 					}
 				});
+				
+				Arrays.sort(pdfFiles);
+				
 				for (File pdfFile : pdfFiles) {
 					LOG.info("Analysing file: " + pdfFile.getAbsolutePath());
 					try {
