@@ -101,11 +101,9 @@ def search(request):
                     snippetText = resp.text
                     
                     userdata = {"command": "imageSnippet", "snippet": snippetJson}
-                    req = requests.Request(method='GET', url=searchUrl, params=userdata)
+                    req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
                     preparedReq = req.prepare()
                     snippetImageUrl = preparedReq.url
-                    backslashPos = snippetImageUrl.find("/", len("https://"), len(snippetImageUrl))
-                    snippetImageUrl = snippetImageUrl[backslashPos:len(snippetImageUrl)]
                     
                     pageNumber = snippet['pageIndex']
                     urlPageNumber = pageNumber / 2 * 2;

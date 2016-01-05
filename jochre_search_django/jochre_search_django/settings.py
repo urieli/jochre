@@ -127,3 +127,4 @@ STATICFILES_DIRS = (
 )
 
 JOCHRE_SEARCH_URL='http://localhost:8080/jochre/search'
+JOCHRE_SEARCH_EXT_URL='http://localhost:8080/jochre/search'
