@@ -6,9 +6,10 @@ import logging
 import os
 
 from django.shortcuts import render
+from django.conf import settings
 
 def search(request):
-    searchUrl = os.environ.get('JOCHRE_SEARCH_URL')
+    searchUrl = settings.JOCHRE_SEARCH_URL
     advancedSearch = False
     haveResults = False
 
@@ -103,12 +104,18 @@ def search(request):
                     req = requests.Request(method='GET', url=searchUrl, params=userdata)
                     preparedReq = req.prepare()
                     snippetImageUrl = preparedReq.url
+                    backslashPos = snippetImageUrl.find("/", len("https://"), len(snippetImageUrl))
+                    snippetImageUrl = snippetImageUrl[backslashPos:len(snippetImageUrl)]
                     
                     pageNumber = snippet['pageIndex']
                     urlPageNumber = pageNumber / 2 * 2;
                     snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
                     
-                    snippetDict = {"snippetText" : snippetText, "readOnlineUrl" : snippetReadUrl, "imageUrl": snippetImageUrl }
+                    snippetDict = {"snippetText" : snippetText,
+                                   "readOnlineUrl" : snippetReadUrl,
+                                   "imageUrl": snippetImageUrl,
+                                   "pageNumber": pageNumber }
+                    
                     snippetsToSend.append(snippetDict)
                     result['snippets'] = snippetsToSend
                     

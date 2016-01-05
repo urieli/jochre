@@ -125,3 +125,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+JOCHRE_SEARCH_URL='http://localhost:8080/jochre/search'

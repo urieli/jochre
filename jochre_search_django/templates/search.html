@@ -100,8 +100,8 @@ $("#toggleAdvancedSearch").on("click",function(){
 				<tr>
 				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
 				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
-				<td align="center" valign="top" width="30px"><a href="{{ snippet.readOnlineUrl }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a></td>
-				<td align="right" valign="top" width="30px"><a href="{{ snippet.readOnlineUrl }}" target="_blank">{{ snippet.pageNumber }}</a></td>
+				<td align="center" valign="top" width="30px"><a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a></td>
+				<td align="right" valign="top" width="30px"><a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{{ snippet.pageNumber }}</a></td>
 				</tr>
 				</table>
 				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" style="display: none;"></div>
@@ -109,7 +109,7 @@ $("#toggleAdvancedSearch").on("click",function(){
 				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
 				$("#img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
 					if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
-						$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{{ snippet.imageUrl }}" width="720px" border="1" />');
+						$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" width="720px" border="1" />');
 						$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
 					}
 					$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
