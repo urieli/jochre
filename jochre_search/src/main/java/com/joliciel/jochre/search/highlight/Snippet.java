@@ -103,6 +103,8 @@ public class Snippet implements Comparable<Snippet> {
 					jsonParser.nextValue();
 					this.score = jsonParser.getDoubleValue();
 					this.scoreCalculated = true;
+				} else if (fieldName.equals("pageIndex")) {
+					this.pageIndex = jsonParser.nextIntValue(-1);
 				} else if (fieldName.equals("terms")) {
 		 			if (jsonParser.nextToken() != JsonToken.START_ARRAY)
 		 				throw new RuntimeException("Expected START_ARRAY, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
@@ -213,6 +215,7 @@ public class Snippet implements Comparable<Snippet> {
 			jsonGen.writeNumberField("end", this.getEndOffset());
 			double roundedScore = df.parse(df.format(this.getScore())).doubleValue();
 			jsonGen.writeNumberField("score", roundedScore);
+			jsonGen.writeNumberField("pageIndex", this.getPageIndex());
 			jsonGen.writeArrayFieldStart("terms");
 			for (HighlightTerm term : this.getHighlightTerms()) {
 				term.toJson(jsonGen, df);

@@ -1,11 +1,13 @@
 # Jochre .gitignore
 */.classpath
 */.project
+*/.pydevproject
 */.settings/
 */bin/
 */build/
 */corpusTest/
 */logs/
+*.pyc
 dist/
 jochre_core/webapps/
 jochre_web/webapp/
