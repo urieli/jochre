@@ -39,6 +39,7 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lexicon.Lexicon;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -85,7 +86,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 			}
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -96,7 +97,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 				writer.write("<h3>Page " + (jochrePage.getIndex()) + "</h3>\n");
 			} catch (IOException ioe) {
 				LogUtils.logError(LOG, ioe);
-				throw new RuntimeException(ioe);
+				throw new JochreException(ioe);
 			}
 		}
 	}
@@ -310,7 +311,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 			} // next paragraph
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -321,7 +322,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 				writer.write("<hr/>\n");
 			} catch (IOException ioe) {
 				LogUtils.logError(LOG, ioe);
-				throw new RuntimeException(ioe);
+				throw new JochreException(ioe);
 			}
 		}
 	}
@@ -336,7 +337,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 			}
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -370,7 +371,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 	        }	
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 }

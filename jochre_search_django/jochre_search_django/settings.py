@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
-import logging
+import logging.handlers
 
-logging.basicConfig(filename='logs/example.log',level=logging.DEBUG)
+rollingFileHandler = logging.handlers.RotatingFileHandler('logs/example.log', maxBytes=5000000, backupCount=5)
+rollingFileHandler.level = logging.DEBUG
+logging.root.addHandler(rollingFileHandler)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

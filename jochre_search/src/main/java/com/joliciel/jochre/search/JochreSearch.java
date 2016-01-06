@@ -47,6 +47,7 @@ import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
 import com.joliciel.jochre.search.highlight.Highlighter;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.StringUtils;
 
@@ -246,7 +247,7 @@ public class JochreSearch {
 			throw e;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

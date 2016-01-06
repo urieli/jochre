@@ -25,6 +25,8 @@ import java.awt.image.ImageObserver;
 import java.awt.image.IndexColorModel;
 import java.awt.image.PixelGrabber;
 
+import com.joliciel.jochre.utils.JochreException;
+
 // Initially from: http://www.permadi.com/tutorial/javaGetImagePixels/index.html
 // notice here that I extends an image observer, this is
 // not necessary, but I need the ImageObserver to be passed as
@@ -55,7 +57,7 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
         try {
 			pixelGrabber.grabPixels();
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 
         pixels=(Object)pixelGrabber.getPixels();

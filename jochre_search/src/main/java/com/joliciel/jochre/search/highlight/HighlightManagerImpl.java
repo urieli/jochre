@@ -40,6 +40,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.SearchService;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 
@@ -108,7 +109,7 @@ class HighlightManagerImpl implements HighlightManager {
 			jsonGen.flush();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -147,19 +148,9 @@ class HighlightManagerImpl implements HighlightManager {
 
 				jsonGen.writeArrayFieldStart("snippets");
 				for (Snippet snippet : snippetMap.get(docId)) {
-					snippet.toJson(jsonGen, df);
+					snippet.toJson(jsonGen, df, this);
 				}
 				jsonGen.writeEndArray();
-
-				if (includeText) {
-					jsonGen.writeArrayFieldStart("snippetText");
-					for (Snippet snippet : snippetMap.get(docId)) {
-						jsonGen.writeStartObject();
-						jsonGen.writeStringField("snippet", this.displaySnippet(snippet));
-						jsonGen.writeEndObject();
-					}
-					jsonGen.writeEndArray();
-				}
 				
 				if (includeGraphics) {
 					jsonGen.writeArrayFieldStart("snippetGraphics");
@@ -192,7 +183,7 @@ class HighlightManagerImpl implements HighlightManager {
 			jsonGen.flush();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	

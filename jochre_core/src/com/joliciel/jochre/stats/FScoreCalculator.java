@@ -35,6 +35,7 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.CSVFormatter;
 
 /**
@@ -409,7 +410,7 @@ public class FScoreCalculator<E> {
 				fscoreFileWriter.close();
 			}
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -484,7 +485,7 @@ public class FScoreCalculator<E> {
 			fscoreFileWriter.write(CSV.format((totalFscoreSum/outcomeSet.size())*100));
 			fscoreFileWriter.write("\n");
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 }

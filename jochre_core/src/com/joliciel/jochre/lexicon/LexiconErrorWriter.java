@@ -46,6 +46,7 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -149,7 +150,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 
@@ -362,7 +363,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 
@@ -387,7 +388,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			statsWriter.close();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 
 	}
@@ -539,7 +540,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			statsWriter.flush();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	
@@ -819,7 +820,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

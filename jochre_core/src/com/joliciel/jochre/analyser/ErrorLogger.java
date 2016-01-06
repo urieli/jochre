@@ -9,6 +9,7 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.utils.JochreException;
 
 public class ErrorLogger implements LetterGuessObserver {
 	JochreImage currentImage = null;
@@ -58,7 +59,7 @@ public class ErrorLogger implements LetterGuessObserver {
 				errorWriter.flush();
 			}
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 

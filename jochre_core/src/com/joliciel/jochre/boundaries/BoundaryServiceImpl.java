@@ -34,6 +34,7 @@ import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
@@ -339,7 +340,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 			return boundaryDetector;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

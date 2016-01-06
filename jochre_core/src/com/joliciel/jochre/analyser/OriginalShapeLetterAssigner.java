@@ -22,7 +22,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.joliciel.jochre.JochreException;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.ImageStatus;
@@ -32,6 +31,7 @@ import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.stats.FScoreCalculator;
+import com.joliciel.jochre.utils.JochreException;
 
 /**
  * Calculates f-score based on the original letter, rather than the split/merged letter.

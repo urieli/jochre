@@ -35,6 +35,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 
@@ -68,7 +69,7 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
 	    	this.parseFile(inputStream, altoFile.getParentFile().getName());
         } catch (IOException e) {
             LogUtils.logError(LOG, e);
-            throw new RuntimeException(e);
+            throw new JochreException(e);
         }
     }
     	
@@ -83,13 +84,13 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
             	consumer.onComplete();
         } catch(SAXException e) {
             LogUtils.logError(LOG, e);
-            throw new RuntimeException(e);
+            throw new JochreException(e);
         } catch(ParserConfigurationException e) {
             LogUtils.logError(LOG, e);
-            throw new RuntimeException(e);
+            throw new JochreException(e);
         } catch (IOException e) {
             LogUtils.logError(LOG, e);
-            throw new RuntimeException(e);
+            throw new JochreException(e);
         }
     }
     

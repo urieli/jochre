@@ -28,6 +28,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.Query;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 class JochreQueryImpl implements JochreQuery {
@@ -135,7 +136,7 @@ class JochreQueryImpl implements JochreQuery {
 			return luceneTextQuery;
 		} catch (ParseException pe) {
 			LogUtils.logError(LOG, pe);
-			throw new RuntimeException(pe);
+			throw new JochreException(pe);
 		}
 	}
 	
@@ -162,7 +163,7 @@ class JochreQueryImpl implements JochreQuery {
 			return luceneQuery;
 		} catch (ParseException pe) {
 			LogUtils.logError(LOG, pe);
-			throw new RuntimeException(pe);
+			throw new JochreException(pe);
 		}
 	}
 }

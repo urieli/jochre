@@ -21,9 +21,9 @@ package com.joliciel.jochre.output;
 import java.io.File;
 import java.io.Writer;
 
-import com.joliciel.jochre.JochreException;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.lexicon.Lexicon;
+import com.joliciel.jochre.utils.JochreException;
 
 class OutputServiceImpl implements OutputService {
 	@Override

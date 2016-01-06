@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexField;
+import com.joliciel.jochre.utils.JochreException;
 
 public class SearchDocument {
 	private static final Log LOG = LogFactory.getLog(SearchDocument.class);
@@ -75,10 +76,10 @@ public class SearchDocument {
 			LOG.debug("Loaded document " + docId);
 		} catch (JsonParseException e) {
 			LOG.error(e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} catch (IOException e) {
 			LOG.error(e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	

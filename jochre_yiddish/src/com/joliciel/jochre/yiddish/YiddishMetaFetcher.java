@@ -27,6 +27,8 @@ import com.joliciel.talismane.utils.LogUtils;
 public class YiddishMetaFetcher {
 	private static final Log LOG = LogFactory.getLog(YiddishMetaFetcher.class);
 
+	private boolean forceUpdate = false;
+	
 	public YiddishMetaFetcher() {
 
 	}
@@ -45,7 +47,7 @@ public class YiddishMetaFetcher {
 		for (File pdfFile : pdfFiles) {
 			String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length()-".pdf".length());
 			File metaFile = new File(dir, fileBase + "_meta.xml");
-			if (!metaFile.exists()||metaFile.length()==0) {
+			if (!metaFile.exists()||metaFile.length()==0||forceUpdate) {
 				try {
 					Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaFile, false), "UTF-8"));
 					this.fetchMetaData(pdfFile, writer);
@@ -146,4 +148,14 @@ public class YiddishMetaFetcher {
 		fetcher.fetchMetaData(pdfFile, writer);
 		writer.close();
 	}
+
+	public boolean isForceUpdate() {
+		return forceUpdate;
+	}
+
+	public void setForceUpdate(boolean forceUpdate) {
+		this.forceUpdate = forceUpdate;
+	}
+	
+	
 }

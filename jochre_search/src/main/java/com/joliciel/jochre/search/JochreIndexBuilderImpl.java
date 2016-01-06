@@ -57,6 +57,7 @@ import com.joliciel.jochre.search.alto.AltoService;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
@@ -104,7 +105,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				}
 			} catch (IOException ioe) {
 				LogUtils.logError(LOG, ioe);
-				throw new RuntimeException(ioe);
+				throw new JochreException(ioe);
 			}
 		}
 	}
@@ -152,7 +153,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} finally {
 			searchStatusHolder.setStatus(SearchStatus.WAITING);
 			long endTime = System.currentTimeMillis();
@@ -173,7 +174,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} finally {
 			long endTime = System.currentTimeMillis();
 			long totalTime = endTime - startTime;
@@ -190,7 +191,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	
@@ -248,7 +249,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -268,7 +269,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			uis.reallyClose();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -355,7 +356,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	

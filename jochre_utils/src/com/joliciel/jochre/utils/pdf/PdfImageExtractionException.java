@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2012 Assaf Urieli
+//Copyright (C) 2016 Assaf Urieli
 //
 //This file is part of Jochre.
 //
@@ -16,14 +16,22 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre;
+package com.joliciel.jochre.utils.pdf;
 
 import com.joliciel.jochre.utils.JochreException;
 
-public class EntityNotFoundException extends JochreException {
-	private static final long serialVersionUID = -3790802787786313800L;
-	public EntityNotFoundException() { super(); }
-    public EntityNotFoundException(String s) { super(s); }
-    public EntityNotFoundException(Exception e) { super(e); }
+public class PdfImageExtractionException extends JochreException {
+	private static final long serialVersionUID = 1L;
+
+	public PdfImageExtractionException() {
+	}
+
+	public PdfImageExtractionException(String s) {
+		super(s);
+	}
+
+	public PdfImageExtractionException(Exception e) {
+		super(e);
+	}
 
 }

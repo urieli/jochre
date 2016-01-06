@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.highlight.Snippet;
+import com.joliciel.jochre.utils.JochreException;
 
 public class SnippetResults {
 	private static final Log LOG = LogFactory.getLog(SearchResults.class);
@@ -59,10 +60,10 @@ public class SnippetResults {
 			} // next scoreDoc
 		} catch (JsonParseException e) {
 			LOG.error(e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} catch (IOException e) {
 			LOG.error(e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

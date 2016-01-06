@@ -31,6 +31,7 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.CountedOutcome;
 
@@ -59,7 +60,7 @@ public class UnknownWordListWriter implements DocumentObserver {
 			writer.flush();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -88,7 +89,7 @@ public class UnknownWordListWriter implements DocumentObserver {
 			}
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 

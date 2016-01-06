@@ -21,6 +21,7 @@ import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 import freemarker.cache.NullCacheStorage;
@@ -56,7 +57,7 @@ class JochrePageByPageExporter implements DocumentObserver {
 			this.template = new Template("freemarkerTemplate", templateReader, cfg);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -83,10 +84,10 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zipWriter.flush();
 		} catch (TemplateException te) {
 			LogUtils.logError(LOG, te);
-			throw new RuntimeException(te);
+			throw new JochreException(te);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -110,7 +111,7 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zos.close();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 }

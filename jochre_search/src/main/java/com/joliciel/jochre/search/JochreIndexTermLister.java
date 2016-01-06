@@ -25,6 +25,7 @@ import org.apache.lucene.util.BytesRef;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreIndexTermLister {
@@ -91,7 +92,7 @@ public class JochreIndexTermLister {
 			return textFeatureMap;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	
@@ -124,7 +125,7 @@ public class JochreIndexTermLister {
 			jsonGen.flush();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	

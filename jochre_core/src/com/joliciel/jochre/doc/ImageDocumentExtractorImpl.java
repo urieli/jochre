@@ -21,6 +21,7 @@ package com.joliciel.jochre.doc;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
+
 import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
@@ -29,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
@@ -112,7 +114,7 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 			if (currentMonitor!=null)
 				currentMonitor.setException(e);
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} finally {
 			LOG.debug("Exit ImageDocumentExtractorImpl.extractDocument");
 		}

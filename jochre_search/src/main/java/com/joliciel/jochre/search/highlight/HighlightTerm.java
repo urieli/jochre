@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochrePayload;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -153,10 +154,10 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			jsonGen.flush();
 		} catch (java.text.ParseException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 

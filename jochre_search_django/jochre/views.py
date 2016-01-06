@@ -3,7 +3,6 @@ import json
 import requests
 import paginate
 import logging
-import os
 
 from django.shortcuts import render
 from django.conf import settings
@@ -96,9 +95,7 @@ def search(request):
                 snippetsToSend = []
                 for snippet in snippets:
                     snippetJson = json.dumps(snippet)
-                    userdata = {"command": "textSnippet", "snippet": snippetJson}
-                    resp = requests.get(searchUrl, userdata)
-                    snippetText = resp.text
+                    snippetText = snippet.pop("text", "")
                     
                     userdata = {"command": "imageSnippet", "snippet": snippetJson}
                     req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)

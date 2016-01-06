@@ -32,6 +32,7 @@ import org.apache.lucene.search.IndexSearcher;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.SearchService;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 
@@ -157,7 +158,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 			return snippets;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

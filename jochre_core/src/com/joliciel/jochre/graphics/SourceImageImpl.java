@@ -46,6 +46,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import com.joliciel.jochre.stats.DBSCANClusterer;
+import com.joliciel.jochre.utils.JochreException;
 
 class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 	private static final Log LOG = LogFactory.getLog(SourceImageImpl.class);
@@ -270,7 +271,7 @@ class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
 			ChartUtilities.saveChartAsPNG(file, chart, 600, 600 );
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}   
 	}
 	

@@ -16,16 +16,18 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre;
+package com.joliciel.jochre.utils;
 
-/** *********************************
-Exception thrown by the internal business logic of the French Treebank application.
-@author Assaf Urieli
-********************************* */
+/**
+ * Exception thrown by the internal business logic of the Jochre application.
+ * @author Assaf Urieli
+ */
 public class JochreException extends RuntimeException
 {
-	private static final long serialVersionUID = -372594443442653224L;
+	private static final long serialVersionUID = 1L;
 	public JochreException() { super(); }
 	public JochreException(String s) { super(s); }
 	public JochreException(Exception e) { super(e); }
+	public JochreException(Throwable cause) { super(cause);}
+	public JochreException(String message, Throwable cause) { super(message, cause);}
 }

@@ -21,11 +21,13 @@ package com.joliciel.jochre.search.web;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+
 import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -68,7 +70,7 @@ public class JochreSearchProperties {
 		
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	
 	}

@@ -18,12 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import com.joliciel.jochre.utils.JochreException;
+
 /**
  * An exception specific to the JochreSearch logic.
  * @author Assaf Urieli
  *
  */
-public class JochreSearchException extends RuntimeException {
+public class JochreSearchException extends JochreException {
 	private static final long serialVersionUID = 1L;
 
 	public JochreSearchException() {

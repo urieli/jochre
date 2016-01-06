@@ -36,6 +36,9 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 
+import com.joliciel.jochre.utils.JochreException;
+import com.joliciel.talismane.utils.LogUtils;
+
 /**
  * A base class for visiting the images in a Pdf document one at a time.
  * @author Assaf Urieli
@@ -47,6 +50,7 @@ public abstract class AbstractPdfImageVisitor {
 	private File pdfFile;
 	private Map<String,String> fields = new TreeMap<String, String>();
 	private boolean docClosed = false;
+	private boolean stopOnError = false;
 	
 	public AbstractPdfImageVisitor(File pdfFile) {
 		try {
@@ -105,29 +109,42 @@ public abstract class AbstractPdfImageVisitor {
 
 				LOG.debug("Decoding page " + i);
 				
-				PDResources resources = pdfPage.getResources();
-				Map<String,PDXObject> pdxObjects = resources.getXObjects();
-				int j = 0;
-				for (String key : pdxObjects.keySet()) {
-					PDXObject pdxObject = pdxObjects.get(key);
-					if (pdxObject instanceof PDXObjectImage) {
-		                PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
-		                BufferedImage image = pdfImage.getRGBImage();
-		                if (image==null) {
-		                	throw new RuntimeException("Something went wrong: unable to extract image");
-		                }
-		                this.visitImage(image, key, i, j);
-		                j++;
-		            }
-		        }
-				
-			}
+				try {
+					PDResources resources = pdfPage.getResources();
+					Map<String,PDXObject> pdxObjects = resources.getXObjects();
+					int j = 0;
+					for (String key : pdxObjects.keySet()) {
+						PDXObject pdxObject = pdxObjects.get(key);
+						if (pdxObject instanceof PDXObjectImage) {
+			                PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
+			                BufferedImage image = pdfImage.getRGBImage();
+			                if (image==null) {
+			                	throw new PdfImageExtractionException("Something went wrong: unable to extract image " + j + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+			                }
+			                this.visitImage(image, key, i, j);
+			                j++;
+			            }
+			        }
+				} catch (PdfImageExtractionException e) {
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+					LogUtils.logError(LOG, e);
+					if (stopOnError)
+						throw e;
+				} catch (IOException e) {
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+					LogUtils.logError(LOG, e);
+					if (stopOnError)
+						throw new RuntimeException(e);
+				} catch (JochreException e) {
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+					LogUtils.logError(LOG, e);
+					if (stopOnError)
+						throw e;
+				}
+			} // next page
+		} finally {
 			this.close();
-		} catch (FileNotFoundException fnfe) {
-			throw new RuntimeException(fnfe);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}		
+		}
 	}
 	
 	/**
@@ -161,4 +178,18 @@ public abstract class AbstractPdfImageVisitor {
 			throw new RuntimeException(e);
 		}
 	}
+
+	/**
+	 * Should processing stop if an error is encountered extracting an image from a given page.
+	 * @return
+	 */
+	public boolean isStopOnError() {
+		return stopOnError;
+	}
+
+	public void setStopOnError(boolean stopOnError) {
+		this.stopOnError = stopOnError;
+	}
+	
+	
 }

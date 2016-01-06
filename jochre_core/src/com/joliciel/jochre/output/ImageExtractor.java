@@ -12,6 +12,7 @@ import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageExtractor implements DocumentObserver {
@@ -42,7 +43,7 @@ public class ImageExtractor implements DocumentObserver {
 			ImageIO.write(jochreImage.getOriginalImage(),SUFFIX,outputFile);
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

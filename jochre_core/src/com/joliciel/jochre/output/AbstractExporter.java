@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 public abstract class AbstractExporter implements DocumentObserver {
@@ -46,7 +47,7 @@ public abstract class AbstractExporter implements DocumentObserver {
 			this.onDocumentStartInternal(jochreDocument);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -60,7 +61,7 @@ public abstract class AbstractExporter implements DocumentObserver {
 			this.writer.close();
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 

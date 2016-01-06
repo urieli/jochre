@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 
 public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfImageSaver {
@@ -71,7 +72,7 @@ public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfIma
 		try {
 			ImageIO.write(image,SUFFIX,new File(pageDirectory + SEPARATOR + fileName));
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

@@ -33,6 +33,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -72,7 +73,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			}	
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -92,7 +93,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			return topDocs;
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}		
 	}
 
@@ -152,10 +153,10 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			jsonGen.flush();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} catch (ParseException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	
@@ -220,7 +221,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			return docs;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 }

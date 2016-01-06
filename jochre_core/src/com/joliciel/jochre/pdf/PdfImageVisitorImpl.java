@@ -11,6 +11,7 @@ import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
@@ -75,7 +76,7 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 			if (this.currentMonitor!=null)
 				this.currentMonitor.setException(e);
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

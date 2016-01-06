@@ -42,6 +42,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
@@ -96,7 +97,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 				scanner.close();
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	
@@ -105,7 +106,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			try {
 				writer.write(entry.getKey() + "\t" + entry.getValue() + "\n");
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new JochreException(e);
 			}
 		}
 	}
@@ -168,7 +169,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 				out.close();
 			}
 		} catch(IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -187,9 +188,9 @@ public class TextFileLexicon implements Lexicon, Serializable {
 				throw new RuntimeException("No zip entry in input stream");
 			}
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		} catch (ClassNotFoundException cnfe) {
-			throw new RuntimeException(cnfe);
+			throw new JochreException(cnfe);
 		}
 		
 		return memoryBase;
@@ -220,9 +221,9 @@ public class TextFileLexicon implements Lexicon, Serializable {
 				}
 			}
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		} catch (ClassNotFoundException cnfe) {
-			throw new RuntimeException(cnfe);
+			throw new JochreException(cnfe);
 		}
 		
 		return memoryBase;

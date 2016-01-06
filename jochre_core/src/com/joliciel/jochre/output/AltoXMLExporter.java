@@ -16,6 +16,7 @@ import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 import freemarker.cache.NullCacheStorage;
@@ -51,7 +52,7 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 			this.template = new Template("alto_body", templateReader, cfg);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -82,10 +83,10 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 			writer.flush();
 		} catch (TemplateException te) {
 			LogUtils.logError(LOG, te);
-			throw new RuntimeException(te);
+			throw new JochreException(te);
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 		
 	}
@@ -103,10 +104,10 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 			writer.flush();
 		} catch (TemplateException te) {
 			LogUtils.logError(LOG, te);
-			throw new RuntimeException(te);
+			throw new JochreException(te);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
@@ -130,10 +131,10 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 			writer.flush();
 		} catch (TemplateException te) {
 			LogUtils.logError(LOG, te);
-			throw new RuntimeException(te);
+			throw new JochreException(te);
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 }

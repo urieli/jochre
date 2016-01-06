@@ -33,7 +33,6 @@ import javax.imageio.ImageIO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.jochre.JochreException;
 import com.joliciel.jochre.analyser.AnalyserService;
 import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.analyser.LetterAssigner;
@@ -52,6 +51,7 @@ import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.utils.LogUtils;
@@ -259,7 +259,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			return sourceImage;
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		} finally {
 			LOG.debug("Exit JochreDocumentGeneratorImpl.onImageFound");
 		}
@@ -441,7 +441,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 			this.documentObservers.add(0, analyser);
 		} catch (Exception e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

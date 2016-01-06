@@ -45,6 +45,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.DaoUtils;
 
 final class GraphicsDaoJdbc implements GraphicsDao {
@@ -179,7 +180,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 				image = ImageIO.read(is);
 				is.close();
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new JochreException(e);
 			}
 			shape.setImage(image);
 
@@ -242,7 +243,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			image = ImageIO.read(is);
 			is.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 		jochreImage.setOriginalImageDB(image);
 	}
@@ -260,7 +261,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			paramSource.addValue("image_image", os.toByteArray());
 			os.close();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 
 		String sql = "UPDATE ocr_image SET image_image = :image_image" +
@@ -396,7 +397,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 					image = ImageIO.read(is);
 					is.close();
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					throw new JochreException(e);
 				}
 				row.setImage(image);
 			}
@@ -547,7 +548,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 				jt.update(sql, paramSource);
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 
@@ -740,7 +741,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 				jt.update(sql, paramSource);
 			}
 		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 

@@ -40,6 +40,7 @@ import org.apache.lucene.util.automaton.CompiledAutomaton;
 
 import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.jochre.search.JochreQuery;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 
@@ -212,7 +213,7 @@ class LuceneQueryHighlighter implements Highlighter {
 			return termMap;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 	

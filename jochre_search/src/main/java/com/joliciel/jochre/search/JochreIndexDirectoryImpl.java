@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.pdf.PdfMetadataReader;
 import com.joliciel.jochre.utils.text.DiacriticRemover;
 import com.joliciel.talismane.utils.LogUtils;
@@ -223,16 +224,16 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 			        
 				} catch (IOException e) {
 					LogUtils.logError(LOG, e);
-					throw new RuntimeException(e);
+					throw new JochreException(e);
 				} catch (XPathExpressionException e) {
 					LogUtils.logError(LOG, e);
-					throw new RuntimeException(e);
+					throw new JochreException(e);
 				} catch (ParserConfigurationException e) {
 					LogUtils.logError(LOG, e);
-					throw new RuntimeException(e);
+					throw new JochreException(e);
 				} catch (SAXException e) {
 					LogUtils.logError(LOG, e);
-					throw new RuntimeException(e);
+					throw new JochreException(e);
 				}
 			}
 		}
@@ -298,7 +299,7 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 			return uis;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		}
 	}
 

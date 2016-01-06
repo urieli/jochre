@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.joliciel.jochre.JochreException;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeLeftToRightComparator;
 import com.joliciel.jochre.graphics.ShapeRightToLeftComparator;
+import com.joliciel.jochre.utils.JochreException;
 
 /**
  * Splits a shape from the training corpus based on its annotations.

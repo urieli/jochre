@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,7 +70,20 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 		
 		String command = argMap.get("command");
 		if (command!=null && command.equals("metadata")) {
-			String inDirPath = argMap.get("inDir");
+			String inDirPath = null;
+			boolean forceUpdate = false;
+			
+			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+				String argName = argMapEntry.getKey();
+				String argValue = argMapEntry.getValue();
+				if (argName.equals("inDir"))
+					inDirPath = argValue;
+				else if (argName.equals("forceUpdate"))
+					forceUpdate = argValue.equals("true");
+				else
+					throw new RuntimeException("Unknown argument: " + argName);
+			}
+			
 			if (inDirPath==null)
 				throw new RuntimeException("For command " + command + ", inDir is required");
 			
@@ -79,6 +93,7 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			}
 			
 			YiddishMetaFetcher fetcher = new YiddishMetaFetcher();
+			fetcher.setForceUpdate(forceUpdate);
 			fetcher.fetchMetaData(inDir);
 		} else {
 			JochreYiddish jochre = new JochreYiddish();

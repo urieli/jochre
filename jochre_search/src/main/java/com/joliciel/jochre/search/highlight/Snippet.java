@@ -42,6 +42,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.RectangleNotFoundException;
 import com.joliciel.jochre.search.JochrePayload;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -58,6 +59,7 @@ public class Snippet implements Comparable<Snippet> {
 	private List<HighlightTerm> highlightTerms = new ArrayList<HighlightTerm>();
 	private Rectangle rect = null;
 	private int pageIndex = -1;
+	private String text;
 	
 	public Snippet(int docId, String field, int startOffset, int endOffset) {
 		super();
@@ -76,7 +78,7 @@ public class Snippet implements Comparable<Snippet> {
 			this.read(jsonParser);
  		} catch (IOException e) {
  			LOG.error(e);
- 			throw new RuntimeException(e);
+ 			throw new JochreException(e);
  		}
  	}
 	
@@ -105,6 +107,8 @@ public class Snippet implements Comparable<Snippet> {
 					this.scoreCalculated = true;
 				} else if (fieldName.equals("pageIndex")) {
 					this.pageIndex = jsonParser.nextIntValue(-1);
+				} else if (fieldName.equals("text")) {
+					this.text = jsonParser.nextTextValue();
 				} else if (fieldName.equals("terms")) {
 		 			if (jsonParser.nextToken() != JsonToken.START_ARRAY)
 		 				throw new RuntimeException("Expected START_ARRAY, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
@@ -182,10 +186,10 @@ public class Snippet implements Comparable<Snippet> {
  			}
 		} catch (JsonParseException e) {
  			LOG.error(e);
- 			throw new RuntimeException(e);
+ 			throw new JochreException(e);
  		} catch (IOException e) {
  			LOG.error(e);
- 			throw new RuntimeException(e);
+ 			throw new JochreException(e);
  		}
  	}
 	
@@ -202,11 +206,15 @@ public class Snippet implements Comparable<Snippet> {
 			return json;
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {
+		this.toJson(jsonGen, df, null);
+	}
+	
+	public void toJson(JsonGenerator jsonGen, DecimalFormat df, HighlightManager highlightManager) {
 		try {
 			jsonGen.writeStartObject();
 			jsonGen.writeNumberField("docId", docId);
@@ -222,14 +230,18 @@ public class Snippet implements Comparable<Snippet> {
 			}
 			jsonGen.writeEndArray(); // terms
 	
+			if (highlightManager!=null) {
+				String text = highlightManager.displaySnippet(this);
+				jsonGen.writeStringField("text", text);
+			}
 			jsonGen.writeEndObject();
 			jsonGen.flush();
 		} catch (java.text.ParseException e) {
 			LogUtils.logError(LOG, e);
-			throw new RuntimeException(e);
+			throw new JochreException(e);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
-			throw new RuntimeException(ioe);
+			throw new JochreException(ioe);
 		}
 	}
 	
@@ -389,5 +401,12 @@ public class Snippet implements Comparable<Snippet> {
 				+ ", score=" + score + ", highlightTerms=" + highlightTerms
 				+ ", pageIndex=" + pageIndex + "]";
 	}
-	
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
 }

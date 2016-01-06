@@ -16,6 +16,7 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Segmenter;
 import com.joliciel.jochre.graphics.SourceImage;
+import com.joliciel.jochre.utils.JochreException;
 
 class JochrePageImpl extends EntityImpl implements JochrePageInternal {
     private static final Log LOG = LogFactory.getLog(JochrePageImpl.class);
@@ -122,7 +123,7 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 			try {
 				ImageIO.write(segmentedImage, "PNG", new File(outputDirectory + "/" + image.getName() + "_seg.png"));
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new JochreException(e);
 			}
 			
 			LOG.debug("Image " + i + " segmented: " + sourceImage.getName());
