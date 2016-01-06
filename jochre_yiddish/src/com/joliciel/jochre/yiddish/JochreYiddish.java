@@ -73,6 +73,8 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			String inDirPath = null;
 			boolean forceUpdate = false;
 			
+			argMap.remove("command");
+			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
 				String argValue = argMapEntry.getValue();
