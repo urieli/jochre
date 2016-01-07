@@ -64,6 +64,9 @@ import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
 import com.joliciel.jochre.search.highlight.Highlighter;
 import com.joliciel.jochre.search.highlight.ImageSnippet;
 import com.joliciel.jochre.search.highlight.Snippet;
+import com.joliciel.jochre.search.lexicon.Lexicon;
+import com.joliciel.jochre.search.lexicon.LexiconService;
+import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -96,13 +99,22 @@ public class JochreSearchServlet extends HttpServlet {
 				command="search";
 			}
 			
-			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance();
+			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale());
 			SearchService searchService = searchServiceLocator.getSearchService();
-
+			
 			if (command.equals("purge")) {
 				JochreSearchProperties.purgeInstance();
-				searchService.purgeSearcher();
+				searchService.purge();
 				return;
+			}
+			
+			String lexiconPath = props.getLexiconPath();
+			if (lexiconPath!=null && searchService.getLexicon()==null) {
+				LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(searchServiceLocator);
+				LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
+				File lexiconFile = new File(lexiconPath);
+				Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
+				searchService.setLexicon(lexicon);
 			}
 			
 			Map<String,String> argMap = new HashMap<String, String>();

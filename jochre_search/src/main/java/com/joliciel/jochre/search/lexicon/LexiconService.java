@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2014 Assaf Urieli
+//Copyright (C) 2016 Joliciel Informatique
 //
 //This file is part of Jochre.
 //
@@ -16,29 +16,20 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.lexicon;
 
 import java.io.File;
 import java.util.Locale;
 
-import org.apache.lucene.search.IndexSearcher;
-
-import com.joliciel.jochre.search.lexicon.Lexicon;
-
-public interface SearchService {
-	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
-	public void purge();
+public interface LexiconService {
+	/**
+	 * Return a text normaliser for the current locale, or none if no text normaliser is available for this locale.
+	 * @param locale
+	 * @return
+	 */
+	public TextNormaliser getTextNormaliser(Locale locale);
 	
-	public JochreQuery getJochreQuery();
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
+	public TextFileLexicon getTextFileLexicon(Locale locale);
 	
-	public SearchStatusHolder getSearchStatusHolder();
-	
-	public Locale getLocale();
-	public void setLocale(Locale locale);
-	
-	public Lexicon getLexicon();
-	public void setLexicon(Lexicon lexicon);
+	public Lexicon deserializeLexicon(File lexiconFile);
 }

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2014 Assaf Urieli
+//Copyright (C) 2016 Joliciel Informatique
 //
 //This file is part of Jochre.
 //
@@ -16,29 +16,41 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.lexicon;
 
-import java.io.File;
-import java.util.Locale;
+import java.io.Serializable;
 
-import org.apache.lucene.search.IndexSearcher;
-
-import com.joliciel.jochre.search.lexicon.Lexicon;
-
-public interface SearchService {
-	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
-	public void purge();
+/**
+ * A single lexical entry for a given string.
+ * @author Assaf Urieli
+ *
+ */
+public interface LexicalEntry extends Serializable {
+	/**
+	 * The original text of this entry.
+	 * @return
+	 */
+	public String getWord();
+	public void setWord(String word);
 	
-	public JochreQuery getJochreQuery();
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
+	/**
+	 * The lemma for this lexical entry.
+	 * @return
+	 */
+	public String getLemma();
+	public void setLemma(String lemma);
 	
-	public SearchStatusHolder getSearchStatusHolder();
+	/**
+	 * The original grammatical category of this entry, using the categorisation of the lexicon.
+	 * @return
+	 */
+	public String getCategory();
+	public void setCategory(String category);
 	
-	public Locale getLocale();
-	public void setLocale(Locale locale);
-	
-	public Lexicon getLexicon();
-	public void setLexicon(Lexicon lexicon);
+	/**
+	 * The name of the lexicon which contained this entry.
+	 * @return
+	 */
+	public String getLexiconName();
+	public void setLexiconName(String lexiconName);
 }

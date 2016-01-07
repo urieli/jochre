@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2014 Assaf Urieli
+//Copyright (C) 2016 Assaf Urieli
 //
 //This file is part of Jochre.
 //
@@ -16,29 +16,27 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.lexicon;
 
-import java.io.File;
-import java.util.Locale;
+import java.util.Set;
 
-import org.apache.lucene.search.IndexSearcher;
-
-import com.joliciel.jochre.search.lexicon.Lexicon;
-
-public interface SearchService {
-	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
-	public void purge();
+/**
+ * A lexicon providing information tied to a given word (inflected form) or lemma.
+ * @author Assaf Urieli
+ *
+ */
+public interface Lexicon {
+	/**
+	 * Return all lemmas associated with a given word.
+	 * @param word
+	 * @return
+	 */
+	public Set<String> getLemmas(String word);
 	
-	public JochreQuery getJochreQuery();
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
-	
-	public SearchStatusHolder getSearchStatusHolder();
-	
-	public Locale getLocale();
-	public void setLocale(Locale locale);
-	
-	public Lexicon getLexicon();
-	public void setLexicon(Lexicon lexicon);
+	/**
+	 * Return all words associated with a given lemma.
+	 * @param lemma
+	 * @return
+	 */
+	public Set<String> getWords(String lemma);
 }

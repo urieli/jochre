@@ -41,6 +41,8 @@ class JochreQueryImpl implements JochreQuery {
 	private Query luceneQuery = null;
 	private Query luceneTextQuery = null;
 	private int[] docIds = null;
+	
+	private SearchServiceInternal searchService;
 
 	public JochreQueryImpl() {}
 	
@@ -128,7 +130,7 @@ class JochreQueryImpl implements JochreQuery {
 			if (luceneTextQuery==null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
-				Analyzer analyzer = new JochreWhitespaceAnalyser();
+				Analyzer analyzer = searchService.getJochreQueryAnalyzer();
 				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
 				luceneTextQuery = queryParser.parse(this.getQueryString());
 			}
@@ -143,7 +145,7 @@ class JochreQueryImpl implements JochreQuery {
 	@Override
 	public Query getLuceneQuery() {
 		try {
-			Analyzer jochreAnalyzer = new JochreStandardAnalyser();
+			Analyzer jochreAnalyzer = searchService.getJochreMetaDataAnalyzer();
 			if (luceneQuery==null) {
 				Builder builder = new Builder();
 				builder.add(this.getLuceneTextQuery(), Occur.MUST);
@@ -165,5 +167,13 @@ class JochreQueryImpl implements JochreQuery {
 			LogUtils.logError(LOG, pe);
 			throw new JochreException(pe);
 		}
+	}
+
+	public SearchServiceInternal getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchServiceInternal searchService) {
+		this.searchService = searchService;
 	}
 }

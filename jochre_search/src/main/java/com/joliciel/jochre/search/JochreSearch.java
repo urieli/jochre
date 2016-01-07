@@ -18,9 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -28,9 +30,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -47,6 +51,12 @@ import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
 import com.joliciel.jochre.search.highlight.Highlighter;
+import com.joliciel.jochre.search.lexicon.LexicalEntryReader;
+import com.joliciel.jochre.search.lexicon.Lexicon;
+import com.joliciel.jochre.search.lexicon.LexiconService;
+import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
+import com.joliciel.jochre.search.lexicon.RegexLexicalEntryReader;
+import com.joliciel.jochre.search.lexicon.TextFileLexicon;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.StringUtils;
@@ -84,6 +94,7 @@ public class JochreSearch {
 				LOG.debug(arg.getKey() + ": " + arg.getValue());
 			}
 			
+			String language = null;
 			String indexDirPath = null;
 			String documentDirPath = null;
 			int startPage = -1;
@@ -92,6 +103,12 @@ public class JochreSearch {
 			String docName = null;
 			int docIndex = -1;
 			String queryPath = null;
+			
+			// lexicon handling
+			String lexiconDirPath = null;
+			String lexiconRegexPath = null;
+			String lexiconFilePath = null;
+			String word = null;
 			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
@@ -113,18 +130,32 @@ public class JochreSearch {
 					docIndex = Integer.parseInt(argValue);
 				} else if (argName.equals("queryFile")) {
 					queryPath = argValue;
+				} else if (argName.equals("lexiconDir")) {
+					lexiconDirPath = argValue;
+				} else if (argName.equals("lexiconRegex")) {
+					lexiconRegexPath = argValue;
+				} else if (argName.equals("lexicon")) {
+					lexiconFilePath = argValue;
+				} else if (argName.equals("word")) {
+					word = argValue;
+				} else if (argName.equals("language")) {
+					language = argValue;
 				} else {
-					LOG.info("Unknown option: " + argName);
+					throw new RuntimeException("Unknown option: " + argName);
 				}
 			}
-			
-			if (indexDirPath==null)
-				throw new RuntimeException("for command " + command + ", indexDir is required");
-			
-			SearchServiceLocator locator = SearchServiceLocator.getInstance();
+
+			if (language==null)
+				throw new RuntimeException("for command " + command + ", language is required");
+
+			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language));
 			SearchService searchService = locator.getSearchService();
+			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
+			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
 			
 			if (command.equals("buildIndex")) {
+				if (indexDirPath==null)
+					throw new RuntimeException("for command " + command + ", indexDir is required");
 				if (documentDirPath==null)
 					throw new RuntimeException("for command " + command + ", documentDir is required");
 
@@ -135,6 +166,8 @@ public class JochreSearch {
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
 				builder.updateDocument(documentDir, startPage, endPage);
 			} else if (command.equals("updateIndex")) {
+				if (indexDirPath==null)
+					throw new RuntimeException("for command " + command + ", indexDir is required");
 				if (documentDirPath==null)
 					throw new RuntimeException("for command " + command + ", documentDir is required");
 
@@ -145,9 +178,18 @@ public class JochreSearch {
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
 				builder.updateIndex(documentDir, forceUpdate);
 			} else if (command.equals("search")||command.equals("highlight")||command.equals("snippets")) {
+				if (indexDirPath==null)
+					throw new RuntimeException("for command " + command + ", indexDir is required");
+				
+				if (lexiconFilePath!=null) {
+					File lexiconFile = new File(lexiconFilePath);
+					Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
+					searchService.setLexicon(lexicon);
+				}
+				
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
-				
+
 				File indexDir = new File(indexDirPath);
 				JochreQuery query = searchService.getJochreQuery();
 				
@@ -207,6 +249,8 @@ public class JochreSearch {
 					}
 				}
 			} else if (command.equals("view")) {
+				if (indexDirPath==null)
+					throw new RuntimeException("for command " + command + ", indexDir is required");
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				File indexDir = new File(indexDirPath);
@@ -228,6 +272,8 @@ public class JochreSearch {
 				jsonGen.writeEndArray();
 				jsonGen.flush();
 			} else if (command.equals("list")) {
+				if (indexDirPath==null)
+					throw new RuntimeException("for command " + command + ", indexDir is required");
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				if (docIndex<0)
@@ -239,6 +285,45 @@ public class JochreSearch {
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 				lister.list(out);
 				out.flush();
+			} else if (command.equals("serializeLexicon")) {
+				if (lexiconDirPath==null)
+					throw new RuntimeException("For command " + command + " lexiconDir is required");
+				if (lexiconRegexPath==null)
+					throw new RuntimeException("For command " + command + " lexiconRegex is required");
+				if (lexiconFilePath==null)
+					throw new RuntimeException("For command " + command + " lexicon is required");
+				
+				File lexiconDir = new File(lexiconDirPath);
+				File[] lexiconFiles = lexiconDir.listFiles();
+				TextFileLexicon lexicon = lexiconService.getTextFileLexicon(searchService.getLocale());
+				
+				File regexFile = new File(lexiconRegexPath);
+				Scanner regexScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(regexFile), "UTF-8")));
+				LexicalEntryReader lexicalEntryReader = new RegexLexicalEntryReader(regexScanner);
+				
+				for (File file : lexiconFiles) {
+					LOG.info("Adding " + file.getName());
+					lexicon.addLexiconFile(file, lexicalEntryReader);
+				}
+				
+				File outFile = new File(lexiconFilePath);
+				lexicon.serialize(outFile);
+			} else if (command.equals("deserializeLexicon")) {
+				if (lexiconFilePath==null)
+					throw new RuntimeException("For command " + command + " lexicon is required");
+				if (word==null)
+					throw new RuntimeException("For command " + command + " word is required");
+				
+				File lexiconFile = new File(lexiconFilePath);
+				Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
+				Set<String> lemmas = lexicon.getLemmas(word);
+				LOG.info("Word: " + word);
+				if (lemmas!=null) {
+					for (String lemma : lemmas) {
+						Set<String> words = lexicon.getWords(lemma);	
+						LOG.info("# Lemma: " + lemma + ", words: " + words.toString());
+					}
+				}
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}

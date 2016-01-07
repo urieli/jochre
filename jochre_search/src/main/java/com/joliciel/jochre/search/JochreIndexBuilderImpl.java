@@ -89,9 +89,9 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				Directory directory = FSDirectory.open(path);
 				
 				Map<String,Analyzer> analyzerPerField = new HashMap<>();
-				analyzerPerField.put(JochreIndexField.text.name(), searchService.getJochreAnalyser(this));
+				analyzerPerField.put(JochreIndexField.text.name(), searchService.getJochreTextLayerAnalyzer(this));
 
-				PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreStandardAnalyser(), analyzerPerField);
+				PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(), analyzerPerField);
 				IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 				this.indexWriter = new IndexWriter(directory, iwc);
@@ -149,7 +149,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			searchStatusHolder.setStatus(SearchStatus.COMMITING);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purgeSearcher();
+			searchService.purge();
 
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -171,7 +171,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.updateDocumentInternal(directory, startPage, endPage);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purgeSearcher();
+			searchService.purge();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
@@ -188,7 +188,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.deleteDocumentInternal(documentDir);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purgeSearcher();
+			searchService.purge();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);

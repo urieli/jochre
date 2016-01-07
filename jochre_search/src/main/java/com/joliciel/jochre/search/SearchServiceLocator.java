@@ -18,17 +18,23 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.util.Locale;
+
 import com.joliciel.jochre.search.alto.AltoServiceLocator;
+import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 
 public class SearchServiceLocator {
 	private static SearchServiceLocator instance;
 	private SearchServiceImpl searchService;
+	private Locale locale;
 	
-	private SearchServiceLocator() {}
+	private SearchServiceLocator(Locale locale) {
+		this.locale = locale;
+	}
 	
-	public static SearchServiceLocator getInstance() {
+	public static SearchServiceLocator getInstance(Locale locale) {
 		if (instance==null) {
-			instance = new SearchServiceLocator();
+			instance = new SearchServiceLocator(locale);
 		}
 		return instance;
 	}
@@ -37,6 +43,8 @@ public class SearchServiceLocator {
 		if (searchService==null) {
 			searchService = new SearchServiceImpl();
 			searchService.setAltoService(AltoServiceLocator.getInstance(this).getAltoService());
+			searchService.setLexiconService(LexiconServiceLocator.getInstance(this).getLexiconService());
+			searchService.setLocale(locale);
 		}
 		return searchService;
 	}

@@ -30,7 +30,19 @@ interface SearchServiceInternal extends SearchService {
 	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages);
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
 			String fieldName);
-	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor);
+	
+	/**
+	 * An analyser using a {@link TokenExtractor} to passed to {@link #getJochreTokeniser(TokenExtractor, String)}, used when the actual
+	 * tokenising occurred prior to analysis (e.g. in the case of the OCR text layer).
+	 * @param tokenExtractor
+	 * @return
+	 */
+	public Analyzer getJochreTextLayerAnalyzer(TokenExtractor tokenExtractor);
+	
+	public Analyzer getJochreMetaDataAnalyzer();
+	
+	public Analyzer getJochreQueryAnalyzer();
+	
 	public JochreToken getJochreToken(JochreToken jochreToken);
 	public JochreToken getJochreToken(String text);
 }

@@ -2,7 +2,6 @@ package com.joliciel.jochre.search.highlight;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,6 +28,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MultiPhraseQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
@@ -103,9 +103,11 @@ class LuceneQueryHighlighter implements Highlighter {
 				}
 			}
 			for (TermPhrase phrase : phrases) {
-				for (Term term : phrase.getTerms()) {
-					if (fields.contains(term.field())) {
-						fieldTerms.get(term.field()).add(term);
+				for (List<Term> termList : phrase.getTermLists()) {
+					for (Term term : termList) {
+						if (fields.contains(term.field())) {
+							fieldTerms.get(term.field()).add(term);
+						}
 					}
 				}
 			}
@@ -318,10 +320,12 @@ class LuceneQueryHighlighter implements Highlighter {
 			for (Term term : fieldTerms.get(field)) {
 				Set<TermPhrase> myPhrases = new HashSet<TermPhrase>();
 				for (TermPhrase phrase : phrases) {
-					for (Term phraseTerm : phrase.getTerms()) {
-						if (term.equals(phraseTerm)) {
-							myPhrases.add(phrase);
-							break;
+					for (List<Term> termList : phrase.getTermLists()) {
+						for (Term phraseTerm : termList) {
+							if (term.equals(phraseTerm)) {
+								myPhrases.add(phrase);
+								break;
+							}
 						}
 					}
 				}
@@ -358,7 +362,7 @@ class LuceneQueryHighlighter implements Highlighter {
 					boolean phraseMatch = true;
 					int termIndex = termPhrase.getIndex(term);
 					int termPos = termPhrase.getPosition(term);
-					int phraseLength = termPhrase.getTerms().length;
+					int phraseLength = termPhrase.getTermLists().size();
 					
 					// Construct all possible descendingLists from the current term, taking into account synonyms and overlaps
 					Iterator<HighlightTerm> iHighlightTerms = textTerms.headSet(highlightTerm, false).descendingIterator();
@@ -383,31 +387,17 @@ class LuceneQueryHighlighter implements Highlighter {
 					HighlightTerm baseTerm = highlightTerm;
 					int baseTermPos = termPos;
 					for (int i=termIndex+1; i<phraseLength; i++) {
-						Term oneTerm = termPhrase.getTerms()[i];
-						int oneTermPos = termPhrase.getPositions()[i];
-						
-						if (LOG.isTraceEnabled()) {
-							LOG.trace("Checking " + term + " at pos " + termPos + " against " + oneTerm + " at position " + oneTermPos);
-							LOG.trace("baseTerm: " + baseTerm);
-						}
-						
 						HighlightTerm matchedTerm = null;
-						for (List<HighlightTerm> ascendingList : ascendingLists) {
-							for (HighlightTerm highlight : ascendingList) {
-								if (termHighlightMap.get(oneTerm).contains(highlight)) {
-									if (LOG.isTraceEnabled())
-										LOG.trace("Found at " + highlight);
-									if (checkSlop(baseTerm,baseTermPos,highlight,oneTermPos,termPhrase.getSlop())) {
-										matchedTerm = highlight;
-										break;
-									}
-								}
+						int oneTermPos = termPhrase.getPositions()[i];
+						for (Term oneTerm : termPhrase.getTermLists().get(i)) {							
+							if (LOG.isTraceEnabled()) {
+								LOG.trace("Checking " + term + " at pos " + termPos + " against " + oneTerm + " at position " + oneTermPos);
+								LOG.trace("baseTerm: " + baseTerm);
 							}
-							if (matchedTerm!=null) break;
-						}
-						if (matchedTerm==null && termPhrase.getSlop()>0) {
-							for (List<HighlightTerm> descendingList : descendingLists) {
-								for (HighlightTerm highlight : descendingList) {
+							
+							
+							for (List<HighlightTerm> ascendingList : ascendingLists) {
+								for (HighlightTerm highlight : ascendingList) {
 									if (termHighlightMap.get(oneTerm).contains(highlight)) {
 										if (LOG.isTraceEnabled())
 											LOG.trace("Found at " + highlight);
@@ -419,7 +409,24 @@ class LuceneQueryHighlighter implements Highlighter {
 								}
 								if (matchedTerm!=null) break;
 							}
-						}
+							if (matchedTerm==null && termPhrase.getSlop()>0) {
+								for (List<HighlightTerm> descendingList : descendingLists) {
+									for (HighlightTerm highlight : descendingList) {
+										if (termHighlightMap.get(oneTerm).contains(highlight)) {
+											if (LOG.isTraceEnabled())
+												LOG.trace("Found at " + highlight);
+											if (checkSlop(baseTerm,baseTermPos,highlight,oneTermPos,termPhrase.getSlop())) {
+												matchedTerm = highlight;
+												break;
+											}
+										}
+									}
+									if (matchedTerm!=null) break;
+								}
+							}
+							if (matchedTerm!=null)
+								break;
+						} // next term at this position in phrase
 						if (matchedTerm==null) {
 							phraseMatch=false;
 							break;
@@ -435,31 +442,18 @@ class LuceneQueryHighlighter implements Highlighter {
 					baseTerm = highlightTerm;
 					baseTermPos = termPos;
 					for (int i=termIndex-1; i>=0; i--) {
-						Term oneTerm = termPhrase.getTerms()[i];
+						HighlightTerm matchedTerm = null;
 						int oneTermPos = termPhrase.getPositions()[i];
 						
-						if (LOG.isTraceEnabled()) {
-							LOG.trace("Checking " + term + " at pos " + termPos + " against " + oneTerm + " at position " + oneTermPos);
-							LOG.trace("baseTerm: " + baseTerm);
-						}
-
-						HighlightTerm matchedTerm = null;
-						for (List<HighlightTerm> descendingList : descendingLists) {
-							for (HighlightTerm highlight : descendingList) {
-								if (termHighlightMap.get(oneTerm).contains(highlight)) {
-									if (LOG.isTraceEnabled())
-										LOG.trace("Found at " + highlight);
-									if (checkSlop(highlight,oneTermPos,baseTerm,baseTermPos,termPhrase.getSlop())) {
-										matchedTerm = highlight;
-										break;
-									}
-								}
+						for (Term oneTerm : termPhrase.getTermLists().get(i)) {							
+						
+							if (LOG.isTraceEnabled()) {
+								LOG.trace("Checking " + term + " at pos " + termPos + " against " + oneTerm + " at position " + oneTermPos);
+								LOG.trace("baseTerm: " + baseTerm);
 							}
-							if (matchedTerm!=null) break;
-						}
-						if (matchedTerm==null && termPhrase.getSlop()>0) {
-							for (List<HighlightTerm> ascendingList : ascendingLists) {
-								for (HighlightTerm highlight : ascendingList) {
+	
+							for (List<HighlightTerm> descendingList : descendingLists) {
+								for (HighlightTerm highlight : descendingList) {
 									if (termHighlightMap.get(oneTerm).contains(highlight)) {
 										if (LOG.isTraceEnabled())
 											LOG.trace("Found at " + highlight);
@@ -471,7 +465,24 @@ class LuceneQueryHighlighter implements Highlighter {
 								}
 								if (matchedTerm!=null) break;
 							}
-						}
+							if (matchedTerm==null && termPhrase.getSlop()>0) {
+								for (List<HighlightTerm> ascendingList : ascendingLists) {
+									for (HighlightTerm highlight : ascendingList) {
+										if (termHighlightMap.get(oneTerm).contains(highlight)) {
+											if (LOG.isTraceEnabled())
+												LOG.trace("Found at " + highlight);
+											if (checkSlop(highlight,oneTermPos,baseTerm,baseTermPos,termPhrase.getSlop())) {
+												matchedTerm = highlight;
+												break;
+											}
+										}
+									}
+									if (matchedTerm!=null) break;
+								}
+							}
+							if (matchedTerm!=null)
+								break;
+						} // next term at this position in phrase
 						if (matchedTerm==null) {
 							phraseMatch=false;
 							break;
@@ -652,7 +663,25 @@ class LuceneQueryHighlighter implements Highlighter {
 	
 	private void extractTerms(Query query, Set<Term> terms, Set<TermPhrase> phrases, Set<Term> prefixes, Set<Term> wildcardTerms) {
 		if (query instanceof PhraseQuery) {
-			TermPhrase termPhrase = new TermPhrase(((PhraseQuery) query).getTerms(), ((PhraseQuery) query).getPositions(), ((PhraseQuery) query).getSlop());
+			Term[] phraseTerms = ((PhraseQuery) query).getTerms();
+			List<List<Term>> phraseTermLists = new ArrayList<>();
+			for (Term phraseTerm : phraseTerms) {
+				List<Term> oneTermList = new ArrayList<>(1);
+				oneTermList.add(phraseTerm);
+				phraseTermLists.add(oneTermList);
+			}
+			TermPhrase termPhrase = new TermPhrase(phraseTermLists, ((PhraseQuery) query).getPositions(), ((PhraseQuery) query).getSlop());
+			phrases.add(termPhrase);
+		} else if (query instanceof MultiPhraseQuery) {
+			MultiPhraseQuery multiPhraseQuery = (MultiPhraseQuery) query;
+			
+			List<List<Term>> phraseTermLists = new ArrayList<>();
+			for (Term[] termsAtPos : multiPhraseQuery.getTermArrays()) {
+				List<Term> termList = new ArrayList<>();
+				for (Term term : termsAtPos) termList.add(term);
+				phraseTermLists.add(termList);
+			}
+			TermPhrase termPhrase = new TermPhrase(phraseTermLists, ((MultiPhraseQuery) query).getPositions(), ((MultiPhraseQuery) query).getSlop());
 			phrases.add(termPhrase);
 		} else if (query instanceof PrefixQuery) {
 			prefixes.add(((PrefixQuery) query).getPrefix());
@@ -670,20 +699,20 @@ class LuceneQueryHighlighter implements Highlighter {
 	}
 	
 	private static final class TermPhrase {
-		Term[] terms;
+		List<List<Term>> termLists;
 		int[] positions;
 		
 		int slop;
 		
-		public TermPhrase(Term[] terms, int[] positions, int slop) {
+		public TermPhrase(List<List<Term>> termLists, int[] positions, int slop) {
 			super();
-			this.terms = terms;
+			this.termLists = termLists;
 			this.positions = positions;
 			this.slop = slop;
 		}
 		
-		public Term[] getTerms() {
-			return terms;
+		public List<List<Term>> getTermLists() {
+			return termLists;
 		}
 
 		public int getSlop() {
@@ -692,12 +721,14 @@ class LuceneQueryHighlighter implements Highlighter {
 		
 		public int getIndex(Term term) {
 			int i=-1;
-			for (i=0; i<terms.length; i++) {
-				if (terms[i].equals(term)) {
-					break;
+			for (i=0; i<termLists.size(); i++) {
+				for (int j=0; j<termLists.get(i).size(); j++) {
+					if (termLists.get(i).get(j).equals(term)) {
+						return i;
+					}
 				}
 			}
-			return i;
+			throw new JochreException("Term not found " + term + " in term phrase " + this);
 		}
 		
 		public int getPosition(Term term) {
@@ -714,7 +745,7 @@ class LuceneQueryHighlighter implements Highlighter {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + slop;
-			result = prime * result + Arrays.hashCode(terms);
+			result = prime * result + termLists.hashCode();
 			return result;
 		}
 		@Override
@@ -728,14 +759,14 @@ class LuceneQueryHighlighter implements Highlighter {
 			TermPhrase other = (TermPhrase) obj;
 			if (slop != other.slop)
 				return false;
-			if (!Arrays.equals(terms, other.terms))
+			if (termLists.equals(other.termLists))
 				return false;
 			return true;
 		}
 
 		@Override
 		public String toString() {
-			return "TermPhrase [terms=" + Arrays.toString(terms) + ", slop="
+			return "TermPhrase [terms=" + termLists + ", slop="
 					+ slop + "]";
 		}
 		

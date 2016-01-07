@@ -20,6 +20,7 @@ package com.joliciel.jochre.search.web;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -41,6 +42,7 @@ public class JochreSearchProperties {
 	private Properties properties;
 	@SuppressWarnings("unused")
 	private ServletContext servletContext;
+	private Locale locale;
 	
 	public static JochreSearchProperties getInstance(ServletContext servletContext) {
 		if (instance==null) {
@@ -85,6 +87,17 @@ public class JochreSearchProperties {
 	
 	public String getContentDirPath() {
 		return this.properties.getProperty("content.dir");	
+	}
+	
+	public String getLexiconPath() {
+		return this.properties.getProperty("lexicon");	
+	}
+
+	public Locale getLocale() {
+		if (locale==null) {
+			locale = Locale.forLanguageTag(this.properties.getProperty("language"));
+		}
+		return locale;
 	}
 
 }

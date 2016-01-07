@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2014 Assaf Urieli
+//Copyright (C) 2016 Joliciel Informatique
 //
 //This file is part of Jochre.
 //
@@ -16,29 +16,31 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search;
+package com.joliciel.jochre.search.lexicon;
 
-import java.io.File;
-import java.util.Locale;
+import com.joliciel.jochre.search.SearchServiceLocator;
 
-import org.apache.lucene.search.IndexSearcher;
+public class LexiconServiceLocator {
+	private static LexiconServiceLocator instance;
+	private LexiconServiceImpl lexiconService;
+	@SuppressWarnings("unused")
+	private SearchServiceLocator searchServiceLocator;
 
-import com.joliciel.jochre.search.lexicon.Lexicon;
+	public LexiconServiceLocator(SearchServiceLocator searchServiceLocator) {
+		this.searchServiceLocator = searchServiceLocator;
+	}
 
-public interface SearchService {
-	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
-	public void purge();
+	public static LexiconServiceLocator getInstance(SearchServiceLocator searchServiceLocator) {
+		if (instance==null) {
+			instance = new LexiconServiceLocator(searchServiceLocator);
+		}
+		return instance;
+	}
 	
-	public JochreQuery getJochreQuery();
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
-	
-	public SearchStatusHolder getSearchStatusHolder();
-	
-	public Locale getLocale();
-	public void setLocale(Locale locale);
-	
-	public Lexicon getLexicon();
-	public void setLexicon(Lexicon lexicon);
+	public LexiconService getLexiconService() {
+		if (lexiconService==null) {
+			lexiconService = new LexiconServiceImpl();
+		}
+		return lexiconService;
+	}
 }

@@ -20,17 +20,24 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoService;
+import com.joliciel.jochre.search.lexicon.Lexicon;
+import com.joliciel.jochre.search.lexicon.LexiconService;
 
 class SearchServiceImpl implements SearchServiceInternal {
 	private AltoService altoService;
+	private LexiconService lexiconService;
 	private JochreIndexSearcher searcher;
 	private SearchStatusHolder searchStatusHolder;
+	private Locale locale;
+	private Lexicon lexicon;
 	
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir) {
@@ -48,9 +55,11 @@ class SearchServiceImpl implements SearchServiceInternal {
 
 	@Override
 	public JochreQuery getJochreQuery() {
-		JochreQuery query = new JochreQueryImpl();
+		JochreQueryImpl query = new JochreQueryImpl();
+		query.setSearchService(this);
 		return query;
 	}
+	
 	@Override
 	public JochreIndexSearcher getJochreIndexSearcher(File indexDir) {
 		if (this.searcher==null) {
@@ -61,8 +70,9 @@ class SearchServiceImpl implements SearchServiceInternal {
 		return this.searcher;
 	}
 	
-	public void purgeSearcher() {
+	public void purge() {
 		this.searcher = null;
+		this.lexicon = null;
 	}
 	
 	@Override
@@ -92,9 +102,23 @@ class SearchServiceImpl implements SearchServiceInternal {
 		return jochreTokeniser;
 	}
 	
-	public Analyzer getJochreAnalyser(TokenExtractor tokenExtractor) {
-		JochreAnalyser analyser = new JochreAnalyser(tokenExtractor);
+	public Analyzer getJochreTextLayerAnalyzer(TokenExtractor tokenExtractor) {
+		JochreTextLayerAnalyser analyser = new JochreTextLayerAnalyser(tokenExtractor);
 		analyser.setSearchService(this);
+		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
+		return analyser;
+	}
+	
+	public Analyzer getJochreMetaDataAnalyzer() {
+		JochreMetaDataAnalyser analyser = new JochreMetaDataAnalyser();
+		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
+		return analyser;
+	}
+	
+	public Analyzer getJochreQueryAnalyzer() {
+		JochreQueryAnalyser analyser = new JochreQueryAnalyser();
+		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
+		analyser.setLexicon(lexicon);
 		return analyser;
 	}
 	
@@ -125,4 +149,27 @@ class SearchServiceImpl implements SearchServiceInternal {
 		return searchStatusHolder;
 	}
 
+	public LexiconService getLexiconService() {
+		return lexiconService;
+	}
+
+	public void setLexiconService(LexiconService lexiconService) {
+		this.lexiconService = lexiconService;
+	}
+
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
+
+	public Lexicon getLexicon() {
+		return lexicon;
+	}
+
+	public void setLexicon(Lexicon lexicon) {
+		this.lexicon = lexicon;
+	}
 }

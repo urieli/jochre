@@ -24,18 +24,23 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 
+import com.joliciel.jochre.search.lexicon.TextNormaliser;
+import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
+
 /**
- * A very basic analyser, which passes a TokenExtractor to the tokeniser.
+ * An analyser using a TokenExtractor to passed to JochreTokeniser, used when the actual
+ * tokenising occurred prior to analysis (e.g. in the case of the OCR text layer).
  * @author Assaf Urieli
  *
  */
-class JochreAnalyser extends Analyzer {
-	private static final Log LOG = LogFactory.getLog(JochreAnalyser.class);
-	TokenExtractor tokenExtractor;
+class JochreTextLayerAnalyser extends Analyzer {
+	private static final Log LOG = LogFactory.getLog(JochreTextLayerAnalyser.class);
+	private TokenExtractor tokenExtractor;
+	private TextNormaliser textNormaliser;
 	
-	SearchServiceInternal searchService;
+	private SearchServiceInternal searchService;
 	
-	public JochreAnalyser(TokenExtractor tokenExtractor) {
+	public JochreTextLayerAnalyser(TokenExtractor tokenExtractor) {
 		super(Analyzer.PER_FIELD_REUSE_STRATEGY);
 		this.tokenExtractor = tokenExtractor;
 	}
@@ -46,7 +51,9 @@ class JochreAnalyser extends Analyzer {
 			LOG.trace("Analysing field " + fieldName);
 
 		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);	
-		TokenStream result = new YiddishNormalisingFilter(source);
+		TokenStream result = source;
+		if (textNormaliser!=null)
+			result = new TextNormalisingFilter(result, textNormaliser);
 		result = new PunctuationFilter(result);
 		return new TokenStreamComponents(source, result);
 	}
@@ -57,5 +64,14 @@ class JochreAnalyser extends Analyzer {
 
 	public void setSearchService(SearchServiceInternal searchService) {
 		this.searchService = searchService;
+	}
+	
+
+	public TextNormaliser getTextNormaliser() {
+		return textNormaliser;
+	}
+
+	public void setTextNormaliser(TextNormaliser textNormaliser) {
+		this.textNormaliser = textNormaliser;
 	}
 }
