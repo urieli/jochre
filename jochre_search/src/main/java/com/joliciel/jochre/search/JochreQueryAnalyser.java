@@ -1,6 +1,7 @@
 package com.joliciel.jochre.search;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
@@ -18,6 +19,7 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 class JochreQueryAnalyser extends Analyzer {
 	TextNormaliser textNormaliser;
 	Lexicon lexicon;
+	SearchServiceInternal searchService;
 	
 	public JochreQueryAnalyser() {
 	}
@@ -28,6 +30,11 @@ class JochreQueryAnalyser extends Analyzer {
 		TokenStream result = source;
 		if (textNormaliser!=null)
 			result = new TextNormalisingFilter(result, textNormaliser);
+		
+		TokenFilter queryTokenFilter = searchService.getQueryTokenFilter(result);
+		if (queryTokenFilter!=null)
+			result = queryTokenFilter;
+		
 		if (lexicon!=null)
 			result = new InflectedFormFilter(result, lexicon);
 		result = new PunctuationFilter(result);
@@ -49,4 +56,14 @@ class JochreQueryAnalyser extends Analyzer {
 	public void setLexicon(Lexicon lexicon) {
 		this.lexicon = lexicon;
 	}
+
+	public SearchServiceInternal getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchServiceInternal searchService) {
+		this.searchService = searchService;
+	}
+	
+	
 }

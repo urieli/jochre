@@ -21,10 +21,13 @@ package com.joliciel.jochre.search.alto;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 class AltoStringImpl implements AltoString {
 	private static Pattern whiteSpacePattern = Pattern.compile("[\\s\ufeff]+", Pattern.UNICODE_CHARACTER_CLASS);
+	private static Pattern punctuationPattern = Pattern.compile("\\p{Punct}+", Pattern.UNICODE_CHARACTER_CLASS);
 	private String content;
 	private Rectangle rectangle;
 	private Rectangle secondaryRectangle;
@@ -40,6 +43,7 @@ class AltoStringImpl implements AltoString {
 	private int spanStart = -1;
 	private int spanEnd = -1;
 	private boolean whiteSpace = false;
+	private boolean punctuation = false;
 	
 	public AltoStringImpl(AltoTextLine textLine, String content, int left, int top, int width, int height) {
 		super();
@@ -48,8 +52,10 @@ class AltoStringImpl implements AltoString {
 		this.rectangle = new Rectangle(left, top, width, height);
 		this.index = this.textLine.getStrings().size();
 		this.textLine.getStrings().add(this);
-		if (whiteSpacePattern.matcher(content).matches())
+		if (whiteSpacePattern.matcher(content).matches()||content.length()==0&&width>0)
 			this.whiteSpace = true;
+		if (punctuationPattern.matcher(content).matches())
+			this.punctuation = true;
 	}
 	
 	public String getContent() {
@@ -124,6 +130,9 @@ class AltoStringImpl implements AltoString {
 	public int getIndex() {
 		return index;
 	}
+	public void setIndex(int index) {
+		this.index = index;
+	}
 
 	@Override
 	public int getSpanStart() {
@@ -155,6 +164,10 @@ class AltoStringImpl implements AltoString {
 		return whiteSpace;
 	}
 
+	public boolean isPunctuation() {
+		return punctuation;
+	}
+
 	@Override
 	public int getPageIndex() {
 		return this.getTextLine().getTextBlock().getPage().getPageIndex();
@@ -182,6 +195,71 @@ class AltoStringImpl implements AltoString {
 
 	public void setContentStrings(List<String> contentStrings) {
 		this.contentStrings = contentStrings;
+	}
+
+	@Override
+	public boolean mergeWithNext() {
+		AltoString nextString = null;
+		AltoTextLine nextRow = null;
+		boolean endOfRowHyphen = false;
+		if (this.index<this.textLine.getStrings().size()-1) {
+			nextString = this.textLine.getStrings().get(this.index+1);
+			if (nextString.isWhiteSpace())
+				return false;
+			this.textLine.getStrings().remove(this.index+1);
+		}
+		if (nextString==null && index==this.textLine.getStrings().size()-1 && this.textLine.getIndex()+1<this.getTextLine().getTextBlock().getTextLines().size()) {
+			nextRow = this.getTextLine().getTextBlock().getTextLines().get(this.textLine.getIndex()+1);
+			if (nextRow.getStrings().size()>0) {
+				nextString = nextRow.getStrings().get(0);
+				if (nextString.isWhiteSpace())
+					return false;
+				nextRow.getStrings().remove(0);
+			}
+			if (this.content.endsWith("-"))
+				endOfRowHyphen = true;
+		}
+		
+		// merge the rectangles
+		if (nextString.getRowIndex()==this.getRowIndex()) {
+			this.getRectangle().add(nextString.getRectangle());
+		} else {
+			if (this.secondaryRectangle!=null) {
+				this.secondaryRectangle.add(nextString.getRectangle());
+			} else {
+				this.secondaryRectangle = nextString.getRectangle();
+			}
+		}
+		this.setSpanEnd(nextString.getSpanEnd());
+		
+		Set<String> alternatives = new TreeSet<String>();
+		for (String contentA : this.getContentStrings()) {
+			for (String contentB : nextString.getContentStrings()) {
+				alternatives.add(contentA + contentB);
+				if (endOfRowHyphen && contentA.endsWith("-")) {
+					alternatives.add(contentA.substring(0, contentA.length()-1) + contentB);
+				} else if (contentA.endsWith("'")) {
+					alternatives.add(contentA.substring(0, contentA.length()-1) + contentB);
+				} else if (contentA.endsWith("\"")) {
+					alternatives.add(contentA.substring(0, contentA.length()-1) + contentB);
+				}
+			}
+		}
+		
+		if (endOfRowHyphen)
+			this.setContent(this.getContent().substring(0, this.getContent().length()-1) + nextString.getContent());
+		else
+			this.setContent(this.getContent() + nextString.getContent());
+		
+		alternatives.remove(this.getContent());
+		this.setAlternatives(new ArrayList<String>(alternatives));
+		this.setContentStrings(null);
+		
+		this.textLine.recalculate();
+		if (nextRow!=null)
+			nextRow.recalculate();
+		
+		return true;
 	}
 
 }

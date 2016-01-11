@@ -18,17 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
-import java.awt.Rectangle;
-import java.util.List;
-
-public interface AltoTextLine {
-	public List<AltoString> getStrings();
-	public Rectangle getRectangle();
-	public AltoTextBlock getTextBlock();
-	public int wordCount();
-	public int getIndex();
-	/**
-	 * Recalculate indexes after merging or other manipulation of contained strings.
-	 */
-	public void recalculate();
+/**
+ * Fixes the AltoStrings of a given block for a given locale, but improving tokenisation.
+ * @author Assaf Urieli
+ *
+ */
+public interface AltoStringFixer {
+	public void fix(AltoTextBlock block);
 }

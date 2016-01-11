@@ -55,6 +55,7 @@ import com.joliciel.jochre.search.alto.AltoPageConsumer;
 import com.joliciel.jochre.search.alto.AltoReader;
 import com.joliciel.jochre.search.alto.AltoService;
 import com.joliciel.jochre.search.alto.AltoString;
+import com.joliciel.jochre.search.alto.AltoStringFixer;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.jochre.utils.JochreException;
@@ -141,9 +142,14 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			searchStatusHolder.setTotalCount(subdirs.length);
 
 			for (File subdir : subdirs) {
-				searchStatusHolder.setAction("Indexing " + subdir.getName());
-				this.processDocument(subdir, forceUpdate);
-				searchStatusHolder.incrementSuccessCount(1);
+				try {
+					searchStatusHolder.setAction("Indexing " + subdir.getName());
+					this.processDocument(subdir, forceUpdate);
+					searchStatusHolder.incrementSuccessCount(1);
+				} catch (Exception e) {
+					LogUtils.logError(LOG, e);
+					searchStatusHolder.incrementFailureCount(1);
+				}
 			}
 			
 			searchStatusHolder.setStatus(SearchStatus.COMMITING);
@@ -284,6 +290,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private List<JochreToken> currentStrings = new ArrayList<JochreToken>();
 		private int startPage = -1;
 		private int endPage = -1;
+		private AltoStringFixer altoStringFixer;
 		
 		private JochreIndexDirectory directory;
 		
@@ -293,6 +300,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.directory = directory;
 			this.startPage = startPage;
 			this.endPage = endPage;
+			this.altoStringFixer = parent.getAltoService().getAltoStringFixer(parent.getSearchService().getLocale());
 		}
 
 		@Override
@@ -305,6 +313,9 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			currentPages.add(page);
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				textBlock.joinHyphens();
+				if (this.altoStringFixer!=null)
+					this.altoStringFixer.fix(textBlock);
+				
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					for (AltoString string : textLine.getStrings()) {
 						if (string.isWhiteSpace() || PUNCTUATION.matcher(string.getContent()).matches())
@@ -342,10 +353,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			previousPages.addAll(currentPages);
 			previousStrings.addAll(currentStrings);
 			parent.setCurrentStrings(previousStrings);
-			LOG.debug("Creating new index doc: " + docCount);
-			JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
-			indexDoc.save(parent.getIndexWriter());
-			docCount++;
+			if (previousPages.size()>0) {
+				LOG.debug("Creating new index doc: " + docCount);
+				JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
+				indexDoc.save(parent.getIndexWriter());
+				docCount++;
+			}
 		}
 	}
 

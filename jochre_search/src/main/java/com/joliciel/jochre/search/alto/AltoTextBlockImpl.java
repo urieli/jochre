@@ -21,8 +21,6 @@ package com.joliciel.jochre.search.alto;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 class AltoTextBlockImpl implements AltoTextBlock {
 	private List<AltoTextLine> rows = new ArrayList<AltoTextLine>();
@@ -75,10 +73,8 @@ class AltoTextBlockImpl implements AltoTextBlock {
 			for (int j=0; j<row.getStrings().size(); j++) {
 				AltoString string = row.getStrings().get(j);
 				if (string.isHyphen()) {
-					AltoString hyphen = string;
 					AltoString prevString = null;
 					AltoString nextString = null;
-					boolean endOfRowHyphen = false;
 					if (j>0 && !row.getStrings().get(j-1).isWhiteSpace()) {
 						prevString = row.getStrings().get(j-1);
 					}
@@ -91,40 +87,15 @@ class AltoTextBlockImpl implements AltoTextBlock {
 						nextRow = this.rows.get(i+1);
 						if (nextRow.getStrings().size()>0 && !nextRow.getStrings().get(0).isWhiteSpace()) {
 							nextString = nextRow.getStrings().get(0);
-							endOfRowHyphen = true;
 						}
 					}
 						
 					if (prevString!=null && nextString!=null) {
-						prevString.getRectangle().add(hyphen.getRectangle());
-						row.getStrings().remove(j);
-												
-						if (!endOfRowHyphen) {
-							prevString.getRectangle().add(nextString.getRectangle());
-							row.getStrings().remove(j);
-						} else {
-							prevString.setSecondaryRectangle(nextString.getRectangle());
-							nextRow.getStrings().remove(0);
-						}
+						// merge with the hyphen
+						prevString.mergeWithNext();
 						
-						prevString.setSpanEnd(nextString.getSpanEnd());
-						
-						Set<String> alternatives = new TreeSet<String>();
-						for (String contentA : prevString.getContentStrings()) {
-							for (String contentB : nextString.getContentStrings()) {
-								alternatives.add(contentA + "-" + contentB);
-								if (endOfRowHyphen)
-									alternatives.add(contentA + contentB);
-							}
-						}
-						if (endOfRowHyphen)
-							prevString.setContent(prevString.getContent() + nextString.getContent());
-						else
-							prevString.setContent(prevString.getContent() + "-" + nextString.getContent());
-						
-						alternatives.remove(prevString.getContent());
-						prevString.setAlternatives(new ArrayList<String>(alternatives));
-						prevString.setContentStrings(null);
+						// merge with the string following the hyphen
+						prevString.mergeWithNext();
 						
 						// since we removed the hyphen on which we were placed, we need to decrement j,
 						// so as to be placed on the word which followed the one after the hyphen, which

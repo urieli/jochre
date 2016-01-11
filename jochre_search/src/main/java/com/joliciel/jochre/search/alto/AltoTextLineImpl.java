@@ -66,4 +66,19 @@ class AltoTextLineImpl implements AltoTextLine {
 	public int getIndex() {
 		return index;
 	}
+	
+	public void recalculate() {
+		int i=0;
+		for (AltoString string : this.strings) {
+			string.setIndex(i++);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "AltoTextLineImpl [index=" + index + ", strings=" + strings
+				+ "]";
+	}
+	
+	
 }

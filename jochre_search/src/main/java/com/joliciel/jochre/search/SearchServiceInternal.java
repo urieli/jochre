@@ -20,7 +20,10 @@ package com.joliciel.jochre.search;
 
 import java.io.File;
 import java.util.List;
+
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenFilter;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 
 import com.joliciel.jochre.search.alto.AltoPage;
@@ -45,4 +48,12 @@ interface SearchServiceInternal extends SearchService {
 	
 	public JochreToken getJochreToken(JochreToken jochreToken);
 	public JochreToken getJochreToken(String text);
+	
+	
+	/**
+	 * Get a TokenFilter to be used on queries in the current locale, or null if none avaialble.
+	 * @param input
+	 * @return
+	 */
+	public TokenFilter getQueryTokenFilter(TokenStream input);
 }

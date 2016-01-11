@@ -28,6 +28,7 @@
 			<fileset dir="${weblib}">
 				<include name="**/*.jar" />
 			</fileset>
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<fileset file="${dist}/jochre-${jochre.version}.jar" />
 			<!-- build output path -->
 			<pathelement location="${classes}"/>
@@ -64,6 +65,7 @@
 		</copy>
 		<copy todir="${webapp}/WEB-INF/lib">
 			<fileset dir="${jochreLib}" />
+			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<fileset file="${dist}/jochre-${jochre.version}.jar" />
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />
 		</copy>

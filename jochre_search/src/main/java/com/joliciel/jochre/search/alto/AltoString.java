@@ -79,6 +79,7 @@ public interface AltoString extends JochreToken {
 	 * @return
 	 */
 	public int getIndex();
+	public void setIndex(int index);
 
 	/**
 	 * The starting position of this string's character span, where 0
@@ -100,6 +101,20 @@ public interface AltoString extends JochreToken {
 	 * @return
 	 */
 	public boolean isWhiteSpace();
+	
+	/**
+	 * Does this string represent punctuation?
+	 * @return
+	 */
+	public boolean isPunctuation();
 
 	public void setRectangle(Rectangle rectangle);
+	
+	/**
+	 * Merge a given AltoString with the next string in the line
+	 * or the first string on the following line (if it's the last in the line),
+	 * on condition that the next string is not whitespace.
+	 * @return true if merge occurred, false otherwise (whitespace)
+	 */
+	public boolean mergeWithNext();
 }

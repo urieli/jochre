@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenFilter;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.search.IndexSearcher;
 
@@ -117,6 +119,7 @@ class SearchServiceImpl implements SearchServiceInternal {
 	
 	public Analyzer getJochreQueryAnalyzer() {
 		JochreQueryAnalyser analyser = new JochreQueryAnalyser();
+		analyser.setSearchService(this);
 		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		analyser.setLexicon(lexicon);
 		return analyser;
@@ -171,5 +174,14 @@ class SearchServiceImpl implements SearchServiceInternal {
 
 	public void setLexicon(Lexicon lexicon) {
 		this.lexicon = lexicon;
+	}
+	
+	public TokenFilter getQueryTokenFilter(TokenStream input) {
+		TokenFilter tokenFilter = null;
+		if (locale.getLanguage().equals("yi")||
+				locale.getLanguage().equals("ji")) {
+			tokenFilter = new YiddishQueryTokenFilter(input);
+		}
+		return tokenFilter;
 	}
 }

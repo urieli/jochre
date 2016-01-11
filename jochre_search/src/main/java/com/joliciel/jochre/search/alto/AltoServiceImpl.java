@@ -1,5 +1,7 @@
 package com.joliciel.jochre.search.alto;
 
+import java.util.Locale;
+
 public class AltoServiceImpl implements AltoServiceInternal {
 
 	public AltoString newString(AltoTextLine textLine, String text, int left, int top, int width, int height) {
@@ -35,4 +37,12 @@ public class AltoServiceImpl implements AltoServiceInternal {
 		return reader;
 	}
 
+	public AltoStringFixer getAltoStringFixer(Locale locale) {
+		AltoStringFixer altoStringFixer = null;
+		if (locale.getLanguage().equals("yi")||
+				locale.getLanguage().equals("ji")) {
+			altoStringFixer = new YiddishAltoStringFixer();
+		}
+		return altoStringFixer;
+	}
 }

@@ -68,6 +68,7 @@ public class JochreSearch {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		long startTime = System.currentTimeMillis();
 		try {
 			Map<String, String> argMap = new HashMap<String, String>();
 			
@@ -248,6 +249,8 @@ public class JochreSearch {
 						highlightManager.findSnippets(highlighter, docIds, fields, out);
 					}
 				}
+				out.write("\n");
+				out.flush();
 			} else if (command.equals("view")) {
 				if (indexDirPath==null)
 					throw new RuntimeException("for command " + command + ", indexDir is required");
@@ -271,6 +274,8 @@ public class JochreSearch {
 				}
 				jsonGen.writeEndArray();
 				jsonGen.flush();
+				out.write("\n");
+				out.flush();
 			} else if (command.equals("list")) {
 				if (indexDirPath==null)
 					throw new RuntimeException("for command " + command + ", indexDir is required");
@@ -284,6 +289,7 @@ public class JochreSearch {
 				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 				lister.list(out);
+				out.write("\n");
 				out.flush();
 			} else if (command.equals("serializeLexicon")) {
 				if (lexiconDirPath==null)
@@ -333,6 +339,9 @@ public class JochreSearch {
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
+		} finally {
+			long endTime = System.currentTimeMillis();
+			LOG.info("Completed in " + (endTime - startTime) + " ms");
 		}
 	}
 
