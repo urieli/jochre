@@ -24,7 +24,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
@@ -42,6 +44,10 @@ public class NameListReader {
     
     private Writer variantWriter = null;
     private String defaultAttribute = null;
+    
+    private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] {
+    		"שיקען"
+    		}));
     
 	public TextFileLexicon read(File file) throws IOException {
 		Scanner scanner = new Scanner(file);
@@ -62,9 +68,11 @@ public class NameListReader {
 					} else {
 						possessiveForm += "ס";
 					}
-					NameLexicalEntry possessiveEntry = new NameLexicalEntry(possessiveForm, "np", name, "s", defaultAttribute + ",@poss");
-					allVariants.add(possessiveEntry);
-					entries.add(possessiveEntry.text);
+					if (!exceptions.contains(possessiveForm)) {
+						NameLexicalEntry possessiveEntry = new NameLexicalEntry(possessiveForm, "np", name, "s", defaultAttribute + ",@poss");
+						allVariants.add(possessiveEntry);
+						entries.add(possessiveEntry.text);
+					}
 					
 					String accusativeForm = radical;
 					if (radical.endsWith("ל")||radical.endsWith("מ")||radical.endsWith("נ")) {
@@ -72,10 +80,11 @@ public class NameListReader {
 					} else {
 						accusativeForm += "ן";
 					}
-					NameLexicalEntry accusativeEntry = new NameLexicalEntry(accusativeForm, "np", name, "s", defaultAttribute + ",@acc,@dat");
-					allVariants.add(accusativeEntry);
-					entries.add(accusativeEntry.text);
-					
+					if (!exceptions.contains(accusativeForm)) {
+						NameLexicalEntry accusativeEntry = new NameLexicalEntry(accusativeForm, "np", name, "s", defaultAttribute + ",@acc,@dat");
+						allVariants.add(accusativeEntry);
+						entries.add(accusativeEntry.text);
+					}
  				}
 			}
 			

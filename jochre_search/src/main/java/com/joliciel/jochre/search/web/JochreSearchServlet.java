@@ -143,6 +143,7 @@ public class JochreSearchServlet extends HttpServlet {
 			int decimalPlaces = -1;
 			String docName = null;
 			int docIndex = -1;
+			Boolean expandInflections = null;
 
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
@@ -187,6 +188,8 @@ public class JochreSearchServlet extends HttpServlet {
 					docName = argValue;
 				} else if (argName.equals("docIndex")) {
 					docIndex = Integer.parseInt(argValue);
+				} else if (argName.equals("expand")) {
+					expandInflections = argValue.equals("true");
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -212,6 +215,8 @@ public class JochreSearchServlet extends HttpServlet {
 					query.setDecimalPlaces(decimalPlaces);
 				if (maxDocs>=0)
 					query.setMaxDocs(maxDocs);
+				if (expandInflections!=null)
+					query.setExpandInflections(expandInflections);
 				
 				if (command.equals("search")) {
 					searcher.search(query, out);

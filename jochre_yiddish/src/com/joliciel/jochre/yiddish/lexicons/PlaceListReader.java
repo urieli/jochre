@@ -58,9 +58,13 @@ public class PlaceListReader {
 							nameList.add(name.trim());
 						}
 					}
+					String attributes = defaultAttribute;
+					if (nameList.size()>1) {
+						attributes += ",@partOf(" + line + ")";
+					}
 					for (int i=0; i<nameList.size(); i++) {
 						String name = nameList.get(i);
-						PlaceLexicalEntry entry = new PlaceLexicalEntry(name, "np", line, "s", defaultAttribute);
+						PlaceLexicalEntry entry = new PlaceLexicalEntry(name, "np", name, "s", attributes);
 						allVariants.add(entry);
 						entries.add(entry.text);
 						
@@ -72,7 +76,7 @@ public class PlaceListReader {
 							} else {
 								possessiveForm += "ס";
 							}
-							PlaceLexicalEntry possessiveEntry = new PlaceLexicalEntry(possessiveForm, "np", line, "s", defaultAttribute + ",@poss");
+							PlaceLexicalEntry possessiveEntry = new PlaceLexicalEntry(possessiveForm, "np", name, "s", attributes + ",@poss");
 							allVariants.add(possessiveEntry);
 							entries.add(possessiveEntry.text);
 						}

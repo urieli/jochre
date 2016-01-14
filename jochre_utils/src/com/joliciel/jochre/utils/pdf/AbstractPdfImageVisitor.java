@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -96,7 +97,8 @@ public abstract class AbstractPdfImageVisitor {
 	final protected void visitImages(int firstPage, int lastPage) {
 		try {
 			@SuppressWarnings("unchecked")
-			Iterator<PDPage> pageIterator = pdfDocument.getDocumentCatalog().getAllPages().iterator();
+			List<PDPage> allPages = pdfDocument.getDocumentCatalog().getAllPages();
+			Iterator<PDPage> pageIterator = allPages.iterator();
 
 			int i=0;
 			while (pageIterator.hasNext()) {
@@ -107,7 +109,7 @@ public abstract class AbstractPdfImageVisitor {
 				if (lastPage > 0 && i > lastPage)
 					break;
 
-				LOG.debug("Decoding page " + i);
+				LOG.info("Decoding page " + i + " (out of " + allPages.size() + ")");
 				
 				try {
 					PDResources resources = pdfPage.getResources();

@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -17,12 +19,18 @@ import com.joliciel.talismane.utils.LogUtils;
 class LexiconServiceImpl implements LexiconService {
 	private static final Log LOG = LogFactory.getLog(LexiconServiceImpl.class);
 	
+	private Map<Locale,TextNormaliser> textNormaliserMap = new HashMap<Locale, TextNormaliser>();
+	
 	@Override
 	public TextNormaliser getTextNormaliser(Locale locale) {
 		TextNormaliser textNormaliser = null;
 		if (locale.getLanguage().equals("yi")||
 				locale.getLanguage().equals("ji")) {
-			textNormaliser = new YiddishTextNormaliser();
+			textNormaliser = textNormaliserMap.get(locale);
+			if (textNormaliser==null) {
+				textNormaliser = new YiddishTextNormaliser();
+				textNormaliserMap.put(locale, textNormaliser);
+			}
 		}
 		return textNormaliser;
 	}

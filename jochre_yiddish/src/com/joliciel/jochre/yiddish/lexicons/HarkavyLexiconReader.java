@@ -24,7 +24,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
@@ -41,7 +43,10 @@ public class HarkavyLexiconReader {
     private Set<String> entries = new TreeSet<String>();
     
     private Writer variantWriter = null;
-    
+    private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] {
+    		"שיקען"
+    		}));
+
 	public TextFileLexicon read(File file) throws IOException {
 		Scanner scanner = new Scanner(file);
 		try {
@@ -61,9 +66,11 @@ public class HarkavyLexiconReader {
 					} else {
 						possessiveForm += "ס";
 					}
-					HarkavyLexicalFormEntry possessiveEntry = new HarkavyLexicalFormEntry(possessiveForm, parts[1], parts[2], parts[3], parts[4] + ",@poss");
-					allVariants.add(possessiveEntry);
-					entries.add(possessiveEntry.text);
+					if (!exceptions.contains(possessiveForm)) {
+						HarkavyLexicalFormEntry possessiveEntry = new HarkavyLexicalFormEntry(possessiveForm, parts[1], parts[2], parts[3], parts[4] + ",@poss");
+						allVariants.add(possessiveEntry);
+						entries.add(possessiveEntry.text);
+					}
 					
 					String accusativeForm = radical;
 					if (radical.endsWith("ל")||radical.endsWith("מ")||radical.endsWith("נ")) {
@@ -71,9 +78,11 @@ public class HarkavyLexiconReader {
 					} else {
 						accusativeForm += "ן";
 					}
-					HarkavyLexicalFormEntry accusativeEntry = new HarkavyLexicalFormEntry(accusativeForm, parts[1], parts[2], parts[3], parts[4] + ",@acc,@dat");
-					allVariants.add(accusativeEntry);
-					entries.add(accusativeEntry.text);
+					if (!exceptions.contains(accusativeForm)) {
+						HarkavyLexicalFormEntry accusativeEntry = new HarkavyLexicalFormEntry(accusativeForm, parts[1], parts[2], parts[3], parts[4] + ",@acc,@dat");
+						allVariants.add(accusativeEntry);
+						entries.add(accusativeEntry.text);
+					}
 					
  				}
 			}

@@ -51,6 +51,7 @@ A.simple:hover {  text-decoration: underline; }
 <td colspan="2" align="right">
 <table>
 <tr>
+<td>Strict? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
 <td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="{{ title }}" /></td>
 <td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="{{ author }}" /></td>
 </tr>

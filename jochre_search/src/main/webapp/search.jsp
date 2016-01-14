@@ -31,7 +31,11 @@ String titleQueryString = request.getParameter("title");
 if (titleQueryString==null) titleQueryString = "";
 String titleQueryStringInput = titleQueryString.replace("\"", "&quot;");
 
-boolean advancedSearch = authorQueryString.length()>0 || titleQueryString.length()>0;
+boolean strict = false;
+if (request.getParameter("strict")!=null) {
+	strict = request.getParameter("strict").equals("true");
+}
+boolean advancedSearch = authorQueryString.length()>0 || titleQueryString.length()>0 || strict;
 
 int pagination = 0;
 if (request.getParameter("page")!=null)
@@ -56,6 +60,7 @@ if (request.getParameter("page")!=null)
 <td colspan="2" align="right">
 <table>
 <tr>
+<td>Strict? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="true" <% } %>/></td>
 <td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
 <td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
 </tr>
@@ -80,6 +85,8 @@ if (queryString.length()>0) {
 		searchURL += "&author=" + URLEncoder.encode(authorQueryString, "UTF-8");
 	if (titleQueryString.length()>0)
 		searchURL += "&title=" + URLEncoder.encode(titleQueryString, "UTF-8");
+	if (strict)
+		searchURL += "&expand=false";
 	
 	URL url = new URL(myPage, searchURL);
 	String json = SearchWebClientUtils.getJson(url);

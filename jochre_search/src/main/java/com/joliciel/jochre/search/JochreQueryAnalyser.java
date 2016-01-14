@@ -8,8 +8,6 @@ import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 
 import com.joliciel.jochre.search.lexicon.InflectedFormFilter;
 import com.joliciel.jochre.search.lexicon.Lexicon;
-import com.joliciel.jochre.search.lexicon.TextNormaliser;
-import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 
 /**
  * The analyser used to analyse user queries.
@@ -17,9 +15,9 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  *
  */
 class JochreQueryAnalyser extends Analyzer {
-	TextNormaliser textNormaliser;
-	Lexicon lexicon;
-	SearchServiceInternal searchService;
+	private Lexicon lexicon;
+	private SearchServiceInternal searchService;
+	private boolean expandInflections = true;
 	
 	public JochreQueryAnalyser() {
 	}
@@ -28,25 +26,15 @@ class JochreQueryAnalyser extends Analyzer {
 	protected TokenStreamComponents createComponents(final String fieldName) {
 		Tokenizer source = new WhitespaceTokenizer();
 		TokenStream result = source;
-		if (textNormaliser!=null)
-			result = new TextNormalisingFilter(result, textNormaliser);
 		
 		TokenFilter queryTokenFilter = searchService.getQueryTokenFilter(result);
 		if (queryTokenFilter!=null)
 			result = queryTokenFilter;
 		
-		if (lexicon!=null)
+		if (lexicon!=null && expandInflections)
 			result = new InflectedFormFilter(result, lexicon);
 		result = new PunctuationFilter(result);
 		return new TokenStreamComponents(source, result);
-	}
-
-	public TextNormaliser getTextNormaliser() {
-		return textNormaliser;
-	}
-
-	public void setTextNormaliser(TextNormaliser textNormaliser) {
-		this.textNormaliser = textNormaliser;
 	}
 
 	public Lexicon getLexicon() {
@@ -63,6 +51,14 @@ class JochreQueryAnalyser extends Analyzer {
 
 	public void setSearchService(SearchServiceInternal searchService) {
 		this.searchService = searchService;
+	}
+
+	public boolean isExpandInflections() {
+		return expandInflections;
+	}
+
+	public void setExpandInflections(boolean expandInflections) {
+		this.expandInflections = expandInflections;
 	}
 	
 	

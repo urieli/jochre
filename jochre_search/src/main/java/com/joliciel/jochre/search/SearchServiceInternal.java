@@ -44,7 +44,7 @@ interface SearchServiceInternal extends SearchService {
 	
 	public Analyzer getJochreMetaDataAnalyzer();
 	
-	public Analyzer getJochreQueryAnalyzer();
+	public JochreQueryAnalyser getJochreQueryAnalyzer();
 	
 	public JochreToken getJochreToken(JochreToken jochreToken);
 	public JochreToken getJochreToken(String text);

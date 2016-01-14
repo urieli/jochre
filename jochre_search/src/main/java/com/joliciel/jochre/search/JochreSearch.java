@@ -210,6 +210,8 @@ public class JochreSearch {
 						query.setMaxDocs(Integer.parseInt(argValue));
 					} else if (argName.equals("decimalPlaces")) {
 						query.setDecimalPlaces(Integer.parseInt(argValue));
+					} else if (argName.equals("expand")) {
+						query.setExpandInflections(argValue.equals("true"));
 					} else {
 						throw new RuntimeException("Unknown option in queryFile: " + argName);
 					}

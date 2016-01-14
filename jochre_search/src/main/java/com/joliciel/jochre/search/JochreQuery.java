@@ -64,4 +64,11 @@ public interface JochreQuery {
 	public abstract String getTitleQueryString();
 	public abstract void setAuthorQueryString(String authorQueryString);
 	public abstract String getAuthorQueryString();
+	
+	/**
+	 * Should the query be expanded to inflected froms stemming from the query's lemmas.
+	 * @return
+	 */
+	public boolean isExpandInflections();
+	public void setExpandInflections(boolean expandInflections);
 }

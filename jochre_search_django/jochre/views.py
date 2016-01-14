@@ -23,8 +23,12 @@ def search(request):
     title = ''
     if 'title' in request.GET:
         title = request.GET['title']
+        
+    strict = False
+    if ('strict') in request.GET:
+        strict = True
     
-    if len(author)>0 or len(title)>0:
+    if len(author)>0 or len(title)>0 or strict:
         advancedSearch = True
 
     displayAdvancedSearch = 'none'
@@ -38,6 +42,7 @@ def search(request):
     model = {"query" : query,
              "author" : author,
              "title" : title,
+             "strict" : strict,
              "displayAdvancedSearch" : displayAdvancedSearch}
              
     if len(query)>0:
@@ -48,6 +53,8 @@ def search(request):
             userdata['author'] = author
         if len(title)>0:
             userdata['title'] = title
+        if strict:
+            userdata['expand'] = 'false'
         
         resp = requests.get(searchUrl, userdata)
         

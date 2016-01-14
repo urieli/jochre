@@ -59,6 +59,7 @@ class SearchServiceImpl implements SearchServiceInternal {
 	public JochreQuery getJochreQuery() {
 		JochreQueryImpl query = new JochreQueryImpl();
 		query.setSearchService(this);
+		query.setLexiconService(this.getLexiconService());
 		return query;
 	}
 	
@@ -117,10 +118,9 @@ class SearchServiceImpl implements SearchServiceInternal {
 		return analyser;
 	}
 	
-	public Analyzer getJochreQueryAnalyzer() {
+	public JochreQueryAnalyser getJochreQueryAnalyzer() {
 		JochreQueryAnalyser analyser = new JochreQueryAnalyser();
 		analyser.setSearchService(this);
-		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		analyser.setLexicon(lexicon);
 		return analyser;
 	}

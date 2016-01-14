@@ -112,8 +112,8 @@ class LuceneQueryHighlighter implements Highlighter {
 				}
 			}
 			for (Term prefixTerm : prefixes) {
-				Automaton automaton = WildcardQuery.toAutomaton(prefixTerm);
-				CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
+				Automaton automaton = PrefixQuery.toAutomaton(prefixTerm.bytes());
+				CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton, null, true, Integer.MAX_VALUE, true);
 				automatons.add(compiledAutomaton);
 			}
 			
@@ -180,6 +180,8 @@ class LuceneQueryHighlighter implements Highlighter {
 					} // next term
 					
 					for (CompiledAutomaton automaton : automatons) {
+						if (LOG.isTraceEnabled())
+							LOG.trace("Matching automaton " + (automaton.term==null ? "" : automaton.term.utf8ToString()) + " in field " + field);
 						TermsEnum automatonEnum = automaton.getTermsEnum(atomicReaderTerms);
 						BytesRef nextBytesRef = automatonEnum.next();
 						while (nextBytesRef!=null) {
