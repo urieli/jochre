@@ -60,68 +60,71 @@ def search(request):
         
         results = resp.json()
         
-        page = paginate.Page(results, page=pageNumber, items_per_page=RESULTS_PER_PAGE)
-        
-        docIds = ''
-        
-        for result in page.items:
-            if 'volume' in result:
-                result['titleAndVolume'] = result['title'] + u", volume " + result['volume']
-                if 'titleLang' in result:
-                    result['titleLangAndVolume'] = result['titleLang'] + u", באַנד " + result['volume']
-                else:
-                    result['titleLangAndVolume'] = ""
-            else:
-                result['titleAndVolume'] = result['title']
-                if 'titleLang' in result:
-                    result['titleLangAndVolume'] = result['titleLang']
-                else:
-                    result['titleLangAndVolume'] = ""
-            if len(docIds)>0:
-                docIds += ','
-            docIds += str(result['docId'])
-        
-        if len(page.items)>0:
-            haveResults = True
-            userdata = {"command": "snippets", "snippetCount": 8, "snippetSize": 160, "query": query, "docIds": docIds}
-            if strict:
-                userdata['expand'] = 'false'
-            resp = requests.get(searchUrl, userdata)
-            model["results"] = page.items
-            model["start"] = page.first_item
-            model["end"] = page.last_item
-            model["resultCount"] = len(results)
-            model["pageLinks"] = page.link_map(url="http://localhost:8000?page=$page")
-            logging.debug(model["pageLinks"])
+        if len(results==1) and 'parseException' in results[0]:
+            model["parseException"] = results[0]["message"]
+        else:
+            page = paginate.Page(results, page=pageNumber, items_per_page=RESULTS_PER_PAGE)
             
-            snippetMap = resp.json()
-
+            docIds = ''
+            
             for result in page.items:
-                bookId = result['name']
-                docId = result['docId']
-                snippetObj = snippetMap[str(docId)]
-                snippets = snippetObj['snippets']
-                snippetsToSend = []
-                for snippet in snippets:
-                    snippetJson = json.dumps(snippet)
-                    snippetText = snippet.pop("text", "")
-                    
-                    userdata = {"command": "imageSnippet", "snippet": snippetJson}
-                    req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
-                    preparedReq = req.prepare()
-                    snippetImageUrl = preparedReq.url
-                    
-                    pageNumber = snippet['pageIndex']
-                    urlPageNumber = pageNumber / 2 * 2;
-                    snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
-                    
-                    snippetDict = {"snippetText" : snippetText,
-                                   "readOnlineUrl" : snippetReadUrl,
-                                   "imageUrl": snippetImageUrl,
-                                   "pageNumber": pageNumber }
-                    
-                    snippetsToSend.append(snippetDict)
-                    result['snippets'] = snippetsToSend
+                if 'volume' in result:
+                    result['titleAndVolume'] = result['title'] + u", volume " + result['volume']
+                    if 'titleLang' in result:
+                        result['titleLangAndVolume'] = result['titleLang'] + u", באַנד " + result['volume']
+                    else:
+                        result['titleLangAndVolume'] = ""
+                else:
+                    result['titleAndVolume'] = result['title']
+                    if 'titleLang' in result:
+                        result['titleLangAndVolume'] = result['titleLang']
+                    else:
+                        result['titleLangAndVolume'] = ""
+                if len(docIds)>0:
+                    docIds += ','
+                docIds += str(result['docId'])
+            
+            if len(page.items)>0:
+                haveResults = True
+                userdata = {"command": "snippets", "snippetCount": 8, "snippetSize": 160, "query": query, "docIds": docIds}
+                if strict:
+                    userdata['expand'] = 'false'
+                resp = requests.get(searchUrl, userdata)
+                model["results"] = page.items
+                model["start"] = page.first_item
+                model["end"] = page.last_item
+                model["resultCount"] = len(results)
+                model["pageLinks"] = page.link_map(url="http://localhost:8000?page=$page")
+                logging.debug(model["pageLinks"])
+                
+                snippetMap = resp.json()
+    
+                for result in page.items:
+                    bookId = result['name']
+                    docId = result['docId']
+                    snippetObj = snippetMap[str(docId)]
+                    snippets = snippetObj['snippets']
+                    snippetsToSend = []
+                    for snippet in snippets:
+                        snippetJson = json.dumps(snippet)
+                        snippetText = snippet.pop("text", "")
+                        
+                        userdata = {"command": "imageSnippet", "snippet": snippetJson}
+                        req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
+                        preparedReq = req.prepare()
+                        snippetImageUrl = preparedReq.url
+                        
+                        pageNumber = snippet['pageIndex']
+                        urlPageNumber = pageNumber / 2 * 2;
+                        snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
+                        
+                        snippetDict = {"snippetText" : snippetText,
+                                       "readOnlineUrl" : snippetReadUrl,
+                                       "imageUrl": snippetImageUrl,
+                                       "pageNumber": pageNumber }
+                        
+                        snippetsToSend.append(snippetDict)
+                        result['snippets'] = snippetsToSend
                     
     model["haveResults"] = haveResults
     return render(request, 'search.html', model)

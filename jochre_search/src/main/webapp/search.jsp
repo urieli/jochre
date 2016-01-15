@@ -1,20 +1,15 @@
-<%@page import="java.util.ArrayList"%>
-<%@page import="com.joliciel.jochre.search.highlight.Snippet"%>
-<%@page import="java.util.List"%>
-<%@page import="com.joliciel.jochre.search.webClient.SnippetResults"%>
-<%@page import="com.joliciel.jochre.search.webClient.SearchWebClientUtils"%>
-<%@page import="java.util.Set"%>
-<%@page import="java.util.HashSet"%>
-<%@page import="com.joliciel.jochre.search.webClient.SearchDocument"%>
-<%@page import="com.joliciel.talismane.utils.WeightedOutcome"%>
-<%@page import="com.joliciel.jochre.search.webClient.SearchResults"%>
-<%@page import="org.apache.commons.io.IOUtils"%>
+<%@page import="com.fasterxml.jackson.core.type.TypeReference"%>
+<%@page import="com.fasterxml.jackson.databind.ObjectMapper"%>
 <%@page import="java.io.StringWriter"%>
-<%@page import="java.io.StringReader"%>
-<%@page import="java.io.InputStream"%>
-<%@page import="java.net.URLConnection"%>
-<%@page import="java.net.URLEncoder"%>
 <%@page import="java.net.URL"%>
+<%@page import="java.net.URLEncoder"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.HashMap"%>
+<%@page import="java.util.HashSet"%>
+<%@page import="java.util.List"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.Set"%>
+<%@page import="org.apache.commons.io.IOUtils"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8" %>
 
 <%
@@ -60,7 +55,7 @@ if (request.getParameter("page")!=null)
 <td colspan="2" align="right">
 <table>
 <tr>
-<td>Strict? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="true" <% } %>/></td>
+<td>Strict? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="checked" <% } %>/></td>
 <td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
 <td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
 </tr>
@@ -69,7 +64,6 @@ if (request.getParameter("page")!=null)
 <td>&nbsp;</td>
 </tr>
 </table>
-</div>
 <script>
 $("#toggleAdvancedSearch").on("click",function(){
 	$("#advancedSearch").toggle();
@@ -89,21 +83,33 @@ if (queryString.length()>0) {
 		searchURL += "&expand=false";
 	
 	URL url = new URL(myPage, searchURL);
-	String json = SearchWebClientUtils.getJson(url);
-	SearchResults results = new SearchResults(json);
-	Set<Integer> docIds = new HashSet<Integer>();
-	if (results.getScoreDocs().size()==0) {
+	StringWriter writer = new StringWriter();
+	IOUtils.copy(url.openConnection().getInputStream(), writer, "UTF-8");
+	String json = writer.toString();
+	
+	ObjectMapper mapper = new ObjectMapper();
+	List<Map<String, Object>> results = mapper.readValue(json,
+            new TypeReference<ArrayList<Map<String, Object>>>() {
+            });
+
+	if (results.size()==0) {
 		%><p>No results</p><%
+	} else if (results.get(0).get("parseException")!=null) {
+		%>
+		<p>Unable to process query:</p>
+		<p><%= results.get(0).get("message") %>
+		<%
 	} else {
-		int max = results.getScoreDocs().size() / RESULTS_PER_PAGE;
+		Set<Integer> docIds = new HashSet<Integer>();
+		int max = results.size() / RESULTS_PER_PAGE;
 		if (pagination>max) pagination = max;
 		int start = pagination*RESULTS_PER_PAGE;
-		while (start>results.getScoreDocs().size()-1) {
+		while (start>results.size()-1) {
 			start -= RESULTS_PER_PAGE;
 			pagination-=1;
 		}
 		int end = start+RESULTS_PER_PAGE;
-		if (end>results.getScoreDocs().size()) end=results.getScoreDocs().size();
+		if (end>results.size()) end=results.size();
 		
 		int startRange = pagination - 3;
 		int endRange = pagination + 3;
@@ -117,11 +123,11 @@ if (queryString.length()>0) {
 		}
 		if (startRange<0) startRange=0;
 		
-		List<SearchDocument> paginatedResults = new ArrayList<SearchDocument>(RESULTS_PER_PAGE);
+		List<Map<String,Object>> paginatedResults = new ArrayList<Map<String,Object>>(RESULTS_PER_PAGE);
 		for (int i=start; i<end; i++) {
-			SearchDocument result = results.getScoreDocs().get(i);
+			Map<String,Object> result = results.get(i);
 			paginatedResults.add(result);
-			docIds.add(result.getDocId());
+			docIds.add((Integer)result.get("docId"));
 		}
 
 		String snippetUrl = "search?command=snippets&snippetCount=8&snippetSize=160&query=" + URLEncoder.encode(queryString, "UTF-8")
@@ -135,62 +141,67 @@ if (queryString.length()>0) {
 		if (strict)
 			snippetUrl += "&expand=false";
 		url = new URL(myPage, snippetUrl);
-		json = SearchWebClientUtils.getJson(url);
-		SnippetResults snippetResults = new SnippetResults(json);
+		writer = new StringWriter();
+		IOUtils.copy(url.openConnection().getInputStream(), writer, "UTF-8");
+		json = writer.toString();
+
+		Map<String, Object> snippetResults = mapper.readValue(json,
+	            new TypeReference<HashMap<String, Object>>() {
+	            });
 		
-		String resultText = "" + results.getScoreDocs().size();
-		if (results.getScoreDocs().size()==MAX_DOCS) resultText = "оver " + resultText;
+		String resultText = "" + results.size();
+		if (results.size()==MAX_DOCS) resultText = "оver " + resultText;
 		%>
 		<p><b>Found <%= resultText %> results. Results <%= start+1 %> to <%= end %>:</b></p>
 		
-		<table width="740px">
+		<table style="width:740px;">
 		<%
 		int i=0;
-		for (SearchDocument result : paginatedResults) {
-			String bookId = result.getUrl().substring(result.getUrl().lastIndexOf('/')+1);
-			int startPageUrl = result.getStartPage() / 2 * 2;
+		for (Map<String,Object> result : paginatedResults) {
+			String bookId = (String) result.get("name");
+			int startPageUrl = (Integer) result.get("startPage") / 2 * 2;
 			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
-			String title = result.getTitle();
-			if (result.getVolume()!=null)
-				title += ", volume " + result.getVolume();
+			String title = (String) result.get("title");
+			if (result.get("volume")!=null)
+				title += ", volume " + result.get("volume");
 			
-			String titleLang = result.getTitleLang();
-			if (titleLang!=null && result.getVolume()!=null)
-				titleLang += ", באַנד " + result.getVolume();
+			String titleLang = (String) result.get("titleLang");
+			if (titleLang!=null && result.get("volume")!=null)
+				titleLang += ", באַנד " + result.get("volume");
 			if (titleLang==null)
 				titleLang = "";
 			
-			String author = result.getAuthor();
-			String authorLang = result.getAuthorLang();
+			String author = (String) result.get("author");
+			String authorLang = (String) result.get("authorLang");
 			if (authorLang==null)
 				authorLang = "";
 			%>
 			<tr><td height="5px" bgcolor="black"></td></tr>
 			<tr><td align="left">
-			<table width="100%">
+			<table style="width:100%;">
 			<tr>
-			<td class="Title" width="50%"><b>Title:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= title %></a></td>
-			<td class="RTLTitle"><b>טיטל:</b> <a href="<%= result.getUrl() %>" target="_blank"><%= titleLang %></a></td>
+			<td class="Title" width="50%"><b>Title:</b> <a href="<%= result.get("url") %>" target="_blank"><%= title %></a></td>
+			<td class="RTLTitle"><b>טיטל:</b> <a href="<%= result.get("url") %>" target="_blank"><%= titleLang %></a></td>
 			</tr>
 			<tr>
 			<td class="Author" width="50%"><b>Author:</b> <%= author %></td>
 			<td class="RTLAuthor"><b>מחבר:</b> <%= authorLang %></td>
 			</tr>
 			<tr>
-			<td class="Author"  width="50%"><b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> to <%= result.getEndPage() %></a></td>
-			<td class="RTLAuthor"><b>אָפּטײל:</b> זײַטן <a href="<%= readOnlineURL %>" target="_blank"><%= result.getStartPage() %> ביז <%= result.getEndPage() %></a></td>
+			<td class="Author"  width="50%"><b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.get("startPage") %> to <%= result.get("endPage") %></a></td>
+			<td class="RTLAuthor"><b>אָפּטײל:</b> זײַטן <a href="<%= readOnlineURL %>" target="_blank"><%= result.get("startPage") %> ביז <%= result.get("endPage") %></a></td>
 			</tr>
 			<%
-			if (result.getPublisher()!=null) {
+			if (result.get("publisher")!=null) {
 				%>
-				<tr><td class="Author" colspan="2"><b>Publisher:</b> <%= result.getPublisher() %></td></tr>
+				<tr><td class="Author" colspan="2"><b>Publisher:</b> <%= result.get("publisher") %></td></tr>
 				<%
 			}
 			%>
 			<%
-			if (result.getDate()!=null) {
+			if (result.get("date")!=null) {
 				%>
-				<tr><td class="Author" colspan="2"><b>Date:</b> <%= result.getDate() %></td></tr>
+				<tr><td class="Author" colspan="2"><b>Date:</b> <%= result.get("date") %></td></tr>
 				<%
 			}
 			%>
@@ -198,20 +209,18 @@ if (queryString.length()>0) {
 			</td></tr>
 			<tr><td>
 			<%
-			List<Snippet> snippets = snippetResults.getSnippetMap().get(result.getDocId());
+			@SuppressWarnings("unchecked")
+			List<Map<String,Object>> snippets = (List<Map<String,Object>>) ((Map<String,Object>) snippetResults.get(result.get("docId").toString())).get("snippets");
 			int j=0;
-			for (Snippet snippet : snippets) {
-				String textUrl = "search?command=textSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
-				url = new URL(myPage, textUrl);
-				String snippetText = SearchWebClientUtils.getJson(url);
-				String imageUrlAddress = "search?command=imageSnippet&snippet=" + URLEncoder.encode(snippet.toJson(), "UTF-8");
-				int pageNumber = snippet.getPageIndex();
+			for (Map<String,Object> snippet : snippets) {
+				String imageUrlAddress = "search?command=imageSnippet&snippet=" + URLEncoder.encode(mapper.writeValueAsString(snippet), "UTF-8");
+				int pageNumber = (Integer) snippet.get("pageIndex");
 				int urlPageNumber = pageNumber / 2 * 2;
 				readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + urlPageNumber + "/mode/2up";
 				%>
-				<table width="100%" border="0">
+				<table style="width:100%; border:0px">
 				<tr>
-				<td><div id="snippet<%=i %>_<%=j %>" class="snippet"><%= snippetText %></div></td>
+				<td><div id="snippet<%=i %>_<%=j %>" class="snippet"><%= snippet.get("text") %></div></td>
 				<td align="center" valign="top" width="30px"><span id="img<%=i %>_<%=j %>" ><img src="images/image.png" border="0" /></span></td>
 				<td align="center" valign="top" width="30px"><a href="<%= readOnlineURL %>" target="_blank"><img src="images/text.png" border="0" /></a></td>
 				<td align="right" valign="top" width="30px"><a href="<%= readOnlineURL %>" target="_blank"><%= pageNumber %></a></td>

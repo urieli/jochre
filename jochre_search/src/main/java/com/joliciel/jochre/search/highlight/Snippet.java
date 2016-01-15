@@ -73,7 +73,7 @@ public class Snippet implements Comparable<Snippet> {
 		try {
 			Reader reader = new StringReader(json);
 			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
-			JsonParser jsonParser = jsonFactory.createJsonParser(reader); 
+			JsonParser jsonParser = jsonFactory.createParser(reader); 
 			jsonParser.nextToken();
 			this.read(jsonParser);
  		} catch (IOException e) {

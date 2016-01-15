@@ -1,4 +1,4 @@
-package com.joliciel.jochre.search.web.utils;
+package com.joliciel.jochre.search.web;
 
 import java.io.IOException;
 
@@ -13,7 +13,6 @@ public class CharsetFilter implements Filter {
 
 	@Override
 	public void destroy() {
-
 	}
 
 	@Override

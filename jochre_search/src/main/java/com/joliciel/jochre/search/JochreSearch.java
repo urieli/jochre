@@ -25,11 +25,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,6 +50,8 @@ import org.apache.lucene.search.TopDocs;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
@@ -221,7 +226,17 @@ public class JochreSearch {
 				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 				if (command.equals("search")) {
-					searcher.search(query, out);
+					StringWriter stringWriter = new StringWriter();
+					searcher.search(query, stringWriter);
+					out.write(stringWriter.toString());
+					out.write("\n");
+
+					ObjectMapper mapper = new ObjectMapper();
+					List<Map<String, Object>> result = mapper.readValue(stringWriter.toString(),
+				            new TypeReference<ArrayList<Map<String, Object>>>() {
+				            });
+					out.write(result.toString());
+					out.write("\n");
 				} else {
 					TopDocs topDocs = searcher.search(query);
 					

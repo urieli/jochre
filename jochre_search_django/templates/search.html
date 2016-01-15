@@ -66,10 +66,13 @@ $("#toggleAdvancedSearch").on("click",function(){
 	$("#advancedSearch").toggle();
    });
 </script>
-{% if not haveResults %}
+{% if parseException %}
+	<p>Unable to process query:</p>
+	<p>{{ parseException }}</p>
+{% elif not haveResults %}
 	<p>No results</p>
 {% else %}
-	<p><b>Found {{ resultCount }} results. Results {{ start }} to {{ end }}:</b></p>
+	<p><b>Found {% if resultCount==1000 } over {% endif %} {{ resultCount }} results. Results {{ start }} to {{ end }}:</b></p>
 		<table width="740px">
 		{% for result in results %}
 			<tr><td height="5px" bgcolor="black"></td></tr>

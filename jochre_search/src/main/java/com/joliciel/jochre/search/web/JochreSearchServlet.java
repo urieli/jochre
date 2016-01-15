@@ -55,6 +55,7 @@ import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreIndexTermLister;
 import com.joliciel.jochre.search.JochreQuery;
+import com.joliciel.jochre.search.JochreQueryParseException;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
 import com.joliciel.jochre.search.SearchStatusHolder;
@@ -224,30 +225,44 @@ public class JochreSearchServlet extends HttpServlet {
 				if (expandInflections!=null)
 					query.setExpandInflections(expandInflections);
 				
-				if (command.equals("search")) {
-					searcher.search(query, out);
-				} else {
-					if (docIds==null)
-						throw new RuntimeException("Command " + command + " requires docIds");
-					HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
-					HighlightService highlightService = highlightServiceLocator.getHighlightService();
-					Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
-					HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
-					highlightManager.setDecimalPlaces(query.getDecimalPlaces());
-					highlightManager.setMinWeight(minWeight);
-					highlightManager.setIncludeText(includeText);
-					highlightManager.setIncludeGraphics(includeGraphics);
-					highlightManager.setTitleSnippetCount(titleSnippetCount);
-					highlightManager.setSnippetCount(snippetCount);
-					highlightManager.setSnippetSize(snippetSize);
-		
-					Set<String> fields = new HashSet<String>();
-					fields.add(JochreIndexField.text.name());
-					
-					if (command.equals("highlight"))
-						highlightManager.highlight(highlighter, docIds, fields, out);
-					else
-						highlightManager.findSnippets(highlighter, docIds, fields, out);
+				try {
+					if (command.equals("search")) {
+						searcher.search(query, out);
+					} else {
+						if (docIds==null)
+							throw new RuntimeException("Command " + command + " requires docIds");
+						HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
+						HighlightService highlightService = highlightServiceLocator.getHighlightService();
+						Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
+						HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
+						highlightManager.setDecimalPlaces(query.getDecimalPlaces());
+						highlightManager.setMinWeight(minWeight);
+						highlightManager.setIncludeText(includeText);
+						highlightManager.setIncludeGraphics(includeGraphics);
+						highlightManager.setTitleSnippetCount(titleSnippetCount);
+						highlightManager.setSnippetCount(snippetCount);
+						highlightManager.setSnippetSize(snippetSize);
+			
+						Set<String> fields = new HashSet<String>();
+						fields.add(JochreIndexField.text.name());
+						
+						if (command.equals("highlight"))
+							highlightManager.highlight(highlighter, docIds, fields, out);
+						else
+							highlightManager.findSnippets(highlighter, docIds, fields, out);
+					}
+				} catch (JochreQueryParseException e) {
+					JsonFactory jsonFactory = new JsonFactory();
+					JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+
+					jsonGen.writeStartArray();
+					jsonGen.writeStartObject();
+					jsonGen.writeStringField("parseException", "true");
+					jsonGen.writeStringField("message", e.getMessage());
+
+					jsonGen.writeEndObject();
+					jsonGen.writeEndArray();
+					jsonGen.flush();
 				}
 			} else if (command.equals("textSnippet")) {
 				response.setContentType("text/plain;charset=UTF-8");

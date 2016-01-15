@@ -9,7 +9,7 @@
 	</listener>
 	<filter>
         <filter-name>CharsetFilter</filter-name>
-        <filter-class>com.joliciel.jochre.search.web.utils.CharsetFilter</filter-class>
+        <filter-class>com.joliciel.jochre.search.web.CharsetFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>CharsetFilter</filter-name>
