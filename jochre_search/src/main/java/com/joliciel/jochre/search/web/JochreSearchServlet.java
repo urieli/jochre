@@ -102,7 +102,13 @@ public class JochreSearchServlet extends HttpServlet {
 			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale());
 			SearchService searchService = searchServiceLocator.getSearchService();
 			
-			if (command.equals("purge")) {
+			if (command.equals("log4j")) {
+				Log4jListener.reloadLog4jProperties(this.getServletContext());
+				PrintWriter out = response.getWriter();
+				out.write("{\"response\":\"log4j reloaded\"}\n");
+				out.flush();
+				return;
+			} else if (command.equals("purge")) {
 				JochreSearchProperties.purgeInstance();
 				searchService.purge();
 				return;

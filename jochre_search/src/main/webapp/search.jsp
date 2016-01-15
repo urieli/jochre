@@ -132,6 +132,8 @@ if (queryString.length()>0) {
 			snippetUrl+=docId;
 			first=false;
 		}
+		if (strict)
+			snippetUrl += "&expand=false";
 		url = new URL(myPage, snippetUrl);
 		json = SearchWebClientUtils.getJson(url);
 		SnippetResults snippetResults = new SnippetResults(json);

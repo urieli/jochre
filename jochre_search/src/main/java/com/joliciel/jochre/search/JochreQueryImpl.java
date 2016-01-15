@@ -139,6 +139,7 @@ class JochreQueryImpl implements JochreQuery {
 			if (luceneTextQuery==null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
+				LOG.debug("expandInflections: " + expandInflections);
 				JochreQueryAnalyser analyzer = searchService.getJochreQueryAnalyzer();
 				analyzer.setExpandInflections(expandInflections);
 				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
@@ -167,6 +168,7 @@ class JochreQueryImpl implements JochreQuery {
 				if (this.authorQueryString!=null) {
 					MultiFieldQueryParser authorParser = new MultiFieldQueryParser(new String[] {JochreIndexField.author.name(),  JochreIndexField.authorLang.name()}, jochreAnalyzer);
 					String queryString = authorQueryString;
+					LOG.debug("authorQueryString: " + authorQueryString);
 					TextNormaliser textNormaliser = lexiconService.getTextNormaliser(searchService.getLocale());
 					if (textNormaliser!=null)
 						queryString = textNormaliser.normalise(queryString);
@@ -177,6 +179,7 @@ class JochreQueryImpl implements JochreQuery {
 				if (this.titleQueryString!=null) {
 					MultiFieldQueryParser titleParser = new MultiFieldQueryParser(new String[] {JochreIndexField.title.name(),  JochreIndexField.titleLang.name()}, jochreAnalyzer);
 					String queryString = titleQueryString;
+					LOG.debug("titleQueryString: " + titleQueryString);
 					TextNormaliser textNormaliser = lexiconService.getTextNormaliser(searchService.getLocale());
 					if (textNormaliser!=null)
 						queryString = textNormaliser.normalise(queryString);

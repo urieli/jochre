@@ -84,6 +84,8 @@ def search(request):
         if len(page.items)>0:
             haveResults = True
             userdata = {"command": "snippets", "snippetCount": 8, "snippetSize": 160, "query": query, "docIds": docIds}
+            if strict:
+                userdata['expand'] = 'false'
             resp = requests.get(searchUrl, userdata)
             model["results"] = page.items
             model["start"] = page.first_item
