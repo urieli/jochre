@@ -60,7 +60,7 @@ def search(request):
         
         results = resp.json()
         
-        if len(results==1) and 'parseException' in results[0]:
+        if len(results)==1 and 'parseException' in results[0]:
             model["parseException"] = results[0]["message"]
         else:
             page = paginate.Page(results, page=pageNumber, items_per_page=RESULTS_PER_PAGE)
