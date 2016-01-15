@@ -128,7 +128,7 @@ $("#toggleAdvancedSearch").on("click",function(){
         {% endfor %}
 	</table>
 {% endif %}
-{% if pageLinks %}
+{% if pageLinks and pageLinks.last_page.number != 1 %}
 	<div style="width: 740px; text-align: left; ">
 	<table style="margin: auto;"><tr>
 	{% if pageLinks.first_page %}
@@ -137,7 +137,7 @@ $("#toggleAdvancedSearch").on("click",function(){
 		</td>
 	{% endif %}
 	<td style="width:60px; text-align: center;">
-	{% if pageLinks.previous_page %}
+	{% if pageLinks.previous_page and pageLinks.previous_page.number != pageLinks.current_page.value %}
 		<a href="#" id="pagePrev">Prev</a>
 	{% else %}
 		<span style="font-weight: bold; color: gray;">Prev</span>
@@ -155,7 +155,7 @@ $("#toggleAdvancedSearch").on("click",function(){
 		</td>
 	{% endfor %}
 	<td style="width:60px; text-align: center;">
-	{% if pageLinks.next_page %}
+	{% if pageLinks.next_page and pageLinks.next_page.number != pageLinks.current_page.value %}
 		<a href="#" id="pageNext">Next</a>
 	{% else %}
 		<span style="font-weight: bold; color: gray;">Next</span>
