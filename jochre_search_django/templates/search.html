@@ -69,6 +69,7 @@ $("#toggleAdvancedSearch").on("click",function(){
 {% if parseException %}
 	<p>Unable to process query:</p>
 	<p>{{ parseException }}</p>
+{% elif query|length == 0 %}
 {% elif not haveResults %}
 	<p>No results</p>
 {% else %}
