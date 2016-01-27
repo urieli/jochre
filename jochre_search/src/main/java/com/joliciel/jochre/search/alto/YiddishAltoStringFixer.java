@@ -1,9 +1,19 @@
 package com.joliciel.jochre.search.alto;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math.stat.clustering.Cluster;
+import org.apache.commons.math.stat.clustering.EuclideanIntegerPoint;
+import org.apache.commons.math.stat.clustering.KMeansPlusPlusClusterer;
+
 class YiddishAltoStringFixer implements AltoStringFixer {
+	private static final Log LOG = LogFactory.getLog(YiddishAltoStringFixer.class);
 	private Set<String> dualCharacterLetters = null;
 
 	public YiddishAltoStringFixer() {
@@ -69,14 +79,153 @@ class YiddishAltoStringFixer implements AltoStringFixer {
 						j--;
 					}
 				}
+			} // next string
+			
+			// try to fix words emphasized by increasing separation
+			List<List<AltoString>> emphasizeCandidates = new ArrayList<>();
+			List<AltoString> currentSequence = new ArrayList<>();
+			for (AltoString string : row.getStrings()) {
+				if (string.isWhiteSpace())
+					continue;
+				if ((string.getContent().length()==1||this.getDualCharacterLetters().contains(string.getContent()))
+						&& (!string.isPunctuation())) {
+					currentSequence.add(string);
+				} else if (currentSequence.size()>0) {
+					currentSequence = new ArrayList<>();
+				}
+				if (currentSequence.size()==2)
+					emphasizeCandidates.add(currentSequence);
 			}
+
+			
+			// for each candidate, check if separations can be broken into two clear groups or not
+			List<List<AltoString>> emphasized = new ArrayList<>();
+			Random random = new Random();
+			EuclideanIntegerPoint origin = new EuclideanIntegerPoint(new int[] {0});
+			for (List<AltoString> candidate : emphasizeCandidates) {
+				logEmph(candidate);
+				
+				if (candidate.size()>2) {
+					List<EuclideanIntegerPoint> points = new ArrayList<>();
+					for (int j=1; j<candidate.size(); j++) {
+						AltoString string1 = candidate.get(j-1);
+						AltoString string2 = candidate.get(j);
+						int distance = (string1.getRectangle().x - string2.getRectangle().x) - string2.getRectangle().width;
+						EuclideanIntegerPoint point = new EuclideanIntegerPoint(new int[] {distance});
+						points.add(point);
+					}
+					if (LOG.isTraceEnabled())
+						LOG.trace("points: " + points);
+					KMeansPlusPlusClusterer<EuclideanIntegerPoint> kMeansClusterer = new KMeansPlusPlusClusterer<>(random);
+					List<Cluster<EuclideanIntegerPoint>> clusters = null;
+					try {
+						clusters = kMeansClusterer.cluster(points, 2, 100);
+					} catch (ArithmeticException e) {
+						// all points exactly equal, impossible to cluster by 2
+						// do nothing
+						if (LOG.isTraceEnabled()) LOG.trace("Impossible to cluster in 2");
+					}
+					boolean separated = false;
+					if (clusters!=null && clusters.size()==2) {
+						Cluster<EuclideanIntegerPoint> cluster1 = clusters.get(0);
+						Cluster<EuclideanIntegerPoint> cluster2 = clusters.get(1);
+						double distance1 = cluster1.getCenter().distanceFrom(origin);
+						double distance2 = cluster2.getCenter().distanceFrom(origin);
+						if (distance2<distance1) {
+							Cluster<EuclideanIntegerPoint> cluster3 = cluster2;
+							cluster2 = cluster1;
+							cluster1 = cluster3;
+							double distance3 = distance1;
+							distance1 = distance2;
+							distance2 = distance3;
+						}
+						double ratio = distance2 / distance1;
+						if (LOG.isTraceEnabled()) {
+							LOG.trace("cluster1 (" + cluster1.getPoints().size() + "): " + cluster1.getPoints());
+							LOG.trace("distance1: " + distance1);
+							LOG.trace("cluster2 (" + cluster2.getPoints().size() + "):: " + cluster2.getPoints());
+							LOG.trace("distance2: " + distance2);
+							LOG.trace("ratio: " + ratio);
+						}
+						// The criteria here for separation into words are arbitrary.
+						// What we want is a sufficient difference between the two clusters to assume
+						// it is a word break, and at least twice as many letters inside the words as we have words
+						if (cluster1.getPoints().size()>=cluster2.getPoints().size()*2 && ratio>1.8) {
+							// separate this candidate into multiple words
+							separated = true;
+							
+							int minSepForWord = Integer.MAX_VALUE;
+							for (EuclideanIntegerPoint point : cluster2.getPoints()) {
+								if (point.getPoint()[0]<minSepForWord)
+									minSepForWord = point.getPoint()[0];
+							}
+							
+							currentSequence = new ArrayList<>();
+							currentSequence.add(candidate.get(0));
+							for (int j=1; j<candidate.size(); j++) {
+								AltoString string1 = candidate.get(j-1);
+								AltoString string2 = candidate.get(j);
+								int distance = (string1.getRectangle().x - string2.getRectangle().x) - string2.getRectangle().width;
+								if (distance < minSepForWord) {
+									currentSequence.add(string2);
+								} else {
+									emphasized.add(currentSequence);
+									logEmph(currentSequence);
+									currentSequence = new ArrayList<>();
+									currentSequence.add(string2);
+								}
+							}
+							emphasized.add(currentSequence);
+							logEmph(currentSequence);
+						}
+					}
+					if (!separated) {
+						emphasized.add(candidate);
+						logEmph(candidate);
+					}
+				} else {
+					emphasized.add(candidate);
+					logEmph(candidate);
+				}
+			} // next candidate
+			
+			List<AltoString> emphasizedWords = new ArrayList<>();
+			
+			for (List<AltoString> word : emphasized) {
+				if (word.size()>1) {
+					AltoString string0 = word.get(0);
+					for (int j=1; j<word.size(); j++) {
+						string0.mergeWithNext();
+					}
+					string0.setStyle(AltoString.SEP_EMPH_STYLE);
+					emphasizedWords.add(string0);
+				}
+			}
+			
+			if (LOG.isTraceEnabled()) {
+				if (emphasizedWords.size()>0) {
+					LOG.trace(emphasizedWords);
+					emphasizedWords.size();
+				}
+			}
+			
+		} // next row
+	}
+	
+	private void logEmph(List<AltoString> candidate) {
+		if (LOG.isTraceEnabled()) {
+			StringBuilder candidateText = new StringBuilder();
+			for (AltoString string : candidate) {
+				candidateText.append(" " + string.getContent());
+			}
+			LOG.trace("Emph: " + candidateText.toString());
 		}
 	}
 
 	private Set<String> getDualCharacterLetters() {
 		if (dualCharacterLetters==null) {
 			dualCharacterLetters = new TreeSet<String>();
-			String[] dualCharacterLetterArray = new String[] {"אָ","אַ","בּ","פּ","וּ","פֿ","שׁ","וֹ","יִ","ײַ","כֿ","תּ","אֶ","כּ",",,","בֿ","עֵ","אִ","שׂ","נָ","מְ","הֶ","מַ","בָּ","לִ","נִ","עֶ","כֶ","יי","וו","אֵ","וי"};
+			String[] dualCharacterLetterArray = new String[] {"אָ","אַ","בּ","פּ","וּ","פֿ","שׁ","וֹ","יִ","ײַ","כֿ","תּ","אֶ","כּ","בֿ","עֵ","אִ","שׂ","נָ","מְ","הֶ","מַ","בָּ","לִ","נִ","עֶ","כֶ","יי","וו","אֵ","וי"};
 			for (String letter : dualCharacterLetterArray) {
 				dualCharacterLetters.add(letter);
 			}

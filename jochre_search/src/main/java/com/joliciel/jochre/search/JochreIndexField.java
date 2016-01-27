@@ -21,5 +21,6 @@ public enum JochreIndexField {
 	titleLang,
 	id,
 	url,
-	volume;
+	volume,
+	length;
 }

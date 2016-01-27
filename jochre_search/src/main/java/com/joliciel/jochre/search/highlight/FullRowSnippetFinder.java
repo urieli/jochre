@@ -29,20 +29,26 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
+import com.joliciel.jochre.search.IndexFieldNotFoundException;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
+import com.joliciel.jochre.search.JochreSearchException;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
-
-class FixedSizeSnippetFinder implements SnippetFinder {
-	private static final Log LOG = LogFactory.getLog(FixedSizeSnippetFinder.class);
+/**
+ * Returns snippets which span an entire row, making it possible to match text and graphic snippets.
+ * @author Assaf Urieli
+ *
+ */
+class FullRowSnippetFinder implements SnippetFinder {
+	private static final Log LOG = LogFactory.getLog(FullRowSnippetFinder.class);
 	IndexSearcher indexSearcher;
 	
 	private SearchService searchService;
 	
-	public FixedSizeSnippetFinder(IndexSearcher indexSearcher) {
+	public FullRowSnippetFinder(IndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
 	}
@@ -67,74 +73,90 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					LOG.debug("Content: " + content);
 					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage + ", length: " + content.length());
 				}
+				
+				int pageIndex = term.getPayload().getPageIndex();
+				int blockIndex = term.getPayload().getTextBlockIndex();
+				int rowIndex = term.getPayload().getTextLineIndex();
+				
+				int startRowIndex = rowIndex > 0 ? rowIndex-1 : rowIndex;
+				int start = jochreDoc.getStartIndex(pageIndex, blockIndex, startRowIndex);
+				int end = -1;
+				try {
+					// provoke an IndexFileNotFoundException if rowIndex+1 doesn't exist.
+					jochreDoc.getStartIndex(pageIndex, blockIndex, rowIndex+1);
+					end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex+1);
+				} catch (IndexFieldNotFoundException e) {
+					end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex);
+				}
+				
+				Snippet snippet = new Snippet(docId, term.getField(), start, end);
+				
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
 				int j=-1;
-				boolean foundPage = false;
+				boolean snippetAlreadyAdded = false;
 				for (HighlightTerm otherTerm : highlightTerms) {
 					j++;
-					if (j<=i)
+					if (j==i)
 						continue;
-					if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex()) {
-						if (foundPage)
-							break;
-						else
-							continue;
-					}
-					foundPage = true;
 					
-					if (otherTerm.getStartOffset()<term.getStartOffset()+snippetSize) {
+					if (otherTerm.getStartOffset()>= snippet.getStartOffset() && otherTerm.getEndOffset()<=snippet.getEndOffset()) {
+						if (j<i) {
+							snippetAlreadyAdded = true;
+							break;
+						}
+						
 						snippetTerms.add(otherTerm);
-					} else {
-						break;
-					}
-				}
-				HighlightTerm lastTerm = snippetTerms.get(snippetTerms.size()-1);
-				int middle = (term.getStartOffset() + lastTerm.getEndOffset()) / 2;
-				int start = middle - (snippetSize / 2);
-				int end = middle + (snippetSize / 2);
-				if (start > term.getStartOffset())
-					start = term.getStartOffset();
-				if (end < lastTerm.getEndOffset())
-					end = lastTerm.getEndOffset();
-
-				if (start<0)
-					start=0;
-				if (end > content.length())
-					end = content.length();
+						if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex())
+							throw new JochreSearchException("otherTerm on wrong page");
+						
+						if (otherTerm.getPayload().getTextBlockIndex()!=term.getPayload().getTextBlockIndex())
+							throw new JochreSearchException("otherTerm on wrong paragraph");
+						
+						if (otherTerm.getPayload().getTextLineIndex()>term.getPayload().getTextLineIndex()) {
+							try {
+								// provoke an IndexFileNotFoundException if rowIndex+1 doesn't exist.
+								jochreDoc.getStartIndex(pageIndex, blockIndex, otherTerm.getPayload().getTextLineIndex()+1);
+								int newEnd = jochreDoc.getEndIndex(pageIndex, blockIndex, otherTerm.getPayload().getTextLineIndex()+1);
+								snippet.setEndOffset(newEnd);
+							} catch (IndexFieldNotFoundException e) {
+								// do nothing
+							}
+						}
+					} // term within current snippet boundaries
+				} // next term
 				
-				for (int k=start; k>=0; k--) {
-					if (Character.isWhitespace(content.charAt(k))) {
-						start = k+1;
-						break;
-					}
-				}
-				for (int k=end; k<content.length(); k++) {
-					if (Character.isWhitespace(content.charAt(k))) {
-						end = k;
-						break;
-					}
-				}
-				
-				if (start<0)
-					start = 0;
-				
-				Snippet snippet = new Snippet(docId, term.getField(), start, end);
 				snippet.setHighlightTerms(snippetTerms);
-				heap.add(snippet);
+				
+				if (!snippetAlreadyAdded)
+					heap.add(snippet);
 			}
 			
 			// if we have no snippets, add one per field type
 			if (heap.isEmpty()) {
 				String content = jochreDoc.getContents();
-				int end = snippetSize * maxSnippets;
-				if (end>content.length()) end = content.length();
-				for (int k=end; k<content.length(); k++) {
-					if (Character.isWhitespace(content.charAt(k))) {
-						end = k;
-						break;
+				
+				int end = -1;
+				
+				for (int pageIndex = jochreDoc.getStartPage(); pageIndex<=jochreDoc.getEndPage(); pageIndex++) {
+					for (int blockIndex = 0; blockIndex<10; blockIndex++) {
+						for (int rowIndex = 0; rowIndex<10; rowIndex++) {
+							try {
+								jochreDoc.getStartIndex(pageIndex, blockIndex, rowIndex);
+								end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex);
+								break;
+							} catch (IndexFieldNotFoundException e) {
+								// do nothing
+							}
+						}
+						if (end>=0)
+							break;
 					}
+					if (end>=0)
+						break;
 				}
+				if (end>content.length()) end = content.length();
+				
 				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end);
 				snippet.setPageIndex(jochreDoc.getStartPage());
 				if (LOG.isTraceEnabled())

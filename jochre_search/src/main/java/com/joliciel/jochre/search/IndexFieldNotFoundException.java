@@ -18,10 +18,10 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-public final class RectangleNotFoundException extends JochreSearchException {
+public final class IndexFieldNotFoundException extends JochreSearchException {
 	private static final long serialVersionUID = 1L;
 
-	public RectangleNotFoundException(String message) {
+	public IndexFieldNotFoundException(String message) {
 		super(message);
 	}
 }

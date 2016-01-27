@@ -24,6 +24,11 @@ import java.util.List;
 import com.joliciel.jochre.search.JochreToken;
 
 public interface AltoString extends JochreToken {
+	/**
+	 * Style indicating emphasis through individual character separation.
+	 */
+	public static final String SEP_EMPH_STYLE = "SEP_EMPH";
+	
 	public String getContent();
 	public void setContent(String content);
 	
@@ -113,8 +118,11 @@ public interface AltoString extends JochreToken {
 	/**
 	 * Merge a given AltoString with the next string in the line
 	 * or the first string on the following line (if it's the last in the line),
-	 * on condition that the next string is not whitespace.
+	 * removing any intervening whitespaces.
 	 * @return true if merge occurred, false otherwise (whitespace)
 	 */
 	public boolean mergeWithNext();
+	
+	public String getStyle();
+	public void setStyle(String style);
 }

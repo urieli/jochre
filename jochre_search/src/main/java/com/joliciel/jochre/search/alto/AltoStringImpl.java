@@ -44,6 +44,7 @@ class AltoStringImpl implements AltoString {
 	private int spanEnd = -1;
 	private boolean whiteSpace = false;
 	private boolean punctuation = false;
+	private String style = null;
 	
 	public AltoStringImpl(AltoTextLine textLine, String content, int left, int top, int width, int height) {
 		super();
@@ -202,12 +203,14 @@ class AltoStringImpl implements AltoString {
 		AltoString nextString = null;
 		AltoTextLine nextRow = null;
 		boolean endOfRowHyphen = false;
-		if (this.index<this.textLine.getStrings().size()-1) {
+		while (this.index<this.textLine.getStrings().size()-1) {
 			nextString = this.textLine.getStrings().get(this.index+1);
-			if (nextString.isWhiteSpace())
-				return false;
 			this.textLine.getStrings().remove(this.index+1);
+			if (!nextString.isWhiteSpace())
+				break;
 		}
+		if (nextString!=null && nextString.isWhiteSpace())
+			nextString = null;
 		if (nextString==null && index==this.textLine.getStrings().size()-1 && this.textLine.getIndex()+1<this.getTextLine().getTextBlock().getTextLines().size()) {
 			nextRow = this.getTextLine().getTextBlock().getTextLines().get(this.textLine.getIndex()+1);
 			if (nextRow.getStrings().size()>0) {
@@ -219,6 +222,8 @@ class AltoStringImpl implements AltoString {
 			if (this.content.endsWith("-"))
 				endOfRowHyphen = true;
 		}
+		if (nextString==null)
+			return false;
 		
 		// merge the rectangles
 		if (nextString.getRowIndex()==this.getRowIndex()) {
@@ -262,4 +267,13 @@ class AltoStringImpl implements AltoString {
 		return true;
 	}
 
+	public String getStyle() {
+		return style;
+	}
+
+	public void setStyle(String style) {
+		this.style = style;
+	}
+
+	
 }

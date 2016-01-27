@@ -52,4 +52,8 @@ public interface JochreIndexDocument {
 	 * @return
 	 */
 	public BufferedImage getImage(int pageIndex);
+
+	public int getEndIndex(int pageIndex, int textBlockIndex, int textLineIndex);
+
+	public int getStartIndex(int pageIndex, int textBlockIndex, int textLineIndex);
 }

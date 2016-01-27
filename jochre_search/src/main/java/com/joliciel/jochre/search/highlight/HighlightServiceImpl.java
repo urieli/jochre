@@ -56,7 +56,7 @@ class HighlightServiceImpl implements HighlightService {
 
 	@Override
 	public SnippetFinder getSnippetFinder(IndexSearcher indexSearcher) {
-		FixedSizeSnippetFinder snippetFinder = new FixedSizeSnippetFinder(indexSearcher);
+		FullRowSnippetFinder snippetFinder = new FullRowSnippetFinder(indexSearcher);
 		snippetFinder.setSearchService(searchService);
 		return snippetFinder;
 	}

@@ -225,9 +225,8 @@ class HighlightManagerImpl implements HighlightManager {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
 		String content = jochreDoc.getContents();
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Displaying snippet for doc " + snippet.getDocId() + ", snippet " + snippet.getStartOffset() + ", " + snippet.getEndOffset());
-		}
+		if (LOG.isTraceEnabled())
+			LOG.trace("Displaying snippet for doc " + snippet.getDocId() + ", snippet " + snippet);
 
 		StringBuilder sb = new StringBuilder();
 		int currentPos = snippet.getStartOffset();

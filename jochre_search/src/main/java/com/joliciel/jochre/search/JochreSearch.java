@@ -116,6 +116,10 @@ public class JochreSearch {
 			String lexiconFilePath = null;
 			String word = null;
 			
+			// snippets
+			int snippetCount = -1;
+			int snippetSize = -1;
+			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
 				String argValue = argMapEntry.getValue();
@@ -146,6 +150,10 @@ public class JochreSearch {
 					word = argValue;
 				} else if (argName.equals("language")) {
 					language = argValue;
+				} else if (argName.equals("snippetCount")) {
+					snippetCount = Integer.parseInt(argValue);
+				} else if (argName.equals("snippetSize")) {
+					snippetSize = Integer.parseInt(argValue);
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -246,7 +254,7 @@ public class JochreSearch {
 						LOG.debug("### Next document");
 						Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
 						for (IndexableField field : doc.getFields()) {
-							if (!field.name().equals(JochreIndexField.text.name()))
+							if (!field.name().equals(JochreIndexField.text.name()) && !field.name().startsWith("rect") && !field.name().startsWith("start"))
 								LOG.debug(field);
 						}
 					}
@@ -259,6 +267,10 @@ public class JochreSearch {
 					highlightManager.setMinWeight(0.0);
 					highlightManager.setIncludeText(true);
 					highlightManager.setIncludeGraphics(true);
+					if (snippetCount>0)
+						highlightManager.setSnippetCount(snippetCount);
+					if (snippetSize>0)
+						highlightManager.setSnippetSize(snippetSize);
 	
 					if (command.equals("highlight")) {
 						highlightManager.highlight(highlighter, docIds, fields, out);

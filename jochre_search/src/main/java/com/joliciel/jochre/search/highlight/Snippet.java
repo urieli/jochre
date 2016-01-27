@@ -40,7 +40,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
-import com.joliciel.jochre.search.RectangleNotFoundException;
+import com.joliciel.jochre.search.IndexFieldNotFoundException;
 import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
@@ -252,6 +252,14 @@ public class Snippet implements Comparable<Snippet> {
 		return endOffset;
 	}
 	
+	public void setStartOffset(int startOffset) {
+		this.startOffset = startOffset;
+	}
+
+	public void setEndOffset(int endOffset) {
+		this.endOffset = endOffset;
+	}
+
 	public int getDocId() {
 		return docId;
 	}
@@ -363,7 +371,7 @@ public class Snippet implements Comparable<Snippet> {
 					Rectangle previousRect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex-1));
 					LOG.debug("Expanding by prev rect: " + previousRect);
 					rect.add(previousRect);
-				} catch (RectangleNotFoundException e) {
+				} catch (IndexFieldNotFoundException e) {
 					// do nothing
 				}
 				
@@ -371,7 +379,7 @@ public class Snippet implements Comparable<Snippet> {
 					Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+1));
 					LOG.debug("Expanding by next rect: " + nextRect);
 					rect.add(nextRect);
-				} catch (RectangleNotFoundException e) {
+				} catch (IndexFieldNotFoundException e) {
 					// do nothing
 				}
 				
@@ -381,7 +389,7 @@ public class Snippet implements Comparable<Snippet> {
 						Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+2));
 						LOG.debug("Expanding by line after secondary rect: " + nextRect);
 						rect.add(nextRect);
-					} catch (RectangleNotFoundException e) {
+					} catch (IndexFieldNotFoundException e) {
 						// do nothing
 					}
 				}
