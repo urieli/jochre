@@ -300,16 +300,16 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.directory = directory;
 			this.startPage = startPage;
 			this.endPage = endPage;
-			this.altoStringFixer = parent.getAltoService().getAltoStringFixer(parent.getSearchService().getLocale());
+			this.altoStringFixer = parent.getAltoService().getAltoStringFixer();
 		}
 
 		@Override
 		public void onNextPage(AltoPage page) {
-			if (startPage>=0 && page.getPageIndex()<startPage)
+			if (startPage>=0 && page.getIndex()<startPage)
 				return;
-			if (endPage>=0 && page.getPageIndex()>endPage)
+			if (endPage>=0 && page.getIndex()>endPage)
 				return;
-			LOG.debug("Processing page: " + page.getPageIndex());
+			LOG.debug("Processing page: " + page.getIndex());
 			currentPages.add(page);
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				textBlock.joinHyphens();

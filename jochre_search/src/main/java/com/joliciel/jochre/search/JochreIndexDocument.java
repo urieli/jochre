@@ -22,11 +22,10 @@ public interface JochreIndexDocument {
 	/**
 	 * Get the rectangle enclosing a particular text line.
 	 * @param pageIndex
-	 * @param textBlockIndex
-	 * @param textLineIndex
+	 * @param rowIndex
 	 * @return
 	 */
-	public Rectangle getRectangle(int pageIndex, int textBlockIndex, int textLineIndex);
+	public Rectangle getRectangle(int pageIndex, int rowIndex);
 	
 	/**
 	 * The index of the first page contained in this document.
@@ -53,7 +52,26 @@ public interface JochreIndexDocument {
 	 */
 	public BufferedImage getImage(int pageIndex);
 
-	public int getEndIndex(int pageIndex, int textBlockIndex, int textLineIndex);
+	/**
+	 * Return the content index of the first character on a given row.
+	 * @param pageIndex
+	 * @param rowIndex
+	 * @return
+	 */
+	public int getStartIndex(int pageIndex, int rowIndex);
 
-	public int getStartIndex(int pageIndex, int textBlockIndex, int textLineIndex);
+	/**
+	 * Return the content index following the last character on a given row.
+	 * @param pageIndex
+	 * @param rowIndex
+	 * @return
+	 */
+	public int getEndIndex(int pageIndex, int rowIndex);
+	
+	/**
+	 * Get the number of rows on a given page.
+	 * @param pageIndex
+	 * @return
+	 */
+	public int getRowCount(int pageIndex);
 }

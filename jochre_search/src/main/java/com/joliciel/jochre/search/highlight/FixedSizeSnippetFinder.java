@@ -38,7 +38,8 @@ import com.joliciel.talismane.utils.LogUtils;
 
 class FixedSizeSnippetFinder implements SnippetFinder {
 	private static final Log LOG = LogFactory.getLog(FixedSizeSnippetFinder.class);
-	IndexSearcher indexSearcher;
+	private IndexSearcher indexSearcher;
+	private int snippetSize = 100;
 	
 	private SearchService searchService;
 	
@@ -49,7 +50,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 
 
 	@Override
-	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets, int snippetSize) {
+	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets) {
 		try {
 			Document doc = indexSearcher.doc(docId);
 			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
@@ -119,7 +120,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				if (start<0)
 					start = 0;
 				
-				Snippet snippet = new Snippet(docId, term.getField(), start, end);
+				Snippet snippet = new Snippet(docId, term.getField(), start, end, term.getPayload().getPageIndex());
 				snippet.setHighlightTerms(snippetTerms);
 				heap.add(snippet);
 			}
@@ -135,8 +136,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 						break;
 					}
 				}
-				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end);
-				snippet.setPageIndex(jochreDoc.getStartPage());
+				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end, jochreDoc.getStartPage());
 				if (LOG.isTraceEnabled())
 					LOG.trace("Snippet candidate: " + snippet);
 				heap.add(snippet);
@@ -172,4 +172,11 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 		this.searchService = searchService;
 	}
 
+	public int getSnippetSize() {
+		return snippetSize;
+	}
+
+	public void setSnippetSize(int snippetSize) {
+		this.snippetSize = snippetSize;
+	}
 }

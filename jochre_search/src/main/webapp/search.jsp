@@ -45,23 +45,22 @@ if (request.getParameter("page")!=null)
 <body>
 <form id="frmQuery" method="get" accept-charset="UTF-8" action="search.jsp">
 <input type="hidden" name="page" id="hdnPage" value="0" />
-<table>
+<table style="width:740px;">
 <tr>
 <td><img src="images/jochreLogo.png" width="150px" /></td>
-<td style="vertical-align: bottom;" align="right" width="400px"><input type="text" name="query" style="width:300px;" value="<%= queryStringInput %>" />&nbsp;<input type="submit" value="Search" /></td>
-<td style="vertical-align: bottom;" width="20px"><span id="toggleAdvancedSearch" ><img src="images/plusInCircle.png" border="0" width="20px" /></span></td>
+<td style="vertical-align: bottom;" align="right"><span id="toggleAdvancedSearch" ><img src="images/plusInCircle.png" border="0" width="20px" /></span>&nbsp;
+<input type="submit" value="זוך" />&nbsp;<input type="text" name="query" style="width:300px;" value="<%= queryStringInput %>" /></td>
 </tr>
 <tr id="advancedSearch" style="display: <%= advancedSearch ? "visible" : "none" %>;">
 <td colspan="2" align="right">
 <table>
 <tr>
-<td>Strict? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="checked" <% } %>/></td>
+<td class="RTLAuthor">שטרענג? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="checked" <% } %>/></td>
 <td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
 <td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
 </tr>
 </table>
 </td>
-<td>&nbsp;</td>
 </tr>
 </table>
 <script>
@@ -151,9 +150,13 @@ if (queryString.length()>0) {
 		
 		String resultText = "" + results.size();
 		if (results.size()==MAX_DOCS) resultText = "оver " + resultText;
+		String resultTextLang = "" + results.size();
+		if (results.size()==MAX_DOCS) resultTextLang = "מער װי  " + resultTextLang;
 		%>
-		<p><b>Found <%= resultText %> results. Results <%= start+1 %> to <%= end %>:</b></p>
-		
+		<table style="width:740px"><tr>
+	    <td style="width:50%"><b>Found <%= resultText %> results. Results <%= start+1 %> to <%= end %>:</b></td>
+	    <td class="RTLAuthor"><%= resultTextLang %> רעזולטאַטן. רעזולטאַטן <%= start+1 %> ביז <%= end %>:</td>
+	    </tr></table>
 		<table style="width:740px;">
 		<%
 		int i=0;

@@ -24,5 +24,6 @@ package com.joliciel.jochre.search.alto;
  *
  */
 public interface AltoStringFixer {
+	public String getHyphenatedContent(String content1, String content2);
 	public void fix(AltoTextBlock block);
 }

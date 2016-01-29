@@ -29,7 +29,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 
-import com.joliciel.jochre.search.IndexFieldNotFoundException;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreSearchException;
@@ -44,7 +43,8 @@ import com.joliciel.talismane.utils.LogUtils;
  */
 class FullRowSnippetFinder implements SnippetFinder {
 	private static final Log LOG = LogFactory.getLog(FullRowSnippetFinder.class);
-	IndexSearcher indexSearcher;
+	private IndexSearcher indexSearcher;
+	private int rowExtension = 1;
 	
 	private SearchService searchService;
 	
@@ -55,7 +55,7 @@ class FullRowSnippetFinder implements SnippetFinder {
 
 
 	@Override
-	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets, int snippetSize) {
+	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets) {
 		try {
 			Document doc = indexSearcher.doc(docId);
 			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
@@ -75,21 +75,29 @@ class FullRowSnippetFinder implements SnippetFinder {
 				}
 				
 				int pageIndex = term.getPayload().getPageIndex();
-				int blockIndex = term.getPayload().getTextBlockIndex();
-				int rowIndex = term.getPayload().getTextLineIndex();
+				int rowIndex = term.getPayload().getRowIndex();
 				
-				int startRowIndex = rowIndex > 0 ? rowIndex-1 : rowIndex;
-				int start = jochreDoc.getStartIndex(pageIndex, blockIndex, startRowIndex);
-				int end = -1;
-				try {
-					// provoke an IndexFileNotFoundException if rowIndex+1 doesn't exist.
-					jochreDoc.getStartIndex(pageIndex, blockIndex, rowIndex+1);
-					end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex+1);
-				} catch (IndexFieldNotFoundException e) {
-					end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex);
-				}
+				double rowTop = jochreDoc.getRectangle(pageIndex, rowIndex).getY();
+				int pageRowCount = jochreDoc.getRowCount(pageIndex);
+
+				int startRowIndex = rowIndex - rowExtension;
+				if (startRowIndex<0) startRowIndex = 0;
+				// avoid starting on another column
+				while (startRowIndex<rowIndex && jochreDoc.getRectangle(pageIndex, startRowIndex).getY()>rowTop)
+					startRowIndex++;
+				int start = jochreDoc.getStartIndex(pageIndex, startRowIndex);
 				
-				Snippet snippet = new Snippet(docId, term.getField(), start, end);
+				int endRowIndex = rowIndex + rowExtension;
+				if (endRowIndex>=pageRowCount)
+					endRowIndex = pageRowCount-1;
+				// avoid ending on another column
+				while (endRowIndex>rowIndex && jochreDoc.getRectangle(pageIndex, endRowIndex).getY()<rowTop)
+					endRowIndex--;
+				int end = jochreDoc.getEndIndex(pageIndex, endRowIndex);
+				
+				Snippet snippet = new Snippet(docId, term.getField(), start, end, pageIndex);
+				snippet.setStartRowIndex(startRowIndex);
+				snippet.setEndRowIndex(endRowIndex);
 				
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
@@ -107,21 +115,37 @@ class FullRowSnippetFinder implements SnippetFinder {
 						}
 						
 						snippetTerms.add(otherTerm);
-						if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex())
-							throw new JochreSearchException("otherTerm on wrong page");
+						if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex()) {
+							LOG.debug("document: " + jochreDoc.getName());
+							LOG.debug("pageIndex: " + pageIndex);
+							LOG.debug("startRowIndex: " + startRowIndex);
+							LOG.debug("endRowIndex: " + endRowIndex);
+							LOG.debug("start: " + start);
+							LOG.debug("end: " + end);
+							
+							throw new JochreSearchException("otherTerm on wrong page. term: " + term + ", otherTerm: " + otherTerm
+									+ ", document: " + jochreDoc.getName()
+									+ ", pageIndex: " + pageIndex
+									+ ", startRowIndex: " + startRowIndex
+									+ ", endRowIndex: " + endRowIndex
+									+ ", start: " + start
+									+ ", end: " + end);
+						}
 						
-						if (otherTerm.getPayload().getTextBlockIndex()!=term.getPayload().getTextBlockIndex())
-							throw new JochreSearchException("otherTerm on wrong paragraph");
-						
-						if (otherTerm.getPayload().getTextLineIndex()>term.getPayload().getTextLineIndex()) {
-							try {
-								// provoke an IndexFileNotFoundException if rowIndex+1 doesn't exist.
-								jochreDoc.getStartIndex(pageIndex, blockIndex, otherTerm.getPayload().getTextLineIndex()+1);
-								int newEnd = jochreDoc.getEndIndex(pageIndex, blockIndex, otherTerm.getPayload().getTextLineIndex()+1);
-								snippet.setEndOffset(newEnd);
-							} catch (IndexFieldNotFoundException e) {
-								// do nothing
-							}
+						if (otherTerm.getPayload().getRowIndex()>term.getPayload().getRowIndex() && otherTerm.getPayload().getRowIndex()+1<pageRowCount) {
+							rowIndex = otherTerm.getPayload().getRowIndex();
+							rowTop = jochreDoc.getRectangle(pageIndex, rowIndex).getY();
+							
+							endRowIndex = rowIndex + rowExtension;
+							if (endRowIndex>=pageRowCount)
+								endRowIndex = pageRowCount-1;
+							// avoid ending on another column
+							while (endRowIndex>rowIndex && jochreDoc.getRectangle(pageIndex, endRowIndex).getY()<rowTop)
+								endRowIndex--;
+							end = jochreDoc.getEndIndex(pageIndex, endRowIndex);
+
+							snippet.setEndRowIndex(endRowIndex);
+							snippet.setEndOffset(end);
 						}
 					} // term within current snippet boundaries
 				} // next term
@@ -136,29 +160,18 @@ class FullRowSnippetFinder implements SnippetFinder {
 			if (heap.isEmpty()) {
 				String content = jochreDoc.getContents();
 				
-				int end = -1;
+				int start = jochreDoc.getStartIndex(jochreDoc.getStartPage(), 0);
+				int pageRowCount = jochreDoc.getRowCount(jochreDoc.getStartPage());
+				int endRowIndex = start + (rowExtension*2);
+				while (endRowIndex>=pageRowCount) endRowIndex--;
+				int end = jochreDoc.getEndIndex(jochreDoc.getStartPage(), endRowIndex);
 				
-				for (int pageIndex = jochreDoc.getStartPage(); pageIndex<=jochreDoc.getEndPage(); pageIndex++) {
-					for (int blockIndex = 0; blockIndex<10; blockIndex++) {
-						for (int rowIndex = 0; rowIndex<10; rowIndex++) {
-							try {
-								jochreDoc.getStartIndex(pageIndex, blockIndex, rowIndex);
-								end = jochreDoc.getEndIndex(pageIndex, blockIndex, rowIndex);
-								break;
-							} catch (IndexFieldNotFoundException e) {
-								// do nothing
-							}
-						}
-						if (end>=0)
-							break;
-					}
-					if (end>=0)
-						break;
-				}
 				if (end>content.length()) end = content.length();
 				
-				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end);
-				snippet.setPageIndex(jochreDoc.getStartPage());
+				Snippet snippet = new Snippet(docId, fields.iterator().next(), 0, end, jochreDoc.getStartPage());
+				snippet.setStartRowIndex(0);
+				snippet.setEndRowIndex(endRowIndex);
+				
 				if (LOG.isTraceEnabled())
 					LOG.trace("Snippet candidate: " + snippet);
 				heap.add(snippet);
@@ -194,4 +207,11 @@ class FullRowSnippetFinder implements SnippetFinder {
 		this.searchService = searchService;
 	}
 
+	public int getRowExtension() {
+		return rowExtension;
+	}
+	
+	public void setRowExtension(int rowExtension) {
+		this.rowExtension = rowExtension;
+	}
 }

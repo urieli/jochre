@@ -122,7 +122,7 @@ class HighlightManagerImpl implements HighlightManager {
 		
 		for (int docId : docIds) {
 			Set<HighlightTerm> terms = termMap.get(docId);
-			List<Snippet> snippets = snippetFinder.findSnippets(docId, fields, terms, maxSnippets, snippetSize);
+			List<Snippet> snippets = snippetFinder.findSnippets(docId, fields, terms, maxSnippets);
 			snippetMap.put(docId, snippets);
 		}
 		return snippetMap;

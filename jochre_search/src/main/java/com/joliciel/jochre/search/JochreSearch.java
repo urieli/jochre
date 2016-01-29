@@ -103,8 +103,6 @@ public class JochreSearch {
 			String language = null;
 			String indexDirPath = null;
 			String documentDirPath = null;
-			int startPage = -1;
-			int endPage = -1;
 			boolean forceUpdate = false;
 			String docName = null;
 			int docIndex = -1;
@@ -128,10 +126,6 @@ public class JochreSearch {
 					indexDirPath = argValue;
 				} else if (argName.equals("documentDir")) {
 					documentDirPath = argValue;
-				} else if (argName.equals(JochreIndexField.startPage.name())) {
-					startPage = Integer.parseInt(argValue);
-				} else if (argName.equals(JochreIndexField.endPage.name())) {
-					endPage = Integer.parseInt(argValue);
 				} else if (argName.equals("forceUpdate")) {
 					forceUpdate = argValue.equals("true");
 				} else if (argName.equals("docName")) {
@@ -167,19 +161,7 @@ public class JochreSearch {
 			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
 			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
 			
-			if (command.equals("buildIndex")) {
-				if (indexDirPath==null)
-					throw new RuntimeException("for command " + command + ", indexDir is required");
-				if (documentDirPath==null)
-					throw new RuntimeException("for command " + command + ", documentDir is required");
-
-				File indexDir = new File(indexDirPath);
-				indexDir.mkdirs();
-				File documentDir = new File(documentDirPath);
-				
-				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
-				builder.updateDocument(documentDir, startPage, endPage);
-			} else if (command.equals("updateIndex")) {
+			if (command.equals("updateIndex")) {
 				if (indexDirPath==null)
 					throw new RuntimeException("for command " + command + ", indexDir is required");
 				if (documentDirPath==null)

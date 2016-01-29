@@ -23,9 +23,10 @@ import java.util.List;
 public interface AltoPage {
 	public AltoDocument getDocument();
 	public List<AltoTextBlock> getTextBlocks();
+	public List<AltoTextLine> getTextLines();
 	public int getWidth();
 	public int getHeight();
-	public int getPageIndex();
+	public int getIndex();
 	public int wordCount();
 	public double getConfidence();
 	public void setConfidence(double confidence);

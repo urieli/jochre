@@ -46,6 +46,8 @@ class AltoStringImpl implements AltoString {
 	private boolean punctuation = false;
 	private String style = null;
 	
+	private AltoServiceInternal altoService;
+	
 	public AltoStringImpl(AltoTextLine textLine, String content, int left, int top, int width, int height) {
 		super();
 		this.textLine = textLine;
@@ -171,7 +173,7 @@ class AltoStringImpl implements AltoString {
 
 	@Override
 	public int getPageIndex() {
-		return this.getTextLine().getTextBlock().getPage().getPageIndex();
+		return this.getTextLine().getTextBlock().getPage().getIndex();
 	}
 
 	@Override
@@ -211,13 +213,16 @@ class AltoStringImpl implements AltoString {
 		}
 		if (nextString!=null && nextString.isWhiteSpace())
 			nextString = null;
-		if (nextString==null && index==this.textLine.getStrings().size()-1 && this.textLine.getIndex()+1<this.getTextLine().getTextBlock().getTextLines().size()) {
-			nextRow = this.getTextLine().getTextBlock().getTextLines().get(this.textLine.getIndex()+1);
-			if (nextRow.getStrings().size()>0) {
+		if (nextString==null && index==this.textLine.getStrings().size()-1 && this.textLine.getIndex()+1<this.getTextLine().getTextBlock().getPage().getTextLines().size()) {
+			nextRow = this.getTextLine().getTextBlock().getPage().getTextLines().get(this.textLine.getIndex()+1);
+			if (this.getTextLine().getTextBlock().getIndex()!=nextRow.getTextBlock().getIndex())
+				return false;
+			
+			while (nextRow.getStrings().size()>0) {
 				nextString = nextRow.getStrings().get(0);
-				if (nextString.isWhiteSpace())
-					return false;
 				nextRow.getStrings().remove(0);
+				if (!nextString.isWhiteSpace())
+					break;
 			}
 			if (this.content.endsWith("-"))
 				endOfRowHyphen = true;
@@ -251,9 +256,13 @@ class AltoStringImpl implements AltoString {
 			}
 		}
 		
-		if (endOfRowHyphen)
-			this.setContent(this.getContent().substring(0, this.getContent().length()-1) + nextString.getContent());
-		else
+		if (endOfRowHyphen) {
+			AltoStringFixer altoStringFixer = this.altoService.getAltoStringFixer();
+			if (altoStringFixer!=null)
+				this.setContent(altoStringFixer.getHyphenatedContent(this.getContent(), nextString.getContent()));
+			else
+				this.setContent(this.getContent().substring(0, this.getContent().length()-1) + nextString.getContent());
+		} else
 			this.setContent(this.getContent() + nextString.getContent());
 		
 		alternatives.remove(this.getContent());
@@ -275,5 +284,11 @@ class AltoStringImpl implements AltoString {
 		this.style = style;
 	}
 
-	
+	public AltoServiceInternal getAltoService() {
+		return altoService;
+	}
+
+	public void setAltoService(AltoServiceInternal altoService) {
+		this.altoService = altoService;
+	}
 }

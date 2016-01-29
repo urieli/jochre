@@ -24,6 +24,7 @@ import java.util.List;
 public class AltoPageImpl implements AltoPage {
 	private AltoDocument document;
 	private List<AltoTextBlock> textBlocks = new ArrayList<AltoTextBlock>();
+	private List<AltoTextLine> textLines = new ArrayList<AltoTextLine>();
 	private int pageIndex;
 	private int width;
 	private int height;
@@ -44,6 +45,10 @@ public class AltoPageImpl implements AltoPage {
 		return textBlocks;
 	}
 
+	public List<AltoTextLine> getTextLines() {
+		return textLines;
+	}
+
 	public int getWidth() {
 		return width;
 	}
@@ -52,7 +57,7 @@ public class AltoPageImpl implements AltoPage {
 		return height;
 	}
 
-	public int getPageIndex() {
+	public int getIndex() {
 		return pageIndex;
 	}
 

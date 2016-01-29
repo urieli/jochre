@@ -40,7 +40,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
-import com.joliciel.jochre.search.IndexFieldNotFoundException;
 import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
@@ -60,13 +59,16 @@ public class Snippet implements Comparable<Snippet> {
 	private Rectangle rect = null;
 	private int pageIndex = -1;
 	private String text;
+	private int startRowIndex = -1;
+	private int endRowIndex = -1;
 	
-	public Snippet(int docId, String field, int startOffset, int endOffset) {
+	public Snippet(int docId, String field, int startOffset, int endOffset, int pageIndex) {
 		super();
 		this.docId = docId;
 		this.field = field;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
+		this.pageIndex = pageIndex;
 	}
 	
 	public Snippet(String json) {
@@ -107,6 +109,10 @@ public class Snippet implements Comparable<Snippet> {
 					this.scoreCalculated = true;
 				} else if (fieldName.equals("pageIndex")) {
 					this.pageIndex = jsonParser.nextIntValue(-1);
+				} else if (fieldName.equals("startRowIndex")) {
+					this.startRowIndex = jsonParser.nextIntValue(-1);
+				} else if (fieldName.equals("endRowIndex")) {
+					this.endRowIndex = jsonParser.nextIntValue(-1);
 				} else if (fieldName.equals("text")) {
 					this.text = jsonParser.nextTextValue();
 				} else if (fieldName.equals("terms")) {
@@ -120,8 +126,8 @@ public class Snippet implements Comparable<Snippet> {
 		 				int termStart = 0;
 		 	 			int termEnd = 0;
 		 	 			int pageIndex = 0;
-		 	 			int textBlockIndex = 0;
-		 	 			int textLineIndex = 0;
+		 	 			int paragraphIndex = 0;
+		 	 			int rowIndex = 0;
 		 	 			int left = 0;
 		 	 			int top = 0;
 		 	 			int width = 0;
@@ -144,10 +150,10 @@ public class Snippet implements Comparable<Snippet> {
 			 					termEnd = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("pageIndex")) {
 			 					pageIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("textBlockIndex")) {
-			 					textBlockIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("textLineIndex")) {
-			 					textLineIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("paragraphIndex")) {
+			 					paragraphIndex = jsonParser.nextIntValue(0);
+			 				} else if (termFieldName.equals("rowIndex")) {
+			 					rowIndex = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("left")) {
 			 					left = jsonParser.nextIntValue(0);
 			 				} else if (termFieldName.equals("top")) {
@@ -175,7 +181,7 @@ public class Snippet implements Comparable<Snippet> {
 		 				Rectangle secondaryRect = null;
 		 				if (left2>=0)
 		 					secondaryRect = new Rectangle(left2, top2, width2, height2);
-		 				JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, textBlockIndex, textLineIndex);
+		 				JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, paragraphIndex, rowIndex);
 	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
 	 	 				highlightTerm.setWeight(weight);
 	 	 				this.highlightTerms.add(highlightTerm);
@@ -224,6 +230,8 @@ public class Snippet implements Comparable<Snippet> {
 			double roundedScore = df.parse(df.format(this.getScore())).doubleValue();
 			jsonGen.writeNumberField("score", roundedScore);
 			jsonGen.writeNumberField("pageIndex", this.getPageIndex());
+			jsonGen.writeNumberField("startRowIndex", this.getStartRowIndex());
+			jsonGen.writeNumberField("endRowIndex", this.getEndRowIndex());
 			jsonGen.writeArrayFieldStart("terms");
 			for (HighlightTerm term : this.getHighlightTerms()) {
 				term.toJson(jsonGen, df);
@@ -338,66 +346,40 @@ public class Snippet implements Comparable<Snippet> {
 			pageIndex = this.highlightTerms.get(0).getPayload().getPageIndex();
 		return pageIndex;
 	}
-	
-	public void setPageIndex(int pageIndex) {
-		this.pageIndex = pageIndex;
-	}
 
 	public Rectangle getRectangle(JochreIndexDocument jochreDoc) {
 		if (this.rect==null) {
-			if (this.highlightTerms.size()>0) {
-				int startPageIndex =  this.highlightTerms.get(0).getPayload().getPageIndex();
-				int startBlockIndex =  this.highlightTerms.get(0).getPayload().getTextBlockIndex();
-				int startLineIndex =  this.highlightTerms.get(0).getPayload().getTextLineIndex();
-				int endPageIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getPageIndex();
-				int endBlockIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextBlockIndex();
-				int endLineIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getTextLineIndex();
-				
-				LOG.debug("Getting rectangle for snippet with terms " + this.highlightTerms.toString());
-				if (LOG.isTraceEnabled()) {
-					for (HighlightTerm term : this.highlightTerms) {
-						LOG.trace(term.toString() + ", " + term.getPayload().toString());
-					}
+			int startRowIndex = this.startRowIndex;
+			int endRowIndex = this.endRowIndex;
+			if (startRowIndex<0 || endRowIndex<0) {
+				if (this.highlightTerms.size()>0) {
+					startRowIndex = this.highlightTerms.get(0).getPayload().getRowIndex()-1;
+					endRowIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getRowIndex();
+					if (this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getSecondaryRectangle()!=null)
+						endRowIndex += 2;
+					else
+						endRowIndex += 1;
+					if (startRowIndex<0) startRowIndex=0;
+					if (endRowIndex>=jochreDoc.getRowCount(pageIndex))
+						endRowIndex=jochreDoc.getRowCount(pageIndex)-1;
+				} else {
+					startRowIndex = 0;
+					endRowIndex = 0;
 				}
-				LOG.debug("startPageIndex: " + startPageIndex + ", startBlockIndex: " + startBlockIndex + ", startLineIndex: " + startLineIndex);
-				LOG.debug("endPageIndex: " + endPageIndex + ", endBlockIndex: " + endBlockIndex + ", endLineIndex: " + endLineIndex);
-				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex));
-				LOG.debug("Original rect: " + rect);
-				Rectangle otherRect = jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex);
-				LOG.debug("Expanding by last highlight: " + otherRect);
-				rect.add(otherRect);
-				
-				try {
-					Rectangle previousRect = new Rectangle(jochreDoc.getRectangle(startPageIndex, startBlockIndex, startLineIndex-1));
-					LOG.debug("Expanding by prev rect: " + previousRect);
-					rect.add(previousRect);
-				} catch (IndexFieldNotFoundException e) {
-					// do nothing
-				}
-				
-				try {
-					Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+1));
-					LOG.debug("Expanding by next rect: " + nextRect);
-					rect.add(nextRect);
-				} catch (IndexFieldNotFoundException e) {
-					// do nothing
-				}
-				
-				// add an extra row at the end if we have a secondary rectangle
-				if (this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getSecondaryRectangle()!=null) {
-					try {
-						Rectangle nextRect = new Rectangle(jochreDoc.getRectangle(endPageIndex, endBlockIndex, endLineIndex+2));
-						LOG.debug("Expanding by line after secondary rect: " + nextRect);
-						rect.add(nextRect);
-					} catch (IndexFieldNotFoundException e) {
-						// do nothing
-					}
-				}
-				
-			} else {
-				int startPageIndex = jochreDoc.getStartPage();
-				rect = new Rectangle(jochreDoc.getRectangle(startPageIndex, 0, 0));
 			}
+			
+			LOG.debug("Getting rectangle for snippet with terms " + this.highlightTerms.toString());
+			if (LOG.isTraceEnabled()) {
+				for (HighlightTerm term : this.highlightTerms) {
+					LOG.trace(term.toString() + ", " + term.getPayload().toString());
+				}
+			}
+			LOG.debug("pageIndex: " + pageIndex + ", startRowIndex: " + startRowIndex + ", endRowIndex: " + endRowIndex);
+			rect = new Rectangle(jochreDoc.getRectangle(pageIndex, startRowIndex));
+			LOG.debug("Start row rect: " + rect);
+			Rectangle otherRect = jochreDoc.getRectangle(pageIndex, endRowIndex);
+			LOG.debug("Expanding by end row rect: " + otherRect);
+			rect.add(otherRect);
 		}
 		return rect;
 	}
@@ -407,7 +389,8 @@ public class Snippet implements Comparable<Snippet> {
 		return "Snippet [docId=" + docId + ", field=" + field
 				+ ", startOffset=" + startOffset + ", endOffset=" + endOffset
 				+ ", score=" + score + ", highlightTerms=" + highlightTerms
-				+ ", pageIndex=" + pageIndex + "]";
+				+ ", pageIndex=" + pageIndex
+				+ ", startRowIndex=" + startRowIndex + ", endRowIndex=" + endRowIndex + "]";
 	}
 
 	public String getText() {
@@ -416,5 +399,21 @@ public class Snippet implements Comparable<Snippet> {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	public int getStartRowIndex() {
+		return startRowIndex;
+	}
+
+	public void setStartRowIndex(int startRowIndex) {
+		this.startRowIndex = startRowIndex;
+	}
+
+	public int getEndRowIndex() {
+		return endRowIndex;
+	}
+
+	public void setEndRowIndex(int endRowIndex) {
+		this.endRowIndex = endRowIndex;
 	}
 }

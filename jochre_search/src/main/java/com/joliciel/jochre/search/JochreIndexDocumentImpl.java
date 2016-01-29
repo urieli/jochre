@@ -43,8 +43,9 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private int startPage = -1;
 	private int endPage = -1;
 	private int length = -1;
-	private TIntObjectMap<TIntObjectMap<TIntObjectMap<Rectangle>>> rectangles = null;
-	private TIntObjectMap<TIntObjectMap<TIntIntMap>> startIndexes = null;
+	private TIntObjectMap<TIntObjectMap<Rectangle>> rectangles = null;
+	private TIntObjectMap<TIntIntMap> startIndexes = null;
+	private TIntIntMap rowCounts = null;
 
 	/* Indexed, tokenized, not stored. */
 	public static final FieldType TYPE_NOT_STORED = new FieldType();
@@ -96,34 +97,31 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		this.name = this.directory.getName();
 		
 		StringBuilder sb = new StringBuilder();
-		rectangles = new TIntObjectHashMap<TIntObjectMap<TIntObjectMap<Rectangle>>>();
-		startIndexes = new TIntObjectHashMap<TIntObjectMap<TIntIntMap>>();
-
+		rectangles = new TIntObjectHashMap<TIntObjectMap<Rectangle>>();
+		startIndexes = new TIntObjectHashMap<TIntIntMap>();
+		rowCounts = new TIntIntHashMap();
+		int lastSpanStart = 0;
+		
 		for (AltoPage page : pages) {
-			TIntObjectMap<TIntObjectMap<Rectangle>> blockRectangles = rectangles.get(page.getPageIndex());
-			if (blockRectangles==null) {
-				blockRectangles = new TIntObjectHashMap<TIntObjectMap<Rectangle>>();
-				rectangles.put(page.getPageIndex(), blockRectangles);
+			if (LOG.isTraceEnabled())
+				LOG.trace("Adding page " + page.getIndex());
+			
+			rowCounts.put(page.getIndex(), page.getTextLines().size());
+			TIntObjectMap<Rectangle> rowRectangles = rectangles.get(page.getIndex());
+			if (rowRectangles==null) {
+				rowRectangles = new TIntObjectHashMap<Rectangle>();
+				rectangles.put(page.getIndex(), rowRectangles);
 			}
-			TIntObjectMap<TIntIntMap> blockStartIndexes = startIndexes.get(page.getPageIndex());
-			if (blockStartIndexes==null) {
-				blockStartIndexes = new TIntObjectHashMap<TIntIntMap>();
-				startIndexes.put(page.getPageIndex(), blockStartIndexes);
+			TIntIntMap rowStartIndexes = startIndexes.get(page.getIndex());
+			if (rowStartIndexes==null) {
+				rowStartIndexes = new TIntIntHashMap(256, 0.7f, -1, -1);
+				startIndexes.put(page.getIndex(), rowStartIndexes);
 			}
-
+			
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
-				TIntObjectMap<Rectangle> rowRectangles = blockRectangles.get(textBlock.getIndex());
-				if (rowRectangles==null) {
-					rowRectangles = new TIntObjectHashMap<Rectangle>();
-					blockRectangles.put(textBlock.getIndex(), rowRectangles);
-				}
-				TIntIntMap rowStartIndexes = blockStartIndexes.get(textBlock.getIndex());
-				if (rowStartIndexes==null) {
-					rowStartIndexes = new TIntIntHashMap(textBlock.getTextLines().size(), 0.7f, -1, -1);
-					blockStartIndexes.put(textBlock.getIndex(), rowStartIndexes);
-				}
-	
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
+					if (LOG.isTraceEnabled())
+						LOG.trace("Adding row " + textLine.getIndex());
 					rowRectangles.put(textLine.getIndex(), textLine.getRectangle());
 					AltoString lastString = null;
 					for (AltoString string : textLine.getStrings()) {
@@ -148,7 +146,10 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 						sb.append(' ');
 					}
 					if (textLine.getStrings().size()>0) {
-						rowStartIndexes.put(textLine.getIndex(), textLine.getStrings().get(0).getSpanStart());
+						lastSpanStart = textLine.getStrings().get(0).getSpanStart();
+						rowStartIndexes.put(textLine.getIndex(), lastSpanStart);
+					} else {
+						rowStartIndexes.put(textLine.getIndex(), lastSpanStart);
 					}
 				}
 				sb.append("\n");
@@ -159,8 +160,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		this.contents = sb.toString();
 		this.length = this.contents.length();
 		
-		this.startPage = pages.get(0).getPageIndex();
-		this.endPage = pages.get(pages.size()-1).getPageIndex();
+		this.startPage = pages.get(0).getIndex();
+		this.endPage = pages.get(pages.size()-1).getIndex();
 	}
 	
 	public void save(IndexWriter indexWriter) {
@@ -196,27 +197,27 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 				doc.add(new StringField(JochreIndexField.url.name(), this.directory.getMetaData().get(JochreIndexField.url.name()), Field.Store.YES));
 			
 			for (int pageIndex : rectangles.keys()) {
-				TIntObjectMap<TIntObjectMap<Rectangle>> blockRectangles = rectangles.get(pageIndex);
-				for (int blockIndex : blockRectangles.keys()) {
-					TIntObjectMap<Rectangle> rowRectangles = blockRectangles.get(blockIndex);
-					for (int rowIndex : rowRectangles.keys()) {
-						Rectangle rect = rowRectangles.get(rowIndex);
-						String fieldName = "rect" + pageIndex + "_" + blockIndex + "_" + rowIndex;
-						doc.add(new Field(fieldName, this.rectToString(rect), TYPE_NOT_INDEXED));
-					}
+				TIntObjectMap<Rectangle> rowRectangles = rectangles.get(pageIndex);
+				for (int rowIndex : rowRectangles.keys()) {
+					Rectangle rect = rowRectangles.get(rowIndex);
+					String fieldName = "rect" + pageIndex + "_" + rowIndex;
+					doc.add(new Field(fieldName, this.rectToString(rect), TYPE_NOT_INDEXED));
 				}
 			}
 			
 			for (int pageIndex : startIndexes.keys()) {
-				TIntObjectMap<TIntIntMap> blockStartIndexes = startIndexes.get(pageIndex);
-				for (int blockIndex : blockStartIndexes.keys()) {
-					TIntIntMap rowStartIndexes = blockStartIndexes.get(blockIndex);
-					for (int rowIndex : rowStartIndexes.keys()) {
-						int startIndex = rowStartIndexes.get(rowIndex);
-						String fieldName = "start" + pageIndex + "_" + blockIndex + "_" + rowIndex;
-						doc.add(new IntField(fieldName, startIndex, Field.Store.YES));
-					}
+				TIntIntMap rowStartIndexes = startIndexes.get(pageIndex);
+				for (int rowIndex : rowStartIndexes.keys()) {
+					int startIndex = rowStartIndexes.get(rowIndex);
+					String fieldName = "start" + pageIndex + "_" + rowIndex;
+					doc.add(new IntField(fieldName, startIndex, Field.Store.YES));
 				}
+			}
+			
+			for (int pageIndex : rowCounts.keys()) {
+				int rowCount = rowCounts.get(pageIndex);
+				String fieldName = "rowCount" + pageIndex;
+				doc.add(new IntField(fieldName, rowCount, Field.Store.YES));
 			}
 
 			indexWriter.addDocument(doc);
@@ -246,25 +247,21 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			this.length = doc.getField(JochreIndexField.length.name()).numericValue().intValue();
 		return length;
 	}
-
+	
 	@Override
-	public Rectangle getRectangle(int pageIndex, int textBlockIndex,
-			int textLineIndex) {
+	public Rectangle getRectangle(int pageIndex,
+			int rowIndex) {
 		Rectangle rect = null;
 		if (rectangles!=null) {
-			TIntObjectMap<TIntObjectMap<Rectangle>> blockRectangles = rectangles.get(pageIndex);
-			if (blockRectangles==null)
+			TIntObjectMap<Rectangle> rowRectangles = rectangles.get(pageIndex);
+			if (rowRectangles==null)
 				throw new IndexFieldNotFoundException("No rectangles for pageIndex " + pageIndex);
 			
-			TIntObjectMap<Rectangle> rowRectangles = blockRectangles.get(textBlockIndex);
-			if (rowRectangles==null)
-				throw new IndexFieldNotFoundException("No rectangles for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex);
-			
-			rect = rowRectangles.get(textLineIndex);
+			rect = rowRectangles.get(rowIndex);
 			if (rect==null)
-				throw new IndexFieldNotFoundException("No rectangles for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex + ", textLineIndex " + textLineIndex);
+				throw new IndexFieldNotFoundException("No rectangles for pageIndex " + pageIndex + ", rowIndex " + rowIndex);
 		} else if (doc!=null) {
-			String fieldName = "rect" + pageIndex + "_" + textBlockIndex + "_" + textLineIndex;
+			String fieldName = "rect" + pageIndex + "_" + rowIndex;
 			String rectString = this.doc.get(fieldName);
 			if (rectString==null) {
 				throw new IndexFieldNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
@@ -276,23 +273,19 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	}
 	
 	@Override
-	public int getStartIndex(int pageIndex, int textBlockIndex,
-			int textLineIndex) {
+	public int getStartIndex(int pageIndex,
+			int rowIndex) {
 		int startIndex = -1;
 		if (startIndexes!=null) {
-			TIntObjectMap<TIntIntMap> blockStartIndexes = startIndexes.get(pageIndex);
-			if (blockStartIndexes==null)
+			TIntIntMap rowStartIndexes = startIndexes.get(pageIndex);
+			if (rowStartIndexes==null)
 				throw new IndexFieldNotFoundException("No start indexes for pageIndex " + pageIndex);
 			
-			TIntIntMap rowStartIndexes = blockStartIndexes.get(textBlockIndex);
-			if (rowStartIndexes==null)
-				throw new IndexFieldNotFoundException("No start indexes for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex);
-			
-			startIndex = rowStartIndexes.get(textLineIndex);
+			startIndex = rowStartIndexes.get(rowIndex);
 			if (startIndex==-1)
-				throw new IndexFieldNotFoundException("No start index for pageIndex " + pageIndex + ", textBlockIndex " + textBlockIndex + ", textLineIndex " + textLineIndex);
+				throw new IndexFieldNotFoundException("No start index for pageIndex " + pageIndex + ", rowIndex " + rowIndex);
 		} else if (doc!=null) {
-			String fieldName = "start" + pageIndex + "_" + textBlockIndex + "_" + textLineIndex;
+			String fieldName = "start" + pageIndex + "_" + rowIndex;
 			Number startIndexObj = null;
 			IndexableField field = this.doc.getField(fieldName);
 			if (field!=null)
@@ -307,18 +300,17 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	}
 	
 	@Override
-	public int getEndIndex(int pageIndex, int textBlockIndex,
-			int textLineIndex) {
+	public int getEndIndex(int pageIndex,
+			int rowIndex) {
 		int endIndex = -1;
-		try {
-			endIndex = this.getStartIndex(pageIndex, textBlockIndex, textLineIndex+1);
-		} catch (IndexFieldNotFoundException e) {
-			try {
-				endIndex = this.getStartIndex(pageIndex, textBlockIndex+1, 0);
-			} catch (IndexFieldNotFoundException e2) {
+		if (rowIndex+1 < this.getRowCount(pageIndex))
+			endIndex = this.getStartIndex(pageIndex, rowIndex+1);
+		else {
+			for (int i=pageIndex+1; i<=this.getEndPage(); i++) {
 				try {
-					endIndex = this.getStartIndex(pageIndex+1, 0, 0);
-				} catch (IndexFieldNotFoundException e3) {
+					endIndex = this.getStartIndex(i, 0);
+					break;
+				} catch (IndexFieldNotFoundException e) {
 					// do nothing
 				}
 			}
@@ -327,6 +319,25 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			endIndex = this.getLength();
 		}
 		return endIndex;
+	}
+	
+	public int getRowCount(int pageIndex) {
+		int rowCount = -1;
+		if (rowCounts!=null) {
+			return rowCounts.get(pageIndex);
+		} else {
+			String fieldName = "rowCount" + pageIndex;
+			Number rowCountObj = null;
+			IndexableField field = this.doc.getField(fieldName);
+			if (field!=null)
+				rowCountObj = field.numericValue();
+			if (rowCountObj==null) {
+				throw new IndexFieldNotFoundException("NorowCount found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
+						+ ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()));
+			}
+			rowCount = rowCountObj.intValue();
+		}
+		return rowCount;
 	}
 	
 	public int getStartPage() {

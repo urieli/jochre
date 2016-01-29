@@ -145,8 +145,8 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 				jsonGen.writeNumberField("height2", secondaryRect.height);
 			}
 			jsonGen.writeNumberField("pageIndex", this.getPayload().getPageIndex());
-			jsonGen.writeNumberField("textBlockIndex", this.getPayload().getTextBlockIndex());
-			jsonGen.writeNumberField("textLineIndex", this.getPayload().getTextLineIndex());
+			jsonGen.writeNumberField("paragraphIndex", this.getPayload().getParagraphIndex());
+			jsonGen.writeNumberField("rowIndex", this.getPayload().getRowIndex());
 			double roundedWeight = df.parse(df.format(this.getWeight())).doubleValue();
 			jsonGen.writeNumberField("weight", roundedWeight);
 			jsonGen.writeEndObject();

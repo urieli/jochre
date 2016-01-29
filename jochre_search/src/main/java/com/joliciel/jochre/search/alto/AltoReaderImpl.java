@@ -122,7 +122,7 @@ class AltoReaderImpl extends DefaultHandler implements AltoReader {
         	int top = Integer.parseInt(attributes.getValue("VPOS"));
         	int width = Integer.parseInt(attributes.getValue("WIDTH"));
         	int height = Integer.parseInt(attributes.getValue("HEIGHT"));
-        	currentTextLine = altoService.nextTextLine(currentTextBlock, left, top, width, height);
+        	currentTextLine = altoService.newTextLine(currentTextBlock, left, top, width, height);
         } else if (qName.equals("SP")) {
         	// a space
            	int left = Integer.parseInt(attributes.getValue("HPOS"));

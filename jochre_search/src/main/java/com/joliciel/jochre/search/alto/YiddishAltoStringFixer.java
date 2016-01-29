@@ -18,7 +18,20 @@ class YiddishAltoStringFixer implements AltoStringFixer {
 
 	public YiddishAltoStringFixer() {
 	}
-
+	
+	public String getHyphenatedContent(String content1, String content2) {
+		String newContent = content1;
+		if (newContent.endsWith("-")) {
+			newContent = newContent.substring(0, newContent.length()-1);
+		}
+		char c = newContent.charAt(newContent.length()-1);
+		if (c=='ם'||c=='ן'||c=='ך'||c=='ף'||c=='ץ')
+			newContent += "-" + content2;
+		else
+			newContent += content2;
+		return newContent;
+	}
+	
 	@Override
 	public void fix(AltoTextBlock block) {
 		for (int i=0; i<block.getTextLines().size(); i++) {

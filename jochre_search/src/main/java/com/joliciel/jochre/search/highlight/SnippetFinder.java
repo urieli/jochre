@@ -28,9 +28,8 @@ public interface SnippetFinder {
 	 * @param highlightTerms The previously retrieved highlight terms for the document.
 	 * @param textFieldTypes The text field types whose snippets we want - in case no highlightTerms were provided, we'll build default snippets out of the corresponding text fields.
 	 * @param maxSnippets The maximum number of snippets to return.
-	 * @param snippetSize The approximate number of characters to display per snippet.
 	 * @return
 	 */
-	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets, int snippetSize);
+	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets);
 	
 }

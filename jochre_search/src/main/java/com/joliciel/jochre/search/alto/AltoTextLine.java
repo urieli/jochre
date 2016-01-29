@@ -21,12 +21,21 @@ package com.joliciel.jochre.search.alto;
 import java.awt.Rectangle;
 import java.util.List;
 
+/**
+ * A text line (row) in an Alto file.
+ * Note that row indexing starts at 0 at the page level, not the textblock level,
+ * and continues until the end of the page.
+ * This vastly simplifies finding the previous/next row on the page when displaying.
+ * @author Assaf Urieli
+ *
+ */
 public interface AltoTextLine {
 	public List<AltoString> getStrings();
 	public Rectangle getRectangle();
 	public AltoTextBlock getTextBlock();
 	public int wordCount();
 	public int getIndex();
+	
 	/**
 	 * Recalculate indexes after merging or other manipulation of contained strings.
 	 */

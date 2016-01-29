@@ -23,7 +23,6 @@ import com.joliciel.jochre.search.SearchServiceLocator;
 public class AltoServiceLocator {
 	private static AltoServiceLocator instance;
 	private AltoServiceImpl altoService;
-	@SuppressWarnings("unused")
 	private SearchServiceLocator searchServiceLocator;
 	
 	private AltoServiceLocator(SearchServiceLocator searchServiceLocator) {
@@ -40,6 +39,7 @@ public class AltoServiceLocator {
 	public AltoService getAltoService() {
 		if (altoService==null) {
 			altoService = new AltoServiceImpl();
+			altoService.setSearchService(searchServiceLocator.getSearchService());
 		}
 		return altoService;
 	}

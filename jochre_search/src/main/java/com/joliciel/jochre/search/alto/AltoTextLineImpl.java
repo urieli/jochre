@@ -33,8 +33,9 @@ class AltoTextLineImpl implements AltoTextLine {
 		super();
 		this.textBlock = textBlock;
 		this.rectangle = new Rectangle(left, top, width, height);
-		this.index = this.textBlock.getTextLines().size();
+		this.index = this.textBlock.getPage().getTextLines().size();
 		this.textBlock.getTextLines().add(this);
+		this.textBlock.getPage().getTextLines().add(this);
 	}
 
 	@Override
