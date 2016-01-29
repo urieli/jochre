@@ -425,6 +425,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				throw new RuntimeException("Unknown argument: " + argName);
 		}
 		
+		long startTime = System.currentTimeMillis();
 		PerformanceMonitor.start(performanceConfigFile);
 		try {			
 			if (locale==null) {
@@ -649,8 +650,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw e;
 		} finally {
 			PerformanceMonitor.end();
+			long duration = System.currentTimeMillis() - startTime;
+			LOG.info("Duration (ms):" + duration);
 		}
-		LOG.debug("#### finished #####");
+		LOG.info("#### finished #####");
 	}
 
 	private String getBaseName(File file) {
