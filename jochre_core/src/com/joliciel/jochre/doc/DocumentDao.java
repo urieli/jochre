@@ -30,11 +30,13 @@ interface DocumentDao {
 	public void setDocumentServiceInternal(
 			DocumentServiceInternal documentServiceInternal);
 	
-	void saveJochrePage(JochrePage jochrePage);
-	List<JochrePage> findJochrePages(JochreDocument jochreDocument);
-	JochrePage loadJochrePage(int jochrePageId);
-	JochreDocument loadJochreDocument(int jochreDocumentId);
-	void saveJochreDocument(JochreDocument jochreDocument);
+	public void saveJochrePage(JochrePage jochrePage);
+	public List<JochrePage> findJochrePages(JochreDocument jochreDocument);
+	public JochrePage loadJochrePage(int jochrePageId);
+	public JochreDocument loadJochreDocument(int jochreDocumentId);
+	public JochreDocument loadJochreDocument(String name);
+	
+	public void saveJochreDocument(JochreDocument jochreDocument);
 	
 	/**
 	 * Find all existing documents in the database.

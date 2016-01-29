@@ -104,6 +104,17 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
         }
         return document;
 	}
+	
+
+
+	@Override
+	public JochreDocument loadJochreDocument(String name) {
+		JochreDocument document = this.getDocumentDao().loadJochreDocument(name);
+        if (document==null) {
+            throw new EntityNotFoundException("No JochreDocument found for name " + name);
+        }
+        return document;
+	}
 
 	@Override
 	public void saveJochrePage(JochrePage page) {

@@ -1,8 +1,11 @@
 package com.joliciel.jochre.graphics;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeSet;
 
 class CorpusSelectionCriteriaImpl implements CorpusSelectionCriteria {
 	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
@@ -15,6 +18,7 @@ class CorpusSelectionCriteriaImpl implements CorpusSelectionCriteria {
 	private int excludeImageId = 0;
 	private int documentId = 0;
 	private Set<Integer> documentIds = null;
+	private Map<String,Set<Integer>> documentSelections = null;
 	
 	public ImageStatus[] getImageStatusesToInclude() {
 		return imageStatusesToInclude;
@@ -89,7 +93,49 @@ class CorpusSelectionCriteriaImpl implements CorpusSelectionCriteria {
 		attributes.put("documentId", "" + documentId);
 		if (documentIds!=null)
 			attributes.put("documentIds", documentIds.toString());
+		if (documentSelections!=null)
+			attributes.put("documentSelections", documentSelections.toString());
 		
 		return attributes;
 	}
+	
+	public void loadSelection(Scanner scanner) {
+		documentSelections = new HashMap<String, Set<Integer>>();
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine().trim();
+			if (line.length()>0 && !line.startsWith("#")) {
+				int tabPos = line.indexOf('\t');
+				String docName = line;
+				String selections = null;
+				if (tabPos>0) {
+					docName = line.substring(0, tabPos);
+					if (tabPos+1<line.length())
+						selections = line.substring(tabPos+1, line.length());
+				}
+				Set<Integer> pages = new TreeSet<>();
+				if (selections!=null) {
+					String[] parts = selections.split("[\\;\\,]");
+					for (String part : parts) {
+						if (part.indexOf('-')>=0) {
+							int first = Integer.parseInt(part.substring(0, part.indexOf('-')));
+							int last = Integer.parseInt(part.substring(part.indexOf('-')+1));
+							for (int i=first; i<=last; i++) {
+								pages.add(i);
+							}
+						} else {
+							int page = Integer.parseInt(part);
+							pages.add(page);
+						}
+					}
+				} // have selections?
+				documentSelections.put(docName, pages);
+			} // valid line?
+		} // have next line?
+	}
+	
+	public Map<String, Set<Integer>> getDocumentSelections() {
+		return documentSelections;
+	}
+	
+	
 }

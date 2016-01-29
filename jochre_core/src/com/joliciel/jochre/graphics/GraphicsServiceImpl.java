@@ -280,7 +280,6 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		return paragraph;
 	}
 
-
 	@Override
 	public List<JochreImage> findImages(JochrePage page) {
 		List<JochreImage> images = this.getGraphicsDao().findImages(page);
@@ -398,6 +397,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	public JochreCorpusShapeReader getJochreCorpusShapeReader() {
 		JochreCorpusShapeReaderImpl jochreCorpusReader = new JochreCorpusShapeReaderImpl();
 		jochreCorpusReader.setGraphicsService(this);
+		jochreCorpusReader.setDocumentService(this.getDocumentService());
 		return jochreCorpusReader;
 	}
 
@@ -405,6 +405,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	public JochreCorpusGroupReader getJochreCorpusGroupReader() {
 		JochreCorpusGroupReaderImpl jochreCorpusReader = new JochreCorpusGroupReaderImpl();
 		jochreCorpusReader.setGraphicsService(this);
+		jochreCorpusReader.setDocumentService(this.getDocumentService());
 		return jochreCorpusReader;
 	}
 
@@ -417,6 +418,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	public JochreCorpusImageReader getJochreCorpusImageReader() {
 		JochreCorpusImageReaderImpl jochreCorpusReader = new JochreCorpusImageReaderImpl();
 		jochreCorpusReader.setGraphicsService(this);
+		jochreCorpusReader.setDocumentService(this.getDocumentService());
 		return jochreCorpusReader;
 	}
 

@@ -42,6 +42,13 @@ public interface DocumentService {
 	 * @return
 	 */
 	public JochreDocument loadJochreDocument(int documentId);
+	
+	/**
+	 * Load a JochreDocument by name.
+	 * @param name
+	 * @return
+	 */
+	public JochreDocument loadJochreDocument(String name);
 
 	/**
 	 * Find all existing documents in the database.

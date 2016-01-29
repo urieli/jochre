@@ -19,6 +19,7 @@
 package com.joliciel.jochre.graphics;
 
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 /**
@@ -97,6 +98,26 @@ public interface CorpusSelectionCriteria {
 	 */
 	public void setDocumentIds(Set<Integer> documentIds);
 	public Set<Integer> getDocumentIds();
+	
+	/**
+	 * Load the document selection from a scanner.
+	 * There should be one line per document.
+	 * Each line starts with the document name.
+	 * If the line contains a tab, it can then contain a set of comma-separated pages or page ranges.
+	 * Example:<br/>
+	 * <pre>
+	 * Bessou_Tata
+	 * Bessou_Tomba	1,3-5,7
+	 * </pre>
+	 * @param scanner
+	 */
+	public void loadSelection(Scanner scanner);
+	
+	/**
+	 * A Map of document names to sets of pages. If the set is empty, all pages must be included.
+	 * @return
+	 */
+	public Map<String, Set<Integer>> getDocumentSelections();
 	
 	public Map<String, String> getAttributes();
 }

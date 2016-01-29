@@ -170,6 +170,24 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		}
 		return jochreDocument;
 	}
+	
+	@Override
+	public JochreDocument loadJochreDocument(String name) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT " + SELECT_DOCUMENT + " FROM ocr_document WHERE doc_name=:doc_name";
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("doc_name", name);
+
+		LOG.info(sql);
+		logParameters(paramSource);
+		JochreDocument jochreDocument = null;
+		try {
+			jochreDocument = (JochreDocument)  jt.queryForObject(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
+		} catch (EmptyResultDataAccessException ex) {
+			ex.hashCode();
+		}
+		return jochreDocument;
+	}
 
 
 	@Override

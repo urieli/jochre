@@ -287,6 +287,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
 		String csvSeparator = "\t";
+		String docSelectionPath = null;
 		
 		TrainingParameters trainingParameters = new TrainingParameters("");
 		Set<String> propsRead = trainingParameters.load(null, argMap);
@@ -393,7 +394,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 					documentSet.add(oneId);
 				}
 			}
-			else if (argName.equals("docGroupFile"))
+			else if (argName.equals("docSelection")) {
+				docSelectionPath = argValue;
+			} else if (argName.equals("docGroupFile"))
 				docGroupPath = argValue;
 			else if (argName.equals("frequencyAdjusted"))
 				frequencyAdjusted = argValue.equalsIgnoreCase("true");
@@ -444,15 +447,22 @@ public class Jochre implements LocaleSpecificLexiconService {
 			this.setUserId(userId);
 			
 			CorpusSelectionCriteria criteria = this.getGraphicsService().getCorpusSelectionCriteria();
-			criteria.setImageId(imageId);
-			criteria.setImageCount(imageCount);
-			criteria.setImageStatusesToInclude(imageSet);
-			criteria.setExcludeImageId(excludeImageId);
-			criteria.setCrossValidationSize(crossValidationSize);
-			criteria.setIncludeIndex(includeIndex);
-			criteria.setExcludeIndex(excludeIndex);
-			criteria.setDocumentId(docId);
-			criteria.setDocumentIds(documentSet);
+			if (docSelectionPath!=null) {
+				File docSelectionFile =  new File(docSelectionPath);
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docSelectionFile), encoding)));
+				criteria.loadSelection(scanner);
+				scanner.close();
+			} else {
+				criteria.setImageId(imageId);
+				criteria.setImageCount(imageCount);
+				criteria.setImageStatusesToInclude(imageSet);
+				criteria.setExcludeImageId(excludeImageId);
+				criteria.setCrossValidationSize(crossValidationSize);
+				criteria.setIncludeIndex(includeIndex);
+				criteria.setExcludeIndex(excludeIndex);
+				criteria.setDocumentId(docId);
+				criteria.setDocumentIds(documentSet);
+			}
 			
 			if (docGroupPath!=null) {
 				File docGroupFile = new File(docGroupPath);

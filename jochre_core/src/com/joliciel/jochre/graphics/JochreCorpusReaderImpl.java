@@ -20,10 +20,16 @@ package com.joliciel.jochre.graphics;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import com.joliciel.jochre.doc.DocumentService;
+import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.doc.JochrePage;
 
 
 abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 	private GraphicsService graphicsService;
+	private DocumentService documentService;
 	
 	private List<JochreImage> images = null;
 
@@ -39,6 +45,18 @@ abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 			if (selectionCriteria.getImageId()!=0) {
 				JochreImage jochreImage = this.graphicsService.loadJochreImage(selectionCriteria.getImageId());
 				images.add(jochreImage);
+			} else if (selectionCriteria.getDocumentSelections()!=null) {
+				for (String docName : selectionCriteria.getDocumentSelections().keySet()) {
+					JochreDocument doc = this.documentService.loadJochreDocument(docName);
+					Set<Integer> pageIds = selectionCriteria.getDocumentSelections().get(docName);
+					for (JochrePage page : doc.getPages()) {
+						if (pageIds.size()==0 || pageIds.contains(page.getIndex())) {
+							for (JochreImage jochreImage : page.getImages()) {
+								images.add(jochreImage);
+							}
+						}
+					}
+				}
 			} else {
 				List<JochreImage> myImages = this.graphicsService.findImages(selectionCriteria.getImageStatusesToInclude());
 				int i = 0;
@@ -90,6 +108,13 @@ abstract class JochreCorpusReaderImpl implements JochreCorpusReader {
 	public void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria) {
 		this.selectionCriteria = selectionCriteria;
 	}
-	
-	
+
+	public DocumentService getDocumentService() {
+		return documentService;
+	}
+
+	public void setDocumentService(DocumentService documentService) {
+		this.documentService = documentService;
+	}
+
 }
