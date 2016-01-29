@@ -47,7 +47,7 @@ if (request.getParameter("page")!=null)
 <input type="hidden" name="page" id="hdnPage" value="0" />
 <table style="width:740px;">
 <tr>
-<td><img src="images/jochreLogo.png" width="150px" /></td>
+<td><a href="https://github.com/urieli/jochre/" target="_blank"><img src="images/jochreLogo.png" width="150px" border="0" /></a></td>
 <td style="vertical-align: bottom;" align="right"><span id="toggleAdvancedSearch" ><img src="images/plusInCircle.png" border="0" width="20px" /></span>&nbsp;
 <input type="submit" value="זוך" />&nbsp;<input type="text" name="query" style="width:300px;" value="<%= queryStringInput %>" /></td>
 </tr>
