@@ -377,9 +377,11 @@ public class Snippet implements Comparable<Snippet> {
 			LOG.debug("pageIndex: " + pageIndex + ", startRowIndex: " + startRowIndex + ", endRowIndex: " + endRowIndex);
 			rect = new Rectangle(jochreDoc.getRectangle(pageIndex, startRowIndex));
 			LOG.debug("Start row rect: " + rect);
-			Rectangle otherRect = jochreDoc.getRectangle(pageIndex, endRowIndex);
-			LOG.debug("Expanding by end row rect: " + otherRect);
-			rect.add(otherRect);
+			for (int i=startRowIndex+1; i<=endRowIndex; i++) {
+				Rectangle otherRect = jochreDoc.getRectangle(pageIndex, i);
+				LOG.debug("Expanding by end row rect: " + otherRect);
+				rect.add(otherRect);
+			}
 		}
 		return rect;
 	}
