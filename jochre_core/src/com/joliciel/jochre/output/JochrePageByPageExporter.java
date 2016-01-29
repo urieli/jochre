@@ -26,9 +26,10 @@ import com.joliciel.talismane.utils.LogUtils;
 
 import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import freemarker.template.Version;
 
 /**
 * Outputs to Jochre's lossless XML format on a page-by-page basis, along with the image.
@@ -49,9 +50,9 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 
 			this.baseName = baseName;
-			Configuration cfg = new Configuration();
+			Configuration cfg = new Configuration(new Version(2,3,23));
 			cfg.setCacheStorage(new NullCacheStorage());
-			cfg.setObjectWrapper(new DefaultObjectWrapper());
+			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2,3,23)).build());
 	
 			Reader templateReader = new BufferedReader(new InputStreamReader(JochrePageByPageExporter.class.getResourceAsStream("jochre.ftl")));
 			this.template = new Template("freemarkerTemplate", templateReader, cfg);

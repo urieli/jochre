@@ -46,7 +46,11 @@ public interface OutputService {
 		/**
 		 * Outputs plain text.
 		 */
-		Text
+		Text,
+		/**
+		 * Outputs guessed text (even when evaluating).
+		 */
+		GuessedText
 	}
 	
 	/**

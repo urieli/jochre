@@ -21,9 +21,10 @@ import com.joliciel.talismane.utils.LogUtils;
 
 import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import freemarker.template.Version;
 
 /**
 * Outputs to Alto 3.0 XML format, see http://www.loc.gov/standards/alto/
@@ -44,9 +45,9 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 	
 	private void initialize() {
 		try {
-			Configuration cfg = new Configuration();
+			Configuration cfg = new Configuration(new Version(2,3,23));
 			cfg.setCacheStorage(new NullCacheStorage());
-			cfg.setObjectWrapper(new DefaultObjectWrapper());
+			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2,3,23)).build());
 		
 			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_body_3_0.ftl")));
 			this.template = new Template("alto_body", templateReader, cfg);
@@ -64,9 +65,9 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 	@Override
 	public void onDocumentStartInternal(JochreDocument jochreDocument) {
 		try {
-			Configuration cfg = new Configuration();
+			Configuration cfg = new Configuration(new Version(2,3,23));
 			cfg.setCacheStorage(new NullCacheStorage());
-			cfg.setObjectWrapper(new DefaultObjectWrapper());
+			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2,3,23)).build());
 
 			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_header_3_0.ftl")));
 			Map<String,Object> model = new HashMap<String, Object>();
@@ -118,9 +119,9 @@ class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 	@Override
 	public void onDocumentCompleteInternal(JochreDocument jochreDocument) {
 		try {
-			Configuration cfg = new Configuration();
+			Configuration cfg = new Configuration(new Version(2,3,23));
 			cfg.setCacheStorage(new NullCacheStorage());
-			cfg.setObjectWrapper(new DefaultObjectWrapper());
+			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2,3,23)).build());
 
 			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_footer_3_0.ftl")));
 			Map<String,Object> model = new HashMap<String, Object>();

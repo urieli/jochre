@@ -156,7 +156,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		UnknownWords,
 		Metadata,
 		ImageExtractor,
-		Text
+		Text,
+		GuessText
 	}
 	
 	GraphicsService graphicsService;
@@ -181,6 +182,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	WordSplitter wordSplitter = null;
 	Lexicon lexicon = null;
 	Map<String,Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
+	String csvEncoding = null;
 	
 	private int beamWidth = 5;
 	
@@ -287,6 +289,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
 		String csvSeparator = "\t";
+		String csvLocale = null;
 		String docSelectionPath = null;
 		
 		TrainingParameters trainingParameters = new TrainingParameters("");
@@ -421,6 +424,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 			}
 			else if (argName.equals("csvSeparator"))
 				csvSeparator = argValue;
+			else if (argName.equals("csvEncoding"))
+				csvEncoding = argValue;
+			else if (argName.equals("csvLocale"))
+				csvLocale = argValue;
 			else
 				throw new RuntimeException("Unknown argument: " + argName);
 		}
@@ -436,8 +443,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 			
     		if (encoding==null)
     			encoding = Charset.defaultCharset().name();
+    		if (csvEncoding==null)
+    			csvEncoding = encoding;
     		
     		CSVFormatter.setGlobalCsvSeparator(csvSeparator);
+    		if (csvLocale!=null)
+    			CSVFormatter.setGlobalLocale(Locale.forLanguageTag(csvLocale));
     		
 			JochreServiceLocator locator = JochreServiceLocator.getInstance();
 			if (dataSourcePath!=null)
@@ -1014,7 +1025,7 @@ public class Jochre implements LocaleSpecificLexiconService {
     	errorLogger.setErrorWriter(errorWriter);
     	evaluator.addObserver(errorLogger);
     	
-		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser);
+		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser, csvEncoding);
 		if (documentGroups!=null)
 			lexiconErrorWriter.setDocumentGroups(documentGroups);
 		lexiconErrorWriter.setIncludeBeam(includeBeam);
@@ -1059,7 +1070,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 			modelFileName += "_Reconstruct";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		fScoreObserver.getFScoreCalculator().writeScoresToCSVFile(fscoreFile);
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true),csvEncoding));
+		fScoreObserver.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 
 	}
 	
@@ -1280,7 +1292,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String modelFileName = baseName + suffix + "_full";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		shapeLetterAssigner.getFScoreCalculator().writeScoresToCSVFile(fscoreFile);
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), csvEncoding));
+		shapeLetterAssigner.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 	}
 
 	/**
@@ -1628,6 +1641,23 @@ public class Jochre implements LocaleSpecificLexiconService {
 					} else {
 						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
 						observers.add(textGetter);
+					}
+					break;
+				}
+				case GuessText:
+				{
+					if (baseName!=null) {
+				       	Writer analysisFileWriter = null;
+			    		String outputFileName = baseName+ "_guess.txt";
+						File analysisFile = new File(outputDir, outputFileName);
+						analysisFile.delete();
+						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true),"UTF8"));
+						
+						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.GuessedText);
+						observers.add(observer);
+					} else {
+						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.GuessedText);
+						observers.add(observer); 
 					}
 					break;
 				}

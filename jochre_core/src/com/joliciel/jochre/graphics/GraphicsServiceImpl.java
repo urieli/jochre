@@ -433,6 +433,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 			CorpusSelectionCriteria corpusSelectionCriteria) {
 		JochreCorpusImageProcessorImpl processor = new JochreCorpusImageProcessorImpl(corpusSelectionCriteria);
 		processor.setGraphicsService(this);
+		processor.setDocumentService(this.getDocumentService());
 		return processor;
 	}
 

@@ -95,6 +95,16 @@ class OutputServiceImpl implements OutputService {
 			}
 			break;
 		}
+		case GuessedText: {
+			if (outputDir==null) {
+				TextExporter myExporter = new TextExporter(writer);
+				exporter = myExporter;
+			} else {
+				TextExporter myExporter = new TextExporter(outputDir);
+				exporter = myExporter;
+			}
+			break;
+		}
 		default:
 			throw new JochreException("Export format currently unsupported: " + exportFormat);
 		}

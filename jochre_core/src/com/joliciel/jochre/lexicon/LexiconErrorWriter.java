@@ -86,7 +86,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 	
 	private static DecimalFormat df = new DecimalFormat("0.##");
 	
-	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser) {
+	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser, String encoding) {
 		try {
 			this.outputDir = outputDir;
 			this.baseName = baseName;
@@ -94,12 +94,12 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			
 			errorMap.put(ALL_GROUP, new ErrorStatistics());
 			
-			knownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KE.csv"), false),"UTF8"));
-			knownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KC.csv"), false),"UTF8"));
-			unknownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UE.csv"), false),"UTF8"));
-			unknownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UC.csv"), false),"UTF8"));
-			allWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_all.csv"), false),"UTF8"));
-			allErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_err.csv"), false),"UTF8"));
+			knownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KE.csv"), false),encoding));
+			knownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KC.csv"), false),encoding));
+			unknownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UE.csv"), false),encoding));
+			unknownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UC.csv"), false),encoding));
+			allWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_all.csv"), false),encoding));
+			allErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_err.csv"), false),encoding));
 				
 			String line = CSV.format("realSeq")
 				+ CSV.format("realWord")
