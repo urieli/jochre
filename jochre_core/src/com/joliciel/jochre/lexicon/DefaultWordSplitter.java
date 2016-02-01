@@ -41,9 +41,9 @@ public class DefaultWordSplitter implements WordSplitter {
 		wordText = wordText.replaceAll("[0-9]", "0");
 		
 		// split letters are joined back together
-		wordText = wordText.replaceAll("\\|(.){2}\\|", "$1");
-		wordText = wordText.replaceAll("\\|(..){2}\\|", "$1");
-		wordText = wordText.replaceAll("\\|(...){2}\\|", "$1");
+		wordText = wordText.replaceAll("\\|(.)\\1\\|", "$1");
+		wordText = wordText.replaceAll("\\|(..)\\1\\|", "$1");
+		wordText = wordText.replaceAll("\\|(...)\\1\\|", "$1");
 		
 		// replace multiple underscores by a single underscore
 		wordText = wordText.replaceAll("_++", "_");

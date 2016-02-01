@@ -189,9 +189,9 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 			realWord = realWord.replace("]", "");
 			
 			// split letters are joined back together
-			realWord = realWord.replaceAll("\\|(.){2}\\|", "$1");
-			realWord = realWord.replaceAll("\\|(..){2}\\|", "$1");
-			realWord = realWord.replaceAll("\\|(...){2}\\|", "$1");
+			realWord = realWord.replaceAll("\\|(.)\\1\\|", "$1");
+			realWord = realWord.replaceAll("\\|(..)\\1\\|", "$1");
+			realWord = realWord.replaceAll("\\|(...)\\1\\|", "$1");
 			
 			realWord = JochreSession.getInstance().getLinguistics().standardiseWord(realWord);
 		}
@@ -208,9 +208,9 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 			guessedWord = guessedWord.replace("]", "");
 			
 			// split letters are joined back together
-			guessedWord = guessedWord.replaceAll("\\|(.){2}\\|", "$1");
-			guessedWord = guessedWord.replaceAll("\\|(..){2}\\|", "$1");
-			guessedWord = guessedWord.replaceAll("\\|(...){2}\\|", "$1");
+			guessedWord = guessedWord.replaceAll("\\|(.)\\1\\|", "$1");
+			guessedWord = guessedWord.replaceAll("\\|(..)\\1\\|", "$1");
+			guessedWord = guessedWord.replaceAll("\\|(...)\\1\\|", "$1");
 
 			guessedWord = JochreSession.getInstance().getLinguistics().standardiseWord(guessedWord);
 		}

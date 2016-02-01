@@ -44,11 +44,11 @@ public class QuickTest {
     @Test
 	public void testReplaceAll() {
 		String text = "bl|aa|h";
-		text = text.replaceAll("\\|(.){2}\\|", "$1");
+		text = text.replaceAll("\\|(.)\\1\\|", "$1");
 		LOG.debug(text);
 
 		text = "b|lala|h";
-		text = text.replaceAll("\\|(..){2}\\|", "$1");
+		text = text.replaceAll("\\|(..)\\1\\|", "$1");
 		LOG.debug(text);
 	}
 	

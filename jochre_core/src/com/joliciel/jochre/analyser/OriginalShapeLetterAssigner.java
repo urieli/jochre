@@ -216,9 +216,9 @@ public class OriginalShapeLetterAssigner implements FScoreObserver {
 				currentGuess += guessedLetter;
 			} else if (realLetter.endsWith("|")) {
 				// split letters are joined back together
-				currentGuess = currentGuess.replaceAll("\\|(.){2}\\|", "$1");
-				currentGuess = currentGuess.replaceAll("\\|(..){2}\\|", "$1");
-				currentGuess = currentGuess.replaceAll("\\|(...){2}\\|", "$1");
+				currentGuess = currentGuess.replaceAll("\\|(.)\\1\\|", "$1");
+				currentGuess = currentGuess.replaceAll("\\|(..)\\1\\|", "$1");
+				currentGuess = currentGuess.replaceAll("\\|(...)\\1\\|", "$1");
 				fScoreCalculator.increment(currentLetter, currentGuess);
 				currentLetter = "";
 				currentGuess = "";
