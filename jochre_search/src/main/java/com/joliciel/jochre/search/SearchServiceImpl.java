@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
@@ -34,6 +36,8 @@ import com.joliciel.jochre.search.lexicon.Lexicon;
 import com.joliciel.jochre.search.lexicon.LexiconService;
 
 class SearchServiceImpl implements SearchServiceInternal {
+	private static final Log LOG = LogFactory.getLog(SearchServiceImpl.class);
+	
 	private AltoService altoService;
 	private LexiconService lexiconService;
 	private JochreIndexSearcher searcher;
@@ -122,6 +126,7 @@ class SearchServiceImpl implements SearchServiceInternal {
 		JochreQueryAnalyser analyser = new JochreQueryAnalyser();
 		analyser.setSearchService(this);
 		analyser.setLexicon(lexicon);
+		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		return analyser;
 	}
 	
@@ -181,7 +186,11 @@ class SearchServiceImpl implements SearchServiceInternal {
 		if (locale.getLanguage().equals("yi")||
 				locale.getLanguage().equals("ji")) {
 			tokenFilter = new YiddishQueryTokenFilter(input);
+		} else if (locale.getLanguage().equals("oc")) {
+			tokenFilter = new OccitanQueryTokenFilter(input);
 		}
+		if (LOG.isDebugEnabled())
+			LOG.debug("queryTokenFilter: " + tokenFilter);
 		return tokenFilter;
 	}
 }

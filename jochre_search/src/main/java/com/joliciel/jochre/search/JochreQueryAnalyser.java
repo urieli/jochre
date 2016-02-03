@@ -4,10 +4,14 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter;
 
 import com.joliciel.jochre.search.lexicon.InflectedFormFilter;
 import com.joliciel.jochre.search.lexicon.Lexicon;
+import com.joliciel.jochre.search.lexicon.TextNormaliser;
+import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 
 /**
  * The analyser used to analyse user queries.
@@ -18,6 +22,7 @@ class JochreQueryAnalyser extends Analyzer {
 	private Lexicon lexicon;
 	private SearchServiceInternal searchService;
 	private boolean expandInflections = true;
+	private TextNormaliser textNormaliser;
 	
 	public JochreQueryAnalyser() {
 	}
@@ -26,6 +31,13 @@ class JochreQueryAnalyser extends Analyzer {
 	protected TokenStreamComponents createComponents(final String fieldName) {
 		Tokenizer source = new WhitespaceTokenizer();
 		TokenStream result = source;
+		
+		if (textNormaliser!=null)
+			result = new TextNormalisingFilter(result, textNormaliser);
+		else {
+			result = new ASCIIFoldingFilter(result);
+			result = new LowerCaseFilter(result);
+		}
 		
 		TokenFilter queryTokenFilter = searchService.getQueryTokenFilter(result);
 		if (queryTokenFilter!=null)
@@ -60,6 +72,12 @@ class JochreQueryAnalyser extends Analyzer {
 	public void setExpandInflections(boolean expandInflections) {
 		this.expandInflections = expandInflections;
 	}
-	
-	
+
+	public TextNormaliser getTextNormaliser() {
+		return textNormaliser;
+	}
+
+	public void setTextNormaliser(TextNormaliser textNormaliser) {
+		this.textNormaliser = textNormaliser;
+	}
 }

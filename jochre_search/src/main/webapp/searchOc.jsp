@@ -57,8 +57,8 @@ if (request.getParameter("page")!=null)
 <td colspan="2">
 <table>
 <tr>
-<td class="RTLAuthor" width="200px"><b>Author:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
-<td class="RTLAuthor" width="200px"><b>Title:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
+<td class="RTLAuthor" width="250px"><b>Author:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
+<td class="RTLAuthor" width="250px"><b>Title:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
 <td class="RTLAuthor">Strict? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="checked" <% } %>/></td>
 </tr>
 </table>
@@ -162,9 +162,6 @@ if (queryString.length()>0) {
 		<%
 		int i=0;
 		for (Map<String,Object> result : paginatedResults) {
-			String bookId = (String) result.get("name");
-			int startPageUrl = (Integer) result.get("startPage") / 2 * 2;
-			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
 			String title = (String) result.get("title");
 			if (result.get("volume")!=null)
 				title += ", volume " + result.get("volume");
@@ -175,13 +172,16 @@ if (queryString.length()>0) {
 			<tr><td align="left">
 			<table style="width:100%;">
 			<tr>
-			<td class="Title"><b>Title:</b> <a href="<%= result.get("url") %>" target="_blank"><%= title %></a></td>
+			<td class="Title"><b>Title:</b> <%= title %></td>
 			</tr>
 			<tr>
 			<td class="Author"><b>Author:</b> <%= author %></td>
 			</tr>
 			<tr>
-			<td class="Author"><b>Section:</b> Pages <a href="<%= readOnlineURL %>" target="_blank"><%= result.get("startPage") %> to <%= result.get("endPage") %></a></td>
+			<td class="Author"><b>Filename:</b> <%= result.get("name") %></td>
+			</tr>
+			<tr>
+			<td class="Author"><b>Section:</b> Pages <%= result.get("startPage") %> to <%= result.get("endPage") %></td>
 			</tr>
 			<%
 			if (result.get("publisher")!=null) {
@@ -206,9 +206,11 @@ if (queryString.length()>0) {
 			int j=0;
 			for (Map<String,Object> snippet : snippets) {
 				String imageUrlAddress = "search?command=imageSnippet&snippet=" + URLEncoder.encode(mapper.writeValueAsString(snippet), "UTF-8");
+				int pageNumber = (Integer) snippet.get("pageIndex");
 				%>
 				<table style="width:100%; border:0px">
 				<tr>
+				<td align="left" valign="top" width="30px"><b><%= pageNumber %></b></td>
 				<td align="center" valign="top" width="30px"><span id="img<%=i %>_<%=j %>" ><img src="images/image.png" border="0" /></span></td>
 				<td><div id="snippet<%=i %>_<%=j %>" class="snippet"><%= snippet.get("text") %></div></td>
 				</tr>

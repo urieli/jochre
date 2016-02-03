@@ -48,8 +48,7 @@ import com.joliciel.jochre.utils.text.DiacriticRemover;
 import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexDirectoryImpl implements JochreIndexDirectory {
-	private static final Log LOG = LogFactory
-			.getLog(JochreIndexDirectoryImpl.class);
+	private static final Log LOG = LogFactory.getLog(JochreIndexDirectoryImpl.class);
 
 	File directory;
 	File pdfFile;

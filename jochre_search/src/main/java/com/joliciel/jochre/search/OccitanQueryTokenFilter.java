@@ -29,11 +29,11 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
 
 /**
  * Called only when analysing search queries (not documents),
- * to tokenise correctly, in the case of s'iz (separate the s' from the iz).
+ * to separate on apostrophes.
  * @author Assaf Urieli
  *
  */
-class YiddishQueryTokenFilter extends TokenFilter {
+class OccitanQueryTokenFilter extends TokenFilter {
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
 	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
@@ -42,7 +42,7 @@ class YiddishQueryTokenFilter extends TokenFilter {
 	private String leftoverTerm = null;
 	private int previousEndOffset = -1;
 	
-	public YiddishQueryTokenFilter(TokenStream input) {
+	public OccitanQueryTokenFilter(TokenStream input) {
 		super(input);
 	}
 
@@ -60,23 +60,17 @@ class YiddishQueryTokenFilter extends TokenFilter {
 			String term = new String(termAtt.buffer(), 0, termAtt.length());
 			int aposPos = term.indexOf('\'');
 			if (aposPos>0 && aposPos<term.length()-1) {
-				if (term.startsWith("ס'")||term.startsWith("מ'")||term.startsWith("ר'")||term.startsWith("כ'")) {
-					// need to separate
-					int startOffset = offsetAtt.startOffset();
-				    clearAttributes();
-					posIncrAtt.setPositionIncrement(1);
-					posLengthAtt.setPositionLength(1);
-					String term1 = term.substring(0, aposPos+1);
-					leftoverTerm = term.substring(aposPos+1).replace("'", "");
-					termAtt.copyBuffer(term1.toCharArray(), 0, term1.length());
-					offsetAtt.setOffset(startOffset, startOffset+term1.length());
-					previousEndOffset = offsetAtt.endOffset();
-					return true;
-				} else {
-					term = term.replace("'", "");
-					termAtt.copyBuffer(term.toCharArray(), 0, term.length());
-					return true;
-				}
+				// need to separate
+				int startOffset = offsetAtt.startOffset();
+			    clearAttributes();
+				posIncrAtt.setPositionIncrement(1);
+				posLengthAtt.setPositionLength(1);
+				String term1 = term.substring(0, aposPos+1);
+				leftoverTerm = term.substring(aposPos+1).replace("'", "");
+				termAtt.copyBuffer(term1.toCharArray(), 0, term1.length());
+				offsetAtt.setOffset(startOffset, startOffset+term1.length());
+				previousEndOffset = offsetAtt.endOffset();
+				return true;
 			} else {
 				return true;
 			}
