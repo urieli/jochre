@@ -51,6 +51,7 @@ import org.apache.lucene.index.IndexableField;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexBuilder;
+import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreIndexTermLister;
@@ -68,6 +69,7 @@ import com.joliciel.jochre.search.highlight.Snippet;
 import com.joliciel.jochre.search.lexicon.Lexicon;
 import com.joliciel.jochre.search.lexicon.LexiconService;
 import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 /**
@@ -151,6 +153,9 @@ public class JochreSearchServlet extends HttpServlet {
 			String docName = null;
 			int docIndex = -1;
 			Boolean expandInflections = null;
+			
+			int startOffset = -1;
+			int docId = -1;
 
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
@@ -197,6 +202,10 @@ public class JochreSearchServlet extends HttpServlet {
 					docIndex = Integer.parseInt(argValue);
 				} else if (argName.equals("expand")) {
 					expandInflections = argValue.equals("true");
+				} else if (argName.equals("startOffset")) {
+					startOffset = Integer.parseInt(argValue);
+				} else if (argName.equals("docId")) {
+					docId = Integer.parseInt(argValue);
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -204,7 +213,7 @@ public class JochreSearchServlet extends HttpServlet {
 	
 			PrintWriter out = null;
 			
-			if (!command.equals("imageSnippet"))
+			if (!command.equals("imageSnippet") && !command.equals("wordImage"))
 				out = response.getWriter();
 			
 			String indexDirPath = props.getIndexDirPath();
@@ -283,7 +292,7 @@ public class JochreSearchServlet extends HttpServlet {
 				String mimeType="image/png";
 				response.setContentType(mimeType);
 				if (snippetJson==null)
-					throw new RuntimeException("Command " + command + " requires a snippet");
+					throw new JochreException("Command " + command + " requires a snippet");
 				Snippet snippet = new Snippet(snippetJson);
 				
 				if (LOG.isDebugEnabled()) {
@@ -302,6 +311,29 @@ public class JochreSearchServlet extends HttpServlet {
 				ImageWriter imageWriter = ImageIO.getImageWriter(imageReader);
 				imageWriter.setOutput(ios);
 				imageWriter.write(image);
+				ios.flush();
+			} else if (command.equals("wordImage")) {
+				String mimeType="image/png";
+				response.setContentType(mimeType);
+				if (startOffset<0)
+					throw new JochreException("Command " + command + " requires a startOffset");
+				if (docName==null && docId<0)
+					throw new RuntimeException("For command " + command + " docName or docIndex is required");
+				
+				if (docId<0) {
+					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+					docId = docs.keySet().iterator().next();
+				}
+				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher.getIndexSearcher(), docId);
+				BufferedImage wordImage = jochreDoc.getWordImage(startOffset);
+
+				OutputStream os = response.getOutputStream();
+				ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+				
+				ImageReader imageReader = ImageIO.getImageReadersByMIMEType(mimeType).next();
+				ImageWriter imageWriter = ImageIO.getImageWriter(imageReader);
+				imageWriter.setOutput(ios);
+				imageWriter.write(wordImage);
 				ios.flush();
 			} else if (command.equals("index")) {
 				File contentDir = new File(props.getContentDirPath());

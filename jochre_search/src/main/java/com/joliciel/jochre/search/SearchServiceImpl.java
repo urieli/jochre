@@ -85,7 +85,8 @@ class SearchServiceImpl implements SearchServiceInternal {
 	@Override
 	public JochreIndexDocument getJochreIndexDocument(
 			IndexSearcher indexSearcher, int docId) {
-		JochreIndexDocument doc = new JochreIndexDocumentImpl(indexSearcher, docId);
+		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(indexSearcher, docId);
+		doc.setSearchService(this);
 		return doc;
 	}
 	
@@ -98,7 +99,8 @@ class SearchServiceImpl implements SearchServiceInternal {
 	@Override
 	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory,
 			int index, List<AltoPage> currentPages) {
-		JochreIndexDocument doc = new JochreIndexDocumentImpl(directory, index, currentPages);
+		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, currentPages);
+		doc.setSearchService(this);
 		return doc;
 	}
 	@Override

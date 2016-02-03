@@ -24,6 +24,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.IndexSearcher;
 
+import com.joliciel.jochre.search.JochreIndexTermLister.JochreTerm;
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
@@ -33,7 +34,7 @@ import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private static final Log LOG = LogFactory.getLog(JochreIndexDocumentImpl.class);
-
+	
 	private String contents;
 	private Document doc;
 	private int index = -1;
@@ -46,6 +47,10 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private TIntObjectMap<TIntObjectMap<Rectangle>> rectangles = null;
 	private TIntObjectMap<TIntIntMap> startIndexes = null;
 	private TIntIntMap rowCounts = null;
+	private int docId = -1;
+	private IndexSearcher indexSearcher = null;
+	
+	private SearchServiceInternal searchService;
 
 	/* Indexed, tokenized, not stored. */
 	public static final FieldType TYPE_NOT_STORED = new FieldType();
@@ -79,6 +84,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	
 	public JochreIndexDocumentImpl(IndexSearcher indexSearcher, int docId) {
 		try {
+			this.docId = docId;
+			this.indexSearcher = indexSearcher;
 			this.doc = indexSearcher.doc(docId);
 			this.index = Integer.parseInt(this.doc.get(JochreIndexField.index.name()));
 			this.path = this.doc.get(JochreIndexField.path.name());
@@ -377,5 +384,30 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		int height = Integer.parseInt(parts[3]);
 		Rectangle rect = new Rectangle(x, y, width, height);
 		return rect;
+	}
+
+	@Override
+	public BufferedImage getWordImage(int startOffset) {
+		if (this.indexSearcher==null)
+			throw new JochreException("Can only get word image for documents already in index");
+		JochreIndexTermLister termLister = new JochreIndexTermLister(docId, indexSearcher);
+		TIntObjectMap<JochreTerm> termMap = termLister.getTextTermByOffset();
+		JochreTerm jochreTerm = termMap.get(startOffset);
+		if (jochreTerm == null) {
+			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + this.getName() + ", index " + this.index);
+		}
+		int pageIndex = jochreTerm.getPayload().getPageIndex();
+		BufferedImage originalImage = this.getImage(pageIndex);
+		Rectangle rect = jochreTerm.getPayload().getRectangle();
+		BufferedImage imageSnippet = originalImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
+		return imageSnippet;
+	}
+
+	public SearchServiceInternal getSearchService() {
+		return searchService;
+	}
+
+	public void setSearchService(SearchServiceInternal searchService) {
+		this.searchService = searchService;
 	}
 }

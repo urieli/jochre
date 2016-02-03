@@ -1,5 +1,8 @@
 package com.joliciel.jochre.search;
 
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
@@ -42,7 +45,7 @@ public class JochreIndexTermLister {
 	
 	public Map<String, Set<JochreTerm>> list() {
 		try {
-			Map<String,Set<JochreTerm>> textFeatureMap = new HashMap<String, Set<JochreTerm>>();
+			Map<String,Set<JochreTerm>> fieldTermMap = new HashMap<String, Set<JochreTerm>>();
 			
 			IndexReader reader = indexSearcher.getIndexReader();
 	
@@ -60,7 +63,7 @@ public class JochreIndexTermLister {
 			fields.add(JochreIndexField.titleLang.name());
 			
 			for (String field : fields)
-				textFeatureMap.put(field, new TreeSet<JochreTerm>());
+				fieldTermMap.put(field, new TreeSet<JochreTerm>());
 			
 			if (LOG.isTraceEnabled())
 				LOG.trace("Searching leaf " + leaf);
@@ -85,15 +88,25 @@ public class JochreIndexTermLister {
 				@SuppressWarnings("unused")
 				BytesRef bytesRef = null;
 				while ((bytesRef = termsEnum.next())!=null) {
-					this.findTerms(textFeatureMap, field, termsEnum, subContext, docId);
+					this.findTerms(fieldTermMap, field, termsEnum, subContext, docId);
 				} // next bytesRef
 			} // next field
 
-			return textFeatureMap;
+			return fieldTermMap;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
 		}
+	}
+	
+	public TIntObjectMap<JochreTerm> getTextTermByOffset() {
+		TIntObjectMap<JochreTerm> offsetTermMap = new TIntObjectHashMap<>();
+		Map<String,Set<JochreTerm>> fieldTermMap = this.list();
+		Set<JochreTerm> textTerms = fieldTermMap.get(JochreIndexField.text.name());
+		for (JochreTerm jochreTerm : textTerms) {
+			offsetTermMap.put(jochreTerm.getStart(), jochreTerm);
+		}
+		return offsetTermMap;
 	}
 	
 	public void list(Writer writer) {
@@ -157,9 +170,9 @@ public class JochreIndexTermLister {
 	                if (bytesRef!=null)
 	                	payload = new JochrePayload(bytesRef);
 	                
-	                JochreTerm textFeature = new JochreTerm(term.toString(), position, start, end, payload);
-	                Set<JochreTerm> textFeatures = textFeatureMap.get(field);
-	                textFeatures.add(textFeature);
+	                JochreTerm jochreTerm = new JochreTerm(term.toString(), position, start, end, payload);
+	                Set<JochreTerm> jochreTerms = textFeatureMap.get(field);
+	                jochreTerms.add(jochreTerm);
 				} // next occurrence
             } // correct document
 

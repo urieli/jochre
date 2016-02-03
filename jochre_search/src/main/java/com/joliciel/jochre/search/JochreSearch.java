@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +40,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -118,6 +121,10 @@ public class JochreSearch {
 			int snippetCount = -1;
 			int snippetSize = -1;
 			
+			// word images
+			int startOffset = -1;
+			String outDirPath = null;
+			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
 				String argValue = argMapEntry.getValue();
@@ -148,6 +155,10 @@ public class JochreSearch {
 					snippetCount = Integer.parseInt(argValue);
 				} else if (argName.equals("snippetSize")) {
 					snippetSize = Integer.parseInt(argValue);
+				} else if (argName.equals("startOffset")) {
+					startOffset = Integer.parseInt(argValue);
+				} else if (argName.equals("outDir")) {
+					outDirPath = argValue;
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -302,6 +313,26 @@ public class JochreSearch {
 				lister.list(out);
 				out.write("\n");
 				out.flush();
+			} else if (command.equals("wordImage")) {
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				if (docIndex<0)
+					throw new RuntimeException("For command " + command + " docIndex is required");
+				if (startOffset<0)
+					throw new RuntimeException("For command " + command + " startOffset is required");
+				if (outDirPath==null)
+					throw new RuntimeException("For command " + command + " outDir is required");
+				File indexDir = new File(indexDirPath);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				int docId = docs.keySet().iterator().next();
+				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher.getIndexSearcher(), docId);
+				BufferedImage wordImage = jochreDoc.getWordImage(startOffset);
+				
+				File outDir = new File(outDirPath);
+				outDir.mkdirs();
+				File outputfile = new File(outDir, "word.png");
+			    ImageIO.write(wordImage, "png", outputfile);
 			} else if (command.equals("serializeLexicon")) {
 				if (lexiconDirPath==null)
 					throw new RuntimeException("For command " + command + " lexiconDir is required");
