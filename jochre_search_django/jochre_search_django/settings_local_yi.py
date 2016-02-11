@@ -2,6 +2,18 @@
 # -*- coding: utf-8 -*-
 
 # Sample settings in Yiddish
+import os
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+# on server with apache2 httpd integration, use something like this instead, with jochreClient being the apache2 application name
+# STATIC_URL = '/jochreClient/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
