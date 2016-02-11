@@ -22,6 +22,8 @@ SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
 JOCHRE_SEARCH_URL='http://localhost:8080/jochreSearchOc/search'
 JOCHRE_SEARCH_EXT_URL='http://localhost:8080/jochreSearchOc/search'
 
+LOGIN_REDIRECT_URL = '/'
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 JOCHRE_TITLE="Jochre en Occitan"

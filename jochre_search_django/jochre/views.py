@@ -10,7 +10,7 @@ from django.conf import settings
 
 def search(request):
     if not request.user.is_authenticated():
-        return redirect('/accounts/login/')
+        return redirect('accounts/login/')
     
     searchUrl = settings.JOCHRE_SEARCH_URL
     advancedSearch = False
