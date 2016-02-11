@@ -19,23 +19,17 @@
 package com.joliciel.jochre.graphics;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -45,7 +39,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.lang.Linguistics;
-import com.joliciel.jochre.utils.JochreException;
+import com.joliciel.jochre.utils.dao.ImageUtils;
 import com.joliciel.talismane.utils.DaoUtils;
 
 final class GraphicsDaoJdbc implements GraphicsDao {
@@ -173,16 +167,8 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			shape.setIndex(rs.getInt("shape_index"));
 			shape.setGroupId(rs.getInt("shape_group_id"));
 
-			byte[] pixels = rs.getBytes("shape_pixels");
-			ByteArrayInputStream is = new ByteArrayInputStream(pixels);
-			BufferedImage image;
-			try {
-				image = ImageIO.read(is);
-				is.close();
-			} catch (IOException e) {
-				throw new JochreException(e);
-			}
-			shape.setImage(image);
+			BufferedImage image = ImageUtils.getImage(rs, "shape_pixels");
+			if (image!=null) shape.setImage(image);
 
 			shape.setLetter(rs.getString("shape_letter"));
 
@@ -220,31 +206,8 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-
-		byte[] pixels = (byte[]) jt.query(sql, paramSource,
-				new ResultSetExtractor() {
-			@Override
-			public Object extractData(ResultSet rs)
-			throws SQLException, DataAccessException {
-				if (rs.next()) {
-					byte[] pixels = rs.getBytes("image_image");
-
-					return pixels;
-				} else {
-					return null;
-				}
-			}
-
-		});
-
-		ByteArrayInputStream is = new ByteArrayInputStream(pixels);
-		BufferedImage image;
-		try {
-			image = ImageIO.read(is);
-			is.close();
-		} catch (IOException e) {
-			throw new JochreException(e);
-		}
+		
+		BufferedImage image = ImageUtils.getImage(jt, sql, paramSource, "image_image");
 		jochreImage.setOriginalImageDB(image);
 	}
 
@@ -254,15 +217,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("image_id", jochreImage.getId());
 
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		try {
-			ImageIO.write(jochreImage.getOriginalImage(), "png", os);
-			os.flush();
-			paramSource.addValue("image_image", os.toByteArray());
-			os.close();
-		} catch (IOException e) {
-			throw new JochreException(e);
-		}
+		ImageUtils.storeImage(paramSource, "image_image", jochreImage.getOriginalImage());
 
 		String sql = "UPDATE ocr_image SET image_image = :image_image" +
 		" WHERE image_id = :image_id";
@@ -388,19 +343,10 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 			row.setParagraphId(rs.getInt("row_paragraph_id"));
 			row.setIndex(rs.getInt("row_index"));
 			row.setXHeight(rs.getInt("row_height"));
-
-			if (rs.getObject("row_image")!=null) {        	   
-				byte[] imageBytes = rs.getBytes("row_image");
-				ByteArrayInputStream is = new ByteArrayInputStream(imageBytes);
-				BufferedImage image;
-				try {
-					image = ImageIO.read(is);
-					is.close();
-				} catch (IOException e) {
-					throw new JochreException(e);
-				}
-				row.setImage(image);
-			}
+			
+			BufferedImage image = ImageUtils.getImage(rs, "row_image");
+			if (image!=null) row.setImage(image);
+			
 			return row;
 		}
 	}
@@ -483,72 +429,64 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 	@Override
 	public void saveShape(Shape shape) {
 		// note: update will not update the pixels (not strictly required).
-		try {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-			MapSqlParameterSource paramSource = new MapSqlParameterSource();
-			ShapeInternal iShape = (ShapeInternal) shape;
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		ShapeInternal iShape = (ShapeInternal) shape;
 
 
-			paramSource.addValue("shape_top", shape.getTop());
-			paramSource.addValue("shape_left", shape.getLeft());
-			paramSource.addValue("shape_bottom", shape.getBottom());
-			paramSource.addValue("shape_right", shape.getRight());
-			paramSource.addValue("shape_cap_line", shape.getCapLine());
-			paramSource.addValue("shape_mean_line", shape.getMeanLine());
-			paramSource.addValue("shape_base_line", shape.getBaseLine());
-			paramSource.addValue("shape_letter", shape.getLetter());
-			paramSource.addValue("shape_original_guess", shape.getOriginalGuess());
-			paramSource.addValue("shape_group_id", shape.getGroupId());
-			paramSource.addValue("shape_index", shape.getIndex());
-			String sql = null;
+		paramSource.addValue("shape_top", shape.getTop());
+		paramSource.addValue("shape_left", shape.getLeft());
+		paramSource.addValue("shape_bottom", shape.getBottom());
+		paramSource.addValue("shape_right", shape.getRight());
+		paramSource.addValue("shape_cap_line", shape.getCapLine());
+		paramSource.addValue("shape_mean_line", shape.getMeanLine());
+		paramSource.addValue("shape_base_line", shape.getBaseLine());
+		paramSource.addValue("shape_letter", shape.getLetter());
+		paramSource.addValue("shape_original_guess", shape.getOriginalGuess());
+		paramSource.addValue("shape_group_id", shape.getGroupId());
+		paramSource.addValue("shape_index", shape.getIndex());
+		String sql = null;
 
-			if (shape.isNew()) {
-				sql = "SELECT nextval('ocr_shape_id_seq')";
-				LOG.debug(sql);
-				int shapeId = jt.queryForInt(sql, paramSource);
-				paramSource.addValue("shape_id", shapeId);
+		if (shape.isNew()) {
+			sql = "SELECT nextval('ocr_shape_id_seq')";
+			LOG.debug(sql);
+			int shapeId = jt.queryForInt(sql, paramSource);
+			paramSource.addValue("shape_id", shapeId);
+			
+			ImageUtils.storeImage(paramSource, "shape_pixels", shape.getImage());
 
-				ByteArrayOutputStream os = new ByteArrayOutputStream();
-				ImageIO.write(shape.getImage(), "png", os);
-				os.flush();
-				paramSource.addValue("shape_pixels", os.toByteArray());
-				os.close();
+			sql = "INSERT INTO ocr_shape (shape_id, shape_top, shape_left, shape_bottom, shape_right" +
+			", shape_cap_line, shape_mean_line, shape_base_line, shape_pixels, shape_letter, shape_group_id" +
+			", shape_index, shape_original_guess) " +
+			"VALUES (:shape_id, :shape_top, :shape_left, :shape_bottom, :shape_right" +
+			", :shape_cap_line, :shape_mean_line, :shape_base_line, :shape_pixels, :shape_letter, :shape_group_id" +
+			", :shape_index, :shape_original_guess)";
 
-				sql = "INSERT INTO ocr_shape (shape_id, shape_top, shape_left, shape_bottom, shape_right" +
-				", shape_cap_line, shape_mean_line, shape_base_line, shape_pixels, shape_letter, shape_group_id" +
-				", shape_index, shape_original_guess) " +
-				"VALUES (:shape_id, :shape_top, :shape_left, :shape_bottom, :shape_right" +
-				", :shape_cap_line, :shape_mean_line, :shape_base_line, :shape_pixels, :shape_letter, :shape_group_id" +
-				", :shape_index, :shape_original_guess)";
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
 
-				LOG.debug(sql);
-				logParameters(paramSource);
-				jt.update(sql, paramSource);
+			iShape.setId(shapeId);
+		} else {
+			paramSource.addValue("shape_id", shape.getId());
 
-				iShape.setId(shapeId);
-			} else {
-				paramSource.addValue("shape_id", shape.getId());
+			sql = "UPDATE ocr_shape" +
+			" SET shape_top = :shape_top" +
+			", shape_left = :shape_left" +
+			", shape_bottom = :shape_bottom" +
+			", shape_right = :shape_right" +
+			", shape_cap_line = :shape_cap_line" +
+			", shape_mean_line = :shape_mean_line" +
+			", shape_base_line = :shape_base_line" +
+			", shape_letter = :shape_letter" +
+			", shape_group_id = :shape_group_id" +
+			", shape_index = :shape_index " +
+			", shape_original_guess = :shape_original_guess " +
+			" WHERE shape_id = :shape_id";
 
-				sql = "UPDATE ocr_shape" +
-				" SET shape_top = :shape_top" +
-				", shape_left = :shape_left" +
-				", shape_bottom = :shape_bottom" +
-				", shape_right = :shape_right" +
-				", shape_cap_line = :shape_cap_line" +
-				", shape_mean_line = :shape_mean_line" +
-				", shape_base_line = :shape_base_line" +
-				", shape_letter = :shape_letter" +
-				", shape_group_id = :shape_group_id" +
-				", shape_index = :shape_index " +
-				", shape_original_guess = :shape_original_guess " +
-				" WHERE shape_id = :shape_id";
-
-				LOG.debug(sql);
-				logParameters(paramSource);
-				jt.update(sql, paramSource);
-			}
-		} catch (IOException e) {
-			throw new JochreException(e);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
 		}
 	}
 
@@ -696,52 +634,44 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 	@Override
 	public void saveRowOfShapes(RowOfShapes row) {
-		try {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-			MapSqlParameterSource paramSource = new MapSqlParameterSource();
-			RowOfShapesInternal iRow = (RowOfShapesInternal) row;
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		RowOfShapesInternal iRow = (RowOfShapesInternal) row;
 
-			paramSource.addValue("row_paragraph_id", row.getParagraphId());
-			paramSource.addValue("row_index", row.getIndex());
-			paramSource.addValue("row_height", row.getXHeight());
-			String sql = null;
+		paramSource.addValue("row_paragraph_id", row.getParagraphId());
+		paramSource.addValue("row_index", row.getIndex());
+		paramSource.addValue("row_height", row.getXHeight());
+		String sql = null;
 
-			if (row.isNew()) {
-				sql = "SELECT nextval('ocr_row_id_seq')";
-				LOG.debug(sql);
-				int rowId = jt.queryForInt(sql, paramSource);
-				paramSource.addValue("row_id", rowId);
+		if (row.isNew()) {
+			sql = "SELECT nextval('ocr_row_id_seq')";
+			LOG.debug(sql);
+			int rowId = jt.queryForInt(sql, paramSource);
+			paramSource.addValue("row_id", rowId);
 
-				ByteArrayOutputStream os = new ByteArrayOutputStream();
-				ImageIO.write(row.getImage(), "png", os);
-				os.flush();
-				paramSource.addValue("row_image", os.toByteArray());
-				os.close();
+			ImageUtils.storeImage(paramSource, "row_image", row.getImage());
 
-				sql = "INSERT INTO ocr_row (row_id, row_paragraph_id, row_index, row_image, row_height) " +
-				"VALUES (:row_id, :row_paragraph_id, :row_index, :row_image, :row_height)";
+			sql = "INSERT INTO ocr_row (row_id, row_paragraph_id, row_index, row_image, row_height) " +
+			"VALUES (:row_id, :row_paragraph_id, :row_index, :row_image, :row_height)";
 
-				LOG.debug(sql);
-				logParameters(paramSource);
-				jt.update(sql, paramSource);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
 
-				iRow.clearMemory();
-				iRow.setId(rowId);
-			} else {
-				paramSource.addValue("row_id", row.getId());
+			iRow.clearMemory();
+			iRow.setId(rowId);
+		} else {
+			paramSource.addValue("row_id", row.getId());
 
-				sql = "UPDATE ocr_row" +
-				" SET row_paragraph_id = :row_paragraph_id" +
-				", row_index = :row_index" +
-				", row_height = :row_height" +
-				" WHERE row_id = :row_id";
+			sql = "UPDATE ocr_row" +
+			" SET row_paragraph_id = :row_paragraph_id" +
+			", row_index = :row_index" +
+			", row_height = :row_height" +
+			" WHERE row_id = :row_id";
 
-				LOG.debug(sql);
-				logParameters(paramSource);
-				jt.update(sql, paramSource);
-			}
-		} catch (IOException ioe) {
-			throw new JochreException(ioe);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
 		}
 	}
 

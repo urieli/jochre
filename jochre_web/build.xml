@@ -64,7 +64,10 @@
 			<fileset dir="${web}" />
 		</copy>
 		<copy todir="${webapp}/WEB-INF/lib">
-			<fileset dir="${jochreLib}" />
+			<fileset dir="${jochreLib}">
+				<!-- starting with Tomcat8, levigo-jbig2-imageio-1.6.1.jar needs to be copied directly into tomcat's lib, to ensure correctly JAR loading order -->
+				<exclude name="levigo-jbig2-imageio-1.6.1.jar"/>
+			</fileset>
 			<fileset file="${dist}/jochre-utils-${jochre.version}.jar" />
 			<fileset file="${dist}/jochre-${jochre.version}.jar" />
 			<fileset file="${dist}/${project}-${jochre.version}.jar" />

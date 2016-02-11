@@ -5,9 +5,13 @@ import paginate
 import logging
 
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.conf import settings
 
 def search(request):
+    if not request.user.is_authenticated():
+        return redirect('/accounts/login/')
+    
     searchUrl = settings.JOCHRE_SEARCH_URL
     advancedSearch = False
     haveResults = False
@@ -43,7 +47,12 @@ def search(request):
              "author" : author,
              "title" : title,
              "strict" : strict,
-             "displayAdvancedSearch" : displayAdvancedSearch}
+             "displayAdvancedSearch" : displayAdvancedSearch,
+			 "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
+			 "JOCHRE_CREDITS" : settings.JOCHRE_CREDITS,
+			 "RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT),
+             "readOnline" : settings.JOCHRE_READ_ONLINE,
+			 "Strings" : settings.JOCHRE_UI_STRINGS}
              
     if len(query)>0:
         MAX_DOCS=1000
@@ -68,18 +77,19 @@ def search(request):
             docIds = ''
             
             for result in page.items:
-                if 'volume' in result:
-                    result['titleAndVolume'] = result['title'] + u", volume " + result['volume']
-                    if 'titleLang' in result:
-                        result['titleLangAndVolume'] = result['titleLang'] + u", באַנד " + result['volume']
+                if 'volume' in result and 'title' in result:
+                    result['titleAndVolume'] = result['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
+                    if 'titleLang' in result and 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
+                        result['titleLangAndVolume'] = result['titleLang'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
                     else:
                         result['titleLangAndVolume'] = ""
                 else:
-                    result['titleAndVolume'] = result['title']
-                    if 'titleLang' in result:
-                        result['titleLangAndVolume'] = result['titleLang']
-                    else:
-                        result['titleLangAndVolume'] = ""
+                    if 'title' in result:
+                        result['titleAndVolume'] = result['title']
+                        if 'titleLang' in result:
+                            result['titleLangAndVolume'] = result['titleLang']
+                        else:
+                            result['titleLangAndVolume'] = ""
                 if len(docIds)>0:
                     docIds += ','
                 docIds += str(result['docId'])
@@ -95,6 +105,18 @@ def search(request):
                 model["end"] = page.last_item
                 model["resultCount"] = len(results)
                 model["pageLinks"] = page.link_map(url="http://localhost:8000?page=$page")
+                
+                foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (len(results), page.first_item, page.last_item)
+                if (len(results)>=1000):
+                    foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'] % (len(results), page.first_item, page.last_item)
+                model["foundResults"] = foundResults
+                
+                if 'foundResultsRTL' in settings.JOCHRE_UI_STRINGS:
+                    foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (len(results), page.first_item, page.last_item)
+                    if (len(results)>=1000):
+                        foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'] % (len(results), page.first_item, page.last_item)
+                    model["foundResultsRTL"] = foundResultsRTL
+
                 logging.debug(model["pageLinks"])
                 
                 snippetMap = resp.json()
@@ -113,16 +135,17 @@ def search(request):
                         req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
                         preparedReq = req.prepare()
                         snippetImageUrl = preparedReq.url
-                        
                         pageNumber = snippet['pageIndex']
-                        urlPageNumber = pageNumber / 2 * 2;
-                        snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
                         
                         snippetDict = {"snippetText" : snippetText,
-                                       "readOnlineUrl" : snippetReadUrl,
-                                       "imageUrl": snippetImageUrl,
-                                       "pageNumber": pageNumber }
+                                       "pageNumber": pageNumber,
+                                       "imageUrl": snippetImageUrl }
                         
+                        if settings.JOCHRE_READ_ONLINE:
+                            urlPageNumber = pageNumber / 2 * 2;
+                            snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
+                            snippetDict["readOnlineUrl"] = snippetReadUrl
+
                         snippetsToSend.append(snippetDict)
                         result['snippets'] = snippetsToSend
                     

@@ -17,5 +17,5 @@ from django.conf.urls import url
 from jochre.views import search
 
 urlpatterns = [
-    url(r'^search/$', search),
+    url(r'^$', search),
 ]

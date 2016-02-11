@@ -1,0 +1,252 @@
+{% load staticfiles %}
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
+<script src="{% static 'jquery-1.11.3.min.js' %}"></script>
+</head>
+<body>
+<form id="frmQuery" method="get" accept-charset="UTF-8">
+<input type="hidden" name="page" id="hdnPage" value="1" />
+<table style="width:740px;">
+<tr>
+<td width="170px"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></td>
+{% if not RTL %}
+<td style="text-align: left">
+<h1>{{ JOCHRE_TITLE }}</h1>
+<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
+</td>
+{% endif %}
+<td width="150px">
+<table>
+<tr>
+<td><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></td>
+<td>
+    {% if request.user.first_name or request.user.last_name %}
+        {{ request.user.first_name }} {{ request.user.last_name }}
+    {% else %}
+        {{ request.user.username }}
+    {% endif %}
+	<br/>
+    <a href="/accounts/logout/">{{ Strings.logout }}</a>
+</td>
+</tr>
+</table>
+</td>
+{% if RTL %}
+<td style="text-align: right">
+<h1 class="yiddish">{{ JOCHRE_TITLE }}</h1>
+<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
+</td>
+{% endif %}
+</tr>
+</table>
+<table style="width:740px;">
+<tr><td><hr/></td></tr>
+{% if RTL %}
+<tr>
+<td style="vertical-align: bottom;" align="right">
+<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>&nbsp;
+<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
+<input type="text" name="query" style="width:300px;" value="{{ query }}" class="yiddish" />
+</td>
+</tr>
+<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
+<td align="right">
+<table>
+<tr>
+<td class="RTLAuthor">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
+<td class="RTLAuthor" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" name="title" style="width:150px;" value="{{ title }}" /></td>
+<td class="RTLAuthor" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" name="author" style="width:150px;" value="{{ author }}" /></td>
+</tr>
+</table>
+</td>
+</tr>
+{% else %}
+<tr>
+<td style="vertical-align: bottom;" align="left">&nbsp;
+<input type="text" name="query" style="width:300px;" value="{{ query }}" />&nbsp;
+<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
+<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>
+</td>
+</tr>
+<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
+<td align="left">
+<table>
+<tr>
+<td width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" name="author" style="width:150px;" value="{{ author }}" /></td>
+<td width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" name="title" style="width:150px;" value="{{ title }}" /></td>
+<td>{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
+</tr>
+</table>
+</td>
+</tr>
+{% endif %}
+</table>
+</div>
+<script>
+$("#toggleAdvancedSearch").on("click",function(){
+	$("#advancedSearch").toggle();
+   });
+</script>
+{% if parseException %}
+	<p>{{ Strings.unableToProcessQuery }}:</p>
+	<p>{{ parseException }}</p>
+{% elif query|length == 0 %}
+{% elif not haveResults %}
+	<p>{{ Strings.noResults }}</p>
+{% else %}
+    <table style="width:740px"><tr>
+    <td ><b>{{ foundResults }}:</b></td>
+    {% if RTL %}
+    <td class="RTLAuthor" style="width:50%">{{ foundResultsRTL }}:</td>
+    {% endif %}
+    </tr></table>
+	<table width="740px">
+		{% for result in results %}
+			<tr><td height="5px" bgcolor="black"></td></tr>
+			<tr><td align="left">
+			<table width="100%">
+			<tr>
+			<td class="Title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</td>
+			{% if RTL %}
+			<td class="RTLTitle" width="50%"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</td>
+			{% endif %}
+			</tr>
+			<tr>
+			<td class="Author"><b>{{ Strings.author }}:</b> {{ result.author }}</td>
+			{% if RTL %}
+			<td class="RTLAuthor" width="50%"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</td>
+			{% endif %}
+			</tr>
+			<tr>
+			<td class="Author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
+			{% if RTL %}
+			<td class="RTLAuthor" width="50%"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
+			{% endif %}
+			</tr>
+			{% if result.publisher %}
+				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</td></tr>
+			{% endif %}
+			{% if result.date %}
+				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.date }}:</b> {{ result.date }} </td></tr>
+			{% endif %}
+			</table>
+			</td></tr>
+			<tr><td>
+			{% for snippet in result.snippets %}
+				<table width="100%" border="0">
+				<tr>
+				{% if RTL %}
+				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetYiddish">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
+				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
+				<td align="right" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
+				{% else %}
+				<td align="left" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
+				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
+				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
+				{% endif %}
+				</tr>
+				</table>
+				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" style="display: none;"></div>
+				<script>
+				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
+				$("#img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
+					if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
+						$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" width="720px" border="1" />');
+						$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
+					}
+					$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
+			    });
+				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
+					window.open('{{ snippet.readOnlineUrl }}', '_blank');
+				});
+				</script>
+			{% endfor %}
+			</td></tr>
+			<tr><td height="10px"></td></tr>
+        {% endfor %}
+	</table>
+{% endif %}
+{% if pageLinks and pageLinks.last_page.number != 1 %}
+	<div style="width: 740px; text-align: left; ">
+	<table style="margin: auto;"><tr>
+	{% if pageLinks.first_page %}
+		<td style="width:60px; text-align: center;">
+		<a href="#" id="pageFirst">{{ Strings.first }}</a>
+		</td>
+	{% endif %}
+	<td style="width:60px; text-align: center;">
+	{% if pageLinks.previous_page and pageLinks.previous_page.number != pageLinks.current_page.value %}
+		<a href="#" id="pagePrev">{{ Strings.prev }}</a>
+	{% else %}
+		<span style="font-weight: bold; color: gray;">{{ Strings.prev }}</span>
+	{% endif %}
+	</td>
+	{% for pageLink in pageLinks.range_pages %}
+		<td style="width:40px; text-align: center;">
+		{% if pageLink.type == "current_page" %}
+			<b>{{ pageLink.value }}</b>
+		{% elif pageLink.type == "span" %}
+		    {{ pageLink.value }}
+		{% else %}
+			<a href="#" id="page{{ pageLink.value }}">{{ pageLink.number }}</a>
+		{% endif %}
+		</td>
+	{% endfor %}
+	<td style="width:60px; text-align: center;">
+	{% if pageLinks.next_page and pageLinks.next_page.number != pageLinks.current_page.value %}
+		<a href="#" id="pageNext">{{ Strings.next }}</a>
+	{% else %}
+		<span style="font-weight: bold; color: gray;">{{ Strings.next }}</span>
+	{% endif %}
+	</td>
+	{% if pageLinks.last_page %}
+		<td style="width:60px; text-align: center;">
+		<a href="#" id="pageLast">{{ Strings.last }}</a>
+		</td>
+	{% endif %}	
+	</tr></table></div>
+	{% for pageLink in pageLinks.range_pages %}
+		<script>
+		$("#page{{ pageLink.value }}").on("click",function(){
+			$("#hdnPage").val("{{ pageLink.value }}");
+			$("#frmQuery").submit();
+			return false;
+	    });
+		</script>
+	{% endfor %}
+	<script>
+	{% if pageLinks.first_page %}
+		$("#pageFirst").on("click",function(){
+			$("#hdnPage").val("{{ pageLinks.first_page.number }}");
+			$("#frmQuery").submit();
+			return false;
+		   });
+	{% endif %}
+	{% if pageLinks.last_page %}
+		$("#pageLast").on("click",function(){
+			$("#hdnPage").val("{{ pageLinks.last_page.number }}");
+			$("#frmQuery").submit();
+			return false;
+		   });
+	{% endif %}
+	{% if pageLinks.previous_page %}
+		$("#pagePrev").on("click",function(){
+			$("#hdnPage").val("{{ pageLinks.previous_page.number }}");
+			$("#frmQuery").submit();
+			return false;
+		   });
+	{% endif %}
+	{% if pageLinks.next_page %}
+		$("#pageNext").on("click",function(){
+			$("#hdnPage").val("{{ pageLinks.next_page.number }}");
+			$("#frmQuery").submit();
+			return false;
+		   });
+	{% endif %}
+	</script>
+{% endif %}
+</form>
+</body>
+</html>
