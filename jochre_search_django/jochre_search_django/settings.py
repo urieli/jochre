@@ -106,8 +106,6 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SITE_ID = 1
-
 SOCIALACCOUNT_QUERY_EMAIL = False
 
 # Internationalization

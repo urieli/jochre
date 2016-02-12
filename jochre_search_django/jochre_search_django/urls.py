@@ -14,11 +14,12 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from settings import LOGIN_REDIRECT_URL
 admin.autodiscover()
 
 urlpatterns = [
     # prevent the extra are-you-sure-you-want-to-logout step on logout
-    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}),
+    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': LOGIN_REDIRECT_URL}),
 	
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
