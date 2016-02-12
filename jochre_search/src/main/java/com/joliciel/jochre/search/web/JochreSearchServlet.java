@@ -317,8 +317,8 @@ public class JochreSearchServlet extends HttpServlet {
 				response.setContentType(mimeType);
 				if (startOffset<0)
 					throw new JochreException("Command " + command + " requires a startOffset");
-				if (docName==null && docId<0)
-					throw new RuntimeException("For command " + command + " docName or docIndex is required");
+				if (docId<0 && (docName==null || docIndex<0))
+					throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
 				
 				if (docId<0) {
 					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);

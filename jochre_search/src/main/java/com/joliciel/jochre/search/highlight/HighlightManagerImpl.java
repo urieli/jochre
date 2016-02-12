@@ -230,20 +230,24 @@ class HighlightManagerImpl implements HighlightManager {
 
 		StringBuilder sb = new StringBuilder();
 		int currentPos = snippet.getStartOffset();
-
+		
+		sb.append("<span offset=\"" + currentPos + "\">");
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
 			}
 			sb.append(content.substring(currentPos, term.getStartOffset()));
 			String termText = content.substring(term.getStartOffset(), term.getEndOffset());
-			if (term.getWeight()>=minWeight)
+			if (term.getWeight()>=minWeight) {
+				sb.append("</span>");
+				termText = "<span offset=\"" + term.getStartOffset() + "\">" + termText + "</span>";
 				sb.append(this.getDecorator().decorate(termText));
-			else
-				sb.append(termText);
-			currentPos = term.getEndOffset();
+				currentPos = term.getEndOffset();
+				sb.append("<span offset=\"" + currentPos + "\">");
+			}
 		}
 		sb.append(content.substring(currentPos, snippet.getEndOffset()));
+		sb.append("</span>");
 		
 		if (LOG.isTraceEnabled()) {
 			LOG.trace(sb.toString());

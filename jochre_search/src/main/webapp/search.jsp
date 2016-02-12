@@ -40,7 +40,9 @@ if (request.getParameter("page")!=null)
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <%@ include file="Styles.css" %>
+<link rel="stylesheet" href="jquery-ui.css">
 <script src="jquery-1.11.3.min.js"></script>
+<script src="jquery-ui.js"></script>
 </head>
 <body>
 <form id="frmQuery" method="get" accept-charset="UTF-8" action="search.jsp">
@@ -161,6 +163,7 @@ if (queryString.length()>0) {
 		<%
 		int i=0;
 		for (Map<String,Object> result : paginatedResults) {
+			int docId = (Integer) result.get("docId");
 			String bookId = (String) result.get("name");
 			int startPageUrl = (Integer) result.get("startPage") / 2 * 2;
 			String readOnlineURL = "https://archive.org/stream/" + bookId + "#page/n" + startPageUrl + "/mode/2up";
@@ -242,6 +245,49 @@ if (queryString.length()>0) {
 				$("#image<%=i %>_<%=j %>").on("click",function(){
 					window.open('<%= readOnlineURL %>', '_blank');
 				});
+				$("#snippet<%=i %>_<%=j %>").bind("dblclick",function(event){
+					//alert(Object.keys(event));
+					var sel = window.getSelection();
+					//alert(sel.anchorNode + ", " + sel.anchorNode.parentElement.outerHTML + ", " + sel.anchorNode.parentNode.textContent + "|offset:" + sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
+			        
+					var localOffset = sel.anchorOffset;
+					var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
+					var wordOffset = globalOffset + localOffset;
+					//alert("globalOffset: " + globalOffset + " + localOffset: " + localOffset + " = wordOffset: " + wordOffset);
+					
+					var target = $(this);
+				    var dialog, form;
+
+					 function applyFix() {	
+					 }
+					 
+					dialog = $( "#dialog-fixWord" ).dialog({
+					      autoOpen: false,
+					      height: 300,
+					      width: 500,
+					      position: { my: "center", at: "center", of: target },
+					      modal: true,
+					      buttons: {
+					        "Ok": applyFix,
+					        Cancel: function() {
+					          dialog.dialog( "close" );
+					        }
+					      },
+					      close: function() {
+					        form[ 0 ].reset();
+					      }
+					    });
+					
+				    form = dialog.find( "form" ).on( "submit", function( event ) {
+				        event.preventDefault();
+				        applyFix();
+				      });
+				    
+				    document.getElementById("imgFixWord").src="";
+					document.getElementById("imgFixWord").src='search?command=wordImage&docId=<%= docId %>&startOffset=' + wordOffset;
+					document.getElementById("txtFixWord").value=sel.toString();
+					dialog.dialog( "open" );
+				});
 				</script>
 				<%
 				j++;
@@ -321,5 +367,19 @@ if (queryString.length()>0) {
 }
 %>
 </form>
+<div id="dialog-fixWord" title="Fix a word">
+  <div style="width:100%; display: flex; align-items: center; justify-content: center;">
+  <img id="imgFixWord" style="max-width: 95%; max-height:100px;" />
+  </div>
+   <form>
+    <fieldset>
+      <label for="name">Word</label>
+      <input type="text" name="txtFixWord" id="txtFixWord" value="" class="text ui-widget-content ui-corner-all">
+ 
+      <!-- Allow form submission with keyboard without duplicating the dialog button -->
+      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+    </fieldset>
+  </form>
+</div>
 </body>
 </html>
