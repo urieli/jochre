@@ -91,6 +91,8 @@ public class JochreSearchServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse response)
 			throws ServletException, IOException {
+		long startTime = System.currentTimeMillis();
+		String user=null;
 		try {
 			response.addHeader("Access-Control-Allow-Origin", "*");
 			response.setCharacterEncoding("UTF-8");
@@ -206,6 +208,8 @@ public class JochreSearchServlet extends HttpServlet {
 					startOffset = Integer.parseInt(argValue);
 				} else if (argName.equals("docId")) {
 					docId = Integer.parseInt(argValue);
+				} else if (argName.equals("user")) {
+					user = argValue;
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -218,11 +222,11 @@ public class JochreSearchServlet extends HttpServlet {
 			
 			String indexDirPath = props.getIndexDirPath();
 			File indexDir = new File(indexDirPath);
-			LOG.info("Index dir: " + indexDir.getAbsolutePath());
+			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
 			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
 			
 			if (command.equals("search") || command.equals("highlight") || command.equals("snippets")) {		
-				response.setContentType("text/plain;charset=UTF-8");
+				response.setContentType("application/json;charset=UTF-8");
 				JochreQuery query = searchService.getJochreQuery();
 				query.setQueryString(queryString);
 				query.setAuthorQueryString(authorQueryString);
@@ -335,7 +339,22 @@ public class JochreSearchServlet extends HttpServlet {
 				imageWriter.setOutput(ios);
 				imageWriter.write(wordImage);
 				ios.flush();
+			} else if (command.equals("word")) {
+				response.setContentType("application/json;charset=UTF-8");
+				if (startOffset<0)
+					throw new JochreException("Command " + command + " requires a startOffset");
+				if (docId<0 && (docName==null || docIndex<0))
+					throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
+				
+				if (docId<0) {
+					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+					docId = docs.keySet().iterator().next();
+				}
+				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher.getIndexSearcher(), docId);
+				String word = jochreDoc.getWord(startOffset);
+				out.write("{\"word\":\"" + word + "\"}\n");
 			} else if (command.equals("index")) {
+				response.setContentType("application/json;charset=UTF-8");
 				File contentDir = new File(props.getContentDirPath());
 				
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
@@ -344,6 +363,7 @@ public class JochreSearchServlet extends HttpServlet {
 				new Thread(builder).start();
 				out.write("{\"response\":\"index thread started\"}\n");
 			} else if (command.equals("status")) {
+				response.setContentType("application/json;charset=UTF-8");
 				SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
 				JsonFactory jsonFactory = new JsonFactory();
 				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
@@ -362,6 +382,7 @@ public class JochreSearchServlet extends HttpServlet {
 				jsonGen.writeEndObject();
 				jsonGen.flush();
 			} else if (command.equals("view")) {
+				response.setContentType("application/json;charset=UTF-8");
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
@@ -380,6 +401,7 @@ public class JochreSearchServlet extends HttpServlet {
 				jsonGen.writeEndArray();
 				jsonGen.flush();
 			} else if (command.equals("list")) {
+				response.setContentType("application/json;charset=UTF-8");
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				if (docIndex<0)
@@ -398,6 +420,9 @@ public class JochreSearchServlet extends HttpServlet {
 		} catch (RuntimeException e) {
 			LogUtils.logError(LOG, e);
 			throw e;
+		} finally {
+			long duration = System.currentTimeMillis() - startTime;
+			LOG.info("User:" + user + " " + req.getRequestURI() + "?" + req.getQueryString() + " Duration:" + duration);
 		}
 	}
 }

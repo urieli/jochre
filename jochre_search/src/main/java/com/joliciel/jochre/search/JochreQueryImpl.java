@@ -148,7 +148,7 @@ class JochreQueryImpl implements JochreQuery {
 					queryString = textNormaliser.normalise(queryString);
 				luceneTextQuery = queryParser.parse(queryString);
 			}
-			LOG.info(luceneTextQuery.toString());
+			LOG.debug(luceneTextQuery.toString());
 			return luceneTextQuery;
 		} catch (ParseException pe) {
 			LogUtils.logError(LOG, pe);
@@ -203,7 +203,7 @@ class JochreQueryImpl implements JochreQuery {
 						builder.add(booleanClause);
 				}
 				luceneQuery = builder.build();
-				LOG.info(luceneQuery.toString());
+				LOG.debug(luceneQuery.toString());
 			}
 			return luceneQuery;
 		} catch (ParseException pe) {

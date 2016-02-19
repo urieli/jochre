@@ -76,9 +76,16 @@ public interface JochreIndexDocument {
 	public int getRowCount(int pageIndex);
 	
 	/**
-	 * Get the image corresponding to a word starting at the given offset, and found on the given page.
+	 * Get the image corresponding to a word starting at the given offset, or at the maximum offset prior to this one.
 	 * @param startOffset
 	 * @return
 	 */
 	public BufferedImage getWordImage(int startOffset);
+
+	/**
+	 * Get the word starting at the given offset, or at the maximum offset prior to this one.
+	 * @param startOffset
+	 * @return
+	 */
+	String getWord(int startOffset);
 }

@@ -52,7 +52,7 @@ public class JochreSearchProperties {
 	}
 	
 	public static void purgeInstance() {
-		LOG.info("purgeInstance");
+		LOG.debug("purgeInstance");
 		instance = null;
 	}
 	

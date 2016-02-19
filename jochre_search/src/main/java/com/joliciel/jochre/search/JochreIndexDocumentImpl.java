@@ -5,11 +5,14 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.NavigableMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,6 +52,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private TIntIntMap rowCounts = null;
 	private int docId = -1;
 	private IndexSearcher indexSearcher = null;
+	private JochreIndexTermLister termLister = null;
 	
 	private SearchServiceInternal searchService;
 
@@ -385,14 +389,15 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		Rectangle rect = new Rectangle(x, y, width, height);
 		return rect;
 	}
-
+	
 	@Override
 	public BufferedImage getWordImage(int startOffset) {
 		if (this.indexSearcher==null)
 			throw new JochreException("Can only get word image for documents already in index");
-		JochreIndexTermLister termLister = new JochreIndexTermLister(docId, indexSearcher);
-		TIntObjectMap<JochreTerm> termMap = termLister.getTextTermByOffset();
-		JochreTerm jochreTerm = termMap.get(startOffset);
+		JochreIndexTermLister termLister = this.getTermLister();
+		NavigableMap<Integer,JochreTerm> termMap = termLister.getTextTermByOffset();
+		
+		JochreTerm jochreTerm = termMap.floorEntry(startOffset).getValue();
 		if (jochreTerm == null) {
 			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + this.getName() + ", index " + this.index);
 		}
@@ -400,9 +405,59 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		BufferedImage originalImage = this.getImage(pageIndex);
 		Rectangle rect = jochreTerm.getPayload().getRectangle();
 		BufferedImage imageSnippet = originalImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
+		
+		Rectangle secondaryRect = jochreTerm.getPayload().getSecondaryRectangle();
+		if (secondaryRect!=null) {
+			BufferedImage secondSnippet = originalImage.getSubimage(secondaryRect.x, secondaryRect.y, secondaryRect.width, secondaryRect.height);
+			imageSnippet = joinBufferedImage(secondSnippet, imageSnippet);
+		}
 		return imageSnippet;
 	}
+	
+    /**
+     * From http://stackoverflow.com/questions/20826216/copy-two-buffered-image-into-one-image-side-by-side
+     */
+    public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
+        //do some calculations first
+        int offset  = 5;
+        int wid = img1.getWidth()+img2.getWidth()+offset;
+        int height = Math.max(img1.getHeight(),img2.getHeight())+offset;
+        //create a new buffer and draw two images into the new image
+        BufferedImage newImage = new BufferedImage(wid,height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = newImage.createGraphics();
+        Color oldColor = g2.getColor();
+        //fill background
+        g2.setPaint(Color.WHITE);
+        g2.fillRect(0, 0, wid, height);
+        //draw image
+        g2.setColor(oldColor);
+        g2.drawImage(img1, null, 0, 0);
+        g2.drawImage(img2, null, img1.getWidth()+offset, 0);
+        g2.dispose();
+        return newImage;
+    }
+	
+	@Override
+	public String getWord(int startOffset) {
+		if (this.indexSearcher==null)
+			throw new JochreException("Can only get word image for documents already in index");
+		JochreIndexTermLister termLister = this.getTermLister();
+		NavigableMap<Integer,JochreTerm> termMap = termLister.getTextTermByOffset();
+		
+		JochreTerm jochreTerm = termMap.floorEntry(startOffset).getValue();
+		if (jochreTerm == null) {
+			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + this.getName() + ", index " + this.index);
+		}
+		String word = this.getContents().substring(jochreTerm.start, jochreTerm.end);
+		return word;
+	}
 
+	private JochreIndexTermLister getTermLister() {
+		if (this.termLister==null)
+			termLister = new JochreIndexTermLister(docId, indexSearcher);
+		return termLister;
+	}
+	
 	public SearchServiceInternal getSearchService() {
 		return searchService;
 	}

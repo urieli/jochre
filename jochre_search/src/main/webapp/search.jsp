@@ -386,7 +386,7 @@ if (queryString.length()>0) {
 					      buttons: {
 					        "Ok": applyFix,
 					        Cancel: function() {
-					          dialog.dialog( "close" );
+					          dialog.dialog("close");
 					        }
 					      },
 					      close: function() {
@@ -400,9 +400,17 @@ if (queryString.length()>0) {
 				      });
 				    
 				    document.getElementById("imgFixWord").src="";
+					document.getElementById("txtFixWord").value="";
 					document.getElementById("imgFixWord").src='search?command=wordImage&docId=<%= docId %>&startOffset=' + wordOffset;
-					document.getElementById("txtFixWord").value=sel.toString();
-					dialog.dialog( "open" );
+					
+					$.getJSON( "search?command=word&docId=<%= docId %>&startOffset=" + wordOffset, function( data ) {
+						  $.each( data, function( key, val ) {
+							  document.getElementById("txtFixWord").value=val;
+						  });
+						});
+					
+					dialog.dialog("open");
+
 				});
 				</script>
 				<%
@@ -484,14 +492,27 @@ if (queryString.length()>0) {
 %>
 </form>
 <div id="dialog-fixWord" title="Fix a word" style="display:none;">
-  <div style="width:100%; display: flex; align-items: center; justify-content: center;">
-  <img id="imgFixWord" style="max-width: 95%; max-height:100px;" />
+  <div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
+  <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
   </div>
    <form>
     <fieldset>
-      <label for="name">Word</label>
-      <input type="text" name="txtFixWord" id="txtFixWord" value="" class="text ui-widget-content ui-corner-all">
- 
+      <table>
+      <tr><td><label for="txtFixWord">Word</label></td>
+      <td><input type="text" name="txtFixWord" id="txtFixWord" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+      <tr><td><label for="selFont">Font</label></td>
+      <td><select id="selFont" name="selFont">
+      <option value="Serif">Serif</option>
+      <option value="SerifItalic">Serif Italic</option>
+      <option value="SansSerif">Sans Serif</option>
+      <option value="SansSerifItalic">Sans Serif Italic</option>
+      </select></td></tr>
+      <tr><td><label for="selLang">Language</label></td>
+      <td><select id="selLang" name="selLang">
+      <option value="Yiddish">Yiddish</option>
+      <option value="Other">Other</option>
+      </select></td></tr>
+      </table>
       <!-- Allow form submission with keyboard without duplicating the dialog button -->
       <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
     </fieldset>

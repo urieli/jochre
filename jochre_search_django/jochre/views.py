@@ -12,6 +12,8 @@ def search(request):
     if not request.user.is_authenticated():
         return redirect('accounts/login/')
     
+    username = request.user.username
+    
     searchUrl = settings.JOCHRE_SEARCH_URL
     advancedSearch = False
     haveResults = False
@@ -57,7 +59,10 @@ def search(request):
     if len(query)>0:
         MAX_DOCS=1000
         RESULTS_PER_PAGE=10
-        userdata = {"command": "search", "maxDocs": MAX_DOCS, "query": query}
+        userdata = {"command": "search",
+                    "maxDocs": MAX_DOCS,
+                    "query": query,
+                    "user": username}
         if len(author)>0:
             userdata['author'] = author
         if len(title)>0:
@@ -96,7 +101,12 @@ def search(request):
             
             if len(page.items)>0:
                 haveResults = True
-                userdata = {"command": "snippets", "snippetCount": 8, "snippetSize": 160, "query": query, "docIds": docIds}
+                userdata = {"command": "snippets",
+                            "snippetCount": 8,
+                            "snippetSize": 160,
+                            "query": query,
+                            "docIds": docIds,
+                            "user": username}
                 if strict:
                     userdata['expand'] = 'false'
                 resp = requests.get(searchUrl, userdata)
@@ -131,7 +141,9 @@ def search(request):
                         snippetJson = json.dumps(snippet)
                         snippetText = snippet.pop("text", "")
                         
-                        userdata = {"command": "imageSnippet", "snippet": snippetJson}
+                        userdata = {"command": "imageSnippet",
+                                    "snippet": snippetJson,
+                                    "user": username}
                         req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
                         preparedReq = req.prepare()
                         snippetImageUrl = preparedReq.url

@@ -1,15 +1,14 @@
 package com.joliciel.jochre.search;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
@@ -36,6 +35,7 @@ public class JochreIndexTermLister {
 	
 	private int docId;
 	private IndexSearcher indexSearcher;
+	private TreeMap<Integer,JochreTerm> offsetTermMap;
 
 	public JochreIndexTermLister(int docId, IndexSearcher indexSearcher) {
 		super();
@@ -99,12 +99,14 @@ public class JochreIndexTermLister {
 		}
 	}
 	
-	public TIntObjectMap<JochreTerm> getTextTermByOffset() {
-		TIntObjectMap<JochreTerm> offsetTermMap = new TIntObjectHashMap<>();
-		Map<String,Set<JochreTerm>> fieldTermMap = this.list();
-		Set<JochreTerm> textTerms = fieldTermMap.get(JochreIndexField.text.name());
-		for (JochreTerm jochreTerm : textTerms) {
-			offsetTermMap.put(jochreTerm.getStart(), jochreTerm);
+	public NavigableMap<Integer,JochreTerm> getTextTermByOffset() {
+		if (offsetTermMap==null) {
+			offsetTermMap = new TreeMap<Integer,JochreTerm>();
+			Map<String,Set<JochreTerm>> fieldTermMap = this.list();
+			Set<JochreTerm> textTerms = fieldTermMap.get(JochreIndexField.text.name());
+			for (JochreTerm jochreTerm : textTerms) {
+				offsetTermMap.put(jochreTerm.getStart(), jochreTerm);
+			}
 		}
 		return offsetTermMap;
 	}
@@ -154,9 +156,9 @@ public class JochreIndexTermLister {
 	        	//Retrieve the term frequency in the current document
 	            int freq=docPosEnum.freq();
 	            
-	            if (LOG.isTraceEnabled()) {
+	            if (LOG.isTraceEnabled())
 	            	LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId + ", docId " + docId + ", field " + field);
-	            }
+	            
 	            for(int i=0; i<freq; i++){
 	                int position=docPosEnum.nextPosition();
 	                int start=docPosEnum.startOffset();

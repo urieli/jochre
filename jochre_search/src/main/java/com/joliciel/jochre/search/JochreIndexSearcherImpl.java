@@ -211,7 +211,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				builder.add(indexQuery, Occur.MUST);
 			}
 			Query query = builder.build();
-			LOG.info(query.toString());
+			LOG.debug(query.toString());
 			TopDocs topDocs = indexSearcher.search(query, 200);
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
