@@ -51,15 +51,15 @@ if (request.getParameter("page")!=null)
 <tr>
 <td><a href="https://github.com/urieli/jochre/" target="_blank"><img src="images/jochreLogo.png" width="150px" border="0" /></a></td>
 <td style="vertical-align: bottom;" align="right"><span id="toggleAdvancedSearch" ><img src="images/plusInCircle.png" border="0" width="20px" /></span>&nbsp;
-<input type="submit" value="זוך" />&nbsp;<input type="text" name="query" style="width:300px;" value="<%= queryStringInput %>" /></td>
+<input type="submit" value="זוך" />&nbsp;<input type="text" id="txtQuery" name="query" style="width:300px;" value="<%= queryStringInput %>" /></td>
 </tr>
 <tr id="advancedSearch" style="display: <%= advancedSearch ? "visible" : "none" %>;">
 <td colspan="2" align="right">
 <table>
 <tr>
 <td class="RTLAuthor">שטרענג? <input type="checkbox" name="strict" value="true" <% if (strict) { %>checked="checked" <% } %>/></td>
-<td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
-<td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
+<td class="RTLAuthor" width="200px"><b>טיטל:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="<%= titleQueryStringInput %>" /></td>
+<td class="RTLAuthor" width="200px"><b>מחבר:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="<%= authorQueryStringInput %>" /></td>
 </tr>
 </table>
 </td>
@@ -69,6 +69,122 @@ if (request.getParameter("page")!=null)
 $("#toggleAdvancedSearch").on("click",function(){
 	$("#advancedSearch").toggle();
    });
+   
+function latinToYiddish(charStr) {
+	switch (charStr) {
+	case 'a': return 'אַ';
+	case 'A': return 'א';
+	case 'b': return 'ב';
+	case 'B': return 'בּ';
+	case 'c': return 'כ';
+	case 'C': return 'ך';
+	case 'd': return 'ד';
+	case 'D': return 'ד';
+	case 'e': return 'ע';
+	case 'E': return 'ע';
+	case 'f': return 'פֿ';
+	case 'F': return 'ף';
+	case 'g': return 'ג';
+	case 'G': return 'ג';
+	case 'h': return 'ה';
+	case 'H': return 'ה';
+	case 'i': return 'י';
+	case 'I': return 'יִ';
+	case 'j': return 'ױ';
+	case 'J': return 'ױ';
+	case 'k': return 'ק';
+	case 'K': return 'כּ';
+	case 'l': return 'ל';
+	case 'L': return 'ל';
+	case 'm': return 'מ';
+	case 'M': return 'ם';
+	case 'n': return 'נ';
+	case 'n': return 'ן';
+	case 'o': return 'אָ';
+	case 'O': return 'וֹ';
+	case 'p': return 'פּ';
+	case 'P': return 'פ';
+	case 'q': return 'ח';
+	case 'Q': return 'כֿ';
+	case 'r': return 'ר';
+	case 'R': return 'ר';
+	case 's': return 'ס';
+	case 'S': return 'ת';
+	case 't': return 'ט';
+	case 'T': return 'תּ';
+	case 'u': return 'ו';
+	case 'U': return 'וּ';
+	case 'v': return 'װ';
+	case 'V': return 'בֿ';
+	case 'w': return 'ש';
+	case 'W': return 'שׂ';
+	case 'x': return 'צ';
+	case 'X': return 'ץ';
+	case 'y': return 'ײ';
+	case 'Y': return 'ײַ';
+	case 'z': return 'ז';
+	case 'Z': return 'ז';
+	default: return charStr;
+	}
+}
+
+function transformKeyPress(textfield, evt) {
+    var val = textfield.value;
+    evt = evt || window.event;
+
+    // Ensure we only handle printable keys, excluding enter and space
+    var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
+    if (charCode && charCode > 32) {
+        var keyChar = String.fromCharCode(charCode);
+
+        // Transform typed character
+        var mappedChar = latinToYiddish(keyChar);
+
+        var start, end;
+        if (typeof textfield.selectionStart == "number" && typeof textfield.selectionEnd == "number") {
+            // Non-IE browsers and IE 9
+            start = textfield.selectionStart;
+            end = textfield.selectionEnd;
+            textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
+
+            // Move the caret
+            textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
+        } else if (document.selection && document.selection.createRange) {
+            // For IE up to version 8
+            var selectionRange = document.selection.createRange();
+            var textInputRange = textfield.createTextRange();
+            var precedingRange = textfield.createTextRange();
+            var bookmark = selectionRange.getBookmark();
+            textInputRange.moveToBookmark(bookmark);
+            precedingRange.setEndPoint("EndToStart", textInputRange);
+            start = precedingRange.text.length;
+            end = start + selectionRange.text.length;
+
+            textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
+            start++;
+
+            // Move the caret
+            textInputRange = textfield.createTextRange();
+            textInputRange.collapse(true);
+            textInputRange.move("character", start - (textfield.value.slice(0, start).split("\r\n").length - 1));
+            textInputRange.select();
+        }
+
+        return false;
+    }
+};
+
+document.getElementById("txtQuery").onkeypress = function(evt) {
+    return transformKeyPress(this, evt);
+};
+
+document.getElementById("txtTitle").onkeypress = function(evt) {
+    return transformKeyPress(this, evt);
+};
+
+document.getElementById("txtAuthor").onkeypress = function(evt) {
+    return transformKeyPress(this, evt);
+};
 </script>
 <%
 if (queryString.length()>0) {
@@ -367,7 +483,7 @@ if (queryString.length()>0) {
 }
 %>
 </form>
-<div id="dialog-fixWord" title="Fix a word">
+<div id="dialog-fixWord" title="Fix a word" style="display:none;">
   <div style="width:100%; display: flex; align-items: center; justify-content: center;">
   <img id="imgFixWord" style="max-width: 95%; max-height:100px;" />
   </div>
