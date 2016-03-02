@@ -50,18 +50,20 @@ import com.joliciel.talismane.utils.LogUtils;
 class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 	private static final Log LOG = LogFactory.getLog(JochreIndexDirectoryImpl.class);
 
-	File directory;
-	File pdfFile;
-	File altoFile;
-	File metaFile;
-	String name;
-	Map<String, String> metaData;
-	Instructions instructions;
+	private File directory;
+	private File pdfFile;
+	private File altoFile;
+	private File metaFile;
+	private String name;
+	private Map<String, String> metaData;
+	private Instructions instructions;
 	boolean metaFileRetrieved = false;
+	private String path;
 
-	public JochreIndexDirectoryImpl(File directory) {
+	public JochreIndexDirectoryImpl(File contentDir, File directory) {
 		this.directory = directory;
 		this.name = this.directory.getName();
+		this.path = contentDir.toURI().relativize(directory.toURI()).getPath();
 	}
 
 	public File getPdfFile() {
@@ -302,4 +304,7 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 		}
 	}
 
+	public String getPath() {
+		return path;
+	}
 }

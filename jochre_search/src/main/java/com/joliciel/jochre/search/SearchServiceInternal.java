@@ -29,7 +29,7 @@ import org.apache.lucene.analysis.Tokenizer;
 import com.joliciel.jochre.search.alto.AltoPage;
 
 interface SearchServiceInternal extends SearchService {
-	public JochreIndexDirectory getJochreIndexDirectory(File dir);
+	public JochreIndexDirectory getJochreIndexDirectory(File contentDir, File dir);
 	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages);
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
 			String fieldName);
@@ -56,4 +56,12 @@ interface SearchServiceInternal extends SearchService {
 	 * @return
 	 */
 	public TokenFilter getQueryTokenFilter(TokenStream input);
+	
+	/**
+	 * Get a JochreIndexWord at a particular offset of a document.
+	 * @param doc
+	 * @param startOffset
+	 * @return
+	 */
+	public JochreIndexWord getWord(JochreIndexDocument doc, int startOffset);
 }

@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -58,6 +59,8 @@ import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoStringFixer;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
+import com.joliciel.jochre.search.feedback.FeedbackService;
+import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -76,6 +79,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	
 	private SearchServiceInternal searchService;
 	private AltoService altoService;
+	private FeedbackService feedbackService;
 	
 	public JochreIndexBuilderImpl(File indexDir, File contentDir) {
 		super();
@@ -120,10 +124,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			throw new JochreSearchException("Search index construction already underway. Try again later.");
 		}
 		
-		this.updateIndex(contentDir, forceUpdate);
+		this.updateIndex(forceUpdate);
 	}
 
-	public void updateIndex(File contentDir, boolean forceUpdate) {
+	public void updateIndex(boolean forceUpdate) {
 		long startTime = System.currentTimeMillis();
 		SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
 		try {
@@ -140,11 +144,29 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			
 			searchStatusHolder.setStatus(SearchStatus.BUSY);
 			searchStatusHolder.setTotalCount(subdirs.length);
-
+			
+			List<FeedbackSuggestion> suggestionList = feedbackService.findUnappliedSuggestions();
+			Map<String,Map<Integer,List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
+			for (FeedbackSuggestion suggestion : suggestionList) {
+				String docPath = suggestion.getWord().getRow().getDocument().getPath();
+				int pageIndex = suggestion.getWord().getRow().getPageIndex();
+				Map<Integer,List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
+				if (docSuggestions==null) {
+					docSuggestions = new HashMap<>();
+					unappliedSuggestions.put(docPath, docSuggestions);
+				}
+				List<FeedbackSuggestion> pageSuggestions = docSuggestions.get(pageIndex);
+				if (pageSuggestions==null) {
+					pageSuggestions = new ArrayList<>();
+					docSuggestions.put(pageIndex, pageSuggestions);
+				}
+				pageSuggestions.add(suggestion);
+			}
+			
 			for (File subdir : subdirs) {
 				try {
 					searchStatusHolder.setAction("Indexing " + subdir.getName());
-					this.processDocument(subdir, forceUpdate);
+					this.processDocument(subdir, forceUpdate, unappliedSuggestions);
 					searchStatusHolder.incrementSuccessCount(1);
 				} catch (Exception e) {
 					LogUtils.logError(LOG, e);
@@ -173,7 +195,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		long startTime = System.currentTimeMillis();
 		try {
 			this.initialise();
-			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(documentDir);
+			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(contentDir, documentDir);
 			this.updateDocumentInternal(directory, startPage, endPage);
 			indexWriter.commit();
 			indexWriter.close();
@@ -191,7 +213,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	public void deleteDocument(File documentDir) {
 		try {
 			this.initialise();
-			this.deleteDocumentInternal(documentDir);
+			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(contentDir, documentDir);
+			this.deleteDocumentInternal(jochreIndexDirectory);
 			indexWriter.commit();
 			indexWriter.close();
 			searchService.purge();
@@ -201,15 +224,14 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 	
-	private void processDocument(File documentDir, boolean forceUpdate) {
+	private void processDocument(File documentDir, boolean forceUpdate, Map<String,Map<Integer,List<FeedbackSuggestion>>> unappliedSuggestions) {
 		try {
-			
 			boolean updateIndex = false;
 			
-			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(documentDir);
+			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(contentDir, documentDir);
 			switch (jochreIndexDirectory.getInstructions()) {
 			case Delete:
-				this.deleteDocumentInternal(documentDir);
+				this.deleteDocumentInternal(jochreIndexDirectory);
 				return;
 			case Skip:
 				return;
@@ -222,6 +244,11 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	
 			if (forceUpdate)
 				updateIndex = true;
+			
+			if (!updateIndex) {
+				if (unappliedSuggestions.containsKey(jochreIndexDirectory.getPath()))
+					updateIndex = true;
+			}
 			
 			if (!updateIndex) {
 				long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
@@ -263,7 +290,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		try {
 			LOG.info("Updating index for " + jochreIndexDirectory.getName());
 			
-			this.deleteDocumentInternal(jochreIndexDirectory.getDirectory());
+			this.deleteDocumentInternal(jochreIndexDirectory);
 			
 			AltoDocument altoDoc = this.altoService.newDocument(jochreIndexDirectory.getName());
 			AltoReader reader = this.altoService.getAltoReader(altoDoc);
@@ -311,6 +338,19 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				return;
 			LOG.debug("Processing page: " + page.getIndex());
 			currentPages.add(page);
+			
+			List<FeedbackSuggestion> suggestions = parent.getFeedbackService().findSuggestions(directory.getPath(), page.getIndex());
+			Map<Rectangle,List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
+			for (FeedbackSuggestion suggestion : suggestions) {
+				Rectangle rectangle = suggestion.getWord().getRectangle();
+				List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
+				if (wordSuggestions==null) {
+					wordSuggestions = new ArrayList<>();
+					suggestionMap.put(rectangle, wordSuggestions);
+				}
+				wordSuggestions.add(suggestion);
+			}
+			
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				textBlock.joinHyphens();
 				if (this.altoStringFixer!=null)
@@ -321,6 +361,18 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 						if (string.isWhiteSpace() || PUNCTUATION.matcher(string.getContent()).matches())
 							continue;
 						
+						List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(string.getRectangle());
+						if (wordSuggestions!=null) {
+							FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size()-1);
+							LOG.debug("Applying suggestion: " + lastSuggestion.getText() + " instead of " + string.getContent());
+							string.setContent(lastSuggestion.getText());
+							for (FeedbackSuggestion suggestion : wordSuggestions) {
+								if (!suggestion.isApplied()) {
+									suggestion.setApplied(true);
+									suggestion.save();
+								}
+							}
+						}
 						currentStrings.add(string);
 					}
 				}
@@ -363,9 +415,9 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	
-	private void deleteDocumentInternal(File documentDir) {
+	private void deleteDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
 		try {
-			Term term = new Term(JochreIndexField.path.name(), documentDir.getAbsolutePath());
+			Term term = new Term(JochreIndexField.path.name(), jochreIndexDirectory.getPath());
 			indexWriter.deleteDocuments(term);
 		} catch (IOException ioe) {
 			LogUtils.logError(LOG, ioe);
@@ -422,5 +474,17 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	@Override
 	public void setForceUpdate(boolean forceUpdate) {
 		this.forceUpdate = forceUpdate;
+	}
+
+	public File getContentDir() {
+		return contentDir;
+	}
+
+	public FeedbackService getFeedbackService() {
+		return feedbackService;
+	}
+
+	public void setFeedbackService(FeedbackService feedbackService) {
+		this.feedbackService = feedbackService;
 	}
 }

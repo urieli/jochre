@@ -15,6 +15,12 @@ import org.apache.lucene.search.TopDocs;
  */
 public interface JochreIndexSearcher {
 	/**
+	 * The directory in which the original PDF files are contained.
+	 * @return
+	 */
+	public File getContentDir();
+	
+	/**
 	 * Return a list of Lucene docIds and scores corresponding to a given query.
 	 * @param cfhQuery
 	 * @return

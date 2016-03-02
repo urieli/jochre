@@ -21,6 +21,7 @@ package com.joliciel.jochre.search;
 import java.util.Locale;
 
 import com.joliciel.jochre.search.alto.AltoServiceLocator;
+import com.joliciel.jochre.search.feedback.FeedbackServiceLocator;
 import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 
 public class SearchServiceLocator {
@@ -44,6 +45,7 @@ public class SearchServiceLocator {
 			searchService = new SearchServiceImpl();
 			searchService.setAltoService(AltoServiceLocator.getInstance(this).getAltoService());
 			searchService.setLexiconService(LexiconServiceLocator.getInstance(this).getLexiconService());
+			searchService.setFeedbackService(FeedbackServiceLocator.getInstance(this).getFeedbackService());
 			searchService.setLocale(locale);
 		}
 		return searchService;

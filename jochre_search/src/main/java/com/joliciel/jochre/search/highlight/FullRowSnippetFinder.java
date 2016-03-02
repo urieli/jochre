@@ -27,10 +27,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.search.IndexSearcher;
-
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
+import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreSearchException;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.JochreException;
@@ -43,12 +42,12 @@ import com.joliciel.talismane.utils.LogUtils;
  */
 class FullRowSnippetFinder implements SnippetFinder {
 	private static final Log LOG = LogFactory.getLog(FullRowSnippetFinder.class);
-	private IndexSearcher indexSearcher;
+	private JochreIndexSearcher indexSearcher;
 	private int rowExtension = 1;
 	
 	private SearchService searchService;
 	
-	public FullRowSnippetFinder(IndexSearcher indexSearcher) {
+	public FullRowSnippetFinder(JochreIndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
 	}
@@ -57,7 +56,7 @@ class FullRowSnippetFinder implements SnippetFinder {
 	@Override
 	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets) {
 		try {
-			Document doc = indexSearcher.doc(docId);
+			Document doc = indexSearcher.getIndexSearcher().doc(docId);
 			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
 			// find best snippet for each term		
 			PriorityQueue<Snippet> heap = new PriorityQueue<Snippet>();
@@ -77,13 +76,13 @@ class FullRowSnippetFinder implements SnippetFinder {
 				int pageIndex = term.getPayload().getPageIndex();
 				int rowIndex = term.getPayload().getRowIndex();
 				
-				double rowTop = jochreDoc.getRectangle(pageIndex, rowIndex).getY();
+				double rowTop = jochreDoc.getRowRectangle(pageIndex, rowIndex).getY();
 				int pageRowCount = jochreDoc.getRowCount(pageIndex);
 
 				int startRowIndex = rowIndex - rowExtension;
 				if (startRowIndex<0) startRowIndex = 0;
 				// avoid starting on another column
-				while (startRowIndex<rowIndex && jochreDoc.getRectangle(pageIndex, startRowIndex).getY()>rowTop)
+				while (startRowIndex<rowIndex && jochreDoc.getRowRectangle(pageIndex, startRowIndex).getY()>rowTop)
 					startRowIndex++;
 				int start = jochreDoc.getStartIndex(pageIndex, startRowIndex);
 				
@@ -91,7 +90,7 @@ class FullRowSnippetFinder implements SnippetFinder {
 				if (endRowIndex>=pageRowCount)
 					endRowIndex = pageRowCount-1;
 				// avoid ending on another column
-				while (endRowIndex>rowIndex && jochreDoc.getRectangle(pageIndex, endRowIndex).getY()<rowTop)
+				while (endRowIndex>rowIndex && jochreDoc.getRowRectangle(pageIndex, endRowIndex).getY()<rowTop)
 					endRowIndex--;
 				int end = jochreDoc.getEndIndex(pageIndex, endRowIndex);
 				
@@ -134,13 +133,13 @@ class FullRowSnippetFinder implements SnippetFinder {
 						
 						if (otherTerm.getPayload().getRowIndex()>term.getPayload().getRowIndex() && otherTerm.getPayload().getRowIndex()+1<pageRowCount) {
 							rowIndex = otherTerm.getPayload().getRowIndex();
-							rowTop = jochreDoc.getRectangle(pageIndex, rowIndex).getY();
+							rowTop = jochreDoc.getRowRectangle(pageIndex, rowIndex).getY();
 							
 							endRowIndex = rowIndex + rowExtension;
 							if (endRowIndex>=pageRowCount)
 								endRowIndex = pageRowCount-1;
 							// avoid ending on another column
-							while (endRowIndex>rowIndex && jochreDoc.getRectangle(pageIndex, endRowIndex).getY()<rowTop)
+							while (endRowIndex>rowIndex && jochreDoc.getRowRectangle(pageIndex, endRowIndex).getY()<rowTop)
 								endRowIndex--;
 							end = jochreDoc.getEndIndex(pageIndex, endRowIndex);
 

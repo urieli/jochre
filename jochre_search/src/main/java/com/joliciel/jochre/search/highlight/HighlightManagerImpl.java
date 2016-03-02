@@ -33,12 +33,11 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.search.IndexSearcher;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
+import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
@@ -47,7 +46,7 @@ import com.joliciel.talismane.utils.LogUtils;
 class HighlightManagerImpl implements HighlightManager {
 	private static final Log LOG = LogFactory.getLog(HighlightManagerImpl.class);
 
-	private IndexSearcher indexSearcher;
+	private JochreIndexSearcher indexSearcher;
 	private int decimalPlaces = 2;
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
 	private DecimalFormat df = new DecimalFormat("0.00", enSymbols);
@@ -64,7 +63,7 @@ class HighlightManagerImpl implements HighlightManager {
 	private SearchService searchService;
 	private HighlightService highlightService;
 	
-	public HighlightManagerImpl(IndexSearcher indexSearcher) {
+	public HighlightManagerImpl(JochreIndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
 	}
@@ -79,7 +78,7 @@ class HighlightManagerImpl implements HighlightManager {
 			jsonGen.writeStartObject();
 			
 			for (int docId : docIds) {
-				Document doc = indexSearcher.doc(docId);
+				Document doc = indexSearcher.getIndexSearcher().doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
@@ -140,7 +139,7 @@ class HighlightManagerImpl implements HighlightManager {
 			jsonGen.writeStartObject();
 			
 			for (int docId : docIds) {
-				Document doc = indexSearcher.doc(docId);
+				Document doc = indexSearcher.getIndexSearcher().doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));

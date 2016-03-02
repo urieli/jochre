@@ -16,6 +16,7 @@ jochre_occitan/webapp/
 jochre_yiddish/webapp/
 jochre_search_django/jochre_search_django/settings_local.py
 jochre_search_django/db.sqlite3
+jochre_search_django/static/
 /webapp/
 logs/
 ant/conf.xml

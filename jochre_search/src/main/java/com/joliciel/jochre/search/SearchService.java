@@ -21,18 +21,15 @@ package com.joliciel.jochre.search;
 import java.io.File;
 import java.util.Locale;
 
-import org.apache.lucene.search.IndexSearcher;
-
 import com.joliciel.jochre.search.lexicon.Lexicon;
 
 public interface SearchService {
-	public JochreIndexDocument getJochreIndexDocument(IndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir);
+	public JochreIndexDocument getJochreIndexDocument(JochreIndexSearcher indexSearcher, int docId);
+	public JochreIndexSearcher getJochreIndexSearcher(File indexDir, File contentDir);
 	public void purge();
 	
 	public JochreQuery getJochreQuery();
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir);
 	
 	public SearchStatusHolder getSearchStatusHolder();
 	
@@ -41,4 +38,10 @@ public interface SearchService {
 	
 	public Lexicon getLexicon();
 	public void setLexicon(Lexicon lexicon);
+	
+	/**
+	 * Is the current locale left-to-right?
+	 * @return
+	 */
+	public boolean isLeftToRight();
 }

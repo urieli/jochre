@@ -29,34 +29,34 @@ LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 JOCHRE_TITLE="Jochre en Occitan"
-JOCHRE_CREDITS="""Textes océrisés et lexique par <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a><br/>
-Textes numérisés par <a href="http://locirdoc.fr/" target="_blank">Cirdoc</a><br/>
-Textes indexés by Assaf Urieli, <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a>"""
+JOCHRE_CREDITS="""Tèxtes ocerizats e lexic per la còla <a href="http://myriam.bras.free.fr/bateloc/index.html" target="_blank">BaTelÒc</a> de <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a> dins l'encastre del projècte <a href="http://restaure.unistra.fr" target="_blank">RESTAURE</a><br/>
+Tèxtes numerizats pel <a href="http://locirdoc.fr/" target="_blank">CIRDÒC</a><br/>
+Tèxtes indexats per <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a>"""
 
 JOCHRE_LEFT_TO_RIGHT=True
 JOCHRE_READ_ONLINE=False
 
-# UI strings is complete guesswork by Assaf
+# UI strings, partially corrected
 JOCHRE_UI_STRINGS = {
-"logout" : u"Logout",
+"logout" : u"se desconnectar",
 "searchButton" : u"cercar",
 "titleField" : u"Títol",
-"authorField" : u"Fasedor",
-"strictField" : u"estrech",
+"authorField" : u"Autor",
+"strictField" : u"Forma exacta",
 "unableToProcessQuery" : u"Unable to process query",
 "noResults" : u"No results",
-"foundResults" : u"%d resultatas. Resultatas %d a %d",
-"foundMoreResults" : u"Mai que %d resultatas. Resultatas %d a %d",
+"foundResults" : u"%d resultats. Resultats %d a %d",
+"foundMoreResults" : u"Mai que %d resultats. Resultats %d a %d",
 "title" : u"Títol",
-"author" : u"Fasedor",
-"section" : u"Encors",
+"author" : u"Autor",
+"section" : u"Partidas",
 "pages" : u"Paginas",
 "to" : u"a",
 "publisher" : u"Editor",
 "date" : u"Data",
-"first" : u"Primièr",
-"prev" : u"Reiral",
-"next" : u"Seguidor",
-"last" : u"Darrièr",
+"first" : u"Primièra",
+"prev" : u"Precedenta",
+"next" : u"Seguenta",
+"last" : u"Darrièra",
 "volume" : u"volum",
 }

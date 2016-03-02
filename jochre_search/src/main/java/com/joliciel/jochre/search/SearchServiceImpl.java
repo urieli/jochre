@@ -19,8 +19,11 @@
 package com.joliciel.jochre.search;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,10 +31,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.search.IndexSearcher;
 
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoService;
+import com.joliciel.jochre.search.feedback.FeedbackService;
 import com.joliciel.jochre.search.lexicon.Lexicon;
 import com.joliciel.jochre.search.lexicon.LexiconService;
 
@@ -40,15 +43,14 @@ class SearchServiceImpl implements SearchServiceInternal {
 	
 	private AltoService altoService;
 	private LexiconService lexiconService;
+	private FeedbackService feedbackService;
+	
 	private JochreIndexSearcher searcher;
 	private SearchStatusHolder searchStatusHolder;
 	private Locale locale;
 	private Lexicon lexicon;
 	
-	@Override
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir) {
-		return this.getJochreIndexBuilder(indexDir, null);
-	}
+	private static final Set<String> RTL = new HashSet<String>(Arrays.asList(new String[] {"ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi"}));
 
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder(File indexDir,
@@ -56,6 +58,7 @@ class SearchServiceImpl implements SearchServiceInternal {
 		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir, contentDir);
 		builder.setSearchService(this);
 		builder.setAltoService(altoService);
+		builder.setFeedbackService(feedbackService);
 		return builder;
 	}
 
@@ -68,9 +71,9 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	
 	@Override
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir) {
+	public JochreIndexSearcher getJochreIndexSearcher(File indexDir, File contentDir) {
 		if (this.searcher==null) {
-			JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir);
+			JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir, contentDir);
 			searcher.setSearchService(this);
 			this.searcher = searcher;
 		}
@@ -83,16 +86,15 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	
 	@Override
-	public JochreIndexDocument getJochreIndexDocument(
-			IndexSearcher indexSearcher, int docId) {
+	public JochreIndexDocument getJochreIndexDocument(JochreIndexSearcher indexSearcher, int docId) {
 		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(indexSearcher, docId);
 		doc.setSearchService(this);
 		return doc;
 	}
 	
 	@Override
-	public JochreIndexDirectory getJochreIndexDirectory(File dir) {
-		JochreIndexDirectoryImpl directory = new JochreIndexDirectoryImpl(dir);
+	public JochreIndexDirectory getJochreIndexDirectory(File contentDir, File dir) {
+		JochreIndexDirectoryImpl directory = new JochreIndexDirectoryImpl(contentDir, dir);
 		return directory;
 	}
 
@@ -170,6 +172,10 @@ class SearchServiceImpl implements SearchServiceInternal {
 	public Locale getLocale() {
 		return locale;
 	}
+	
+	public boolean isLeftToRight() {
+		return !RTL.contains(this.getLocale().getLanguage());
+	}
 
 	public void setLocale(Locale locale) {
 		this.locale = locale;
@@ -194,5 +200,20 @@ class SearchServiceImpl implements SearchServiceInternal {
 		if (LOG.isDebugEnabled())
 			LOG.debug("queryTokenFilter: " + tokenFilter);
 		return tokenFilter;
+	}
+
+	@Override
+	public JochreIndexWord getWord(JochreIndexDocument doc, int startOffset) {
+		JochreIndexWordImpl word = new JochreIndexWordImpl(doc, startOffset);
+		word.setSearchService(this);
+		return word;
+	}
+
+	public FeedbackService getFeedbackService() {
+		return feedbackService;
+	}
+
+	public void setFeedbackService(FeedbackService feedbackService) {
+		this.feedbackService = feedbackService;
 	}
 }

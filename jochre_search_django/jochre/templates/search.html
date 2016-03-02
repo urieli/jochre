@@ -3,7 +3,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
+<link rel="stylesheet" href="{% static 'jquery-ui.css' %}">
 <script src="{% static 'jquery-1.11.3.min.js' %}"></script>
+<script src="{% static 'jquery-ui.js' %}"></script>
 </head>
 <body>
 <form id="frmQuery" method="get" accept-charset="UTF-8">
@@ -119,7 +121,7 @@ function latinToYiddish(charStr) {
 	case 'm': return 'מ';
 	case 'M': return 'ם';
 	case 'n': return 'נ';
-	case 'n': return 'ן';
+	case 'N': return 'ן';
 	case 'o': return 'אָ';
 	case 'O': return 'וֹ';
 	case 'p': return 'פּ';
@@ -279,6 +281,80 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
 					window.open('{{ snippet.readOnlineUrl }}', '_blank');
 				});
+				
+				$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").bind("dblclick",function(event){
+					var sel = window.getSelection();
+			        
+					var localOffset = sel.anchorOffset;
+					var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
+					var wordOffset = globalOffset + localOffset;
+					
+					var target = $(this);
+				    var dialog, form;
+
+					function applyFix() {
+						var suggestion = document.getElementById("txtSuggestion").value;
+						var selFont = document.getElementById("selFont");
+						var fontCode = selFont.options[selFont.selectedIndex].value;
+						var selLang = document.getElementById("selLang");
+						var languageCode = selLang.options[selFont.selectedIndex].value;
+						
+						$.getJSON("{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
+								+ "&docId={{ result.docId }}"
+								+ "&startOffset=" + wordOffset
+								+ "&user={{ request.user.username }}"
+								+ "&suggestion=" + encodeURIComponent(suggestion)
+								+ "&fontCode=" + encodeURIComponent(fontCode)
+								+ "&languageCode=" + encodeURIComponent(languageCode),
+							function( data ) {
+								alert('Suggestion recorded.');
+							}).fail(function(jqXHR, status, error){
+							    if(status == 'parseerror'){
+							        //not valid json
+							        alert(error);
+							    } else {
+							        //some other error
+							    	alert(error);
+							    }
+							});
+						dialog.dialog( "close" );
+					}
+					 
+					dialog = $( "#dialog-fixWord" ).dialog({
+					      autoOpen: false,
+					      height: 300,
+					      width: 500,
+					      position: { my: "center", at: "center", of: target },
+					      modal: true,
+					      buttons: {
+					        "Ok": applyFix,
+					        Cancel: function() {
+					          dialog.dialog("close");
+					        }
+					      },
+					      close: function() {
+					        form[ 0 ].reset();
+					      }
+					    });
+					
+				    form = dialog.find( "form" ).on( "submit", function( event ) {
+				        event.preventDefault();
+				        applyFix();
+				      });
+				    
+				    document.getElementById("imgFixWord").src="";
+					document.getElementById("txtSuggestion").value="";
+					document.getElementById("imgFixWord").src='{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset;
+					
+					$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
+						  $.each( data, function( key, val ) {
+							  document.getElementById("txtSuggestion").value=val;
+						  });
+						});
+					
+					dialog.dialog("open");
+
+				});
 				</script>
 			{% endfor %}
 			</td></tr>
@@ -366,5 +442,32 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 	</script>
 {% endif %}
 </form>
+<div id="dialog-fixWord" title="Fix a word" style="display:none;">
+  <div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
+  <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
+  </div>
+   <form>
+    <fieldset>
+      <table>
+      <tr><td><label for="txtFixWord">Word</label></td>
+      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+      <tr><td><label for="selFont">Font</label></td>
+      <td><select id="selFont" name="selFont">
+      <option value="serif">Serif</option>
+      <option value="serifItalic">Serif Italic</option>
+      <option value="sansSerif">Sans Serif</option>
+      <option value="sansSerifItalic">Sans Serif Italic</option>
+      </select></td></tr>
+      <tr><td><label for="selLang">Language</label></td>
+      <td><select id="selLang" name="selLang">
+      <option value="yi">Yiddish</option>
+      <option value="other">Other</option>
+      </select></td></tr>
+      </table>
+      <!-- Allow form submission with keyboard without duplicating the dialog button -->
+      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+    </fieldset>
+  </form>
+</div>
 </body>
 </html>

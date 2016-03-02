@@ -27,10 +27,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.search.IndexSearcher;
-
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
+import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
@@ -38,12 +37,12 @@ import com.joliciel.talismane.utils.LogUtils;
 
 class FixedSizeSnippetFinder implements SnippetFinder {
 	private static final Log LOG = LogFactory.getLog(FixedSizeSnippetFinder.class);
-	private IndexSearcher indexSearcher;
+	private JochreIndexSearcher indexSearcher;
 	private int snippetSize = 100;
 	
 	private SearchService searchService;
 	
-	public FixedSizeSnippetFinder(IndexSearcher indexSearcher) {
+	public FixedSizeSnippetFinder(JochreIndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
 	}
@@ -52,7 +51,7 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 	@Override
 	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets) {
 		try {
-			Document doc = indexSearcher.doc(docId);
+			Document doc = indexSearcher.getIndexSearcher().doc(docId);
 			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
 			// find best snippet for each term		
 			PriorityQueue<Snippet> heap = new PriorityQueue<Snippet>();

@@ -31,7 +31,7 @@ public interface JochreIndexBuilder extends Runnable {
 	 * @param contentDir the parent directory to scan
 	 * @param forceUpdate if true, all docs will be updated regardless of last update date
 	 */
-	public void updateIndex(File contentDir, boolean forceUpdate);
+	public void updateIndex(boolean forceUpdate);
 	
 	/**
 	 * Add or update a single directory to the index.

@@ -99,7 +99,7 @@ function latinToYiddish(charStr) {
 	case 'm': return 'מ';
 	case 'M': return 'ם';
 	case 'n': return 'נ';
-	case 'n': return 'ן';
+	case 'N': return 'ן';
 	case 'o': return 'אָ';
 	case 'O': return 'וֹ';
 	case 'p': return 'פּ';
@@ -374,8 +374,33 @@ if (queryString.length()>0) {
 					var target = $(this);
 				    var dialog, form;
 
-					 function applyFix() {	
-					 }
+					function applyFix() {
+						var suggestion = document.getElementById("txtSuggestion").value;
+						var selFont = document.getElementById("selFont");
+						var fontCode = selFont.options[selFont.selectedIndex].value;
+						var selLang = document.getElementById("selLang");
+						var languageCode = selLang.options[selFont.selectedIndex].value;
+						
+						$.getJSON("search?command=suggest"
+								+ "&docId=<%= docId %>"
+								+ "&startOffset=" + wordOffset
+								+ "&user=assaf"
+								+ "&suggestion=" + encodeURIComponent(suggestion)
+								+ "&fontCode=" + encodeURIComponent(fontCode)
+								+ "&languageCode=" + encodeURIComponent(languageCode),
+							function( data ) {
+								alert('Suggestion recorded.');
+							}).fail(function(jqXHR, status, error){
+							    if(status == 'parseerror'){
+							        //not valid json
+							        alert(error);
+							    } else {
+							        //some other error
+							    	alert(error);
+							    }
+							});
+						dialog.dialog( "close" );
+					}
 					 
 					dialog = $( "#dialog-fixWord" ).dialog({
 					      autoOpen: false,
@@ -400,12 +425,12 @@ if (queryString.length()>0) {
 				      });
 				    
 				    document.getElementById("imgFixWord").src="";
-					document.getElementById("txtFixWord").value="";
+					document.getElementById("txtSuggestion").value="";
 					document.getElementById("imgFixWord").src='search?command=wordImage&docId=<%= docId %>&startOffset=' + wordOffset;
 					
 					$.getJSON( "search?command=word&docId=<%= docId %>&startOffset=" + wordOffset, function( data ) {
 						  $.each( data, function( key, val ) {
-							  document.getElementById("txtFixWord").value=val;
+							  document.getElementById("txtSuggestion").value=val;
 						  });
 						});
 					
@@ -499,18 +524,18 @@ if (queryString.length()>0) {
     <fieldset>
       <table>
       <tr><td><label for="txtFixWord">Word</label></td>
-      <td><input type="text" name="txtFixWord" id="txtFixWord" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="text ui-widget-content ui-corner-all"></td></tr>
       <tr><td><label for="selFont">Font</label></td>
       <td><select id="selFont" name="selFont">
-      <option value="Serif">Serif</option>
-      <option value="SerifItalic">Serif Italic</option>
-      <option value="SansSerif">Sans Serif</option>
-      <option value="SansSerifItalic">Sans Serif Italic</option>
+      <option value="serif">Serif</option>
+      <option value="serifItalic">Serif Italic</option>
+      <option value="sansSerif">Sans Serif</option>
+      <option value="sansSerifItalic">Sans Serif Italic</option>
       </select></td></tr>
       <tr><td><label for="selLang">Language</label></td>
       <td><select id="selLang" name="selLang">
-      <option value="Yiddish">Yiddish</option>
-      <option value="Other">Other</option>
+      <option value="yi">Yiddish</option>
+      <option value="other">Other</option>
       </select></td></tr>
       </table>
       <!-- Allow form submission with keyboard without duplicating the dialog button -->

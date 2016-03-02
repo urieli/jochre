@@ -44,15 +44,17 @@ import com.joliciel.talismane.utils.LogUtils;
 class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	private static final Log LOG = LogFactory.getLog(JochreIndexSearcherImpl.class);
 	private File indexDir;
+	private File contentDir;
 	private IndexReader indexReader;
 	private IndexSearcher indexSearcher;
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
 	private Map<Integer,DecimalFormat> decimalFormats = new HashMap<Integer, DecimalFormat>();
 	private SearchService searchService;
 	
-	public JochreIndexSearcherImpl(File indexDir) {
+	public JochreIndexSearcherImpl(File indexDir, File contentDir) {
 		super();
 		this.setIndexDir(indexDir);
+		this.contentDir = contentDir;
 	}
 	
 	private void setIndexDir(File indexDir) {
@@ -223,5 +225,10 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
 		}
+	}
+
+	@Override
+	public File getContentDir() {
+		return contentDir;
 	}
 }

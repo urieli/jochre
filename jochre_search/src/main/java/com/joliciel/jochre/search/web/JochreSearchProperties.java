@@ -40,7 +40,6 @@ public class JochreSearchProperties {
 	private static final Log LOG = LogFactory.getLog(JochreSearchProperties.class);
 	private static JochreSearchProperties instance;
 	private Properties properties;
-	@SuppressWarnings("unused")
 	private ServletContext servletContext;
 	private Locale locale;
 	
@@ -82,11 +81,23 @@ public class JochreSearchProperties {
 	}
 	
 	public String getIndexDirPath() {
-		return this.properties.getProperty("index.dir");	
+		String indexDirPath = this.properties.getProperty("index.dir");	
+		if (indexDirPath==null)
+			throw new JochreException("Missing property: index.dir");
+		return indexDirPath;
 	}
 	
 	public String getContentDirPath() {
-		return this.properties.getProperty("content.dir");	
+		String contentDirPath = this.properties.getProperty("content.dir");	
+		if (contentDirPath==null)
+			throw new JochreException("Missing property: content.dir");
+		return contentDirPath;
+	}
+	
+	public String getDatabasePropertiesPath() {
+		String jdbcPropertiesPath = "/WEB-INF/jdbc.properties";
+		String realPath = servletContext.getRealPath(jdbcPropertiesPath);
+		return realPath;
 	}
 	
 	public String getLexiconPath() {
@@ -95,7 +106,10 @@ public class JochreSearchProperties {
 
 	public Locale getLocale() {
 		if (locale==null) {
-			locale = Locale.forLanguageTag(this.properties.getProperty("language"));
+			String language = this.properties.getProperty("language");
+			if (language==null)
+				throw new JochreException("Missing property: language");
+			locale = Locale.forLanguageTag(language);
 		}
 		return locale;
 	}

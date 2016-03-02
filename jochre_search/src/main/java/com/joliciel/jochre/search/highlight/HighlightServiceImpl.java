@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.lucene.search.IndexSearcher;
-
+import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.SearchService;
 
@@ -32,7 +31,7 @@ class HighlightServiceImpl implements HighlightService {
 	private SearchService searchService;
 	
 	@Override
-	public HighlightManager getHighlightManager(IndexSearcher indexSearcher) {
+	public HighlightManager getHighlightManager(JochreIndexSearcher indexSearcher) {
 		HighlightManagerImpl manager = new HighlightManagerImpl(indexSearcher);
 		manager.setSearchService(this.getSearchService());
 		manager.setHighlightService(this);
@@ -41,8 +40,8 @@ class HighlightServiceImpl implements HighlightService {
 
 	@Override
 	public Highlighter getHighlighter(JochreQuery query,
-			IndexSearcher indexSearcher) {
-		LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher);
+			JochreIndexSearcher indexSearcher) {
+		LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher.getIndexSearcher());
 		return highlighter;
 	}
 
@@ -55,7 +54,7 @@ class HighlightServiceImpl implements HighlightService {
 	}
 
 	@Override
-	public SnippetFinder getSnippetFinder(IndexSearcher indexSearcher) {
+	public SnippetFinder getSnippetFinder(JochreIndexSearcher indexSearcher) {
 		FullRowSnippetFinder snippetFinder = new FullRowSnippetFinder(indexSearcher);
 		snippetFinder.setSearchService(searchService);
 		snippetFinder.setRowExtension(1);

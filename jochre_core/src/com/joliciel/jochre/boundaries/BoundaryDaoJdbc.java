@@ -92,26 +92,26 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<Split> splits = jt.query(sql, paramSource, new SplitMapper(this.getBoundaryServiceInternal()));
 
 		return splits;
 	}
 	
-	protected static final class SplitMapper implements RowMapper {
+	protected static final class SplitMapper implements RowMapper<Split> {
 		private BoundaryServiceInternal boundaryService;
 
 		protected SplitMapper(BoundaryServiceInternal boundaryService) {
 			this.boundaryService = boundaryService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public Split mapRow(ResultSet rs, int rowNum) throws SQLException {
 			SplitInternal split = boundaryService.getEmptySplitInternal();
 			// split_id, split_top, split_left, split_bottom, split_right
 			// split_cap_line, split_mean_line, split_base_line, split_pixels, split_letter, split_group_id, split_index
 			split.setId(rs.getInt("split_id"));
 			split.setShapeId(rs.getInt("split_shape_id"));
 			split.setPosition(rs.getInt("split_position"));
-
+			
 			split.setDirty(false);
 			return split;
 		}
@@ -130,7 +130,7 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		if (split.isNew()) {
 			sql = "SELECT nextval('ocr_split_id_seq')";
 			LOG.debug(sql);
-			int splitId = jt.queryForInt(sql, paramSource);
+			int splitId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("split_id", splitId);
 
 			sql = "INSERT INTO ocr_split (split_id, split_shape_id, split_position) " +
@@ -168,8 +168,6 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		jt.update(sql, paramSource);
 	}
 	
-	
-    @SuppressWarnings("unchecked")
     public static void logParameters(MapSqlParameterSource paramSource) {
        DaoUtils.LogParameters(paramSource.getValues());
     }

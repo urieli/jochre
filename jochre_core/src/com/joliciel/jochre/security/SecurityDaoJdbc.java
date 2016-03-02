@@ -92,20 +92,19 @@ class SecurityDaoJdbc implements SecurityDao {
 
 		LOG.info(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<User> users =  jt.query(sql, paramSource, new UserMapper(this.getSecurityServiceInternal()));
 		return users;
 	}
 
 
-	protected static final class UserMapper implements RowMapper {
+	protected static final class UserMapper implements RowMapper<User> {
 		private SecurityServiceInternal securityService;
 
 		protected UserMapper(SecurityServiceInternal securityService) {
 			this.securityService = securityService;
 		}
 		
-        public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
             return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
         }
 
@@ -140,7 +139,7 @@ class SecurityDaoJdbc implements SecurityDao {
 		if (user.isNew()) {
 			sql = "SELECT nextval('ocr_user_id_seq')";
 			LOG.info(sql);
-			int userId = jt.queryForInt(sql, paramSource);
+			int userId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("user_id", userId);
 
 			sql = "INSERT INTO ocr_user (user_id, user_username, user_password" +
@@ -192,14 +191,14 @@ class SecurityDaoJdbc implements SecurityDao {
 		return parameters;
 	}
 
-	protected static final class ParametersMapper implements RowMapper {
+	protected static final class ParametersMapper implements RowMapper<Parameters> {
 		private SecurityServiceInternal securityService;
 
 		protected ParametersMapper(SecurityServiceInternal securityService) {
 			this.securityService = securityService;
 		}
 		
-        public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public Parameters mapRow(ResultSet rs, int rowNum) throws SQLException {
             return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
         }
 
@@ -255,8 +254,6 @@ class SecurityDaoJdbc implements SecurityDao {
 		this.dataSource = dataSource;
 	}
 
-	
-    @SuppressWarnings("unchecked")
     public static void logParameters(MapSqlParameterSource paramSource) {
        DaoUtils.LogParameters(paramSource.getValues());
     }

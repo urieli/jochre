@@ -9,7 +9,6 @@ import javax.servlet.ServletContextListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
 import com.joliciel.jochre.search.lexicon.Lexicon;
@@ -46,11 +45,13 @@ public class JochreSetupListener implements ServletContextListener {
 			}
 			
 			LOG.debug("Creating searcher");
-			String indexDirPath = props.getIndexDirPath();
-			File indexDir = new File(indexDirPath);
+			File indexDir = new File(props.getIndexDirPath());
 			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
-			@SuppressWarnings("unused")
-			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+			File contentDir = new File(props.getContentDirPath());
+			LOG.debug("Content dir: " + contentDir.getAbsolutePath());
+			
+			// initialize the searcher
+			searchService.getJochreIndexSearcher(indexDir, contentDir);
 		} finally {
 			long duration = System.currentTimeMillis() - startTime;
 			LOG.info(this.getClass().getSimpleName() + ".contextInitialized Duration: " + duration);

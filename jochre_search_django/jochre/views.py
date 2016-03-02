@@ -52,6 +52,7 @@ def search(request):
              "displayAdvancedSearch" : displayAdvancedSearch,
 			 "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
 			 "JOCHRE_CREDITS" : settings.JOCHRE_CREDITS,
+             "JOCHRE_SEARCH_EXT_URL" : settings.JOCHRE_SEARCH_EXT_URL,
 			 "RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT),
              "readOnline" : settings.JOCHRE_READ_ONLINE,
 			 "Strings" : settings.JOCHRE_UI_STRINGS}

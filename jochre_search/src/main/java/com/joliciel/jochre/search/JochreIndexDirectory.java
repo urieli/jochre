@@ -96,4 +96,10 @@ public interface JochreIndexDirectory {
 	 * @return
 	 */
 	UnclosableInputStream getAltoInputStream();
+	
+	/**
+	 * The relative path to this directory.
+	 * @return
+	 */
+	public String getPath();
 }

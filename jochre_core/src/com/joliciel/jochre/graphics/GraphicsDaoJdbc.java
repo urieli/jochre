@@ -86,7 +86,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<Shape> shapes = jt.query(sql, paramSource, new ShapeMapper(this.getGraphicsServiceInternal()));
 
 		return shapes;
@@ -104,7 +104,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<Shape> shapes = jt.query(sql, paramSource, new ShapeMapper(this.getGraphicsServiceInternal()));
 
 		return shapes;
@@ -140,19 +140,18 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<Shape> shapes = jt.query(sql, paramSource, new ShapeMapper(this.getGraphicsServiceInternal()));
 
 		return shapes;
 	}
 	
-	protected static final class ShapeMapper implements RowMapper {
+	protected static final class ShapeMapper implements RowMapper<Shape> {
 		private GraphicsServiceInternal graphicsService;
 
 		protected ShapeMapper(GraphicsServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public Shape mapRow(ResultSet rs, int rowNum) throws SQLException {
 			ShapeInternal shape = graphicsService.getEmptyShapeInternal();
 			// shape_id, shape_top, shape_left, shape_bottom, shape_right
 			// shape_cap_line, shape_mean_line, shape_base_line, shape_pixels, shape_letter, shape_group_id, shape_index
@@ -190,7 +189,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		logParameters(paramSource);
 		JochreImage image = null;
 		try {
-			image = (JochreImage) jt.queryForObject(sql, paramSource, new JochreImageMapper(this.getGraphicsServiceInternal()));
+			image = jt.queryForObject(sql, paramSource, new JochreImageMapper(this.getGraphicsServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
@@ -236,7 +235,6 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<JochreImage> images = jt.query(sql, paramSource, new JochreImageMapper(this.getGraphicsServiceInternal()));
 
 		return images;
@@ -256,19 +254,18 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<JochreImage> images = jt.query(sql, paramSource, new JochreImageMapper(this.getGraphicsServiceInternal()));
 
 		return images;		
 	}
 
-	protected static final class JochreImageMapper implements RowMapper {
+	protected static final class JochreImageMapper implements RowMapper<JochreImage> {
 		private GraphicsServiceInternal graphicsService;
 
 		protected JochreImageMapper(GraphicsServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public JochreImage mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
@@ -323,20 +320,20 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<RowOfShapes> rows = jt.query(sql, paramSource, new RowOfShapesMapper(this.getGraphicsServiceInternal()));
 
 		return rows;
 	}
 
-	protected static final class RowOfShapesMapper implements RowMapper {
+	protected static final class RowOfShapesMapper implements RowMapper<RowOfShapes> {
 		private GraphicsServiceInternal graphicsService;
 
 		protected RowOfShapesMapper(GraphicsServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
 
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public RowOfShapes mapRow(ResultSet rs, int rowNum) throws SQLException {
 			RowOfShapesInternal row = graphicsService.getEmptyRowOfShapesInternal();
 			// row_id, row_image_id, row_index
 			row.setId(rs.getInt("row_id"));
@@ -379,7 +376,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<GroupOfShapes> groups = jt.query(sql, paramSource, new GroupOfShapesMapper(this.getGraphicsServiceInternal()));
 
 		return groups;
@@ -395,19 +392,19 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<GroupOfShapes> groups = jt.query(sql, paramSource, new GroupOfShapesMapper(this.getGraphicsServiceInternal()));
 
 		return groups;
 	}
 
-	protected static final class GroupOfShapesMapper implements RowMapper {
+	protected static final class GroupOfShapesMapper implements RowMapper<GroupOfShapes> {
 		private GraphicsServiceInternal graphicsService;
 
 		protected GroupOfShapesMapper(GraphicsServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int groupNum) throws SQLException {
+		public GroupOfShapes mapRow(ResultSet rs, int groupNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
@@ -450,7 +447,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		if (shape.isNew()) {
 			sql = "SELECT nextval('ocr_shape_id_seq')";
 			LOG.debug(sql);
-			int shapeId = jt.queryForInt(sql, paramSource);
+			int shapeId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("shape_id", shapeId);
 			
 			ImageUtils.storeImage(paramSource, "shape_pixels", shape.getImage());
@@ -529,7 +526,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		if (image.isNew()) {
 			sql = "SELECT nextval('ocr_image_id_seq')";
 			LOG.debug(sql);
-			int imageId = jt.queryForInt(sql, paramSource);
+			int imageId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("image_id", imageId);
 
 			sql = "INSERT INTO ocr_image (image_id, image_name, image_width, image_height, image_black_threshold," +
@@ -646,7 +643,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		if (row.isNew()) {
 			sql = "SELECT nextval('ocr_row_id_seq')";
 			LOG.debug(sql);
-			int rowId = jt.queryForInt(sql, paramSource);
+			int rowId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("row_id", rowId);
 
 			ImageUtils.storeImage(paramSource, "row_image", row.getImage());
@@ -692,7 +689,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		if (group.isNew()) {
 			sql = "SELECT nextval('ocr_group_id_seq')";
 			LOG.debug(sql);
-			int groupId = jt.queryForInt(sql, paramSource);
+			int groupId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("group_id", groupId);
 
 			sql = "INSERT INTO ocr_group (group_id, group_row_id, group_index, group_hard_hyphen, group_broken_word, group_segment_problem, group_skip) " +
@@ -732,7 +729,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		logParameters(paramSource);
 		Paragraph paragraph = null;
 		try {
-			paragraph = (Paragraph)  jt.queryForObject(sql, paramSource, new ParagraphMapper(this.getGraphicsServiceInternal()));
+			paragraph = jt.queryForObject(sql, paramSource, new ParagraphMapper(this.getGraphicsServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
@@ -749,19 +746,18 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<Paragraph> paragraphs = jt.query(sql, paramSource, new ParagraphMapper(this.getGraphicsServiceInternal()));
 
 		return paragraphs;
 	}
 
-	protected static final class ParagraphMapper implements RowMapper {
+	protected static final class ParagraphMapper implements RowMapper<Paragraph> {
 		private GraphicsServiceInternal graphicsService;
 
 		protected ParagraphMapper(GraphicsServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public Paragraph mapRow(ResultSet rs, int rowNum) throws SQLException {
 			ParagraphInternal paragraph = graphicsService.getEmptyParagraphInternal();
 			paragraph.setId(rs.getInt("paragraph_id"));
 			paragraph.setImageId(rs.getInt("paragraph_image_id"));
@@ -783,7 +779,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		if (paragraph.isNew()) {
 			sql = "SELECT nextval('ocr_paragraph_id_seq')";
 			LOG.debug(sql);
-			int paragraphId = jt.queryForInt(sql, paramSource);
+			int paragraphId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("paragraph_id", paragraphId);
 
 			sql = "INSERT INTO ocr_paragraph (paragraph_id, paragraph_image_id, paragraph_index) " +
@@ -823,7 +819,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		int count = jt.queryForInt(sql, paramSource);
+		int count = jt.queryForObject(sql, paramSource, Integer.class);
 		return count;
 	}
 
@@ -844,7 +840,7 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
+
 		List<Integer> shapeIds = jt.queryForList(sql, paramSource, Integer.class);
 		return shapeIds;
 	}
@@ -866,7 +862,6 @@ final class GraphicsDaoJdbc implements GraphicsDao {
 		this.dataSource = dataSource;
 	}
 	
-    @SuppressWarnings("unchecked")
     public static void logParameters(MapSqlParameterSource paramSource) {
        DaoUtils.LogParameters(paramSource.getValues());
     }

@@ -55,6 +55,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.joliciel.jochre.search.feedback.FeedbackService;
+import com.joliciel.jochre.search.feedback.FeedbackServiceLocator;
 import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.HighlightService;
 import com.joliciel.jochre.search.highlight.HighlightServiceLocator;
@@ -72,6 +74,19 @@ import com.joliciel.talismane.utils.StringUtils;
 public class JochreSearch {
 	private static final Log LOG = LogFactory.getLog(JochreSearch.class);
 
+	public enum Command {
+		updateIndex,
+		search,
+		highlight,
+		snippets,
+		view,
+		list,
+		wordImage,
+		suggest,
+		serializeLexicon,
+		deserializeLexicon
+	}
+	
 	/**
 	 * @param args
 	 */
@@ -87,7 +102,7 @@ public class JochreSearch {
 				argMap.put(argName, argValue);
 			}
 			
-			String command = argMap.get("command");
+			Command command = Command.valueOf(argMap.get("command"));
 			argMap.remove("command");
 			
 			String logConfigPath = argMap.get("logConfigFile");
@@ -105,7 +120,7 @@ public class JochreSearch {
 			
 			String language = null;
 			String indexDirPath = null;
-			String documentDirPath = null;
+			String contentDirPath = null;
 			boolean forceUpdate = false;
 			String docName = null;
 			int docIndex = -1;
@@ -125,14 +140,21 @@ public class JochreSearch {
 			int startOffset = -1;
 			String outDirPath = null;
 			
+			// suggestions
+			String databasePropertiesPath = null;
+			String suggestion = null;
+			String username = null;
+			String languageCode = null;
+			String fontCode = null;
+			
 			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 				String argName = argMapEntry.getKey();
 				String argValue = argMapEntry.getValue();
 				
 				if (argName.equals("indexDir")) {
 					indexDirPath = argValue;
-				} else if (argName.equals("documentDir")) {
-					documentDirPath = argValue;
+				} else if (argName.equals("contentDir")) {
+					contentDirPath = argValue;
 				} else if (argName.equals("forceUpdate")) {
 					forceUpdate = argValue.equals("true");
 				} else if (argName.equals("docName")) {
@@ -159,6 +181,16 @@ public class JochreSearch {
 					startOffset = Integer.parseInt(argValue);
 				} else if (argName.equals("outDir")) {
 					outDirPath = argValue;
+				} else if (argName.equals("databaseProperties")) {
+					databasePropertiesPath = argValue;
+				} else if (argName.equals("suggestion")) {
+					suggestion = argValue;
+				} else if (argName.equals("username")) {
+					username = argValue;
+				} else if (argName.equals("languageCode")) {
+					languageCode = argValue;
+				} else if (argName.equals("fontCode")) {
+					fontCode = argValue;
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -172,22 +204,31 @@ public class JochreSearch {
 			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
 			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
 			
-			if (command.equals("updateIndex")) {
+			File indexDir = null;
+			File contentDir = null;
+			if (!(command==Command.serializeLexicon || command==Command.deserializeLexicon)) {
 				if (indexDirPath==null)
 					throw new RuntimeException("for command " + command + ", indexDir is required");
-				if (documentDirPath==null)
-					throw new RuntimeException("for command " + command + ", documentDir is required");
+				if (contentDirPath==null)
+					throw new RuntimeException("for command " + command + ", contentDir is required");
 
-				File indexDir = new File(indexDirPath);
+				indexDir = new File(indexDirPath);
 				indexDir.mkdirs();
-				File documentDir = new File(documentDirPath);
-				
-				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir);
-				builder.updateIndex(documentDir, forceUpdate);
-			} else if (command.equals("search")||command.equals("highlight")||command.equals("snippets")) {
-				if (indexDirPath==null)
-					throw new RuntimeException("for command " + command + ", indexDir is required");
-				
+				contentDir = new File(contentDirPath);
+			}
+			
+			FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(locator);
+			if (databasePropertiesPath!=null) {
+				feedbackServiceLocator.setDatabasePropertiesPath(databasePropertiesPath);
+			}
+			
+			switch (command) {
+			case updateIndex: {
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
+				builder.updateIndex(forceUpdate);
+				break;
+			}
+			case search: case highlight: case snippets: {
 				if (lexiconFilePath!=null) {
 					File lexiconFile = new File(lexiconFilePath);
 					Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
@@ -197,7 +238,6 @@ public class JochreSearch {
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(locator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 
-				File indexDir = new File(indexDirPath);
 				JochreQuery query = searchService.getJochreQuery();
 				
 				if (queryPath==null)
@@ -223,10 +263,11 @@ public class JochreSearch {
 					}
 				}
 				
-				
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
-				if (command.equals("search")) {
+
+				switch (command) {
+				case search: {
 					StringWriter stringWriter = new StringWriter();
 					searcher.search(query, stringWriter);
 					out.write(stringWriter.toString());
@@ -238,7 +279,9 @@ public class JochreSearch {
 				            });
 					out.write(result.toString());
 					out.write("\n");
-				} else {
+					break;
+				}
+				default: {
 					TopDocs topDocs = searcher.search(query);
 					
 					Set<Integer> docIds = new LinkedHashSet<Integer>();
@@ -254,8 +297,8 @@ public class JochreSearch {
 					Set<String> fields = new HashSet<String>();
 					fields.add(JochreIndexField.text.name());
 					
-					Highlighter highlighter = highlightService.getHighlighter(query, searcher.getIndexSearcher());
-					HighlightManager highlightManager = highlightService.getHighlightManager(searcher.getIndexSearcher());
+					Highlighter highlighter = highlightService.getHighlighter(query, searcher);
+					HighlightManager highlightManager = highlightService.getHighlightManager(searcher);
 					highlightManager.setDecimalPlaces(query.getDecimalPlaces());
 					highlightManager.setMinWeight(0.0);
 					highlightManager.setIncludeText(true);
@@ -270,16 +313,17 @@ public class JochreSearch {
 					} else {
 						highlightManager.findSnippets(highlighter, docIds, fields, out);
 					}
+					break;
+				}
 				}
 				out.write("\n");
 				out.flush();
-			} else if (command.equals("view")) {
-				if (indexDirPath==null)
-					throw new RuntimeException("for command " + command + ", indexDir is required");
+				break;
+			} case view: {
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
-				File indexDir = new File(indexDirPath);
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				JsonFactory jsonFactory = new JsonFactory();
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
@@ -298,22 +342,21 @@ public class JochreSearch {
 				jsonGen.flush();
 				out.write("\n");
 				out.flush();
-			} else if (command.equals("list")) {
-				if (indexDirPath==null)
-					throw new RuntimeException("for command " + command + ", indexDir is required");
+				break;
+			} case list: {
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				if (docIndex<0)
 					throw new RuntimeException("For command " + command + " docIndex is required");
-				File indexDir = new File(indexDirPath);
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 				lister.list(out);
 				out.write("\n");
 				out.flush();
-			} else if (command.equals("wordImage")) {
+				break;
+			} case wordImage: {
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 				if (docIndex<0)
@@ -322,18 +365,44 @@ public class JochreSearch {
 					throw new RuntimeException("For command " + command + " startOffset is required");
 				if (outDirPath==null)
 					throw new RuntimeException("For command " + command + " outDir is required");
-				File indexDir = new File(indexDirPath);
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				int docId = docs.keySet().iterator().next();
-				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher.getIndexSearcher(), docId);
-				BufferedImage wordImage = jochreDoc.getWordImage(startOffset);
+				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher, docId);
+				JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
+				BufferedImage wordImage = jochreWord.getImage();
 				
 				File outDir = new File(outDirPath);
 				outDir.mkdirs();
 				File outputfile = new File(outDir, "word.png");
 			    ImageIO.write(wordImage, "png", outputfile);
-			} else if (command.equals("serializeLexicon")) {
+			    break;
+			} case suggest: {
+				if (databasePropertiesPath==null)
+					throw new RuntimeException("For command " + command + " databaseProperties is required");
+				if (docName==null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				if (docIndex<0)
+					throw new RuntimeException("For command " + command + " docIndex is required");
+				if (startOffset<0)
+					throw new RuntimeException("For command " + command + " startOffset is required");
+				if (suggestion==null)
+					throw new RuntimeException("For command " + command + " suggestion is required");
+				if (username==null)
+					throw new RuntimeException("For command " + command + " username is required");
+				if (fontCode==null)
+					throw new RuntimeException("For command " + command + " fontCode is required");
+				if (languageCode==null)
+					throw new RuntimeException("For command " + command + " languageCode is required");
+				
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				int docId = docs.keySet().iterator().next();
+				
+				FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
+				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, username, fontCode, languageCode);
+				break;
+			} case serializeLexicon: {
 				if (lexiconDirPath==null)
 					throw new RuntimeException("For command " + command + " lexiconDir is required");
 				if (lexiconRegexPath==null)
@@ -356,7 +425,8 @@ public class JochreSearch {
 				
 				File outFile = new File(lexiconFilePath);
 				lexicon.serialize(outFile);
-			} else if (command.equals("deserializeLexicon")) {
+				break;
+			} case deserializeLexicon: {
 				if (lexiconFilePath==null)
 					throw new RuntimeException("For command " + command + " lexicon is required");
 				if (word==null)
@@ -372,8 +442,10 @@ public class JochreSearch {
 						LOG.info("# Lemma: " + lemma + ", words: " + words.toString());
 					}
 				}
-			} else {
+				break;
+			} default: {
 				throw new RuntimeException("Unknown command: " + command);
+			}
 			}
 		} catch (RuntimeException e) {
 			LogUtils.logError(LOG, e);

@@ -77,19 +77,18 @@ public final class DocumentDaoJdbc implements DocumentDao {
        
         LOG.info(sql);
         logParameters(paramSource);
-        @SuppressWarnings("unchecked")
         List<JochrePage> jochrePages = jt.query(sql, paramSource, new JochrePageMapper(this.getDocumentServiceInternal()));
        
         return jochrePages;
 	}
 
-	protected static final class JochrePageMapper implements RowMapper {
+	protected static final class JochrePageMapper implements RowMapper<JochrePage> {
 		private DocumentServiceInternal graphicsService;
 
 		protected JochrePageMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public JochrePage mapRow(ResultSet rs, int rowNum) throws SQLException {
 			JochrePageInternal jochrePage = graphicsService.getEmptyJochrePageInternal();
 			jochrePage.setId(rs.getInt("page_id"));
 			jochrePage.setDocumentId(rs.getInt("page_doc_id"));
@@ -111,7 +110,7 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		if (jochrePage.isNew()) {
 			sql = "SELECT nextval('ocr_page_id_seq')";
 			LOG.info(sql);
-			int jochrePageId = jt.queryForInt(sql, paramSource);
+			int jochrePageId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("page_id", jochrePageId);
 
 			sql = "INSERT INTO ocr_page (page_id, page_doc_id, page_index) " +
@@ -198,19 +197,18 @@ public final class DocumentDaoJdbc implements DocumentDao {
 
 		LOG.info(sql);
 		logParameters(paramSource);
-		@SuppressWarnings("unchecked")
 		List<JochreDocument> documents =  jt.query(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
 
 		return documents;
 	}
 	
-	protected static final class JochreDocumentMapper implements RowMapper {
+	protected static final class JochreDocumentMapper implements RowMapper<JochreDocument> {
 		private DocumentServiceInternal graphicsService;
 
 		protected JochreDocumentMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public JochreDocument mapRow(ResultSet rs, int rowNum) throws SQLException {
 			JochreDocumentInternal jochreDocument = graphicsService.getEmptyJochreDocumentInternal();
 			jochreDocument.setId(rs.getInt("doc_id"));
 			jochreDocument.setFileName(rs.getString("doc_filename"));
@@ -254,7 +252,7 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		if (jochreDocument.isNew()) {
 			sql = "SELECT nextval('ocr_doc_id_seq')";
 			LOG.info(sql);
-			int jochreDocumentId = jt.queryForInt(sql, paramSource);
+			int jochreDocumentId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("doc_id", jochreDocumentId);
 
 			sql = "INSERT INTO ocr_document (doc_id, doc_filename, doc_name, doc_locale, doc_owner_id" +
@@ -316,7 +314,6 @@ public final class DocumentDaoJdbc implements DocumentDao {
 	   
 	    LOG.info(sql);
 	    logParameters(paramSource);
-	    @SuppressWarnings("unchecked")
 	    List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
 	   
 	    return authors;
@@ -334,19 +331,18 @@ public final class DocumentDaoJdbc implements DocumentDao {
        
         LOG.info(sql);
         logParameters(paramSource);
-        @SuppressWarnings("unchecked")
         List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
        
         return authors;
 	}
 
-	protected static final class AuthorMapper implements RowMapper {
+	protected static final class AuthorMapper implements RowMapper<Author> {
 		private DocumentServiceInternal graphicsService;
 
 		protected AuthorMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
-		public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public Author mapRow(ResultSet rs, int rowNum) throws SQLException {
 			AuthorInternal author = graphicsService.getEmptyAuthorInternal();
 			author.setId(rs.getInt("author_id"));
 			author.setFirstName(rs.getString("author_first_name"));
@@ -373,7 +369,7 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		if (author.isNew()) {
 			sql = "SELECT nextval('ocr_author_id_seq')";
 			LOG.info(sql);
-			int authorId = jt.queryForInt(sql, paramSource);
+			int authorId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("author_id", authorId);
 
 			sql = "INSERT INTO ocr_author (author_id, author_first_name, author_last_name" +
@@ -446,7 +442,6 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		this.dataSource = dataSource;
 	}
 	
-    @SuppressWarnings("unchecked")
     public static void logParameters(MapSqlParameterSource paramSource) {
        DaoUtils.LogParameters(paramSource.getValues());
     }

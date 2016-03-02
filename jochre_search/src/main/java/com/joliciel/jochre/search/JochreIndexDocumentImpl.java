@@ -5,14 +5,11 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.NavigableMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,9 +22,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.search.IndexSearcher;
-
-import com.joliciel.jochre.search.JochreIndexTermLister.JochreTerm;
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
@@ -40,7 +34,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	
 	private String contents;
 	private Document doc;
-	private int index = -1;
+	private int sectionNumber = -1;
 	private String path = null;
 	private String name = null;
 	private JochreIndexDirectory directory = null;
@@ -51,7 +45,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	private TIntObjectMap<TIntIntMap> startIndexes = null;
 	private TIntIntMap rowCounts = null;
 	private int docId = -1;
-	private IndexSearcher indexSearcher = null;
+	private JochreIndexSearcher indexSearcher = null;
 	private JochreIndexTermLister termLister = null;
 	
 	private SearchServiceInternal searchService;
@@ -86,15 +80,15 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	    TYPE_NOT_INDEXED.freeze();
 	}
 	
-	public JochreIndexDocumentImpl(IndexSearcher indexSearcher, int docId) {
+	public JochreIndexDocumentImpl(JochreIndexSearcher indexSearcher, int docId) {
 		try {
 			this.docId = docId;
 			this.indexSearcher = indexSearcher;
-			this.doc = indexSearcher.doc(docId);
-			this.index = Integer.parseInt(this.doc.get(JochreIndexField.index.name()));
+			this.doc = indexSearcher.getIndexSearcher().doc(docId);
+			this.sectionNumber = Integer.parseInt(this.doc.get(JochreIndexField.index.name()));
 			this.path = this.doc.get(JochreIndexField.path.name());
-			File dir = new File(this.path);
-			this.directory = new JochreIndexDirectoryImpl(dir);
+			File dir = new File(indexSearcher.getContentDir(), this.path);
+			this.directory = new JochreIndexDirectoryImpl(indexSearcher.getContentDir(), dir);
 			this.name = this.directory.getName();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -104,8 +98,9 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 	public JochreIndexDocumentImpl(JochreIndexDirectory directory, int index, List<AltoPage> pages) {
 		this.directory = directory;
-		this.index = index;
+		this.sectionNumber = index;
 		this.name = this.directory.getName();
+		this.path = directory.getPath();
 		
 		StringBuilder sb = new StringBuilder();
 		rectangles = new TIntObjectHashMap<TIntObjectMap<Rectangle>>();
@@ -179,10 +174,10 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		try {
 			doc = new Document();
 			doc.add(new StringField(JochreIndexField.name.name(), directory.getName(), Field.Store.YES));
-			doc.add(new StringField(JochreIndexField.path.name(),directory.getDirectory().getAbsolutePath(), Field.Store.YES));
+			doc.add(new StringField(JochreIndexField.path.name(), this.path, Field.Store.YES));
 			doc.add(new Field(JochreIndexField.startPage.name(), "" + startPage, TYPE_NOT_INDEXED));
 			doc.add(new Field(JochreIndexField.endPage.name(), "" + endPage, TYPE_NOT_INDEXED));
-			doc.add(new IntField(JochreIndexField.index.name(), index, Field.Store.YES));
+			doc.add(new IntField(JochreIndexField.index.name(), sectionNumber, Field.Store.YES));
 			doc.add(new Field(JochreIndexField.text.name(), contents, TYPE_STORED));
 			doc.add(new IntField(JochreIndexField.length.name(), length, Field.Store.YES));
 			doc.add(new LongField(JochreIndexField.indexTime.name(), System.currentTimeMillis(), Field.Store.YES));
@@ -260,7 +255,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	}
 	
 	@Override
-	public Rectangle getRectangle(int pageIndex,
+	public Rectangle getRowRectangle(int pageIndex,
 			int rowIndex) {
 		Rectangle rect = null;
 		if (rectangles!=null) {
@@ -391,70 +386,17 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	}
 	
 	@Override
-	public BufferedImage getWordImage(int startOffset) {
+	public JochreIndexWord getWord(int startOffset) {
 		if (this.indexSearcher==null)
 			throw new JochreException("Can only get word image for documents already in index");
-		JochreIndexTermLister termLister = this.getTermLister();
-		NavigableMap<Integer,JochreTerm> termMap = termLister.getTextTermByOffset();
-		
-		JochreTerm jochreTerm = termMap.floorEntry(startOffset).getValue();
-		if (jochreTerm == null) {
-			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + this.getName() + ", index " + this.index);
-		}
-		int pageIndex = jochreTerm.getPayload().getPageIndex();
-		BufferedImage originalImage = this.getImage(pageIndex);
-		Rectangle rect = jochreTerm.getPayload().getRectangle();
-		BufferedImage imageSnippet = originalImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
-		
-		Rectangle secondaryRect = jochreTerm.getPayload().getSecondaryRectangle();
-		if (secondaryRect!=null) {
-			BufferedImage secondSnippet = originalImage.getSubimage(secondaryRect.x, secondaryRect.y, secondaryRect.width, secondaryRect.height);
-			imageSnippet = joinBufferedImage(secondSnippet, imageSnippet);
-		}
-		return imageSnippet;
-	}
-	
-    /**
-     * From http://stackoverflow.com/questions/20826216/copy-two-buffered-image-into-one-image-side-by-side
-     */
-    public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
-        //do some calculations first
-        int offset  = 5;
-        int wid = img1.getWidth()+img2.getWidth()+offset;
-        int height = Math.max(img1.getHeight(),img2.getHeight())+offset;
-        //create a new buffer and draw two images into the new image
-        BufferedImage newImage = new BufferedImage(wid,height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = newImage.createGraphics();
-        Color oldColor = g2.getColor();
-        //fill background
-        g2.setPaint(Color.WHITE);
-        g2.fillRect(0, 0, wid, height);
-        //draw image
-        g2.setColor(oldColor);
-        g2.drawImage(img1, null, 0, 0);
-        g2.drawImage(img2, null, img1.getWidth()+offset, 0);
-        g2.dispose();
-        return newImage;
-    }
-	
-	@Override
-	public String getWord(int startOffset) {
-		if (this.indexSearcher==null)
-			throw new JochreException("Can only get word image for documents already in index");
-		JochreIndexTermLister termLister = this.getTermLister();
-		NavigableMap<Integer,JochreTerm> termMap = termLister.getTextTermByOffset();
-		
-		JochreTerm jochreTerm = termMap.floorEntry(startOffset).getValue();
-		if (jochreTerm == null) {
-			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + this.getName() + ", index " + this.index);
-		}
-		String word = this.getContents().substring(jochreTerm.start, jochreTerm.end);
+		JochreIndexWord word = searchService.getWord(this, startOffset);
 		return word;
+		
 	}
 
-	private JochreIndexTermLister getTermLister() {
+	public JochreIndexTermLister getTermLister() {
 		if (this.termLister==null)
-			termLister = new JochreIndexTermLister(docId, indexSearcher);
+			termLister = new JochreIndexTermLister(docId, indexSearcher.getIndexSearcher());
 		return termLister;
 	}
 	
@@ -464,5 +406,13 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 	public void setSearchService(SearchServiceInternal searchService) {
 		this.searchService = searchService;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public int getSectionNumber() {
+		return sectionNumber;
 	}
 }
