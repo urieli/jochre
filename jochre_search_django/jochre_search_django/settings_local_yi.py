@@ -33,6 +33,22 @@ Lexicon by the Yitskhok Niborski and the <a href="http://yiddishweb.com/" target
 JOCHRE_LEFT_TO_RIGHT=False
 JOCHRE_READ_ONLINE=True
 
+JOCHRE_CROWD_SOURCE=True
+
+JOCHRE_FONT_LIST = ("serif", "serifItalics", "sansSerif", "sansSerifItalics")
+JOCHRE_FONT_NAMES = {
+"serif" : u"Serif",
+"serifItalics" : u"Serif - Italics",
+"sansSerif" : u"Sans Serif",
+"sansSerifItalics" : u"Sans Serif - Italics"
+}
+
+JOCHRE_LANGUAGE_LIST = ("yi", "other")
+JOCHRE_LANGUAGE_NAMES = {
+"yi" : "Yiddish",
+"other" : "Other"
+}
+
 JOCHRE_UI_STRINGS = {
 "logout" : u"Logout",
 "searchButton" : u"זוך",

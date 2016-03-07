@@ -14,8 +14,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
-
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
 
@@ -35,6 +33,23 @@ Tèxtes indexats per <a href="http://www.joli-ciel.com/" target="_blank">Jolicie
 
 JOCHRE_LEFT_TO_RIGHT=True
 JOCHRE_READ_ONLINE=False
+
+JOCHRE_CROWD_SOURCE=True
+
+JOCHRE_FONT_LIST = ("serif", "serifItalics", "sansSerif", "sansSerifItalics")
+JOCHRE_FONT_NAMES = {
+"serif" : u"Serif",
+"serifItalics" : u"Serif - italique",
+"sansSerif" : u"Sans Serif",
+"sansSerifItalics" : u"Sans Serif - italique"
+}
+
+JOCHRE_LANGUAGE_LIST = ("oc", "fr", "other")
+JOCHRE_LANGUAGE_NAMES = {
+"oc" : "occitan",
+"fr" : "français",
+"other" : "autre"
+}
 
 # UI strings, partially corrected
 JOCHRE_UI_STRINGS = {

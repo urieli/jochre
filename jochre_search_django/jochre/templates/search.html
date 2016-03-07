@@ -282,6 +282,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					window.open('{{ snippet.readOnlineUrl }}', '_blank');
 				});
 				
+				{% if JOCHRE_CROWD_SOURCE %}
 				$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").bind("dblclick",function(event){
 					var sel = window.getSelection();
 			        
@@ -343,8 +344,16 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				      });
 				    
 				    document.getElementById("imgFixWord").src="";
+				    document.getElementById("imgWordLoading").style.display="inline";
 					document.getElementById("txtSuggestion").value="";
 					document.getElementById("imgFixWord").src='{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset;
+					
+					var selFont = document.getElementById("selFont");
+					selFont.value =  selFont.options[0].value;
+					var selLang = document.getElementById("selLang");
+					selLang.value =  selLang.options[0].value;
+					
+					document.getElementById("imgFont").src="{% static defaultFontImage %}";
 					
 					$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
 						  $.each( data, function( key, val ) {
@@ -355,6 +364,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					dialog.dialog("open");
 
 				});
+				{% endif %}
 				</script>
 			{% endfor %}
 			</td></tr>
@@ -449,25 +459,49 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
    <form>
     <fieldset>
       <table>
-      <tr><td><label for="txtFixWord">Word</label></td>
-      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+      <tr>
+      <td>
+      <table>
+      <tr><td><label for="txtSuggestion">Word</label></td>
+      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" {% if RTL %} class="yiddish" {% endif %}></td></tr>
       <tr><td><label for="selFont">Font</label></td>
       <td><select id="selFont" name="selFont">
-      <option value="serif">Serif</option>
-      <option value="serifItalic">Serif Italic</option>
-      <option value="sansSerif">Sans Serif</option>
-      <option value="sansSerifItalic">Sans Serif Italic</option>
+      {% for fontCode in JOCHRE_FONT_LIST %}
+      <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
+      {% endfor %}
       </select></td></tr>
+      <tr><td><label>Font example</label></td>
+      <td><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></td>
+      </tr>
       <tr><td><label for="selLang">Language</label></td>
       <td><select id="selLang" name="selLang">
-      <option value="yi">Yiddish</option>
-      <option value="other">Other</option>
+      {% for languageCode in JOCHRE_LANGUAGE_LIST %}
+      <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
+      {% endfor %}
       </select></td></tr>
+      </table>
+      <td>
+      <td style="width:64px;">
+      <img id="imgWordLoading" src="{% static "images/preloaders126.gif" %}" style="display:none;" />
+      </td>
       </table>
       <!-- Allow form submission with keyboard without duplicating the dialog button -->
       <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
     </fieldset>
   </form>
 </div>
+<script>
+{% if RTL %}
+document.getElementById("txtSuggestion").onkeypress = function(evt) {
+    return transformKeyPress(this, evt);
+};
+{% endif %}
+$('#selFont').on('change', function() {
+	imgFont.src = "{% static 'images/' %}" + this.value + ".png";
+	});
+$('#imgFixWord').on('load', function() {
+	document.getElementById("imgWordLoading").style.display="none";
+	});
+</script>
 </body>
 </html>

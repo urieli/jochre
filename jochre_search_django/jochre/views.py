@@ -7,6 +7,7 @@ import logging
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.conf import settings
+from django.template.defaulttags import register
 
 def search(request):
     if not request.user.is_authenticated():
@@ -55,7 +56,14 @@ def search(request):
              "JOCHRE_SEARCH_EXT_URL" : settings.JOCHRE_SEARCH_EXT_URL,
 			 "RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT),
              "readOnline" : settings.JOCHRE_READ_ONLINE,
-			 "Strings" : settings.JOCHRE_UI_STRINGS}
+			 "Strings" : settings.JOCHRE_UI_STRINGS,
+             "JOCHRE_CROWD_SOURCE" : settings.JOCHRE_CROWD_SOURCE,
+             "JOCHRE_FONT_LIST" : settings.JOCHRE_FONT_LIST,
+             "JOCHRE_FONT_NAMES" : settings.JOCHRE_FONT_NAMES,
+             "JOCHRE_LANGUAGE_LIST" : settings.JOCHRE_LANGUAGE_LIST,
+             "JOCHRE_LANGUAGE_NAMES" : settings.JOCHRE_LANGUAGE_NAMES,
+             "defaultFontImage" : "images/" + settings.JOCHRE_FONT_LIST[0] + ".png"
+             }
              
     if len(query)>0:
         MAX_DOCS=1000
@@ -164,3 +172,12 @@ def search(request):
                     
     model["haveResults"] = haveResults
     return render(request, 'search.html', model)
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary[key]
+
+@register.filter
+def addstr(arg1, arg2):
+    """concatenate arg1 & arg2"""
+    return str(arg1) + str(arg2)
