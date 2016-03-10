@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.web;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Locale;
@@ -94,9 +95,19 @@ public class JochreSearchProperties {
 		return contentDirPath;
 	}
 	
+	/**
+	 * Return a path to the database properties, if the file exists,
+	 * otherwise null.
+	 * @return
+	 */
 	public String getDatabasePropertiesPath() {
 		String jdbcPropertiesPath = "/WEB-INF/jdbc.properties";
 		String realPath = servletContext.getRealPath(jdbcPropertiesPath);
+		
+		File dataSourcePropsFile = new File(realPath);
+		if (!dataSourcePropsFile.exists())
+			return null;
+
 		return realPath;
 	}
 	

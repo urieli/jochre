@@ -46,8 +46,9 @@ public interface JochreIndexSearcher {
 	 * Write query results in JSON to the provided Writer.
 	 * @param cfhQuery
 	 * @param out
+	 * @return the number of results
 	 */
-	public void search(JochreQuery query, Writer out);
+	public int search(JochreQuery query, Writer out);
 
 	public File getIndexDir();
 

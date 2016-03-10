@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
@@ -28,14 +27,13 @@ class FeedbackDAO {
 	private FeedbackServiceInternal feedbackService;
 
     private static final String SELECT_DOCUMENT = "doc_id, doc_path";
-    private static final String SELECT_USER = "user_id, user_username";
-    private static final String SELECT_LANGUAGE = "language_id, language_code";
-    private static final String SELECT_FONT = "font_id, font_code";
     private static final String SELECT_ROW = "row_id, row_doc_id, row_page_index, row_x, row_y, row_width, row_height, row_image";
     private static final String SELECT_WORD = "word_id, word_row_id, word_x, word_y, word_width, word_height"
     		+ ", word_2nd_x, word_2nd_y, word_2nd_width, word_2nd_height, word_2nd_row_id, word_initial_guess, word_image";
     private static final String SELECT_SUGGESTION = "suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date"
-    		+ ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore";
+    		+ ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore, suggest_ip_id, user_username, language_code, font_code, ip_address";
+    private static final String SELECT_QUERY = "query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address";
+    private static final String SELECT_CLAUSE = "clause_query_id, clause_criterion_id, clause_text, criterion_name";
 
 	public FeedbackDAO(DataSource dataSource) {
 		this.dataSource = dataSource;
@@ -283,7 +281,12 @@ class FeedbackDAO {
 	
 	public FeedbackSuggestion loadSuggestion(int suggestionId) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_SUGGESTION + " FROM joc_suggestion WHERE suggestion_id=:suggestion_id";
+		String sql = "SELECT " + SELECT_SUGGESTION + " FROM joc_suggestion"
+				+ " INNER JOIN joc_font ON suggest_font_id = font_id"
+				+ " INNER JOIN joc_language ON suggest_language_id = language_id"
+				+ " INNER JOIN joc_user ON suggest_user_id = user_id"
+				+ " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
+				+ " WHERE suggestion_id=:suggestion_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("suggestion_id", suggestionId);
 
@@ -302,6 +305,10 @@ class FeedbackDAO {
 		try {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 			String sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
+					+ " INNER JOIN joc_font ON suggest_font_id = font_id"
+					+ " INNER JOIN joc_language ON suggest_language_id = language_id"
+					+ " INNER JOIN joc_user ON suggest_user_id = user_id"
+					+ " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
 					+ " INNER JOIN joc_word ON suggest_word_id = word_id"
 					+ " INNER JOIN joc_row ON word_row_id = row_id"
 					+ " INNER JOIN joc_document ON row_doc_id = doc_id"
@@ -342,6 +349,10 @@ class FeedbackDAO {
 		try {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 			String sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
+					+ " INNER JOIN joc_font ON suggest_font_id = font_id"
+					+ " INNER JOIN joc_language ON suggest_language_id = language_id"
+					+ " INNER JOIN joc_user ON suggest_user_id = user_id"
+					+ " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
 					+ " INNER JOIN joc_word ON suggest_word_id = word_id"
 					+ " INNER JOIN joc_row ON word_row_id = row_id"
 					+ " INNER JOIN joc_document ON row_doc_id = doc_id"
@@ -387,11 +398,7 @@ class FeedbackDAO {
 
 		// suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date
 		// suggest_text, suggest_previous_text, suggest_applied, suggest_ignore
-		paramSource.addValue("suggest_id", suggestion.getId());
 		paramSource.addValue("suggest_word_id", suggestion.getWordId());
-		paramSource.addValue("suggest_user_id", suggestion.getUserId());
-		paramSource.addValue("suggest_font_id", suggestion.getFontId());
-		paramSource.addValue("suggest_language_id", suggestion.getLanguageId());
 		paramSource.addValue("suggest_text", suggestion.getText());
 		paramSource.addValue("suggest_previous_text", suggestion.getPreviousText());
 		paramSource.addValue("suggest_applied", suggestion.isApplied());
@@ -400,15 +407,27 @@ class FeedbackDAO {
 		String sql = null;
 
 		if (suggestion.isNew()) {
+			int ipId = this.getIpId(suggestion.getIp());
+			paramSource.addValue("suggest_ip_id", ipId);
+			
+			int userId = this.getUserId(suggestion.getUser());
+			paramSource.addValue("suggest_user_id", userId);
+			
+			int fontId = this.getFontId(suggestion.getFont());
+			paramSource.addValue("suggest_font_id", fontId);
+
+			int languageId = this.getLanguageId(suggestion.getLanguage());
+			paramSource.addValue("suggest_language_id", languageId);
+
 			sql = "SELECT nextval('joc_suggestion_suggest_id_seq')";
 			LOG.debug(sql);
 			int suggestionId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("suggest_id", suggestionId);
 
 			sql = "INSERT INTO joc_suggestion (suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date"
-					+ ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore) "
+					+ ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore, suggest_ip_id) "
 					+ " VALUES (:suggest_id, :suggest_user_id, :suggest_word_id, :suggest_font_id, :suggest_language_id, current_timestamp"
-					+ ", :suggest_text, :suggest_previous_text, :suggest_applied, :suggest_ignore)";
+					+ ", :suggest_text, :suggest_previous_text, :suggest_applied, :suggest_ignore, :suggest_ip_id)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -429,6 +448,137 @@ class FeedbackDAO {
 		}
 	}
 	
+	private int getIpId(String ipAddress) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT ip_id FROM joc_ip WHERE ip_address=:ip_address";
+		LOG.trace(sql);
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("ip_address", ipAddress);
+		int ipId = 0;
+		try {
+			ipId = jt.queryForObject(sql, paramSource, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			// do nothing
+		}
+		if (ipId==0) {
+			sql = "SELECT nextval('joc_ip_ip_id_seq')";
+			LOG.debug(sql);
+			ipId = jt.queryForObject(sql, paramSource, Integer.class);
+			sql = "INSERT INTO joc_ip (ip_id, ip_address) VALUES (:ip_id, :ip_address)";
+			paramSource.addValue("ip_id", ipId);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
+		}
+		return ipId;
+	}
+	
+	private int getFontId(String fontCode) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT font_id FROM joc_font WHERE font_code=:font_code";
+		LOG.trace(sql);
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("font_code", fontCode);
+		int fontId = 0;
+		try {
+			fontId = jt.queryForObject(sql, paramSource, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			// do nothing
+		}
+		if (fontId==0) {
+			sql = "SELECT nextval('joc_font_font_id_seq')";
+			LOG.debug(sql);
+			fontId = jt.queryForObject(sql, paramSource, Integer.class);
+			sql = "INSERT INTO joc_font (font_id, font_code) VALUES (:font_id, :font_code)";
+			paramSource.addValue("font_id", fontId);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
+		}
+		return fontId;
+	}
+	
+	private int getLanguageId(String languageCode) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT language_id FROM joc_language WHERE language_code=:language_code";
+		LOG.trace(sql);
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("language_code", languageCode);
+		int languageId = 0;
+		try {
+			languageId = jt.queryForObject(sql, paramSource, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			// do nothing
+		}
+		if (languageId==0) {
+			sql = "SELECT nextval('joc_language_language_id_seq')";
+			LOG.debug(sql);
+			languageId = jt.queryForObject(sql, paramSource, Integer.class);
+			sql = "INSERT INTO joc_language (language_id, language_code) VALUES (:language_id, :language_code)";
+			paramSource.addValue("language_id", languageId);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
+		}
+		return languageId;
+	}
+	
+	private int getUserId(String userName) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT user_id FROM joc_user WHERE user_username=:user_username";
+		LOG.trace(sql);
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("user_username", userName);
+		int userId = 0;
+		try {
+			userId = jt.queryForObject(sql, paramSource, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			// do nothing
+		}
+		if (userId==0) {
+			sql = "SELECT nextval('joc_user_user_id_seq')";
+			LOG.debug(sql);
+			userId = jt.queryForObject(sql, paramSource, Integer.class);
+			sql = "INSERT INTO joc_user (user_id, user_username) VALUES (:user_id, :user_username)";
+			paramSource.addValue("user_id", userId);
+			LOG.debug(sql);
+			logParameters(paramSource);
+			jt.update(sql, paramSource);
+		}
+		return userId;
+	}
+	
+	public void loadCriteria() {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT criterion_id, criterion_name FROM joc_criterion";
+		LOG.debug(sql);
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
+		while (rs.next()) {
+			int criterionId = rs.getInt("criterion_id");
+			String name = rs.getString("criterion_name");
+			FeedbackCriterion criterion = FeedbackCriterion.valueOf(name);
+			criterion.setId(criterionId);
+		}
+		
+		for (FeedbackCriterion criterion : FeedbackCriterion.values()) {
+			if (criterion.getId()==0) {
+				sql = "SELECT nextval('joc_criterion_criterion_id_seq')";
+				LOG.trace(sql);
+				int criterionId = jt.queryForObject(sql, paramSource, Integer.class);
+				sql = "INSERT INTO joc_criterion (criterion_id, criterion_name)"
+						+ " VALUES (:criterion_id, :criterion_name)";
+				paramSource = new MapSqlParameterSource();
+				paramSource.addValue("criterion_id", criterionId);
+				paramSource.addValue("criterion_name", criterion.name());
+				LOG.debug(sql);
+				logParameters(paramSource);
+				jt.update(sql, paramSource);
+				criterion.setId(criterionId);
+			}
+		}
+	}
+	
 	protected static final class SuggestionMapper implements RowMapper<FeedbackSuggestion> {
 		private FeedbackServiceInternal feedbackService;
 
@@ -445,266 +595,115 @@ class FeedbackDAO {
 			// suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date
     		// suggest_text, suggest_previous_text, suggest_applied, suggest_ignore
 			suggestion.setId(rs.getInt("suggest_id"));
-			suggestion.setUserId(rs.getInt("suggest_user_id"));
+			suggestion.setUser(rs.getString("user_username"));
 			suggestion.setWordId(rs.getInt("suggest_word_id"));
-			suggestion.setFontId(rs.getInt("suggest_font_id"));
-			suggestion.setLanguageId(rs.getInt("suggest_language_id"));
+			suggestion.setFont(rs.getString("font_code"));
+			suggestion.setLanguage(rs.getString("language_code"));
 			suggestion.setCreateDate(rs.getTimestamp("suggest_create_date"));
 			suggestion.setText(rs.getString("suggest_text"));
 			suggestion.setPreviousText(rs.getString("suggest_previous_text"));
 			suggestion.setApplied(rs.getBoolean("suggest_applied"));
 			suggestion.setIgnored(rs.getBoolean("suggest_ignore"));
+			suggestion.setIp(rs.getString("ip_address"));
 			
 			return suggestion;
 		}
 	}
 	
-	public FeedbackUser loadUser(int userId) {
+	public FeedbackQuery loadQuery(int queryId) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_USER + " FROM joc_user WHERE user_id=:user_id";
+		String sql = "SELECT " + SELECT_QUERY + "," + SELECT_CLAUSE + " FROM joc_query"
+				+ " INNER JOIN joc_user ON query_user_id = user_id"
+				+ " INNER JOIN joc_ip ON query_ip_id = ip_id"
+				+ " INNER JOIN joc_clause ON query_id = clause_query_id"
+				+ " WHERE query_id=:query_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("user_id", userId);
+		paramSource.addValue("query_id", queryId);
 
 		LOG.debug(sql);
 		logParameters(paramSource);
-		FeedbackUser user = null;
-		try {
-			user =  jt.queryForObject(sql, paramSource, new UserMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
+		SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
+		QueryMapper queryMapper = new QueryMapper(feedbackService);
+		FeedbackQuery query = null;
+		while (rs.next()) {
+			if (query==null)
+				query = queryMapper.mapRow(rs);
+			FeedbackCriterion criterion = FeedbackCriterion.forId(rs.getInt("clause_criterion_id"));
+			String text = rs.getString("clause_text");
+			query.addClause(criterion, text);
 		}
-		return user;
+		return query;
 	}
 	
-	public FeedbackUser findUser(String userName) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_USER + " FROM joc_user WHERE user_username=:user_username";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("user_username", userName);
-
-		LOG.debug(sql);
-		logParameters(paramSource);
-		FeedbackUser user = null;
-		try {
-			user =  jt.queryForObject(sql, paramSource, new UserMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
-		}
-		return user;
-	}
-	
-	public void saveUser(FeedbackUserInternal user) {
-		// note: no update
+	public void saveQuery(FeedbackQueryInternal query) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
-		// user_id, user_username
-		paramSource.addValue("user_username", user.getUserName());
+		// query_id, query_user_id, query_ip_id, query_date, query_results
+	    // clause_query_id, clause_criterion_id, clause_text, criterion_name
+		paramSource.addValue("query_results", query.getResultCount());
 
 		String sql = null;
 
-		if (user.isNew()) {
-			sql = "SELECT nextval('joc_user_user_id_seq')";
-			LOG.debug(sql);
-			int userId = jt.queryForObject(sql, paramSource, Integer.class);
-			paramSource.addValue("user_id", userId);
+		if (query.isNew()) {
+			int ipId = this.getIpId(query.getIp());
+			paramSource.addValue("query_ip_id", ipId);
+			
+			int userId = this.getUserId(query.getUser());
+			paramSource.addValue("query_user_id", userId);
 
-			sql = "INSERT INTO joc_user (user_id, user_username) "
-					+ " VALUES (:user_id, :user_username)";
+			sql = "SELECT nextval('joc_query_query_id_seq')";
+			LOG.debug(sql);
+			int queryId = jt.queryForObject(sql, paramSource, Integer.class);
+			paramSource.addValue("query_id", queryId);
+
+			sql = "INSERT INTO joc_query (query_id, query_user_id, query_ip_id, query_date, query_results) "
+					+ " VALUES (:query_id, :query_user_id, :query_ip_id, current_timestamp, :query_results)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
 			jt.update(sql, paramSource);
 
-			user.setId(userId);
+			query.setId(queryId);
+			
+			for (FeedbackCriterion criterion : query.getClauses().keySet()) {
+				String text = query.getClauses().get(criterion);
+				sql = "INSERT INTO joc_clause (clause_query_id, clause_criterion_id, clause_text) "
+						+ " VALUES (:clause_query_id, :clause_criterion_id, :clause_text)";
+				paramSource = new MapSqlParameterSource();
+				paramSource.addValue("clause_query_id", queryId);
+				paramSource.addValue("clause_criterion_id", criterion.getId());
+				paramSource.addValue("clause_text", text);
+				LOG.debug(sql);
+				logParameters(paramSource);
+				jt.update(sql, paramSource);
+			}
 		}
 	}
 	
-	protected static final class UserMapper implements RowMapper<FeedbackUser> {
+	protected static final class QueryMapper implements RowMapper<FeedbackQuery> {
 		private FeedbackServiceInternal feedbackService;
 
-		protected UserMapper(FeedbackServiceInternal feedbackService) {
+		protected QueryMapper(FeedbackServiceInternal feedbackService) {
 			this.feedbackService = feedbackService;
 		}
 		
-		public FeedbackUser mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public FeedbackQuery mapRow(ResultSet rs, int rowNum) throws SQLException {
             return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
         }
 
-        public FeedbackUserInternal mapRow(SqlRowSet rs) {
-			FeedbackUserInternal user = feedbackService.getEmptyFeedbackUserInternal();
-			// user_id, user_username
-			user.setId(rs.getInt("user_id"));
-			user.setUserName(rs.getString("user_username"));
+        public FeedbackQueryInternal mapRow(SqlRowSet rs) {
+        	FeedbackQueryInternal query = feedbackService.getEmptyFeedbackQueryInternal();
+			// query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address
+			query.setId(rs.getInt("query_id"));
+			query.setUser(rs.getString("user_username"));
+			query.setIp(rs.getString("ip_address"));
+			query.setDate(rs.getDate("query_date"));
+			query.setResultCount(rs.getInt("query_results"));
 			
-			return user;
+			return query;
 		}
 	}
-	
-	public FeedbackFont loadFont(int fontId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_FONT + " FROM joc_font WHERE font_id=:font_id";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("font_id", fontId);
-
-		LOG.debug(sql);
-		logParameters(paramSource);
-		FeedbackFont font = null;
-		try {
-			font =  jt.queryForObject(sql, paramSource, new FontMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
-		}
-		return font;
-	}
-	
-	public FeedbackFont findFont(String code) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_FONT + " FROM joc_font WHERE font_code=:font_code";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("font_code", code);
-
-		LOG.debug(sql);
-		logParameters(paramSource);
-		FeedbackFont font = null;
-		try {
-			font =  jt.queryForObject(sql, paramSource, new FontMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
-		}
-		return font;
-	}
-	
-	public void saveFont(FeedbackFontInternal font) {
-		// note: no update
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-
-		// font_id, font_code
-		paramSource.addValue("font_code", font.getCode());
-
-		String sql = null;
-
-		if (font.isNew()) {
-			sql = "SELECT nextval('joc_font_font_id_seq')";
-			LOG.debug(sql);
-			int fontId = jt.queryForObject(sql, paramSource, Integer.class);
-			paramSource.addValue("font_id", fontId);
-
-			sql = "INSERT INTO joc_font (font_id, font_code) "
-					+ " VALUES (:font_id, :font_code)";
-
-			LOG.debug(sql);
-			logParameters(paramSource);
-			jt.update(sql, paramSource);
-
-			font.setId(fontId);
-		}
-	}
-	
-	protected static final class FontMapper implements RowMapper<FeedbackFont> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected FontMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-		
-		public FeedbackFont mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
-        }
-
-        public FeedbackFontInternal mapRow(SqlRowSet rs) {
-			FeedbackFontInternal font = feedbackService.getEmptyFeedbackFontInternal();
-			// font_id, font_code
-			font.setId(rs.getInt("font_id"));
-			font.setCode(rs.getString("font_code"));
-			
-			return font;
-		}
-	}
-	
-	public FeedbackLanguage loadLanguage(int languageId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_LANGUAGE + " FROM joc_language WHERE language_id=:language_id";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("language_id", languageId);
-
-		LOG.debug(sql);
-		logParameters(paramSource);
-		FeedbackLanguage language = null;
-		try {
-			language =  jt.queryForObject(sql, paramSource, new LanguageMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
-		}
-		return language;
-	}
-	
-	public FeedbackLanguage findLanguage(String code) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_LANGUAGE + " FROM joc_language WHERE language_code=:language_code";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		paramSource.addValue("language_code", code);
-
-		LOG.debug(sql);
-		logParameters(paramSource);
-		FeedbackLanguage language = null;
-		try {
-			language =  jt.queryForObject(sql, paramSource, new LanguageMapper(this.getFeedbackService()));
-		} catch (EmptyResultDataAccessException ex) {
-			ex.hashCode();
-		}
-		return language;
-	}
-	
-	public void saveLanguage(FeedbackLanguageInternal language) {
-		// note: no update
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-
-		// language_id, language_code
-		paramSource.addValue("language_code", language.getCode());
-
-		String sql = null;
-
-		if (language.isNew()) {
-			sql = "SELECT nextval('joc_language_language_id_seq')";
-			LOG.debug(sql);
-			int languageId = jt.queryForObject(sql, paramSource, Integer.class);
-			paramSource.addValue("language_id", languageId);
-
-			sql = "INSERT INTO joc_language (language_id, language_code) "
-					+ " VALUES (:language_id, :language_code)";
-
-			LOG.debug(sql);
-			logParameters(paramSource);
-			jt.update(sql, paramSource);
-
-			language.setId(languageId);
-		}
-	}
-	
-	protected static final class LanguageMapper implements RowMapper<FeedbackLanguage> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected LanguageMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-		
-		public FeedbackLanguage mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
-        }
-
-        public FeedbackLanguageInternal mapRow(SqlRowSet rs) {
-			FeedbackLanguageInternal language = feedbackService.getEmptyFeedbackLanguageInternal();
-			// language_id, language_code
-			language.setId(rs.getInt("language_id"));
-			language.setCode(rs.getString("language_code"));
-			
-			return language;
-		}
-	}
-	
 
 	public FeedbackDocument loadDocument(int documentId) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());

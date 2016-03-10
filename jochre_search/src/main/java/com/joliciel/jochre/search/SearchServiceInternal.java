@@ -29,7 +29,7 @@ import org.apache.lucene.analysis.Tokenizer;
 import com.joliciel.jochre.search.alto.AltoPage;
 
 interface SearchServiceInternal extends SearchService {
-	public JochreIndexDirectory getJochreIndexDirectory(File contentDir, File dir);
+	public JochreIndexDirectory getJochreIndexDirectory(File dir);
 	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages);
 	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
 			String fieldName);

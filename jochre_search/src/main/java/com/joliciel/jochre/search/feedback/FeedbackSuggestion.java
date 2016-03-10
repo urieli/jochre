@@ -36,8 +36,7 @@ public interface FeedbackSuggestion {
 	 * The user who made this suggestion.
 	 * @return
 	 */
-	FeedbackUser getUser();
-	int getUserId();
+	String getUser();
 	
 	/**
 	 * The word for which the suggestion was made.
@@ -50,15 +49,13 @@ public interface FeedbackSuggestion {
 	 * The font which the user indicated for this suggestion.
 	 * @return
 	 */
-	FeedbackFont getFont();
-	int getFontId();
+	String getFont();
 	
 	/**
 	 * The language which the user indicated for this suggestion.
 	 * @return
 	 */
-	FeedbackLanguage getLanguage();
-	int getLanguageId();
+	String getLanguage();
 	
 	/**
 	 * The suggested text.
@@ -91,6 +88,13 @@ public interface FeedbackSuggestion {
 	 */
 	boolean isIgnored();
 	public void setIgnored(boolean ignored);
+	
+	/**
+	 * IP address of this suggestion, represented as a string.
+	 * @param ip
+	 */
+	public void setIp(String ip);
+	public String getIp();
 	
 	void save();
 }

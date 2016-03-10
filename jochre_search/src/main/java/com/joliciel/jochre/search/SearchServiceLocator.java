@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.io.File;
 import java.util.Locale;
 
 import com.joliciel.jochre.search.alto.AltoServiceLocator;
@@ -28,25 +29,28 @@ public class SearchServiceLocator {
 	private static SearchServiceLocator instance;
 	private SearchServiceImpl searchService;
 	private Locale locale;
+	private File indexDir;
+	private File contentDir;
 	
-	private SearchServiceLocator(Locale locale) {
+	private SearchServiceLocator(Locale locale, File indexDir, File contentDir) {
 		this.locale = locale;
+		this.indexDir = indexDir;
+		this.contentDir = contentDir;
 	}
 	
-	public static SearchServiceLocator getInstance(Locale locale) {
+	public static SearchServiceLocator getInstance(Locale locale, File indexDir, File contentDir) {
 		if (instance==null) {
-			instance = new SearchServiceLocator(locale);
+			instance = new SearchServiceLocator(locale, indexDir, contentDir);
 		}
 		return instance;
 	}
 	
 	public SearchService getSearchService() {
 		if (searchService==null) {
-			searchService = new SearchServiceImpl();
+			searchService = new SearchServiceImpl(locale, indexDir, contentDir);
 			searchService.setAltoService(AltoServiceLocator.getInstance(this).getAltoService());
 			searchService.setLexiconService(LexiconServiceLocator.getInstance(this).getLexiconService());
 			searchService.setFeedbackService(FeedbackServiceLocator.getInstance(this).getFeedbackService());
-			searchService.setLocale(locale);
 		}
 		return searchService;
 	}

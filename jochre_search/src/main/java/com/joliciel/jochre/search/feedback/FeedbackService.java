@@ -34,11 +34,12 @@ public interface FeedbackService {
 	 * @param offset The word's offset within the document.
 	 * @param suggestion The new suggestion
 	 * @param username The user who made the suggestion
+	 * @param ip The ip address for this suggestion
 	 * @param fontCode The font code for this suggestion
 	 * @param languageCode The language code for this suggestion
 	 * @return the suggestion created
 	 */
-	public FeedbackSuggestion makeSuggestion(JochreIndexSearcher indexSearcher, int docId, int offset, String suggestion, String username, String fontCode, String languageCode);
+	public FeedbackSuggestion makeSuggestion(JochreIndexSearcher indexSearcher, int docId, int offset, String suggestion, String username, String ip, String fontCode, String languageCode);
 
 	/**
 	 * Find any suggestions which have not yet been applied, in order of creation.
@@ -53,4 +54,8 @@ public interface FeedbackService {
 	 * @return
 	 */
 	public List<FeedbackSuggestion> findSuggestions(String path, int pageIndex);
+	
+	public void reloadData();
+
+	public FeedbackQuery getEmptyQuery(String user, String ip);
 }

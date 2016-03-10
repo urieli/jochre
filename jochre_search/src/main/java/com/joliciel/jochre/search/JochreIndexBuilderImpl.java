@@ -177,7 +177,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			searchStatusHolder.setStatus(SearchStatus.COMMITING);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purge();
+			searchService.purgeSearcher();
 
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
@@ -195,11 +195,11 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		long startTime = System.currentTimeMillis();
 		try {
 			this.initialise();
-			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(contentDir, documentDir);
+			JochreIndexDirectory directory = searchService.getJochreIndexDirectory(documentDir);
 			this.updateDocumentInternal(directory, startPage, endPage);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purge();
+			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
@@ -213,11 +213,11 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	public void deleteDocument(File documentDir) {
 		try {
 			this.initialise();
-			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(contentDir, documentDir);
+			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(documentDir);
 			this.deleteDocumentInternal(jochreIndexDirectory);
 			indexWriter.commit();
 			indexWriter.close();
-			searchService.purge();
+			searchService.purgeSearcher();
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
@@ -228,7 +228,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		try {
 			boolean updateIndex = false;
 			
-			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(contentDir, documentDir);
+			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(documentDir);
 			switch (jochreIndexDirectory.getInstructions()) {
 			case Delete:
 				this.deleteDocumentInternal(jochreIndexDirectory);

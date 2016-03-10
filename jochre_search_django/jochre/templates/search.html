@@ -304,6 +304,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 								+ "&docId={{ result.docId }}"
 								+ "&startOffset=" + wordOffset
 								+ "&user={{ request.user.username }}"
+								+ "&ip={{ ip }}"
 								+ "&suggestion=" + encodeURIComponent(suggestion)
 								+ "&fontCode=" + encodeURIComponent(fontCode)
 								+ "&languageCode=" + encodeURIComponent(languageCode),

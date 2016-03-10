@@ -32,7 +32,15 @@ public class JochreSetupListener implements ServletContextListener {
 			ImageIO.scanForPlugins();
 			
 			JochreSearchProperties props = JochreSearchProperties.getInstance(servletContextEvent.getServletContext());
-			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale());
+
+			
+			LOG.debug("Creating searcher");
+			File indexDir = new File(props.getIndexDirPath());
+			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
+			File contentDir = new File(props.getContentDirPath());
+			LOG.debug("Content dir: " + contentDir.getAbsolutePath());
+			
+			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale(), indexDir, contentDir);
 			SearchService searchService = searchServiceLocator.getSearchService();
 			String lexiconPath = props.getLexiconPath();
 			if (lexiconPath!=null && searchService.getLexicon()==null) {
@@ -44,14 +52,8 @@ public class JochreSetupListener implements ServletContextListener {
 				searchService.setLexicon(lexicon);
 			}
 			
-			LOG.debug("Creating searcher");
-			File indexDir = new File(props.getIndexDirPath());
-			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
-			File contentDir = new File(props.getContentDirPath());
-			LOG.debug("Content dir: " + contentDir.getAbsolutePath());
-			
 			// initialize the searcher
-			searchService.getJochreIndexSearcher(indexDir, contentDir);
+			searchService.purgeSearcher();
 		} finally {
 			long duration = System.currentTimeMillis() - startTime;
 			LOG.info(this.getClass().getSimpleName() + ".contextInitialized Duration: " + duration);

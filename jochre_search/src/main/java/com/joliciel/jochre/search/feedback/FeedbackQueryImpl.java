@@ -18,24 +18,69 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.feedback;
 
-class FeedbackFontImpl implements FeedbackFontInternal {
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+class FeedbackQueryImpl implements FeedbackQueryInternal {
 	private int id;
-	private String code;
+	private String user;
+	private String ip;
+	private Date date;
+	private int resultCount;
+	private Map<FeedbackCriterion, String> clauses = new HashMap<FeedbackCriterion, String>();
+	
 	private FeedbackServiceInternal feedbackService;
+	
+	@Override
 	public int getId() {
 		return id;
 	}
+	@Override
 	public void setId(int id) {
 		this.id = id;
 	}
-	public String getCode() {
-		return code;
+	@Override
+	public String getUser() {
+		return user;
 	}
-	public void setCode(String code) {
-		this.code = code;
+	@Override
+	public void setUser(String user) {
+		this.user = user;
 	}
-	public boolean isNew() {
-		return id==0;
+	@Override
+	public String getIp() {
+		return ip;
+	}
+	@Override
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+	@Override
+	public Date getDate() {
+		return date;
+	}
+	@Override
+	public void setDate(Date date) {
+		this.date = date;
+	}
+	
+	@Override
+	public int getResultCount() {
+		return resultCount;
+	}
+	@Override
+	public void setResultCount(int resultCount) {
+		this.resultCount = resultCount;
+	}
+	@Override
+	public Map<FeedbackCriterion, String> getClauses() {
+		return clauses;
+	}
+	
+	@Override
+	public void addClause(FeedbackCriterion criterion, String text) {
+		this.clauses.put(criterion, text);
 	}
 	public FeedbackServiceInternal getFeedbackService() {
 		return feedbackService;
@@ -44,7 +89,12 @@ class FeedbackFontImpl implements FeedbackFontInternal {
 		this.feedbackService = feedbackService;
 	}
 	@Override
-	public void save() {
-		this.feedbackService.saveFontInternal(this);
+	public boolean isNew() {
+		return id==0;
 	}
+	@Override
+	public void save() {
+		this.feedbackService.saveQueryInternal(this);
+	}
+
 }

@@ -4,19 +4,17 @@ import java.util.Date;
 
 class FeedbackSuggestionImpl implements FeedbackSuggestionInternal {
 	private int id;
-	private FeedbackUser user;
-	private int userId;
+	private String user;
 	private FeedbackWord word;
 	private int wordId;
-	private FeedbackFont font;
-	private int fontId;
-	private FeedbackLanguage language;
-	private int languageId;
+	private String font;
+	private String language;
 	private String text;
 	private String previousText;
 	private Date createDate;
 	private boolean applied = false;
 	private boolean ignored = false;
+	private String ip = null;
 	
 	private FeedbackServiceInternal feedbackService;
 	
@@ -27,24 +25,14 @@ class FeedbackSuggestionImpl implements FeedbackSuggestionInternal {
 	public void setId(int id) {
 		this.id = id;
 	}
-	public FeedbackUser getUser() {
-		if (this.user==null && this.userId!=0)
-			this.user = this.feedbackService.loadUser(this.userId);
+	public String getUser() {
 		return user;
 	}
 	@Override
-	public void setUser(FeedbackUser user) {
+	public void setUser(String user) {
 		this.user = user;
-		if (user!=null)
-			this.userId = user.getId();
 	}
-	public int getUserId() {
-		return userId;
-	}
-	@Override
-	public void setUserId(int userId) {
-		this.userId = userId;
-	}
+
 	public FeedbackWord getWord() {
 		if (this.word==null && this.wordId!=0)
 			this.word = this.feedbackService.loadWord(this.wordId);
@@ -63,42 +51,23 @@ class FeedbackSuggestionImpl implements FeedbackSuggestionInternal {
 	public void setWordId(int wordId) {
 		this.wordId = wordId;
 	}
-	public FeedbackFont getFont() {
-		if (this.font==null && this.fontId!=0)
-			this.font = this.feedbackService.loadFont(this.fontId);
+	public String getFont() {
 		return font;
 	}
 	@Override
-	public void setFont(FeedbackFont font) {
+	public void setFont(String font) {
 		this.font = font;
-		if (font!=null)
-			this.fontId = font.getId();
 	}
-	public int getFontId() {
-		return fontId;
-	}
-	@Override
-	public void setFontId(int fontId) {
-		this.fontId = fontId;
-	}
-	public FeedbackLanguage getLanguage() {
-		if (this.language==null && this.languageId!=0)
-			this.language = this.feedbackService.loadLanguage(this.languageId);
+
+	public String getLanguage() {
 		return language;
 	}
 	@Override
-	public void setLanguage(FeedbackLanguage language) {
+	public void setLanguage(String language) {
 		this.language = language;
-		if (language!=null)
-			this.languageId = language.getId();
+
 	}
-	public int getLanguageId() {
-		return languageId;
-	}
-	@Override
-	public void setLanguageId(int languageId) {
-		this.languageId = languageId;
-	}
+	
 	public String getText() {
 		return text;
 	}
@@ -148,5 +117,12 @@ class FeedbackSuggestionImpl implements FeedbackSuggestionInternal {
 	public void setFeedbackService(FeedbackServiceInternal feedbackService) {
 		this.feedbackService = feedbackService;
 	}
-	
+	@Override
+	public String getIp() {
+		return ip;
+	}
+	@Override
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
 }

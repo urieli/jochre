@@ -61,6 +61,8 @@ import com.joliciel.jochre.search.JochreQueryParseException;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
 import com.joliciel.jochre.search.SearchStatusHolder;
+import com.joliciel.jochre.search.feedback.FeedbackCriterion;
+import com.joliciel.jochre.search.feedback.FeedbackQuery;
 import com.joliciel.jochre.search.feedback.FeedbackService;
 import com.joliciel.jochre.search.feedback.FeedbackServiceLocator;
 import com.joliciel.jochre.search.highlight.HighlightManager;
@@ -103,32 +105,16 @@ public class JochreSearchServlet extends HttpServlet {
 			JochreSearchProperties props = JochreSearchProperties.getInstance(this.getServletContext());
 			
 			String command = req.getParameter("command");
-			if (command==null) {
+			if (command==null)
 				command="search";
-			}
-			
-			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale());
-			SearchService searchService = searchServiceLocator.getSearchService();
 			
 			if (command.equals("log4j")) {
+				response.setContentType("application/json;charset=UTF-8");
 				Log4jListener.reloadLog4jProperties(this.getServletContext());
 				PrintWriter out = response.getWriter();
 				out.write("{\"response\":\"log4j reloaded\"}\n");
 				out.flush();
 				return;
-			} else if (command.equals("purge")) {
-				JochreSearchProperties.purgeInstance();
-				searchService.purge();
-				return;
-			}
-			
-			String lexiconPath = props.getLexiconPath();
-			if (lexiconPath!=null && searchService.getLexicon()==null) {
-				LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(searchServiceLocator);
-				LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
-				File lexiconFile = new File(lexiconPath);
-				Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
-				searchService.setLexicon(lexicon);
 			}
 			
 			Map<String,String> argMap = new HashMap<String, String>();
@@ -166,6 +152,7 @@ public class JochreSearchServlet extends HttpServlet {
 			String suggestion = null;
 			String languageCode = null;
 			String fontCode = null;
+			String ip = null;
 
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
@@ -218,6 +205,8 @@ public class JochreSearchServlet extends HttpServlet {
 					docId = Integer.parseInt(argValue);
 				} else if (argName.equals("user")) {
 					user = argValue;
+				} else if (argName.equals("ip")) {
+					ip = argValue;
 				} else if (argName.equals("suggestion")) {
 					suggestion = argValue;
 				} else if (argName.equals("languageCode")) {
@@ -238,7 +227,19 @@ public class JochreSearchServlet extends HttpServlet {
 			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
 			File contentDir = new File(props.getContentDirPath());
 			LOG.debug("Content dir: " + contentDir.getAbsolutePath());
-			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale(), indexDir, contentDir);
+			SearchService searchService = searchServiceLocator.getSearchService();
+			
+			String lexiconPath = props.getLexiconPath();
+			if (lexiconPath!=null && searchService.getLexicon()==null) {
+				LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(searchServiceLocator);
+				LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
+				File lexiconFile = new File(lexiconPath);
+				Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
+				searchService.setLexicon(lexicon);
+			}
+			
+			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 			
 			if (command.equals("search") || command.equals("highlight") || command.equals("snippets")) {		
 				response.setContentType("application/json;charset=UTF-8");
@@ -255,7 +256,25 @@ public class JochreSearchServlet extends HttpServlet {
 				
 				try {
 					if (command.equals("search")) {
-						searcher.search(query, out);
+						int resultCount = searcher.search(query, out);
+						
+						String databasePropsPath = props.getDatabasePropertiesPath();
+						if (databasePropsPath!=null) {
+							FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(searchServiceLocator);
+							
+							feedbackServiceLocator.setDatabasePropertiesPath(props.getDatabasePropertiesPath());
+							FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
+							FeedbackQuery feedbackQuery = feedbackService.getEmptyQuery(user, ip);
+							feedbackQuery.setResultCount(resultCount);
+							feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
+							if (query.getAuthorQueryString()!=null && query.getAuthorQueryString().length()>0)
+								feedbackQuery.addClause(FeedbackCriterion.author, query.getAuthorQueryString());
+							if (query.getTitleQueryString()!=null && query.getTitleQueryString().length()>0)
+								feedbackQuery.addClause(FeedbackCriterion.title, query.getTitleQueryString());
+							if (!query.isExpandInflections())
+								feedbackQuery.addClause(FeedbackCriterion.strict, "true");
+							feedbackQuery.save();
+						}
 					} else {
 						if (docIds==null)
 							throw new RuntimeException("Command " + command + " requires docIds");
@@ -390,14 +409,18 @@ public class JochreSearchServlet extends HttpServlet {
 				}
 				
 				FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(searchServiceLocator);
-				feedbackServiceLocator.setDatabasePropertiesPath(props.getDatabasePropertiesPath());
+				String databasePropsPath = props.getDatabasePropertiesPath();
+				if (databasePropsPath==null)
+					throw new JochreException("No database properties");
+				
+				feedbackServiceLocator.setDatabasePropertiesPath(databasePropsPath);
 				FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
-				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, user, fontCode, languageCode);
+				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, user, ip, fontCode, languageCode);
 				out.write("{\"response\":\"suggestion saved\"}\n");
 			} else if (command.equals("index")) {
 				response.setContentType("application/json;charset=UTF-8");
 				
-				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder();
 				builder.setForceUpdate(forceUpdate);
 				
 				new Thread(builder).start();
@@ -450,6 +473,11 @@ public class JochreSearchServlet extends HttpServlet {
 				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
 				lister.list(out);
 				out.flush();
+			} else if (command.equals("purge")) {
+				response.setContentType("application/json;charset=UTF-8");
+				JochreSearchProperties.purgeInstance();
+				searchService.purge();
+				out.write("{\"response\":\"purge performed\"}\n");
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}

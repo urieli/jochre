@@ -55,6 +55,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.joliciel.jochre.search.feedback.FeedbackCriterion;
+import com.joliciel.jochre.search.feedback.FeedbackQuery;
 import com.joliciel.jochre.search.feedback.FeedbackService;
 import com.joliciel.jochre.search.feedback.FeedbackServiceLocator;
 import com.joliciel.jochre.search.highlight.HighlightManager;
@@ -198,11 +200,6 @@ public class JochreSearch {
 
 			if (language==null)
 				throw new RuntimeException("for command " + command + ", language is required");
-
-			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language));
-			SearchService searchService = locator.getSearchService();
-			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
-			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
 			
 			File indexDir = null;
 			File contentDir = null;
@@ -217,6 +214,11 @@ public class JochreSearch {
 				contentDir = new File(contentDirPath);
 			}
 			
+			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language), indexDir, contentDir);
+			SearchService searchService = locator.getSearchService();
+			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
+			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
+
 			FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(locator);
 			if (databasePropertiesPath!=null) {
 				feedbackServiceLocator.setDatabasePropertiesPath(databasePropertiesPath);
@@ -224,7 +226,7 @@ public class JochreSearch {
 			
 			switch (command) {
 			case updateIndex: {
-				JochreIndexBuilder builder = searchService.getJochreIndexBuilder(indexDir, contentDir);
+				JochreIndexBuilder builder = searchService.getJochreIndexBuilder();
 				builder.updateIndex(forceUpdate);
 				break;
 			}
@@ -263,13 +265,13 @@ public class JochreSearch {
 					}
 				}
 				
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 
 				switch (command) {
 				case search: {
 					StringWriter stringWriter = new StringWriter();
-					searcher.search(query, stringWriter);
+					int resultCount = searcher.search(query, stringWriter);
 					out.write(stringWriter.toString());
 					out.write("\n");
 
@@ -279,6 +281,20 @@ public class JochreSearch {
 				            });
 					out.write(result.toString());
 					out.write("\n");
+					
+					if (databasePropertiesPath!=null) {
+						FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
+						FeedbackQuery feedbackQuery = feedbackService.getEmptyQuery(username, "1.2.3.4");
+						feedbackQuery.setResultCount(resultCount);
+						feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
+						if (query.getAuthorQueryString()!=null && query.getAuthorQueryString().length()>0)
+							feedbackQuery.addClause(FeedbackCriterion.author, query.getAuthorQueryString());
+						if (query.getTitleQueryString()!=null && query.getTitleQueryString().length()>0)
+							feedbackQuery.addClause(FeedbackCriterion.title, query.getTitleQueryString());
+						if (!query.isExpandInflections())
+							feedbackQuery.addClause(FeedbackCriterion.strict, "true");
+						feedbackQuery.save();
+					}
 					break;
 				}
 				default: {
@@ -323,7 +339,7 @@ public class JochreSearch {
 				if (docName==null)
 					throw new RuntimeException("For command " + command + " docName is required");
 
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				JsonFactory jsonFactory = new JsonFactory();
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
@@ -348,7 +364,7 @@ public class JochreSearch {
 					throw new RuntimeException("For command " + command + " docName is required");
 				if (docIndex<0)
 					throw new RuntimeException("For command " + command + " docIndex is required");
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
 				Writer out = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
@@ -365,7 +381,7 @@ public class JochreSearch {
 					throw new RuntimeException("For command " + command + " startOffset is required");
 				if (outDirPath==null)
 					throw new RuntimeException("For command " + command + " outDir is required");
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				int docId = docs.keySet().iterator().next();
 				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher, docId);
@@ -395,12 +411,12 @@ public class JochreSearch {
 				if (languageCode==null)
 					throw new RuntimeException("For command " + command + " languageCode is required");
 				
-				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher(indexDir, contentDir);
+				JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
 				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
 				int docId = docs.keySet().iterator().next();
 				
 				FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
-				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, username, fontCode, languageCode);
+				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, username, "1.2.3.4", fontCode, languageCode);
 				break;
 			} case serializeLexicon: {
 				if (lexiconDirPath==null)

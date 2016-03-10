@@ -25,11 +25,12 @@ import com.joliciel.jochre.search.lexicon.Lexicon;
 
 public interface SearchService {
 	public JochreIndexDocument getJochreIndexDocument(JochreIndexSearcher indexSearcher, int docId);
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir, File contentDir);
+	public JochreIndexSearcher getJochreIndexSearcher();
 	public void purge();
+	public void purgeSearcher();
 	
 	public JochreQuery getJochreQuery();
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir, File contentDir);
+	public JochreIndexBuilder getJochreIndexBuilder();
 	
 	public SearchStatusHolder getSearchStatusHolder();
 	
@@ -44,4 +45,9 @@ public interface SearchService {
 	 * @return
 	 */
 	public boolean isLeftToRight();
+	
+	public abstract void setContentDir(File contentDir);
+	public abstract File getContentDir();
+	public abstract void setIndexDir(File indexDir);
+	public abstract File getIndexDir();
 }

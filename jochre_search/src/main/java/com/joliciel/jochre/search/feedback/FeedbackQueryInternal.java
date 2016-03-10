@@ -18,22 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.feedback;
 
-/**
- * A unique user of JochreSearch, identified by his username.
- * Note that it is client code responsibility to manage usernames and accounts.
- * @author Assaf Urieli
- *
- */
-public interface FeedbackUser {
-	/**
-	 * The user's unique internal id.
-	 * @return
-	 */
-	public int getId();
-	
-	/**
-	 * The user's unique user name.
-	 * @return
-	 */
-	public String getUserName();
+import java.util.Date;
+
+interface FeedbackQueryInternal extends FeedbackQuery {
+	public void setDate(Date date);
+
+	public void setIp(String ip);
+
+	public void setUser(String user);
+
+	public void setId(int id);
+
+	public boolean isNew();
 }

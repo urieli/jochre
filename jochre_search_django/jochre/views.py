@@ -14,6 +14,7 @@ def search(request):
         return redirect('accounts/login/')
     
     username = request.user.username
+    ip = get_client_ip(request)
     
     searchUrl = settings.JOCHRE_SEARCH_URL
     advancedSearch = False
@@ -62,7 +63,8 @@ def search(request):
              "JOCHRE_FONT_NAMES" : settings.JOCHRE_FONT_NAMES,
              "JOCHRE_LANGUAGE_LIST" : settings.JOCHRE_LANGUAGE_LIST,
              "JOCHRE_LANGUAGE_NAMES" : settings.JOCHRE_LANGUAGE_NAMES,
-             "defaultFontImage" : "images/" + settings.JOCHRE_FONT_LIST[0] + ".png"
+             "defaultFontImage" : "images/" + settings.JOCHRE_FONT_LIST[0] + ".png",
+             "ip": ip,
              }
              
     if len(query)>0:
@@ -71,7 +73,9 @@ def search(request):
         userdata = {"command": "search",
                     "maxDocs": MAX_DOCS,
                     "query": query,
-                    "user": username}
+                    "user": username,
+                    "ip": ip,
+                    }
         if len(author)>0:
             userdata['author'] = author
         if len(title)>0:
@@ -115,7 +119,9 @@ def search(request):
                             "snippetSize": 160,
                             "query": query,
                             "docIds": docIds,
-                            "user": username}
+                            "user": username,
+                            "ip": ip,
+                            }
                 if strict:
                     userdata['expand'] = 'false'
                 resp = requests.get(searchUrl, userdata)
@@ -181,3 +187,11 @@ def get_item(dictionary, key):
 def addstr(arg1, arg2):
     """concatenate arg1 & arg2"""
     return str(arg1) + str(arg2)
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip

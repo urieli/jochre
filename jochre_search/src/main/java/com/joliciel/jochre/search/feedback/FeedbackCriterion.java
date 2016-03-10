@@ -18,20 +18,37 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.feedback;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.joliciel.jochre.search.JochreSearchException;
+
 /**
- * The language indicated by the feedback user for a given OCR extract.
+ * A single query criterion type.
  * @author Assaf Urieli
  *
  */
-public interface FeedbackLanguage {
-	/**
-	 * Unique internal id for this language.
-	 * @return
-	 */
-	public int getId();
+public enum FeedbackCriterion {
+	text,
+	author,
+	title,
+	strict;
 	
-	/**
-	 * Language code.
-	 * @return
-	 */
-	public String getCode();}
+	private int id;
+	private static Map<Integer,FeedbackCriterion> idMap = new HashMap<Integer, FeedbackCriterion>();
+	
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+		idMap.put(id, this);
+	}
+	
+	public static FeedbackCriterion forId(int id) {
+		FeedbackCriterion criterion = idMap.get(id);
+		if (criterion==null)
+			throw new JochreSearchException("Unknown criterion for id: " + id);
+		return criterion;
+	}
+}

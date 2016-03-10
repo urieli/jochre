@@ -10,24 +10,17 @@ interface FeedbackSuggestionInternal extends FeedbackSuggestion {
 
 	public void setText(String text);
 
-	public void setLanguageId(int languageId);
+	public void setLanguage(String language);
 
-	public void setLanguage(FeedbackLanguage language);
-
-	public void setFont(FeedbackFont font);
+	public void setFont(String font);
 
 	public void setWordId(int wordId);
 
 	public void setWord(FeedbackWord word);
 
-	public void setUserId(int userId);
-
-	public void setUser(FeedbackUser user);
+	public void setUser(String user);
 
 	public void setId(int id);
 
-	public void setFontId(int fontId);
-
 	public boolean isNew();
-
 }

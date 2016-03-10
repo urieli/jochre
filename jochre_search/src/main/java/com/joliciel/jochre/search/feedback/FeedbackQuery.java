@@ -18,9 +18,30 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.feedback;
 
-interface FeedbackFontInternal extends FeedbackFont {
-	public void setId(int id);
-	public void setCode(String code);
-	public boolean isNew();
+import java.util.Date;
+import java.util.Map;
+
+/**
+ * A single search query executed by a user.
+ * @author Assaf Urieli
+ *
+ */
+public interface FeedbackQuery {
+	public void addClause(FeedbackCriterion criterion, String text);
+
+	public Map<FeedbackCriterion, String> getClauses();
+
+	public Date getDate();
+
+	public String getIp();
+
+	public String getUser();
+
+	public int getId();
+
+	public int getResultCount();
+
+	public void setResultCount(int resultCount);
+	
 	public void save();
 }

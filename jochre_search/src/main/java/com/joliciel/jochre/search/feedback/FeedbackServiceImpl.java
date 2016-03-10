@@ -17,7 +17,7 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 
 	@Override
 	public FeedbackSuggestion makeSuggestion(JochreIndexSearcher indexSearcher, int docId, int offset,
-			String text, String username, String fontCode,
+			String text, String username, String ip, String fontCode,
 			String languageCode) {
 		if (this.feedbackDAO==null)
 			throw new JochreException("Cannot make suggestions without a database to store them.");
@@ -25,14 +25,12 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
 		JochreIndexWord jochreWord = jochreDoc.getWord(offset);
 		FeedbackWord word = this.findOrCreateWord(jochreWord);
-		FeedbackUser user = this.findOrCreateuser(username);
-		FeedbackFont font = this.findOrCreateFont(fontCode);
-		FeedbackLanguage language = this.findOrCreateLanguage(languageCode);
 		FeedbackSuggestionInternal suggestion = this.getEmptyFeedbackSuggestionInternal();
 		suggestion.setWord(word);
-		suggestion.setUser(user);
-		suggestion.setFont(font);
-		suggestion.setLanguage(language);
+		suggestion.setUser(username);
+		suggestion.setIp(ip);
+		suggestion.setFont(fontCode);
+		suggestion.setLanguage(languageCode);
 		suggestion.setPreviousText(jochreWord.getText());
 		suggestion.setText(text);
 		suggestion.save();
@@ -57,42 +55,6 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 			doc = iDoc;
 		}
 		return doc;
-	}
-
-	@Override
-	public FeedbackFont findOrCreateFont(String code) {
-		FeedbackFont font = feedbackDAO.findFont(code);
-		if (font==null) {
-			FeedbackFontInternal iFont = this.getEmptyFeedbackFontInternal();
-			iFont.setCode(code);
-			iFont.save();
-			font = iFont;
-		}
-		return font;
-	}
-
-	@Override
-	public FeedbackLanguage findOrCreateLanguage(String code) {
-		FeedbackLanguage language = feedbackDAO.findLanguage(code);
-		if (language==null) {
-			FeedbackLanguageInternal iLanguage = this.getEmptyFeedbackLanguageInternal();
-			iLanguage.setCode(code);
-			iLanguage.save();
-			language = iLanguage;
-		}
-		return language;
-	}
-
-	@Override
-	public FeedbackUser findOrCreateuser(String userName) {
-		FeedbackUser user = feedbackDAO.findUser(userName);
-		if (user==null) {
-			FeedbackUserInternal iUser = this.getEmptyFeedbackUserInternal();
-			iUser.setUserName(userName);
-			iUser.save();
-			user = iUser;
-		}
-		return user;
 	}
 
 	@Override
@@ -142,8 +104,10 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 
 	public void setFeedbackDAO(FeedbackDAO feedbackDAO) {
 		this.feedbackDAO = feedbackDAO;
-		if (feedbackDAO!=null)
+		if (feedbackDAO!=null) {
 			this.feedbackDAO.setFeedbackService(this);
+			this.reloadData();
+		}
 	}
 
 	@Override
@@ -151,27 +115,6 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 		FeedbackWordImpl word = new FeedbackWordImpl();
 		word.setFeedbackService(this);
 		return word;
-	}
-
-	@Override
-	public FeedbackUserInternal getEmptyFeedbackUserInternal() {
-		FeedbackUserImpl user = new FeedbackUserImpl();
-		user.setFeedbackService(this);
-		return user;
-	}
-
-	@Override
-	public FeedbackFontInternal getEmptyFeedbackFontInternal() {
-		FeedbackFontImpl font = new FeedbackFontImpl();
-		font.setFeedbackService(this);
-		return font;
-	}
-
-	@Override
-	public FeedbackLanguageInternal getEmptyFeedbackLanguageInternal() {
-		FeedbackLanguageImpl language = new FeedbackLanguageImpl();
-		language.setFeedbackService(this);
-		return language;
 	}
 
 	@Override
@@ -216,21 +159,6 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 			FeedbackRowInternal row) {
 		this.feedbackDAO.saveRow(row);
 	}
-	@Override
-	public void saveUserInternal(
-			FeedbackUserInternal user) {
-		this.feedbackDAO.saveUser(user);
-	}
-	@Override
-	public void saveFontInternal(
-			FeedbackFontInternal font) {
-		this.feedbackDAO.saveFont(font);
-	}
-	@Override
-	public void saveLanguageInternal(
-			FeedbackLanguageInternal language) {
-		this.feedbackDAO.saveLanguage(language);
-	}
 
 	@Override
 	public List<FeedbackSuggestion> findUnappliedSuggestions() {
@@ -252,10 +180,6 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 	}
 
 	@Override
-	public FeedbackUser loadUser(int userId) {
-		return this.feedbackDAO.loadUser(userId);
-	}
-	@Override
 	public FeedbackWord loadWord(int wordId) {
 		return this.feedbackDAO.loadWord(wordId);
 	}
@@ -267,12 +191,31 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 	public FeedbackRow loadRow(int rowId) {
 		return this.feedbackDAO.loadRow(rowId);
 	}
+
 	@Override
-	public FeedbackFont loadFont(int fontId) {
-		return this.feedbackDAO.loadFont(fontId);
+	public void reloadData() {
+		feedbackDAO.loadCriteria();
 	}
+
 	@Override
-	public FeedbackLanguage loadLanguage(int languageId) {
-		return this.feedbackDAO.loadLanguage(languageId);
+	public FeedbackQueryInternal getEmptyFeedbackQueryInternal() {
+		FeedbackQueryImpl query = new FeedbackQueryImpl();
+		query.setFeedbackService(this);
+		return query;
 	}
+
+	@Override
+	public void saveQueryInternal(FeedbackQueryInternal query) {
+		this.feedbackDAO.saveQuery(query);
+	}
+
+	@Override
+	public FeedbackQuery getEmptyQuery(String user, String ip) {
+		FeedbackQueryInternal query = this.getEmptyFeedbackQueryInternal();
+		query.setUser(user);
+		query.setIp(ip);
+		return query;
+	}
+
+	
 }

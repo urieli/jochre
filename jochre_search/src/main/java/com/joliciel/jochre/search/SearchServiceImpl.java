@@ -49,12 +49,24 @@ class SearchServiceImpl implements SearchServiceInternal {
 	private SearchStatusHolder searchStatusHolder;
 	private Locale locale;
 	private Lexicon lexicon;
+	private File indexDir;
+	private File contentDir;
 	
 	private static final Set<String> RTL = new HashSet<String>(Arrays.asList(new String[] {"ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi"}));
 
+	public SearchServiceImpl(Locale locale, File indexDir, File contentDir) {
+		super();
+		this.locale = locale;
+		this.indexDir = indexDir;
+		this.contentDir = contentDir;
+	}
+
 	@Override
-	public JochreIndexBuilder getJochreIndexBuilder(File indexDir,
-			File contentDir) {
+	public JochreIndexBuilder getJochreIndexBuilder() {
+		if (indexDir==null)
+			throw new JochreSearchException("indexDir not set");
+		if (contentDir==null)
+			throw new JochreSearchException("contentDir not set");
 		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir, contentDir);
 		builder.setSearchService(this);
 		builder.setAltoService(altoService);
@@ -71,18 +83,26 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	
 	@Override
-	public JochreIndexSearcher getJochreIndexSearcher(File indexDir, File contentDir) {
-		if (this.searcher==null) {
-			JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir, contentDir);
-			searcher.setSearchService(this);
-			this.searcher = searcher;
-		}
+	public synchronized JochreIndexSearcher getJochreIndexSearcher() {
+		if (this.searcher==null) 
+			this.searcher = this.buildSearcher();
 		return this.searcher;
 	}
 	
 	public void purge() {
-		this.searcher = null;
 		this.lexicon = null;
+		this.purgeSearcher();
+	}
+	
+	public synchronized void purgeSearcher() {
+		JochreIndexSearcher searcher = this.buildSearcher();
+		this.searcher = searcher;
+	}
+	
+	private JochreIndexSearcher buildSearcher() {
+		JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir, contentDir);
+		searcher.setSearchService(this);
+		return searcher;
 	}
 	
 	@Override
@@ -93,7 +113,7 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 	
 	@Override
-	public JochreIndexDirectory getJochreIndexDirectory(File contentDir, File dir) {
+	public JochreIndexDirectory getJochreIndexDirectory(File dir) {
 		JochreIndexDirectoryImpl directory = new JochreIndexDirectoryImpl(contentDir, dir);
 		return directory;
 	}
@@ -215,5 +235,25 @@ class SearchServiceImpl implements SearchServiceInternal {
 
 	public void setFeedbackService(FeedbackService feedbackService) {
 		this.feedbackService = feedbackService;
+	}
+
+	@Override
+	public File getIndexDir() {
+		return indexDir;
+	}
+
+	@Override
+	public void setIndexDir(File indexDir) {
+		this.indexDir = indexDir;
+	}
+
+	@Override
+	public File getContentDir() {
+		return contentDir;
+	}
+
+	@Override
+	public void setContentDir(File contentDir) {
+		this.contentDir = contentDir;
 	}
 }

@@ -24,30 +24,22 @@ import java.awt.image.BufferedImage;
 import com.joliciel.jochre.search.JochreIndexWord;
 
 interface FeedbackServiceInternal extends FeedbackService {
-	FeedbackDocument findOrCreateDocument(String path);
-	FeedbackFont findOrCreateFont(String code);
-	FeedbackLanguage findOrCreateLanguage(String code);
-	FeedbackUser findOrCreateuser(String userName);
-	FeedbackRow findOrCreateRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage);
-	FeedbackWord findOrCreateWord(JochreIndexWord jochreWord);
-	FeedbackWordInternal getEmptyFeedbackWordInternal();
-	FeedbackUserInternal getEmptyFeedbackUserInternal();
-	FeedbackFontInternal getEmptyFeedbackFontInternal();
-	FeedbackLanguageInternal getEmptyFeedbackLanguageInternal();
-	FeedbackDocumentInternal getEmptyFeedbackDocumentInternal();
-	FeedbackRowInternal getEmptyFeedbackRowInternal();
-	FeedbackSuggestionInternal getEmptyFeedbackSuggestionInternal();
-	void saveSuggestionInternal(FeedbackSuggestionInternal suggestion);
-	public abstract void saveLanguageInternal(FeedbackLanguageInternal language);
-	public abstract void saveFontInternal(FeedbackFontInternal font);
-	public abstract void saveUserInternal(FeedbackUserInternal user);
-	public abstract void saveRowInternal(FeedbackRowInternal row);
-	public abstract void saveWordInternal(FeedbackWordInternal word);
-	public abstract void saveDocumentInternal(FeedbackDocumentInternal doc);
-	FeedbackUser loadUser(int userId);
-	public abstract FeedbackLanguage loadLanguage(int languageId);
-	public abstract FeedbackFont loadFont(int fontId);
-	public abstract FeedbackRow loadRow(int rowId);
-	public abstract FeedbackDocument loadDocument(int docId);
-	public abstract FeedbackWord loadWord(int wordId);
+	public FeedbackDocument findOrCreateDocument(String path);
+	public FeedbackRow findOrCreateRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage);
+	public FeedbackWord findOrCreateWord(JochreIndexWord jochreWord);
+	public FeedbackWordInternal getEmptyFeedbackWordInternal();
+	public FeedbackDocumentInternal getEmptyFeedbackDocumentInternal();
+	public FeedbackRowInternal getEmptyFeedbackRowInternal();
+	public FeedbackSuggestionInternal getEmptyFeedbackSuggestionInternal();
+	public void saveSuggestionInternal(FeedbackSuggestionInternal suggestion);
+
+	public void saveRowInternal(FeedbackRowInternal row);
+	public void saveWordInternal(FeedbackWordInternal word);
+	public void saveDocumentInternal(FeedbackDocumentInternal doc);
+
+	public FeedbackRow loadRow(int rowId);
+	public FeedbackDocument loadDocument(int docId);
+	public FeedbackWord loadWord(int wordId);
+	public FeedbackQueryInternal getEmptyFeedbackQueryInternal();
+	public void saveQueryInternal(FeedbackQueryInternal query);
 }

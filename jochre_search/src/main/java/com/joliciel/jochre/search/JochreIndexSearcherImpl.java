@@ -100,7 +100,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	}
 
 	@Override
-	public void search(JochreQuery jochreQuery, Writer out) {
+	public int search(JochreQuery jochreQuery, Writer out) {
 		try {
 			TopDocs topDocs = this.search(jochreQuery);
 			DecimalFormat df = this.getDecimalFormat(jochreQuery.getDecimalPlaces());
@@ -153,6 +153,8 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 
 			jsonGen.writeEndArray();
 			jsonGen.flush();
+			
+			return topDocs.totalHits;
 		} catch (IOException e) {
 			LogUtils.logError(LOG, e);
 			throw new JochreException(e);
