@@ -74,4 +74,11 @@ JOCHRE_UI_STRINGS = {
 "next" : u"Seguenta",
 "last" : u"Darrièra",
 "volume" : u"volum",
+"fixWordTitle": u"Fix a word",
+"fixWordInstructions" : u"""PVos prepausam de corregir lo tèxte reconegut pel logicial de reconeissença de caractèrs (OCR).
+Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
+"fixWordWord" : u"Word",
+"fixWordFont" : u"Font",
+"fixWordFontExample" : u"Font example",
+"fixWordLanguage" : u"Language",
 }

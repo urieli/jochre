@@ -324,8 +324,8 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					 
 					dialog = $( "#dialog-fixWord" ).dialog({
 					      autoOpen: false,
-					      height: 300,
-					      width: 500,
+					      height: 400,
+					      width: 600,
 					      position: { my: "center", at: "center", of: target },
 					      modal: true,
 					      buttons: {
@@ -453,28 +453,29 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 	</script>
 {% endif %}
 </form>
-<div id="dialog-fixWord" title="Fix a word" style="display:none;">
+<div id="dialog-fixWord" title="{{ Strings.fixWordTitle }}" style="display:none;">
   <div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
   <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
   </div>
    <form>
     <fieldset>
+      <p>{{ Strings.fixWordInstructions }}</p>
       <table>
       <tr>
       <td>
       <table>
-      <tr><td><label for="txtSuggestion">Word</label></td>
+      <tr><td><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></td>
       <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" {% if RTL %} class="yiddish" {% endif %}></td></tr>
-      <tr><td><label for="selFont">Font</label></td>
+      <tr><td><label for="selFont">{{ Strings.fixWordFont }}</label></td>
       <td><select id="selFont" name="selFont">
       {% for fontCode in JOCHRE_FONT_LIST %}
       <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
       {% endfor %}
       </select></td></tr>
-      <tr><td><label>Font example</label></td>
+      <tr><td><label>{{ Strings.fixWordFontExample }}</label></td>
       <td><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></td>
       </tr>
-      <tr><td><label for="selLang">Language</label></td>
+      <tr><td><label for="selLang">{{ Strings.fixWordLanguage }}</label></td>
       <td><select id="selLang" name="selLang">
       {% for languageCode in JOCHRE_LANGUAGE_LIST %}
       <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>

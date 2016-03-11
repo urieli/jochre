@@ -79,4 +79,11 @@ JOCHRE_UI_STRINGS = {
 "last" : u"Last",
 "volume" : u"volume",
 "volumeRTL" : u"באַנד",
+"fixWordTitle": u"Fix a word",
+"fixWordInstructions" : u"""Please enter the word exactly as it appears above, including niqqud, apsotrophes, quotes, dashes, and other punctuation.
+If the word as badly segmented (i.e. if only part of the word appears), do not correct it.""",
+"fixWordWord" : u"Word",
+"fixWordFont" : u"Font",
+"fixWordFontExample" : u"Font example",
+"fixWordLanguage" : u"Language",
 }
