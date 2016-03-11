@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 					return pathname.isDirectory();
 				}
 			});
+			
+			Arrays.sort(subdirs);
 			
 			searchStatusHolder.setStatus(SearchStatus.BUSY);
 			searchStatusHolder.setTotalCount(subdirs.length);

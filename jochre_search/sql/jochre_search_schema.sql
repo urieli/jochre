@@ -14,23 +14,6 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 2126 (class 1262 OID 1753365)
--- Name: jochresearchyid; Type: DATABASE; Schema: -; Owner: -
---
-
-CREATE DATABASE jochresearchyid WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'English_Ireland.1252' LC_CTYPE = 'English_Ireland.1252';
-
-
-\connect jochresearchyid
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-
---
 -- TOC entry 193 (class 3079 OID 11855)
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
 --
