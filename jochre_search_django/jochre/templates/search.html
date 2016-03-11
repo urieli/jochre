@@ -300,24 +300,23 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 						var selLang = document.getElementById("selLang");
 						var languageCode = selLang.options[selFont.selectedIndex].value;
 						
-						$.getJSON("{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
-								+ "&docId={{ result.docId }}"
-								+ "&startOffset=" + wordOffset
-								+ "&user={{ request.user.username }}"
-								+ "&ip={{ ip }}"
-								+ "&suggestion=" + encodeURIComponent(suggestion)
-								+ "&fontCode=" + encodeURIComponent(fontCode)
-								+ "&languageCode=" + encodeURIComponent(languageCode),
-							function( data ) {
+						$.ajax({
+							  url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
+									+ "&docId={{ result.docId }}"
+									+ "&startOffset=" + wordOffset
+									+ "&user={{ request.user.username }}"
+									+ "&ip={{ ip }}"
+									+ "&suggestion=" + encodeURIComponent(suggestion)
+									+ "&fontCode=" + encodeURIComponent(fontCode)
+									+ "&languageCode=" + encodeURIComponent(languageCode),
+							  dataType: 'json',
+							  async: false,
+							  success: function( data ) {
 								alert('Suggestion recorded.');
-							}).fail(function(jqXHR, status, error){
-							    if(status == 'parseerror'){
-							        //not valid json
-							        alert(error);
-							    } else {
-							        //some other error
-							    	alert(error);
-							    }
+								},
+							  error: function(XMLHttpRequest, textStatus, errorThrown) { 
+							        alert("Status: " + textStatus + ". Error: " + errorThrown); 
+							    },
 							});
 						dialog.dialog( "close" );
 					}
