@@ -323,6 +323,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private AltoStringFixer altoStringFixer;
 		
 		private JochreIndexDirectory directory;
+		private Map<Integer,List<FeedbackSuggestion>> pageSuggestionMap;
 		
 		public AltoPageIndexer(JochreIndexBuilderImpl parent, JochreIndexDirectory directory, int startPage, int endPage) {
 			super();
@@ -331,6 +332,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			this.startPage = startPage;
 			this.endPage = endPage;
 			this.altoStringFixer = parent.getAltoService().getAltoStringFixer();
+			this.pageSuggestionMap = parent.getFeedbackService().findSuggestions(directory.getPath());
 		}
 
 		@Override
@@ -342,16 +344,19 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			LOG.debug("Processing page: " + page.getIndex());
 			currentPages.add(page);
 			
-			List<FeedbackSuggestion> suggestions = parent.getFeedbackService().findSuggestions(directory.getPath(), page.getIndex());
+			List<FeedbackSuggestion> suggestions = pageSuggestionMap.get(page.getIndex());
+			
 			Map<Rectangle,List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
-			for (FeedbackSuggestion suggestion : suggestions) {
-				Rectangle rectangle = suggestion.getWord().getRectangle();
-				List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
-				if (wordSuggestions==null) {
-					wordSuggestions = new ArrayList<>();
-					suggestionMap.put(rectangle, wordSuggestions);
+			if (suggestions!=null) {
+				for (FeedbackSuggestion suggestion : suggestions) {
+					Rectangle rectangle = suggestion.getWord().getRectangle();
+					List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
+					if (wordSuggestions==null) {
+						wordSuggestions = new ArrayList<>();
+						suggestionMap.put(rectangle, wordSuggestions);
+					}
+					wordSuggestions.add(suggestion);
 				}
-				wordSuggestions.add(suggestion);
 			}
 			
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {

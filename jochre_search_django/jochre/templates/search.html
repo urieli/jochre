@@ -294,6 +294,8 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				    var dialog, form;
 
 					function applyFix() {
+						document.getElementById("imgWordLoading").style.display="inline";
+						
 						var suggestion = document.getElementById("txtSuggestion").value;
 						var selFont = document.getElementById("selFont");
 						var fontCode = selFont.options[selFont.selectedIndex].value;
@@ -312,13 +314,17 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 							  dataType: 'json',
 							  async: false,
 							  success: function( data ) {
-								alert('Suggestion recorded.');
+								  document.getElementById("imgWordLoading").style.display="none";
+								  alert('Suggestion recorded.');
 								},
-							  error: function(XMLHttpRequest, textStatus, errorThrown) { 
-							        alert("Status: " + textStatus + ". Error: " + errorThrown); 
+							  error: function(XMLHttpRequest, textStatus, errorThrown) {
+								  document.getElementById("imgWordLoading").style.display="none";
+							      alert("Status: " + textStatus + ". Error: " + errorThrown); 
 							    },
 							});
 						dialog.dialog( "close" );
+						
+						document.getElementById("imgWordLoading").style.display="none";
 					}
 					 
 					dialog = $( "#dialog-fixWord" ).dialog({

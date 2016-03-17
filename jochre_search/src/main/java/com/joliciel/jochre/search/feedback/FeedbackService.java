@@ -19,6 +19,7 @@
 package com.joliciel.jochre.search.feedback;
 
 import java.util.List;
+import java.util.Map;
 
 import com.joliciel.jochre.search.JochreIndexSearcher;
 
@@ -43,17 +44,21 @@ public interface FeedbackService {
 
 	/**
 	 * Find any suggestions which have not yet been applied, in order of creation.
-	 * @return
 	 */
 	public List<FeedbackSuggestion> findUnappliedSuggestions();
 	
 	/**
 	 * Find any suggestions made on a given document path and page index, in order of creation.
-	 * @param path
-	 * @param pageIndex
-	 * @return
+	 * @param path the path to the document
+	 * @param pageIndex the page index inside the document
 	 */
 	public List<FeedbackSuggestion> findSuggestions(String path, int pageIndex);
+	
+	/**
+	 * Find any suggestions made on a given document, grouped by page index and ordered by creation date.
+	 * @param path the path to the document.
+	 */
+	public Map<Integer,List<FeedbackSuggestion>> findSuggestions(String path);
 	
 	public void reloadData();
 

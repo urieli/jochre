@@ -3,7 +3,9 @@ package com.joliciel.jochre.search.feedback;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexSearcher;
@@ -177,6 +179,20 @@ class FeedbackServiceImpl implements FeedbackServiceInternal {
 			return new ArrayList<>();
 		}
 		return this.feedbackDAO.findSuggestions(doc, pageIndex);
+	}
+	
+	
+
+	@Override
+	public Map<Integer, List<FeedbackSuggestion>> findSuggestions(String path) {
+		if (this.feedbackDAO==null)
+			return new HashMap<>();
+		
+		FeedbackDocument doc = this.feedbackDAO.findDocument(path);
+		if (doc==null) {
+			return new HashMap<>();
+		}
+		return this.feedbackDAO.findSuggestions(doc);
 	}
 
 	@Override

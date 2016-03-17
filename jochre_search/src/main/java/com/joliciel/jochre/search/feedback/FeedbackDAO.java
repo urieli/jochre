@@ -5,7 +5,10 @@ import java.awt.image.BufferedImage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
@@ -386,6 +389,62 @@ class FeedbackDAO {
 			}
 	
 			return suggestions;
+		} catch (SQLException e) {
+			LogUtils.logError(LOG, e);
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public Map<Integer,List<FeedbackSuggestion>> findSuggestions(FeedbackDocument doc) {
+		try {
+			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+			String sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
+					+ " INNER JOIN joc_font ON suggest_font_id = font_id"
+					+ " INNER JOIN joc_language ON suggest_language_id = language_id"
+					+ " INNER JOIN joc_user ON suggest_user_id = user_id"
+					+ " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
+					+ " INNER JOIN joc_word ON suggest_word_id = word_id"
+					+ " INNER JOIN joc_row ON word_row_id = row_id"
+					+ " INNER JOIN joc_document ON row_doc_id = doc_id"
+					+ " WHERE row_doc_id=:row_doc_id"
+					+ " AND suggest_ignore=:false"
+					+ " ORDER BY row_page_index, suggest_id";
+			MapSqlParameterSource paramSource = new MapSqlParameterSource();
+			paramSource.addValue("row_doc_id", doc.getId());
+			paramSource.addValue("false", false);
+	
+			LOG.info(sql);
+			logParameters(paramSource);
+			
+			SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
+			SuggestionMapper suggestionMapper = new SuggestionMapper(this.getFeedbackService());
+			WordMapper wordMapper = new WordMapper(this.getFeedbackService());
+			FeedbackRowMapper rowMapper = new FeedbackRowMapper(this.getFeedbackService());
+			DocumentMapper docMapper = new DocumentMapper(this.getFeedbackService());
+			
+			Map<Integer,List<FeedbackSuggestion>> suggestionMap = new HashMap<Integer, List<FeedbackSuggestion>>();
+			
+			int currentPageIndex = -1;
+			List<FeedbackSuggestion> suggestions = null;
+			while (rs.next()) {
+				int pageIndex = rs.getInt("row_page_index");
+				if (pageIndex!=currentPageIndex) {
+					suggestions = new ArrayList<>();
+					suggestionMap.put(pageIndex, suggestions);
+					currentPageIndex = pageIndex;
+				}
+				
+				FeedbackSuggestionInternal suggestion = suggestionMapper.mapRow(rs);
+				FeedbackWordInternal word = wordMapper.mapRow(rs);
+				FeedbackRowInternal row = rowMapper.mapRow(rs);
+				FeedbackDocument document = docMapper.mapRow(rs);
+				suggestion.setWord(word);
+				word.setRow(row);
+				row.setDocument(document);
+				suggestions.add(suggestion);
+			}
+	
+			return suggestionMap;
 		} catch (SQLException e) {
 			LogUtils.logError(LOG, e);
 			throw new RuntimeException(e);
