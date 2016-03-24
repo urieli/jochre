@@ -28,13 +28,11 @@ package com.joliciel.jochre.search.feedback;
 public interface FeedbackDocument {
 	/**
 	 * The document's unique internal id.
-	 * @return
 	 */
 	public int getId();
 	
 	/**
 	 * The document's path, which identifies it outside of the index.
-	 * @return
 	 */
 	public String getPath();
 }

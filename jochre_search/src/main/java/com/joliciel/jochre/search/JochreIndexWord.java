@@ -31,67 +31,56 @@ public interface JochreIndexWord {
 	
 	/**
 	 * The word's start offset.
-	 * @return
 	 */
 	public int getStartOffset();
 	
 	/**
 	 * The document containing this word.
-	 * @return
 	 */
 	public JochreIndexDocument getDocument();
 	
 	/**
 	 * The rectangle surrounding this word within the page.
-	 * @return
 	 */
 	public Rectangle getRectangle();
 	
 	/**
 	 * The second rectangle for this word, when it is a hyphenated word split across two rows.
-	 * @return
 	 */
 	public Rectangle getSecondRectangle();
 	
 	/**
 	 * The word's text.
-	 * @return
 	 */
 	public String getText();
 	
 	/**
 	 * The word's image - if it is a hyphenated word, the image includes both halves.
-	 * @return
 	 */
 	public BufferedImage getImage();
 	
 	/**
 	 * The rectangle of the row containing this word, within the page.
-	 * @return
 	 */
 	public Rectangle getRowRectangle();
 	
 	/**
 	 * The image of the row containing this word.
-	 * @return
 	 */
 	public BufferedImage getRowImage();
 	
 	/**
 	 * This 2nd row's rectangle within the page, when the word is a hyphenated word split across two rows.
-	 * @return
 	 */
 	public Rectangle getSecondRowRectangle();
 	
 	/**
 	 * This 2nd row's image, when the word is a hyphenated word split across two rows.
-	 * @return
 	 */
 	public BufferedImage getSecondRowImage();
 	
 	/**
 	 * Page index for this word.
-	 * @return
 	 */
 	public int getPageIndex();
 }

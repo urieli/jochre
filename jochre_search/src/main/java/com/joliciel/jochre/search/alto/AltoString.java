@@ -36,7 +36,6 @@ public interface AltoString extends JochreToken {
 	
 	/**
 	 * Alternative possibilities for the current string.
-	 * @return
 	 */
 	public List<String> getAlternatives();
 	public void setAlternatives(List<String> alternatives);
@@ -44,14 +43,12 @@ public interface AltoString extends JochreToken {
 	/**
 	 * The confidence assigned by the OCR model to this string,
 	 * from 0 to 1.
-	 * @return
 	 */
 	public double getConfidence();
 	public void setConfidence(double confidence);
 	
 	/**
 	 * Is this string a hyphen within a hyphenated word?
-	 * @return
 	 */
 	public boolean isHyphen();
 	public void setHyphen(boolean hyphen);
@@ -59,7 +56,6 @@ public interface AltoString extends JochreToken {
 	/**
 	 * Is this string the first half of a hyphenated word
 	 * which crosses an end-of-line.
-	 * @return
 	 */
 	public boolean isHyphenStart();
 	public void setHyphenStart(boolean hyphenStart);
@@ -67,21 +63,18 @@ public interface AltoString extends JochreToken {
 	/**
 	 * Is this string the second half of a hyphenated word
 	 * which corsses an end-of-line.
-	 * @return
 	 */
 	public boolean isHyphenEnd();
 	public void setHyphenEnd(boolean hyphenEnd);
 	
 	/**
 	 * The full hyphenated word, or null if string is not part of hyphenated word.
-	 * @return
 	 */
 	public String getHyphenatedContent();
 	public void setHyphenatedContent(String hyphenatedContent);
 	
 	/**
 	 * The index of this string within the current TextLine.
-	 * @return
 	 */
 	public int getIndex();
 	public void setIndex(int index);
@@ -89,27 +82,23 @@ public interface AltoString extends JochreToken {
 	/**
 	 * The starting position of this string's character span, where 0
 	 * is considered to be the start of the current page.
-	 * @return
 	 */
 	public abstract int getSpanStart();
 	public abstract void setSpanStart(int spanStart);
 	
 	/**
 	 * The position just after the last character in this string.
-	 * @return
 	 */
 	public abstract int getSpanEnd();
 	public abstract void setSpanEnd(int spanEnd);
 
 	/**
 	 * Does this string represent white space?
-	 * @return
 	 */
 	public boolean isWhiteSpace();
 	
 	/**
 	 * Does this string represent punctuation?
-	 * @return
 	 */
 	public boolean isPunctuation();
 

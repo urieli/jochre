@@ -32,8 +32,6 @@ public interface HighlightService {
 	
 	/**
 	 * If any highlight terms overlap, combine them into a single term that spans all overlaps.
-	 * @param terms
-	 * @return
 	 */
 	public Set<HighlightTerm> combineOverlaps(Set<HighlightTerm> terms);
 }

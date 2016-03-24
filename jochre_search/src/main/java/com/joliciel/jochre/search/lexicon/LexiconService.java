@@ -24,8 +24,6 @@ import java.util.Locale;
 public interface LexiconService {
 	/**
 	 * Return a text normaliser for the current locale, or none if no text normaliser is available for this locale.
-	 * @param locale
-	 * @return
 	 */
 	public TextNormaliser getTextNormaliser(Locale locale);
 	

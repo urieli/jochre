@@ -42,7 +42,6 @@ public interface SearchService {
 	
 	/**
 	 * Is the current locale left-to-right?
-	 * @return
 	 */
 	public boolean isLeftToRight();
 	

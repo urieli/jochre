@@ -23,14 +23,12 @@ import java.util.NavigableSet;
 import java.util.Set;
 
 /**
- * Returns highlighted terms within a document, based on the method via
- * which the document was retrieved.
+ * Returns highlighted terms within a document, based on the method via which
+ * the document was retrieved.
  */
 public interface Highlighter {
 	/**
 	 * Find all of the terms to highlight in a given set of doc ids.
-	 * @param docs 
-	 * @return
 	 */
-	public Map<Integer,NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
+	public Map<Integer, NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
 }

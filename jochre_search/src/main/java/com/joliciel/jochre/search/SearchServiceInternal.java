@@ -37,8 +37,6 @@ interface SearchServiceInternal extends SearchService {
 	/**
 	 * An analyser using a {@link TokenExtractor} to passed to {@link #getJochreTokeniser(TokenExtractor, String)}, used when the actual
 	 * tokenising occurred prior to analysis (e.g. in the case of the OCR text layer).
-	 * @param tokenExtractor
-	 * @return
 	 */
 	public Analyzer getJochreTextLayerAnalyzer(TokenExtractor tokenExtractor);
 	
@@ -52,16 +50,11 @@ interface SearchServiceInternal extends SearchService {
 	
 	/**
 	 * Get a TokenFilter to be used on queries in the current locale, or null if none avaialble.
-	 * @param input
-	 * @return
 	 */
 	public TokenFilter getQueryTokenFilter(TokenStream input);
 	
 	/**
 	 * Get a JochreIndexWord at a particular offset of a document.
-	 * @param doc
-	 * @param startOffset
-	 * @return
 	 */
 	public JochreIndexWord getWord(JochreIndexDocument doc, int startOffset);
 }

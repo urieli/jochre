@@ -29,21 +29,18 @@ import org.apache.lucene.search.Query;
 public interface JochreQuery {
 	/**
 	 * The number of decimal places to display for each score. Default is 4.
-	 * @return
 	 */
 	public int getDecimalPlaces();
 	public void setDecimalPlaces(int decimalPlaces);
 
 	/**
 	 * The maximum number of docs to return. Default is 20.
-	 * @return
 	 */
 	public int getMaxDocs();
 	public void setMaxDocs(int maxDocs);
 
 	/**
 	 * The actual query string, as interpreted by a Lucene query parser.
-	 * @return
 	 */
 	public String getQueryString();
 	public void setQueryString(String queryString);
@@ -51,13 +48,11 @@ public interface JochreQuery {
 	/**
 	 * A Lucene query corresponding to the text querystring of this Jochre query,
 	 * needed for highlighting.
-	 * @return
 	 */
 	public Query getLuceneTextQuery();
 	
 	/**
 	 * A Lucene query corresponding to this Jochre query.
-	 * @return
 	 */
 	public Query getLuceneQuery();
 	public abstract void setTitleQueryString(String titleQueryString);
@@ -67,7 +62,6 @@ public interface JochreQuery {
 	
 	/**
 	 * Should the query be expanded to inflected froms stemming from the query's lemmas.
-	 * @return
 	 */
 	public boolean isExpandInflections();
 	public void setExpandInflections(boolean expandInflections);

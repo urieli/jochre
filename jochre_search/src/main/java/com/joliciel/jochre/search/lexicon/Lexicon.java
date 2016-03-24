@@ -28,15 +28,11 @@ import java.util.Set;
 public interface Lexicon {
 	/**
 	 * Return all lemmas associated with a given word.
-	 * @param word
-	 * @return
 	 */
 	public Set<String> getLemmas(String word);
 	
 	/**
 	 * Return all words associated with a given lemma.
-	 * @param lemma
-	 * @return
 	 */
 	public Set<String> getWords(String lemma);
 }

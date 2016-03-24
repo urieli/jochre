@@ -31,32 +31,27 @@ import java.awt.image.BufferedImage;
 public interface FeedbackRow {
 	/**
 	 * The unique internal id for this row.
-	 * @return
 	 */
 	public int getId();
 	
 	/**
 	 * The document containing this row.
-	 * @return
 	 */
 	public FeedbackDocument getDocument();
 	public int getDocumentId();
 	
 	/**
 	 * The page index on which this row is found.
-	 * @return
 	 */
 	public int getPageIndex();
 	
 	/**
 	 * This row's rectangle within the page.
-	 * @return
 	 */
 	public Rectangle getRectangle();
 	
 	/**
 	 * This row's image.
-	 * @return
 	 */
 	public BufferedImage getImage();
 }

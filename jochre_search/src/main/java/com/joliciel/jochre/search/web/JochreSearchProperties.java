@@ -98,7 +98,6 @@ public class JochreSearchProperties {
 	/**
 	 * Return a path to the database properties, if the file exists,
 	 * otherwise null.
-	 * @return
 	 */
 	public String getDatabasePropertiesPath() {
 		String jdbcPropertiesPath = "/WEB-INF/jdbc.properties";

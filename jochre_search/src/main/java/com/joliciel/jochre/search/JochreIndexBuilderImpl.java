@@ -29,8 +29,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
@@ -310,7 +308,6 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	private static final class AltoPageIndexer implements AltoPageConsumer {
-		public static final Pattern PUNCTUATION = Pattern.compile("\\p{Punct}", Pattern.UNICODE_CHARACTER_CLASS);
 		private JochreIndexBuilderImpl parent;
 		private int docCount = 0;
 		private int cumulWordCount = 0;
@@ -366,7 +363,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					for (AltoString string : textLine.getStrings()) {
-						if (string.isWhiteSpace() || PUNCTUATION.matcher(string.getContent()).matches())
+						if (string.isWhiteSpace())
 							continue;
 						
 						List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(string.getRectangle());

@@ -32,62 +32,62 @@ import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreIndexTermLister {
 	private static final Log LOG = LogFactory.getLog(JochreIndexTermLister.class);
-	
+
 	private int docId;
 	private IndexSearcher indexSearcher;
-	private TreeMap<Integer,JochreTerm> offsetTermMap;
+	private TreeMap<Integer, JochreTerm> offsetTermMap;
 
 	public JochreIndexTermLister(int docId, IndexSearcher indexSearcher) {
 		super();
 		this.docId = docId;
 		this.indexSearcher = indexSearcher;
 	}
-	
+
 	public Map<String, Set<JochreTerm>> list() {
 		try {
-			Map<String,Set<JochreTerm>> fieldTermMap = new HashMap<String, Set<JochreTerm>>();
-			
+			Map<String, Set<JochreTerm>> fieldTermMap = new HashMap<String, Set<JochreTerm>>();
+
 			IndexReader reader = indexSearcher.getIndexReader();
-	
+
 			IndexReaderContext readerContext = reader.getContext();
 			List<LeafReaderContext> leaves = readerContext.leaves();
 			int leaf = ReaderUtil.subIndex(docId, leaves);
 
 			Set<String> fields = new HashSet<String>();
-			
+
 			fields.add(JochreIndexField.text.name());
 			fields.add(JochreIndexField.author.name());
 			fields.add(JochreIndexField.title.name());
 			fields.add(JochreIndexField.publisher.name());
 			fields.add(JochreIndexField.authorLang.name());
 			fields.add(JochreIndexField.titleLang.name());
-			
+
 			for (String field : fields)
 				fieldTermMap.put(field, new TreeSet<JochreTerm>());
-			
+
 			if (LOG.isTraceEnabled())
 				LOG.trace("Searching leaf " + leaf);
 
 			LeafReaderContext subContext = leaves.get(leaf);
 			LeafReader atomicReader = subContext.reader();
-			
+
 			int fieldCounter = 0;
 			for (String field : fields) {
 				fieldCounter++;
 				if (LOG.isTraceEnabled())
 					LOG.trace("Field " + fieldCounter + ": " + field);
-				
+
 				Terms atomicReaderTerms = atomicReader.terms(field);
 				if (atomicReaderTerms == null) {
 					LOG.trace("Empty reader");
 					continue; // nothing to do
 				}
-				
+
 				TermsEnum termsEnum = atomicReaderTerms.iterator();
-				
+
 				@SuppressWarnings("unused")
 				BytesRef bytesRef = null;
-				while ((bytesRef = termsEnum.next())!=null) {
+				while ((bytesRef = termsEnum.next()) != null) {
 					this.findTerms(fieldTermMap, field, termsEnum, subContext, docId);
 				} // next bytesRef
 			} // next field
@@ -98,11 +98,11 @@ public class JochreIndexTermLister {
 			throw new JochreException(e);
 		}
 	}
-	
-	public NavigableMap<Integer,JochreTerm> getTextTermByOffset() {
-		if (offsetTermMap==null) {
-			offsetTermMap = new TreeMap<Integer,JochreTerm>();
-			Map<String,Set<JochreTerm>> fieldTermMap = this.list();
+
+	public NavigableMap<Integer, JochreTerm> getTextTermByOffset() {
+		if (offsetTermMap == null) {
+			offsetTermMap = new TreeMap<Integer, JochreTerm>();
+			Map<String, Set<JochreTerm>> fieldTermMap = this.list();
 			Set<JochreTerm> textTerms = fieldTermMap.get(JochreIndexField.text.name());
 			for (JochreTerm jochreTerm : textTerms) {
 				offsetTermMap.put(jochreTerm.getStart(), jochreTerm);
@@ -110,14 +110,14 @@ public class JochreIndexTermLister {
 		}
 		return offsetTermMap;
 	}
-	
+
 	public void list(Writer writer) {
 		try {
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(writer);
-			
+
 			jsonGen.writeStartArray();
-			
+
 			Map<String, Set<JochreTerm>> textFeatureMap = this.list();
 			for (String field : textFeatureMap.keySet()) {
 				jsonGen.writeStartObject();
@@ -135,7 +135,7 @@ public class JochreIndexTermLister {
 				jsonGen.writeEndArray();
 				jsonGen.writeEndObject();
 			}
-			
+
 			jsonGen.writeEndArray();
 			jsonGen.flush();
 		} catch (IOException e) {
@@ -143,56 +143,60 @@ public class JochreIndexTermLister {
 			throw new JochreException(e);
 		}
 	}
-	
-	private void findTerms(Map<String,Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum, LeafReaderContext subContext,
-			int luceneId) throws IOException {
-		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
-		
-		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
-		int relativeId = docPosEnum.nextDoc();
-		while (relativeId!=PostingsEnum.NO_MORE_DOCS) {
-			int nextId = subContext.docBase + relativeId;
-            if (luceneId == nextId) {
-	        	//Retrieve the term frequency in the current document
-	            int freq=docPosEnum.freq();
-	            
-	            if (LOG.isTraceEnabled())
-	            	LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId + ", docId " + docId + ", field " + field);
-	            
-	            for(int i=0; i<freq; i++){
-	                int position=docPosEnum.nextPosition();
-	                int start=docPosEnum.startOffset();
-	                int end=docPosEnum.endOffset();
-	
-	                if (LOG.isTraceEnabled())
-	                	LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start=" + start + ", end=" + end);
-	                
-	                BytesRef bytesRef = docPosEnum.getPayload();
-	                JochrePayload payload = null;
-	                if (bytesRef!=null)
-	                	payload = new JochrePayload(bytesRef);
-	                
-	                JochreTerm jochreTerm = new JochreTerm(term.toString(), position, start, end, payload);
-	                Set<JochreTerm> jochreTerms = textFeatureMap.get(field);
-	                jochreTerms.add(jochreTerm);
-				} // next occurrence
-            } // correct document
 
-            relativeId = docPosEnum.nextDoc();
+	private void findTerms(Map<String, Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum,
+			LeafReaderContext subContext, int luceneId) throws IOException {
+		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
+
+		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS
+				| PostingsEnum.PAYLOADS);
+		int relativeId = docPosEnum.nextDoc();
+		while (relativeId != PostingsEnum.NO_MORE_DOCS) {
+			int nextId = subContext.docBase + relativeId;
+			if (luceneId == nextId) {
+				// Retrieve the term frequency in the current document
+				int freq = docPosEnum.freq();
+
+				if (LOG.isTraceEnabled())
+					LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId
+							+ ", docId " + docId + ", field " + field);
+
+				for (int i = 0; i < freq; i++) {
+					int position = docPosEnum.nextPosition();
+					int start = docPosEnum.startOffset();
+					int end = docPosEnum.endOffset();
+
+					if (LOG.isTraceEnabled())
+						LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start="
+								+ start + ", end=" + end);
+
+					BytesRef bytesRef = docPosEnum.getPayload();
+					JochrePayload payload = null;
+					if (bytesRef != null)
+						payload = new JochrePayload(bytesRef);
+
+					JochreTerm jochreTerm = new JochreTerm(term.toString(), position, start, end, payload);
+					Set<JochreTerm> jochreTerms = textFeatureMap.get(field);
+					jochreTerms.add(jochreTerm);
+				} // next occurrence
+			} // correct document
+
+			relativeId = docPosEnum.nextDoc();
 		}
 	}
-	
+
 	public static final class JochreTerm implements Comparable<JochreTerm> {
 		String name;
 		int position;
 		int start;
 		int end;
 		JochrePayload payload;
-		
-		public JochreTerm(String name, int position, int start, int end,
-				JochrePayload payload) {
+
+		public JochreTerm(String name, int position, int start, int end, JochrePayload payload) {
 			super();
 			this.name = name;
+			if (this.name.startsWith("※"))
+				this.name = this.name.substring(1);
 			this.position = position;
 			this.start = start;
 			this.end = end;
@@ -221,15 +225,21 @@ public class JochreIndexTermLister {
 
 		@Override
 		public int compareTo(JochreTerm o) {
-			if (o.getStart()!=this.getStart())
+			if (o.getStart() != this.getStart())
 				return this.getStart() - o.getStart();
-			if (o.getEnd()!=this.getEnd())
+			if (o.getEnd() != this.getEnd())
 				return this.getEnd() - o.getEnd();
-			if (o.getPosition()!=this.getPosition())
+			if (o.getPosition() != this.getPosition())
 				return this.getPosition() - o.getPosition();
 			if (!o.getName().equals(this.getName()))
 				return this.getName().compareTo(o.getName());
 			return 1;
 		}
+
+		@Override
+		public String toString() {
+			return "JochreTerm [name=" + name + ", position=" + position + ", start=" + start + ", end=" + end + "]";
+		}
+
 	}
 }

@@ -29,45 +29,38 @@ import java.awt.image.BufferedImage;
 public interface FeedbackWord {
 	/**
 	 * The unique internal id for this word.
-	 * @return
 	 */
 	public int getId();
 	
 	/**
 	 * The row on which this word is found.
-	 * @return
 	 */
 	public FeedbackRow getRow();
 	public int getRowId();
 	
 	/**
 	 * The word's rectangle within the page containing it.
-	 * @return
 	 */
 	public Rectangle getRectangle();
 	
 	/**
 	 * The row containing the second half of a hyphenated word.
-	 * @return
 	 */
 	public FeedbackRow getSecondRow();
 	public int getSecondRowId();
 	
 	/**
 	 * The rectangle containing the 2nd half of a hyphenated word, within the page containing it.
-	 * @return
 	 */
 	public Rectangle getSecondRectangle();
 	
 	/**
 	 * The initial guess for this word.
-	 * @return
 	 */
 	public String getInitialGuess();
 	
 	/**
 	 * This word's image.
-	 * @return
 	 */
 	public BufferedImage getImage();
 }

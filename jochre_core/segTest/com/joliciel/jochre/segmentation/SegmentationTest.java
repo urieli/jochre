@@ -42,7 +42,6 @@ public class SegmentationTest {
 
 	/**
 	 * A very simple, basic page.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test
@@ -114,7 +113,6 @@ public class SegmentationTest {
 	/**
 	 * Pietrushka is a bit unusual in that it contains a column separator in the middle.
 	 * Given that it's in Yiddish, the columns need to be aligned from right to left.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test
@@ -188,7 +186,6 @@ public class SegmentationTest {
 	/**
 	 * This page is challenging because of the large blotch of dirt in the lower right.
 	 * Also, there are several short, indented, one-line paragraphs.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test
@@ -274,7 +271,6 @@ public class SegmentationTest {
 	
 	/**
 	 * Segmentation errors reported for Alsacien.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test
@@ -360,7 +356,6 @@ public class SegmentationTest {
 	
 	/**
 	 * Segmentation errors reported for Alsacien.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test
@@ -441,7 +436,6 @@ public class SegmentationTest {
 	
 	/**
 	 * Segmentation errors reported for Alsacien play - challenging because of the unusual indentation.
-	 * @param jochrePage
 	 * @throws Exception
 	 */
 	@Test

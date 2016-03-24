@@ -51,55 +51,46 @@ public interface JochreIndexDirectory {
 	
 	/**
 	 * The unique directory name.
-	 * @return
 	 */
 	String getName();
 	
 	/**
 	 * The directory wrapped by this object.
-	 * @return
 	 */
 	File getDirectory();
 	
 	/**
 	 * The PDF file being indexed.
-	 * @return
 	 */
 	File getPdfFile();
 	
 	/**
 	 * The Alto text layer of the PDF file being indexed.
-	 * @return
 	 */
 	File getAltoFile();
 	
 	/**
 	 * An optional file containing metadata, with the same name as the PDF file + _meta.xml.
-	 * @return
 	 */
 	File getMetaDataFile();
 	
 	/**
 	 * The metadata contained in the PDF file.
-	 * @return
 	 */
 	Map<String,String> getMetaData();
 	
 	/**
 	 * Explicit instructions on what to do with this directory.
-	 * @return
 	 */
 	Instructions getInstructions();
 	
 	/**
 	 * An input stream for the Alto XML content.
-	 * @return
 	 */
 	UnclosableInputStream getAltoInputStream();
 	
 	/**
 	 * The relative path to this directory.
-	 * @return
 	 */
 	public String getPath();
 }

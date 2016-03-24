@@ -332,7 +332,6 @@ public class Snippet implements Comparable<Snippet> {
 	
 	/**
 	 * The highlight terms contained in this snippet.
-	 * @return
 	 */
 	public List<HighlightTerm> getHighlightTerms() {
 		return highlightTerms;

@@ -32,34 +32,28 @@ import java.io.InputStream;
 public interface AltoReader {
 	/**
 	 * Parse an input stream, with the given file name.
-	 * @param inputStream
-	 * @param fileNameBase
 	 */
 	public void parseFile(InputStream inputStream, String fileNameBase);
 	
 	/**
 	 * Parse a file.
-	 * @param altoFile
 	 */
 	public void parseFile(File altoFile);
 
 	/**
 	 * Add a consumer which gets notified of pages when processing completes.
-	 * @param consumer
 	 */
 	public void addConsumer(AltoPageConsumer consumer);
 	
 	/**
 	 * Should the AltoReader construct an entire document? Requires a lot more memory.
 	 * Default is false, in which case the reader is only usable with AltoPageConsumers.
-	 * @param buildEntireDocument
 	 */
 	public void setBuildEntireDocument(boolean buildEntireDocument);
 	public boolean isBuildEntireDocument();
 	
 	/**
 	 * Get the document built.
-	 * @return
 	 */
 	public AltoDocument getDocument();
 }

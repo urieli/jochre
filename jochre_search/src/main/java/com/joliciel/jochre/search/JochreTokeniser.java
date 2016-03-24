@@ -31,15 +31,17 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
 
 /**
- * A very simple "dummy" tokeniser wrapping a TokenExtractor, which is in charge of the actual tokenisation.
+ * A very simple "dummy" tokeniser wrapping a TokenExtractor, which is in charge
+ * of the actual tokenisation.
+ * 
  * @author Assaf Urieli
  *
  */
 class JochreTokeniser extends Tokenizer {
 	private static final Log LOG = LogFactory.getLog(JochreTokeniser.class);
-	
+
 	private SearchServiceInternal searchService;
-	
+
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
 	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
@@ -53,13 +55,14 @@ class JochreTokeniser extends Tokenizer {
 	private List<String> currentAlternatives = null;
 	private int currentAlternativeIndex = 0;
 	private String fieldName;
-	
+
 	/**
-	 * Constructor including the tokenExtractor, the current fieldName being analysed (for Lucene fields)
-	 * and a Reader containing the input.
-	 * @param tokenExtractor a place to get the tokens
-	 * @param input the text field contents, ignored since we've already analysed them
-	 * @return
+	 * Constructor including the tokenExtractor, the current fieldName being
+	 * analysed (for Lucene fields) and a Reader containing the input.
+	 * 
+	 *            a place to get the tokens
+	 *            the text field contents, ignored since we've already analysed
+	 *            them
 	 */
 	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
 		super();
@@ -70,56 +73,66 @@ class JochreTokeniser extends Tokenizer {
 	@Override
 	public boolean incrementToken() throws IOException {
 		clearAttributes();
-		if (this.tokens==null) {
+		if (this.tokens == null) {
 			this.tokens = this.tokenExtractor.findTokens(fieldName, this.input);
 			this.currentIndex = 0;
 		}
-		
-		if (currentToken!=null && currentAlternativeIndex>=currentAlternatives.size()) {
+
+		if (currentToken != null && currentAlternativeIndex >= currentAlternatives.size()) {
 			currentToken = null;
 		}
-		
-		if (currentToken==null && currentIndex<tokens.size()) {
+
+		if (currentToken == null && currentIndex < tokens.size()) {
 			currentToken = tokens.get(currentIndex++);
 
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(currentToken.toString());
 			}
-			
+
 			currentAlternatives = currentToken.getContentStrings();
 			currentAlternativeIndex = 0;
 		}
 
-		if (currentToken!=null) {
+		if (currentToken != null) {
 			String content = currentAlternatives.get(currentAlternativeIndex);
 
 			// add the term itself
+			if (currentToken.isPunctuation())
+				content = "※" + content;
 			termAtt.append(content);
-			
+
 			posLengthAtt.setPositionLength(1);
-			
-			if (currentAlternativeIndex==0) {
-				posIncrAtt.setPositionIncrement(1);
+
+			if (currentAlternativeIndex == 0) {
+				if (currentToken.isPunctuation() && currentIndex > 1) {
+					// we currently don't want punctuation to block phrase
+					// queries, but we do
+					// need it in the index, so that it can be corrected.
+					// The search query should remove any punctuation to avoid
+					// ever returning it.
+					posIncrAtt.setPositionIncrement(0);
+				} else {
+					posIncrAtt.setPositionIncrement(1);
+				}
 			} else {
 				posIncrAtt.setPositionIncrement(0);
 			}
-			
+
 			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
-			
+
 			// store the coordinates in the payload
 			JochrePayload payload = new JochrePayload(currentToken);
 			payloadAtt.setPayload(payload.getBytesRef());
-			
+
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Added \"" + content + "\""
-						+ ", length: " + posLengthAtt.getPositionLength()
-						+ ", increment: " + posIncrAtt.getPositionIncrement()
-						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset()
-						+ ", payload: " + payload.toString());
+				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength()
+						+ ", increment: " + posIncrAtt.getPositionIncrement() + ", offset: " + offsetAtt.startOffset()
+						+ "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
+						+ currentIndex);
 			}
 
 			currentAlternativeIndex++;
-			
+
 			return true;
 		} else {
 			tokens = null;
@@ -134,6 +147,5 @@ class JochreTokeniser extends Tokenizer {
 	public void setSearchService(SearchServiceInternal searchService) {
 		this.searchService = searchService;
 	}
-	
-	
+
 }

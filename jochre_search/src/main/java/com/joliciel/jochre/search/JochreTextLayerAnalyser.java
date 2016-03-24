@@ -30,8 +30,10 @@ import com.joliciel.jochre.search.lexicon.TextNormaliser;
 import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 
 /**
- * An analyser using a TokenExtractor to passed to JochreTokeniser, used when the actual
- * tokenising occurred prior to analysis (e.g. in the case of the OCR text layer).
+ * An analyser using a TokenExtractor to passed to JochreTokeniser, used when
+ * the actual tokenising occurred prior to analysis (e.g. in the case of the OCR
+ * text layer).
+ * 
  * @author Assaf Urieli
  *
  */
@@ -39,9 +41,9 @@ class JochreTextLayerAnalyser extends Analyzer {
 	private static final Log LOG = LogFactory.getLog(JochreTextLayerAnalyser.class);
 	private TokenExtractor tokenExtractor;
 	private TextNormaliser textNormaliser;
-	
+
 	private SearchServiceInternal searchService;
-	
+
 	public JochreTextLayerAnalyser(TokenExtractor tokenExtractor) {
 		super(Analyzer.PER_FIELD_REUSE_STRATEGY);
 		this.tokenExtractor = tokenExtractor;
@@ -52,15 +54,14 @@ class JochreTextLayerAnalyser extends Analyzer {
 		if (LOG.isTraceEnabled())
 			LOG.trace("Analysing field " + fieldName);
 
-		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);	
+		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);
 		TokenStream result = source;
-		if (textNormaliser!=null)
+		if (textNormaliser != null)
 			result = new TextNormalisingFilter(result, textNormaliser);
 		else {
 			result = new ASCIIFoldingFilter(result);
 			result = new LowerCaseFilter(result);
 		}
-		result = new PunctuationFilter(result);
 		return new TokenStreamComponents(source, result);
 	}
 
@@ -71,7 +72,6 @@ class JochreTextLayerAnalyser extends Analyzer {
 	public void setSearchService(SearchServiceInternal searchService) {
 		this.searchService = searchService;
 	}
-	
 
 	public TextNormaliser getTextNormaliser() {
 		return textNormaliser;

@@ -57,7 +57,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 
 	/**
 	 * The document id containing this term.
-	 * @return
 	 */
 	public int getDocId() {
 		return docId;
@@ -65,7 +64,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	
 	/**
 	 * The field containing this term.
-	 * @return
 	 */
 	public String getField() {
 		return field;
@@ -73,7 +71,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 
 	/**
 	 * The start offset of this term.
-	 * @return
 	 */
 	public int getStartOffset() {
 		return startOffset;
@@ -81,7 +78,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	
 	/**
 	 * The end offset of this term.
-	 * @return
 	 */
 	public int getEndOffset() {
 		return endOffset;
@@ -89,7 +85,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	
 	/**
 	 * This term's weight.
-	 * @return
 	 */
 	public double getWeight() {
 		return weight;
@@ -168,7 +163,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	/**
 	 * The term's position within the search index,
 	 * starts at 0 for each document field.
-	 * @return
 	 */
 	public int getPosition() {
 		return position;
@@ -181,7 +175,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	/**
 	 * Is the current highlight term inside a phrase,
 	 * that is, between quotes in the search query.
-	 * @return
 	 */
 	public boolean isInPhrase() {
 		return inPhrase;
@@ -193,8 +186,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 
 	/**
 	 * Do the two terms overlap on any character indexes.
-	 * @param otherTerm
-	 * @return
 	 */
 	public boolean hasOverlap(HighlightTerm otherTerm) {
 		// note: if this.startOffset==otherTerm.endOffset, there's no overlap, since the end offset is AFTER the term.

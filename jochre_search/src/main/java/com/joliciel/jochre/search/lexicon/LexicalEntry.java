@@ -28,28 +28,24 @@ import java.io.Serializable;
 public interface LexicalEntry extends Serializable {
 	/**
 	 * The original text of this entry.
-	 * @return
 	 */
 	public String getWord();
 	public void setWord(String word);
 	
 	/**
 	 * The lemma for this lexical entry.
-	 * @return
 	 */
 	public String getLemma();
 	public void setLemma(String lemma);
 	
 	/**
 	 * The original grammatical category of this entry, using the categorisation of the lexicon.
-	 * @return
 	 */
 	public String getCategory();
 	public void setCategory(String category);
 	
 	/**
 	 * The name of the lexicon which contained this entry.
-	 * @return
 	 */
 	public String getLexiconName();
 	public void setLexiconName(String lexiconName);

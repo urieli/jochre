@@ -302,9 +302,6 @@ class LuceneQueryHighlighter implements Highlighter {
 	 * @param fieldTerms all terms found in each field
 	 * @param terms a set of independent terms (that is, outside of phrases), got from a term query
 	 * @param phrases a set of term phrases in the search query
-	 * @param termHighlightMap
-	 * @param docTermMap
-	 * @param textTermMap
 	 */
 	private void removeIndependentPhraseTerms(Set<String> fields, Map<String,Set<Term>> fieldTerms,
 			Set<Term> terms, Set<TermPhrase> phrases,
@@ -524,10 +521,6 @@ class LuceneQueryHighlighter implements Highlighter {
 	 * starting at a given highlight term (but excluding it)
 	 * and all having a given requiredSize.
 	 * If we run across any overlapping terms, we create multiple lists, one per overlap.
-	 * @param highlightTerm
-	 * @param iHighlightTerms
-	 * @param requiredSize
-	 * @return
 	 */
 	private List<List<HighlightTerm>> findHighlightNeighbors(HighlightTerm highlightTerm, Iterator<HighlightTerm> iHighlightTerms, int requiredSize) {
 		List<List<HighlightTerm>> descendingLists = new ArrayList<List<HighlightTerm>>();
@@ -592,7 +585,6 @@ class LuceneQueryHighlighter implements Highlighter {
 	 * @param otherTerm the other term
 	 * @param otherTermRequiredPos the other term's position in the enclosing phrase
 	 * @param slop how much slop is allowed in the difference between the two.
-	 * @return
 	 */
 	private boolean checkSlop(HighlightTerm baseTerm, int baseTermRequiredPos, HighlightTerm otherTerm, int otherTermRequiredPos, int slop) {
 		boolean valid = true;
@@ -633,11 +625,6 @@ class LuceneQueryHighlighter implements Highlighter {
 	 * Term frequency = sum, for each field, of the document count containing this term
 	 * Doc frequency = sum, for each field, of document count containing at least one term in this field
 	 * IDF = log(docFreq) - log(termFreq).
-	 * @param term
-	 * @param fields
-	 * @param termLogs
-	 * @param docCountLog
-	 * @return
 	 * @throws IOException
 	 */
 	private double weigh(Term term, Set<String> fields, Map<BytesRef,Double> termLogs, double docCountLog) throws IOException {

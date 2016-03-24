@@ -24,12 +24,14 @@ import java.util.Set;
 public interface SnippetFinder {
 	/**
 	 * Find the best n snippets corresponding to a list of highlight terms.
-	 * @param doc The Lucene document whose snippets we want
-	 * @param highlightTerms The previously retrieved highlight terms for the document.
-	 * @param textFieldTypes The text field types whose snippets we want - in case no highlightTerms were provided, we'll build default snippets out of the corresponding text fields.
-	 * @param maxSnippets The maximum number of snippets to return.
-	 * @return
+	 * 
+	 * @param docId
+	 *            The Lucene document whose snippets we want
+	 * @param highlightTerms
+	 *            The previously retrieved highlight terms for the document.
+	 * @param maxSnippets
+	 *            The maximum number of snippets to return.
 	 */
 	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets);
-	
+
 }

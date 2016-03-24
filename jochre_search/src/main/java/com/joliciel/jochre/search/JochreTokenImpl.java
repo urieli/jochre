@@ -13,6 +13,7 @@ class JochreTokenImpl implements JochreToken {
 	private int rowIndex = -1;
 	private int spanStart = -1;
 	private int spanEnd = -1;
+	private boolean punctuation = false;
 	
 	public JochreTokenImpl(JochreToken jochreToken) {
 		this.rectangle = new Rectangle(jochreToken.getRectangle());
@@ -25,6 +26,7 @@ class JochreTokenImpl implements JochreToken {
 		this.pageIndex = jochreToken.getPageIndex();
 		this.paragraphIndex = jochreToken.getParagraphIndex();
 		this.rowIndex = jochreToken.getRowIndex();
+		this.punctuation = jochreToken.isPunctuation();
 	}
 	
 	public JochreTokenImpl(String text) {
@@ -82,6 +84,14 @@ class JochreTokenImpl implements JochreToken {
 
 	public void setSpanEnd(int spanEnd) {
 		this.spanEnd = spanEnd;
+	}
+
+	public boolean isPunctuation() {
+		return punctuation;
+	}
+
+	public void setPunctuation(boolean punctuation) {
+		this.punctuation = punctuation;
 	}
 
 }

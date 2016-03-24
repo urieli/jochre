@@ -2,32 +2,39 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 8.4.4
--- Dumped by pg_dump version 9.2.3
--- Started on 2015-02-13 17:25:31
+-- Dumped from database version 9.4.3
+-- Dumped by pg_dump version 9.4.3
+-- Started on 2016-03-24 17:19:22
 
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
+SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET escape_string_warning = off;
 
 --
--- TOC entry 533 (class 2612 OID 16386)
--- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: postgres
+-- TOC entry 199 (class 3079 OID 11855)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE OR REPLACE PROCEDURAL LANGUAGE plpgsql;
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
-ALTER PROCEDURAL LANGUAGE plpgsql OWNER TO postgres;
+--
+-- TOC entry 2163 (class 0 OID 0)
+-- Dependencies: 199
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 SET search_path = public, pg_catalog;
 
 --
--- TOC entry 179 (class 1255 OID 5000136)
--- Name: copy_document(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 212 (class 1255 OID 1716129)
+-- Name: copy_document(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION copy_document(p_source_doc_id integer, p_target_doc_id integer) RETURNS void
@@ -132,11 +139,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.copy_document(p_source_doc_id integer, p_target_doc_id integer) OWNER TO postgres;
-
 --
--- TOC entry 180 (class 1255 OID 5000137)
--- Name: copy_document_letters(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 213 (class 1255 OID 1716130)
+-- Name: copy_document_letters(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION copy_document_letters(p_source_doc_id integer, p_target_doc_id integer) RETURNS void
@@ -213,11 +218,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.copy_document_letters(p_source_doc_id integer, p_target_doc_id integer) OWNER TO postgres;
-
 --
--- TOC entry 181 (class 1255 OID 5000138)
--- Name: copy_image_letters(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 214 (class 1255 OID 1716131)
+-- Name: copy_image_letters(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION copy_image_letters(p_source_image_id integer, p_target_image_id integer) RETURNS void
@@ -330,11 +333,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.copy_image_letters(p_source_image_id integer, p_target_image_id integer) OWNER TO postgres;
-
 --
--- TOC entry 182 (class 1255 OID 5000139)
--- Name: delete_document(integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 215 (class 1255 OID 1716132)
+-- Name: delete_document(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION delete_document(p_doc_id integer) RETURNS void
@@ -396,11 +397,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.delete_document(p_doc_id integer) OWNER TO postgres;
-
 --
--- TOC entry 183 (class 1255 OID 5000140)
--- Name: delete_page(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 216 (class 1255 OID 1716133)
+-- Name: delete_page(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION delete_page(p_doc_id integer, p_page_index integer) RETURNS void
@@ -466,11 +465,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.delete_page(p_doc_id integer, p_page_index integer) OWNER TO postgres;
-
 --
--- TOC entry 184 (class 1255 OID 5000141)
--- Name: populate_words(); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 217 (class 1255 OID 1716134)
+-- Name: populate_words(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION populate_words() RETURNS void
@@ -528,11 +525,9 @@ END;
 $$;
 
 
-ALTER FUNCTION public.populate_words() OWNER TO postgres;
-
 --
--- TOC entry 185 (class 1255 OID 5000142)
--- Name: trig_login(); Type: FUNCTION; Schema: public; Owner: nlp
+-- TOC entry 218 (class 1255 OID 1716135)
+-- Name: trig_login(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION trig_login() RETURNS trigger
@@ -553,11 +548,9 @@ CREATE FUNCTION trig_login() RETURNS trigger
 $$;
 
 
-ALTER FUNCTION public.trig_login() OWNER TO nlp;
-
 --
--- TOC entry 186 (class 1255 OID 5000143)
--- Name: wipedb(); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 219 (class 1255 OID 1716136)
+-- Name: wipedb(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION wipedb() RETURNS void
@@ -605,15 +598,11 @@ END;
 $$;
 
 
-ALTER FUNCTION public.wipedb() OWNER TO postgres;
-
-SET default_tablespace = '';
-
 SET default_with_oids = false;
 
 --
--- TOC entry 140 (class 1259 OID 5000144)
--- Name: ocr_author; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 172 (class 1259 OID 1716137)
+-- Name: ocr_author; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_author (
@@ -625,11 +614,9 @@ CREATE TABLE ocr_author (
 );
 
 
-ALTER TABLE public.ocr_author OWNER TO nlp;
-
 --
--- TOC entry 141 (class 1259 OID 5000150)
--- Name: ocr_author_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 173 (class 1259 OID 1716143)
+-- Name: ocr_author_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_author_id_seq
@@ -640,11 +627,9 @@ CREATE SEQUENCE ocr_author_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_author_id_seq OWNER TO nlp;
-
 --
--- TOC entry 142 (class 1259 OID 5000152)
--- Name: ocr_doc_author_map; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 174 (class 1259 OID 1716145)
+-- Name: ocr_doc_author_map; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_doc_author_map (
@@ -653,11 +638,9 @@ CREATE TABLE ocr_doc_author_map (
 );
 
 
-ALTER TABLE public.ocr_doc_author_map OWNER TO nlp;
-
 --
--- TOC entry 143 (class 1259 OID 5000155)
--- Name: ocr_doc_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 175 (class 1259 OID 1716148)
+-- Name: ocr_doc_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_doc_id_seq
@@ -668,11 +651,9 @@ CREATE SEQUENCE ocr_doc_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_doc_id_seq OWNER TO nlp;
-
 --
--- TOC entry 144 (class 1259 OID 5000157)
--- Name: ocr_document; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 176 (class 1259 OID 1716150)
+-- Name: ocr_document; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_document (
@@ -689,11 +670,9 @@ CREATE TABLE ocr_document (
 );
 
 
-ALTER TABLE public.ocr_document OWNER TO nlp;
-
 --
--- TOC entry 145 (class 1259 OID 5000163)
--- Name: ocr_group; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 177 (class 1259 OID 1716156)
+-- Name: ocr_group; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_group (
@@ -707,11 +686,9 @@ CREATE TABLE ocr_group (
 );
 
 
-ALTER TABLE public.ocr_group OWNER TO nlp;
-
 --
--- TOC entry 146 (class 1259 OID 5000169)
--- Name: ocr_group_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 178 (class 1259 OID 1716162)
+-- Name: ocr_group_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_group_id_seq
@@ -722,11 +699,9 @@ CREATE SEQUENCE ocr_group_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_group_id_seq OWNER TO nlp;
-
 --
--- TOC entry 147 (class 1259 OID 5000171)
--- Name: ocr_image; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 179 (class 1259 OID 1716164)
+-- Name: ocr_image; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_image (
@@ -747,11 +722,9 @@ CREATE TABLE ocr_image (
 );
 
 
-ALTER TABLE public.ocr_image OWNER TO nlp;
-
 --
--- TOC entry 148 (class 1259 OID 5000179)
--- Name: ocr_image_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 180 (class 1259 OID 1716172)
+-- Name: ocr_image_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_image_id_seq
@@ -762,11 +735,9 @@ CREATE SEQUENCE ocr_image_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_image_id_seq OWNER TO nlp;
-
 --
--- TOC entry 149 (class 1259 OID 5000181)
--- Name: ocr_image_status; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 181 (class 1259 OID 1716174)
+-- Name: ocr_image_status; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_image_status (
@@ -775,11 +746,9 @@ CREATE TABLE ocr_image_status (
 );
 
 
-ALTER TABLE public.ocr_image_status OWNER TO nlp;
-
 --
--- TOC entry 150 (class 1259 OID 5000184)
--- Name: ocr_login; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 182 (class 1259 OID 1716177)
+-- Name: ocr_login; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_login (
@@ -790,11 +759,9 @@ CREATE TABLE ocr_login (
 );
 
 
-ALTER TABLE public.ocr_login OWNER TO nlp;
-
 --
--- TOC entry 151 (class 1259 OID 5000187)
--- Name: ocr_login_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 183 (class 1259 OID 1716180)
+-- Name: ocr_login_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_login_id_seq
@@ -805,11 +772,9 @@ CREATE SEQUENCE ocr_login_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_login_id_seq OWNER TO nlp;
-
 --
--- TOC entry 152 (class 1259 OID 5000189)
--- Name: ocr_page; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 184 (class 1259 OID 1716182)
+-- Name: ocr_page; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_page (
@@ -819,11 +784,9 @@ CREATE TABLE ocr_page (
 );
 
 
-ALTER TABLE public.ocr_page OWNER TO nlp;
-
 --
--- TOC entry 153 (class 1259 OID 5000192)
--- Name: ocr_page_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 185 (class 1259 OID 1716185)
+-- Name: ocr_page_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_page_id_seq
@@ -834,11 +797,9 @@ CREATE SEQUENCE ocr_page_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_page_id_seq OWNER TO nlp;
-
 --
--- TOC entry 154 (class 1259 OID 5000194)
--- Name: ocr_paragraph; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 186 (class 1259 OID 1716187)
+-- Name: ocr_paragraph; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_paragraph (
@@ -848,11 +809,9 @@ CREATE TABLE ocr_paragraph (
 );
 
 
-ALTER TABLE public.ocr_paragraph OWNER TO nlp;
-
 --
--- TOC entry 155 (class 1259 OID 5000198)
--- Name: ocr_paragraph_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 187 (class 1259 OID 1716191)
+-- Name: ocr_paragraph_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_paragraph_id_seq
@@ -863,11 +822,9 @@ CREATE SEQUENCE ocr_paragraph_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_paragraph_id_seq OWNER TO nlp;
-
 --
--- TOC entry 156 (class 1259 OID 5000200)
--- Name: ocr_param; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 188 (class 1259 OID 1716193)
+-- Name: ocr_param; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_param (
@@ -877,11 +834,9 @@ CREATE TABLE ocr_param (
 );
 
 
-ALTER TABLE public.ocr_param OWNER TO nlp;
-
 --
--- TOC entry 157 (class 1259 OID 5000204)
--- Name: ocr_row; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 189 (class 1259 OID 1716197)
+-- Name: ocr_row; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_row (
@@ -893,11 +848,9 @@ CREATE TABLE ocr_row (
 );
 
 
-ALTER TABLE public.ocr_row OWNER TO nlp;
-
 --
--- TOC entry 158 (class 1259 OID 5000210)
--- Name: ocr_row_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 190 (class 1259 OID 1716203)
+-- Name: ocr_row_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_row_id_seq
@@ -908,11 +861,9 @@ CREATE SEQUENCE ocr_row_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_row_id_seq OWNER TO nlp;
-
 --
--- TOC entry 159 (class 1259 OID 5000212)
--- Name: ocr_shape; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 191 (class 1259 OID 1716205)
+-- Name: ocr_shape; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_shape (
@@ -932,29 +883,27 @@ CREATE TABLE ocr_shape (
 );
 
 
-ALTER TABLE public.ocr_shape OWNER TO nlp;
-
 --
--- TOC entry 1946 (class 0 OID 0)
--- Dependencies: 159
--- Name: TABLE ocr_shape; Type: COMMENT; Schema: public; Owner: nlp
+-- TOC entry 2164 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: TABLE ocr_shape; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON TABLE ocr_shape IS 'a single shape representing a single letter';
 
 
 --
--- TOC entry 1947 (class 0 OID 0)
--- Dependencies: 159
--- Name: COLUMN ocr_shape.shape_letter; Type: COMMENT; Schema: public; Owner: nlp
+-- TOC entry 2165 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: COLUMN ocr_shape.shape_letter; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON COLUMN ocr_shape.shape_letter IS 'the letter represented by this shape';
 
 
 --
--- TOC entry 160 (class 1259 OID 5000218)
--- Name: ocr_shape_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 192 (class 1259 OID 1716211)
+-- Name: ocr_shape_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_shape_id_seq
@@ -965,11 +914,9 @@ CREATE SEQUENCE ocr_shape_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_shape_id_seq OWNER TO nlp;
-
 --
--- TOC entry 161 (class 1259 OID 5000220)
--- Name: ocr_split; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 193 (class 1259 OID 1716213)
+-- Name: ocr_split; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_split (
@@ -979,11 +926,9 @@ CREATE TABLE ocr_split (
 );
 
 
-ALTER TABLE public.ocr_split OWNER TO nlp;
-
 --
--- TOC entry 162 (class 1259 OID 5000223)
--- Name: ocr_split_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 194 (class 1259 OID 1716216)
+-- Name: ocr_split_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_split_id_seq
@@ -994,11 +939,9 @@ CREATE SEQUENCE ocr_split_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_split_id_seq OWNER TO nlp;
-
 --
--- TOC entry 163 (class 1259 OID 5000225)
--- Name: ocr_user; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 195 (class 1259 OID 1716218)
+-- Name: ocr_user; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_user (
@@ -1013,11 +956,9 @@ CREATE TABLE ocr_user (
 );
 
 
-ALTER TABLE public.ocr_user OWNER TO nlp;
-
 --
--- TOC entry 164 (class 1259 OID 5000233)
--- Name: ocr_user_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 196 (class 1259 OID 1716226)
+-- Name: ocr_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_user_id_seq
@@ -1028,11 +969,9 @@ CREATE SEQUENCE ocr_user_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_user_id_seq OWNER TO nlp;
-
 --
--- TOC entry 165 (class 1259 OID 5000235)
--- Name: ocr_word; Type: TABLE; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 197 (class 1259 OID 1716228)
+-- Name: ocr_word; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE ocr_word (
@@ -1042,11 +981,9 @@ CREATE TABLE ocr_word (
 );
 
 
-ALTER TABLE public.ocr_word OWNER TO nlp;
-
 --
--- TOC entry 166 (class 1259 OID 5000239)
--- Name: ocr_word_id_seq; Type: SEQUENCE; Schema: public; Owner: nlp
+-- TOC entry 198 (class 1259 OID 1716232)
+-- Name: ocr_word_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE ocr_word_id_seq
@@ -1057,11 +994,9 @@ CREATE SEQUENCE ocr_word_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.ocr_word_id_seq OWNER TO nlp;
-
 --
--- TOC entry 1876 (class 2606 OID 5000350)
--- Name: pk_author; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1985 (class 2606 OID 1716343)
+-- Name: pk_author; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_author
@@ -1069,8 +1004,8 @@ ALTER TABLE ONLY ocr_author
 
 
 --
--- TOC entry 1880 (class 2606 OID 5000352)
--- Name: pk_doc; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1989 (class 2606 OID 1716345)
+-- Name: pk_doc; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_document
@@ -1078,8 +1013,8 @@ ALTER TABLE ONLY ocr_document
 
 
 --
--- TOC entry 1878 (class 2606 OID 5000354)
--- Name: pk_doc_author; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1987 (class 2606 OID 1716347)
+-- Name: pk_doc_author; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_doc_author_map
@@ -1087,8 +1022,8 @@ ALTER TABLE ONLY ocr_doc_author_map
 
 
 --
--- TOC entry 1882 (class 2606 OID 5000356)
--- Name: pk_group; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1991 (class 2606 OID 1716349)
+-- Name: pk_group; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_group
@@ -1096,8 +1031,8 @@ ALTER TABLE ONLY ocr_group
 
 
 --
--- TOC entry 1890 (class 2606 OID 5000358)
--- Name: pk_imgstatus; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1999 (class 2606 OID 1716351)
+-- Name: pk_imgstatus; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image_status
@@ -1105,8 +1040,8 @@ ALTER TABLE ONLY ocr_image_status
 
 
 --
--- TOC entry 1892 (class 2606 OID 5000360)
--- Name: pk_login; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2001 (class 2606 OID 1716353)
+-- Name: pk_login; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_login
@@ -1114,8 +1049,8 @@ ALTER TABLE ONLY ocr_login
 
 
 --
--- TOC entry 1886 (class 2606 OID 5000362)
--- Name: pk_ocr_image; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1995 (class 2606 OID 1716355)
+-- Name: pk_ocr_image; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image
@@ -1123,8 +1058,8 @@ ALTER TABLE ONLY ocr_image
 
 
 --
--- TOC entry 1904 (class 2606 OID 5000364)
--- Name: pk_ocr_row; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2013 (class 2606 OID 1716357)
+-- Name: pk_ocr_row; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_row
@@ -1132,8 +1067,8 @@ ALTER TABLE ONLY ocr_row
 
 
 --
--- TOC entry 1908 (class 2606 OID 5000366)
--- Name: pk_ocr_shape; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2017 (class 2606 OID 1716359)
+-- Name: pk_ocr_shape; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_shape
@@ -1141,8 +1076,8 @@ ALTER TABLE ONLY ocr_shape
 
 
 --
--- TOC entry 1894 (class 2606 OID 5000368)
--- Name: pk_page; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2003 (class 2606 OID 1716361)
+-- Name: pk_page; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_page
@@ -1150,8 +1085,8 @@ ALTER TABLE ONLY ocr_page
 
 
 --
--- TOC entry 1898 (class 2606 OID 5000370)
--- Name: pk_paragraph; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2007 (class 2606 OID 1716363)
+-- Name: pk_paragraph; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_paragraph
@@ -1159,8 +1094,8 @@ ALTER TABLE ONLY ocr_paragraph
 
 
 --
--- TOC entry 1902 (class 2606 OID 5000372)
--- Name: pk_param; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2011 (class 2606 OID 1716365)
+-- Name: pk_param; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_param
@@ -1168,8 +1103,8 @@ ALTER TABLE ONLY ocr_param
 
 
 --
--- TOC entry 1914 (class 2606 OID 5000374)
--- Name: pk_split; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2023 (class 2606 OID 1716367)
+-- Name: pk_split; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_split
@@ -1177,8 +1112,8 @@ ALTER TABLE ONLY ocr_split
 
 
 --
--- TOC entry 1918 (class 2606 OID 5000376)
--- Name: pk_user; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2027 (class 2606 OID 1716369)
+-- Name: pk_user; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_user
@@ -1186,8 +1121,8 @@ ALTER TABLE ONLY ocr_user
 
 
 --
--- TOC entry 1922 (class 2606 OID 5000378)
--- Name: pk_word; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2031 (class 2606 OID 1716371)
+-- Name: pk_word; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_word
@@ -1195,8 +1130,8 @@ ALTER TABLE ONLY ocr_word
 
 
 --
--- TOC entry 1884 (class 2606 OID 5000380)
--- Name: uk_group_on_row; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1993 (class 2606 OID 1716373)
+-- Name: uk_group_on_row; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_group
@@ -1204,8 +1139,8 @@ ALTER TABLE ONLY ocr_group
 
 
 --
--- TOC entry 1888 (class 2606 OID 5000382)
--- Name: uk_image_on_page; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 1997 (class 2606 OID 1716375)
+-- Name: uk_image_on_page; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image
@@ -1213,8 +1148,8 @@ ALTER TABLE ONLY ocr_image
 
 
 --
--- TOC entry 1896 (class 2606 OID 5000384)
--- Name: uk_page; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2005 (class 2606 OID 1716377)
+-- Name: uk_page; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_page
@@ -1222,8 +1157,8 @@ ALTER TABLE ONLY ocr_page
 
 
 --
--- TOC entry 1900 (class 2606 OID 5000386)
--- Name: uk_paragraph; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2009 (class 2606 OID 1716379)
+-- Name: uk_paragraph; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_paragraph
@@ -1231,8 +1166,8 @@ ALTER TABLE ONLY ocr_paragraph
 
 
 --
--- TOC entry 1906 (class 2606 OID 5000388)
--- Name: uk_row_index; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2015 (class 2606 OID 1716381)
+-- Name: uk_row_index; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_row
@@ -1240,8 +1175,8 @@ ALTER TABLE ONLY ocr_row
 
 
 --
--- TOC entry 1910 (class 2606 OID 5000390)
--- Name: uk_shape_in_group; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2019 (class 2606 OID 1716383)
+-- Name: uk_shape_in_group; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_shape
@@ -1249,8 +1184,8 @@ ALTER TABLE ONLY ocr_shape
 
 
 --
--- TOC entry 1916 (class 2606 OID 5000392)
--- Name: uk_split; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2025 (class 2606 OID 1716385)
+-- Name: uk_split; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_split
@@ -1258,8 +1193,8 @@ ALTER TABLE ONLY ocr_split
 
 
 --
--- TOC entry 1920 (class 2606 OID 5000394)
--- Name: uk_username; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2029 (class 2606 OID 1716387)
+-- Name: uk_username; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_user
@@ -1267,8 +1202,8 @@ ALTER TABLE ONLY ocr_user
 
 
 --
--- TOC entry 1924 (class 2606 OID 5000396)
--- Name: uk_word_text; Type: CONSTRAINT; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2033 (class 2606 OID 1716389)
+-- Name: uk_word_text; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_word
@@ -1276,35 +1211,32 @@ ALTER TABLE ONLY ocr_word
 
 
 --
--- TOC entry 1911 (class 1259 OID 5000397)
--- Name: idx_split_position; Type: INDEX; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2020 (class 1259 OID 1716390)
+-- Name: idx_split_position; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_split_position ON ocr_split USING btree (split_position);
 
 
 --
--- TOC entry 1912 (class 1259 OID 5000398)
--- Name: idx_split_shape_id; Type: INDEX; Schema: public; Owner: nlp; Tablespace: 
+-- TOC entry 2021 (class 1259 OID 1716391)
+-- Name: idx_split_shape_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_split_shape_id ON ocr_split USING btree (split_shape_id);
 
 
 --
--- TOC entry 1938 (class 2620 OID 5000399)
--- Name: trg_user_au; Type: TRIGGER; Schema: public; Owner: nlp
+-- TOC entry 2047 (class 2620 OID 1716392)
+-- Name: trg_user_au; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER trg_user_au
-    AFTER UPDATE ON ocr_user
-    FOR EACH ROW
-    EXECUTE PROCEDURE trig_login();
+CREATE TRIGGER trg_user_au AFTER UPDATE ON ocr_user FOR EACH ROW EXECUTE PROCEDURE trig_login();
 
 
 --
--- TOC entry 1927 (class 2606 OID 5000400)
--- Name: fk_doc_user; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2036 (class 2606 OID 1716393)
+-- Name: fk_doc_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_document
@@ -1312,8 +1244,8 @@ ALTER TABLE ONLY ocr_document
 
 
 --
--- TOC entry 1925 (class 2606 OID 5000405)
--- Name: fk_docauthor_author; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2034 (class 2606 OID 1716398)
+-- Name: fk_docauthor_author; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_doc_author_map
@@ -1321,8 +1253,8 @@ ALTER TABLE ONLY ocr_doc_author_map
 
 
 --
--- TOC entry 1926 (class 2606 OID 5000410)
--- Name: fk_docauthor_doc; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2035 (class 2606 OID 1716403)
+-- Name: fk_docauthor_doc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_doc_author_map
@@ -1330,8 +1262,8 @@ ALTER TABLE ONLY ocr_doc_author_map
 
 
 --
--- TOC entry 1928 (class 2606 OID 5000415)
--- Name: fk_group_row; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2037 (class 2606 OID 1716408)
+-- Name: fk_group_row; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_group
@@ -1339,8 +1271,8 @@ ALTER TABLE ONLY ocr_group
 
 
 --
--- TOC entry 1929 (class 2606 OID 5000420)
--- Name: fk_image_page; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2038 (class 2606 OID 1716413)
+-- Name: fk_image_page; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image
@@ -1348,8 +1280,8 @@ ALTER TABLE ONLY ocr_image
 
 
 --
--- TOC entry 1930 (class 2606 OID 5000425)
--- Name: fk_image_status; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2039 (class 2606 OID 1716418)
+-- Name: fk_image_status; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image
@@ -1357,8 +1289,8 @@ ALTER TABLE ONLY ocr_image
 
 
 --
--- TOC entry 1931 (class 2606 OID 5000430)
--- Name: fk_image_user; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2040 (class 2606 OID 1716423)
+-- Name: fk_image_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_image
@@ -1366,8 +1298,8 @@ ALTER TABLE ONLY ocr_image
 
 
 --
--- TOC entry 1932 (class 2606 OID 5000435)
--- Name: fk_login_user; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2041 (class 2606 OID 1716428)
+-- Name: fk_login_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_login
@@ -1375,8 +1307,8 @@ ALTER TABLE ONLY ocr_login
 
 
 --
--- TOC entry 1933 (class 2606 OID 5000440)
--- Name: fk_page_doc; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2042 (class 2606 OID 1716433)
+-- Name: fk_page_doc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_page
@@ -1384,8 +1316,8 @@ ALTER TABLE ONLY ocr_page
 
 
 --
--- TOC entry 1934 (class 2606 OID 5000445)
--- Name: fk_paragraph_image; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2043 (class 2606 OID 1716438)
+-- Name: fk_paragraph_image; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_paragraph
@@ -1393,8 +1325,8 @@ ALTER TABLE ONLY ocr_paragraph
 
 
 --
--- TOC entry 1935 (class 2606 OID 5000450)
--- Name: fk_row_paragraph; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2044 (class 2606 OID 1716443)
+-- Name: fk_row_paragraph; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_row
@@ -1402,8 +1334,8 @@ ALTER TABLE ONLY ocr_row
 
 
 --
--- TOC entry 1936 (class 2606 OID 5000455)
--- Name: fk_shape_group; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2045 (class 2606 OID 1716448)
+-- Name: fk_shape_group; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_shape
@@ -1411,27 +1343,15 @@ ALTER TABLE ONLY ocr_shape
 
 
 --
--- TOC entry 1937 (class 2606 OID 5000460)
--- Name: fk_split_shape; Type: FK CONSTRAINT; Schema: public; Owner: nlp
+-- TOC entry 2046 (class 2606 OID 1716453)
+-- Name: fk_split_shape; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY ocr_split
     ADD CONSTRAINT fk_split_shape FOREIGN KEY (split_shape_id) REFERENCES ocr_shape(shape_id);
 
 
---
--- TOC entry 1945 (class 0 OID 0)
--- Dependencies: 6
--- Name: public; Type: ACL; Schema: -; Owner: postgres
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO PUBLIC;
-
-
--- Completed on 2015-02-13 17:25:35
+-- Completed on 2016-03-24 17:19:22
 
 --
 -- PostgreSQL database dump complete
