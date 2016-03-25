@@ -40,19 +40,19 @@ import com.joliciel.jochre.search.lexicon.LexiconService;
 
 class SearchServiceImpl implements SearchServiceInternal {
 	private static final Log LOG = LogFactory.getLog(SearchServiceImpl.class);
-	
+
 	private AltoService altoService;
 	private LexiconService lexiconService;
 	private FeedbackService feedbackService;
-	
+
 	private JochreIndexSearcher searcher;
 	private SearchStatusHolder searchStatusHolder;
 	private Locale locale;
 	private Lexicon lexicon;
 	private File indexDir;
 	private File contentDir;
-	
-	private static final Set<String> RTL = new HashSet<String>(Arrays.asList(new String[] {"ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi"}));
+
+	private static final Set<String> RTL = new HashSet<String>(Arrays.asList(new String[] { "ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi" }));
 
 	public SearchServiceImpl(Locale locale, File indexDir, File contentDir) {
 		super();
@@ -63,9 +63,9 @@ class SearchServiceImpl implements SearchServiceInternal {
 
 	@Override
 	public JochreIndexBuilder getJochreIndexBuilder() {
-		if (indexDir==null)
+		if (indexDir == null)
 			throw new JochreSearchException("indexDir not set");
-		if (contentDir==null)
+		if (contentDir == null)
 			throw new JochreSearchException("contentDir not set");
 		JochreIndexBuilderImpl builder = new JochreIndexBuilderImpl(indexDir, contentDir);
 		builder.setSearchService(this);
@@ -81,37 +81,39 @@ class SearchServiceImpl implements SearchServiceInternal {
 		query.setLexiconService(this.getLexiconService());
 		return query;
 	}
-	
+
 	@Override
 	public synchronized JochreIndexSearcher getJochreIndexSearcher() {
-		if (this.searcher==null) 
+		if (this.searcher == null)
 			this.searcher = this.buildSearcher();
 		return this.searcher;
 	}
-	
+
+	@Override
 	public void purge() {
 		this.lexicon = null;
 		this.purgeSearcher();
 	}
-	
+
+	@Override
 	public synchronized void purgeSearcher() {
 		JochreIndexSearcher searcher = this.buildSearcher();
 		this.searcher = searcher;
 	}
-	
+
 	private JochreIndexSearcher buildSearcher() {
 		JochreIndexSearcherImpl searcher = new JochreIndexSearcherImpl(indexDir, contentDir);
 		searcher.setSearchService(this);
 		return searcher;
 	}
-	
+
 	@Override
 	public JochreIndexDocument getJochreIndexDocument(JochreIndexSearcher indexSearcher, int docId) {
 		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(indexSearcher, docId);
 		doc.setSearchService(this);
 		return doc;
 	}
-	
+
 	@Override
 	public JochreIndexDirectory getJochreIndexDirectory(File dir) {
 		JochreIndexDirectoryImpl directory = new JochreIndexDirectoryImpl(contentDir, dir);
@@ -119,33 +121,35 @@ class SearchServiceImpl implements SearchServiceInternal {
 	}
 
 	@Override
-	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory,
-			int index, List<AltoPage> currentPages) {
+	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages) {
 		JochreIndexDocumentImpl doc = new JochreIndexDocumentImpl(directory, index, currentPages);
 		doc.setSearchService(this);
 		return doc;
 	}
+
 	@Override
-	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
-			String fieldName) {
+	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
 		JochreTokeniser jochreTokeniser = new JochreTokeniser(tokenExtractor, fieldName);
 		jochreTokeniser.setSearchService(this);
 		return jochreTokeniser;
 	}
-	
+
+	@Override
 	public Analyzer getJochreTextLayerAnalyzer(TokenExtractor tokenExtractor) {
 		JochreTextLayerAnalyser analyser = new JochreTextLayerAnalyser(tokenExtractor);
 		analyser.setSearchService(this);
 		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		return analyser;
 	}
-	
+
+	@Override
 	public Analyzer getJochreMetaDataAnalyzer() {
 		JochreMetaDataAnalyser analyser = new JochreMetaDataAnalyser();
 		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		return analyser;
 	}
-	
+
+	@Override
 	public JochreQueryAnalyser getJochreQueryAnalyzer() {
 		JochreQueryAnalyser analyser = new JochreQueryAnalyser();
 		analyser.setSearchService(this);
@@ -153,29 +157,18 @@ class SearchServiceImpl implements SearchServiceInternal {
 		analyser.setTextNormaliser(this.lexiconService.getTextNormaliser(locale));
 		return analyser;
 	}
-	
+
 	public AltoService getAltoService() {
 		return altoService;
 	}
+
 	public void setAltoService(AltoService altoService) {
 		this.altoService = altoService;
 	}
 
 	@Override
-	public JochreToken getJochreToken(JochreToken jochreToken) {
-		JochreTokenImpl token = new JochreTokenImpl(jochreToken);
-		return token;
-	}
-
-	@Override
-	public JochreToken getJochreToken(String text) {
-		JochreTokenImpl token = new JochreTokenImpl(text);
-		return token;
-	}
-
-	@Override
 	public SearchStatusHolder getSearchStatusHolder() {
-		if (searchStatusHolder==null) {
+		if (searchStatusHolder == null) {
 			searchStatusHolder = new SearchStatusHolder();
 		}
 		return searchStatusHolder;
@@ -189,30 +182,35 @@ class SearchServiceImpl implements SearchServiceInternal {
 		this.lexiconService = lexiconService;
 	}
 
+	@Override
 	public Locale getLocale() {
 		return locale;
 	}
-	
+
+	@Override
 	public boolean isLeftToRight() {
 		return !RTL.contains(this.getLocale().getLanguage());
 	}
 
+	@Override
 	public void setLocale(Locale locale) {
 		this.locale = locale;
 	}
 
+	@Override
 	public Lexicon getLexicon() {
 		return lexicon;
 	}
 
+	@Override
 	public void setLexicon(Lexicon lexicon) {
 		this.lexicon = lexicon;
 	}
-	
+
+	@Override
 	public TokenFilter getQueryTokenFilter(TokenStream input) {
 		TokenFilter tokenFilter = null;
-		if (locale.getLanguage().equals("yi")||
-				locale.getLanguage().equals("ji")) {
+		if (locale.getLanguage().equals("yi") || locale.getLanguage().equals("ji")) {
 			tokenFilter = new YiddishQueryTokenFilter(input);
 		} else if (locale.getLanguage().equals("oc")) {
 			tokenFilter = new OccitanQueryTokenFilter(input);

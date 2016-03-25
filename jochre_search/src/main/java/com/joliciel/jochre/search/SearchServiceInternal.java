@@ -30,29 +30,29 @@ import com.joliciel.jochre.search.alto.AltoPage;
 
 interface SearchServiceInternal extends SearchService {
 	public JochreIndexDirectory getJochreIndexDirectory(File dir);
+
 	public JochreIndexDocument newJochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> currentPages);
-	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor,
-			String fieldName);
-	
+
+	public Tokenizer getJochreTokeniser(TokenExtractor tokenExtractor, String fieldName);
+
 	/**
-	 * An analyser using a {@link TokenExtractor} to passed to {@link #getJochreTokeniser(TokenExtractor, String)}, used when the actual
-	 * tokenising occurred prior to analysis (e.g. in the case of the OCR text layer).
+	 * An analyser using a {@link TokenExtractor} to passed to
+	 * {@link #getJochreTokeniser(TokenExtractor, String)}, used when the actual
+	 * tokenising occurred prior to analysis (e.g. in the case of the OCR text
+	 * layer).
 	 */
 	public Analyzer getJochreTextLayerAnalyzer(TokenExtractor tokenExtractor);
-	
+
 	public Analyzer getJochreMetaDataAnalyzer();
-	
+
 	public JochreQueryAnalyser getJochreQueryAnalyzer();
-	
-	public JochreToken getJochreToken(JochreToken jochreToken);
-	public JochreToken getJochreToken(String text);
-	
-	
+
 	/**
-	 * Get a TokenFilter to be used on queries in the current locale, or null if none avaialble.
+	 * Get a TokenFilter to be used on queries in the current locale, or null if
+	 * none avaialble.
 	 */
 	public TokenFilter getQueryTokenFilter(TokenStream input);
-	
+
 	/**
 	 * Get a JochreIndexWord at a particular offset of a document.
 	 */
