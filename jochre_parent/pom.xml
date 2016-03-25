@@ -76,6 +76,11 @@
 			</dependency>
 			<dependency>
 				<groupId>com.joliciel.jochre</groupId>
+				<artifactId>jochre-search-webapp</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.joliciel.jochre</groupId>
 				<artifactId>jochre-occitan</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -208,6 +213,7 @@
 		<module>../jochre_occitan</module>
 		<module>../jochre_web</module>
 		<module>../jochre_search</module>
+		<module>../jochre_search_webapp</module>
 	</modules>
 	<build>
 		<pluginManagement>
