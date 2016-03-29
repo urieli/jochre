@@ -81,6 +81,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.levigo.jbig2</groupId>
+			<artifactId>levigo-jbig2-imageio</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.joliciel.talismane</groupId>
 			<artifactId>talismane-machine-learning</artifactId>
 		</dependency>

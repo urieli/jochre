@@ -82,6 +82,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.levigo.jbig2</groupId>
+			<artifactId>levigo-jbig2-imageio</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 		</dependency>
