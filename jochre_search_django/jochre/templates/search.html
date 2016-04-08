@@ -154,6 +154,9 @@ function transformKeyPress(textfield, evt) {
     var val = textfield.value;
     evt = evt || window.event;
 
+	if (evt.ctrlKey)
+		return true;
+	
     // Ensure we only handle printable keys, excluding enter and space
     var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
     if (charCode && charCode > 32) {
@@ -290,6 +293,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
 					var wordOffset = globalOffset + localOffset;
 					
+					//alert("localOffset: " + localOffset + ", globalOffset: " + globalOffset + ", wordOffset: " + wordOffset);
 					var target = $(this);
 				    var dialog, form;
 

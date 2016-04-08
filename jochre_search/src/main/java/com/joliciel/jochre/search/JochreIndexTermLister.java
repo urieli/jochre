@@ -144,12 +144,11 @@ public class JochreIndexTermLister {
 		}
 	}
 
-	private void findTerms(Map<String, Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum,
-			LeafReaderContext subContext, int luceneId) throws IOException {
+	private void findTerms(Map<String, Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum, LeafReaderContext subContext, int luceneId)
+			throws IOException {
 		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
 
-		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS
-				| PostingsEnum.PAYLOADS);
+		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
 		int relativeId = docPosEnum.nextDoc();
 		while (relativeId != PostingsEnum.NO_MORE_DOCS) {
 			int nextId = subContext.docBase + relativeId;
@@ -158,8 +157,7 @@ public class JochreIndexTermLister {
 				int freq = docPosEnum.freq();
 
 				if (LOG.isTraceEnabled())
-					LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId
-							+ ", docId " + docId + ", field " + field);
+					LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId + ", docId " + docId + ", field " + field);
 
 				for (int i = 0; i < freq; i++) {
 					int position = docPosEnum.nextPosition();
@@ -167,8 +165,7 @@ public class JochreIndexTermLister {
 					int end = docPosEnum.endOffset();
 
 					if (LOG.isTraceEnabled())
-						LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start="
-								+ start + ", end=" + end);
+						LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start=" + start + ", end=" + end);
 
 					BytesRef bytesRef = docPosEnum.getPayload();
 					JochrePayload payload = null;
@@ -195,7 +192,7 @@ public class JochreIndexTermLister {
 		public JochreTerm(String name, int position, int start, int end, JochrePayload payload) {
 			super();
 			this.name = name;
-			if (this.name.startsWith("※"))
+			if (this.name.startsWith(JochreSearchConstants.INDEX_PUNCT_PREFIX))
 				this.name = this.name.substring(1);
 			this.position = position;
 			this.start = start;

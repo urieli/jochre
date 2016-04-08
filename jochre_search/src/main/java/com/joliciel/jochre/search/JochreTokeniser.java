@@ -60,9 +60,8 @@ class JochreTokeniser extends Tokenizer {
 	 * Constructor including the tokenExtractor, the current fieldName being
 	 * analysed (for Lucene fields) and a Reader containing the input.
 	 * 
-	 *            a place to get the tokens
-	 *            the text field contents, ignored since we've already analysed
-	 *            them
+	 * a place to get the tokens the text field contents, ignored since we've
+	 * already analysed them
 	 */
 	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
 		super();
@@ -98,7 +97,7 @@ class JochreTokeniser extends Tokenizer {
 
 			// add the term itself
 			if (currentToken.isPunctuation())
-				content = "※" + content;
+				content = JochreSearchConstants.INDEX_PUNCT_PREFIX + content;
 			termAtt.append(content);
 
 			posLengthAtt.setPositionLength(1);
@@ -125,9 +124,8 @@ class JochreTokeniser extends Tokenizer {
 			payloadAtt.setPayload(payload.getBytesRef());
 
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength()
-						+ ", increment: " + posIncrAtt.getPositionIncrement() + ", offset: " + offsetAtt.startOffset()
-						+ "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
+				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength() + ", increment: " + posIncrAtt.getPositionIncrement()
+						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
 						+ currentIndex);
 			}
 

@@ -33,15 +33,16 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
+import com.joliciel.jochre.search.JochreSearchConstants;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
-
 
 class HighlightManagerImpl implements HighlightManager {
 	private static final Log LOG = LogFactory.getLog(HighlightManagerImpl.class);
@@ -59,10 +60,10 @@ class HighlightManagerImpl implements HighlightManager {
 	private int titleSnippetCount = 1;
 	private int snippetCount = 3;
 	private int snippetSize = 80;
-	
+
 	private SearchService searchService;
 	private HighlightService highlightService;
-	
+
 	public HighlightManagerImpl(JochreIndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
@@ -71,26 +72,26 @@ class HighlightManagerImpl implements HighlightManager {
 	@Override
 	public void highlight(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) {
 		try {
-			Map<Integer,NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
+			Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
 			jsonGen.writeStartObject();
-			
+
 			for (int docId : docIds) {
 				Document doc = indexSearcher.getIndexSearcher().doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
 				jsonGen.writeNumberField("docId", docId);
-				
+
 				jsonGen.writeArrayFieldStart("terms");
 				for (HighlightTerm term : termMap.get(docId)) {
 					fields.add(term.getField());
 					term.toJson(jsonGen, df);
 				}
 				jsonGen.writeEndArray();
-				
+
 				if (includeText) {
 					for (String field : fields) {
 						jsonGen.writeObjectFieldStart("field" + field);
@@ -100,7 +101,6 @@ class HighlightManagerImpl implements HighlightManager {
 					}
 				}
 
-				
 				jsonGen.writeEndObject();
 			}
 
@@ -111,14 +111,14 @@ class HighlightManagerImpl implements HighlightManager {
 			throw new JochreException(ioe);
 		}
 	}
-	
+
 	@Override
-	public Map<Integer,List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer, NavigableSet<HighlightTerm>> termMap,
-			int maxSnippets, int snippetSize) {
+	public Map<Integer, List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets,
+			int snippetSize) {
 		SnippetFinder snippetFinder = this.getSnippetFinder();
 
-		Map<Integer,List<Snippet>> snippetMap = new HashMap<Integer, List<Snippet>>();
-		
+		Map<Integer, List<Snippet>> snippetMap = new HashMap<Integer, List<Snippet>>();
+
 		for (int docId : docIds) {
 			Set<HighlightTerm> terms = termMap.get(docId);
 			List<Snippet> snippets = snippetFinder.findSnippets(docId, fields, terms, maxSnippets);
@@ -126,18 +126,18 @@ class HighlightManagerImpl implements HighlightManager {
 		}
 		return snippetMap;
 	}
-	
+
 	@Override
 	public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) {
 		try {
-			Map<Integer,NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
-			Map<Integer,List<Snippet>> snippetMap = this.findSnippets(docIds, fields, termMap, this.getSnippetCount(), this.getSnippetSize());
-			
+			Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
+			Map<Integer, List<Snippet>> snippetMap = this.findSnippets(docIds, fields, termMap, this.getSnippetCount(), this.getSnippetSize());
+
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
 			jsonGen.writeStartObject();
-			
+
 			for (int docId : docIds) {
 				Document doc = indexSearcher.getIndexSearcher().doc(docId);
 				jsonGen.writeObjectFieldStart(docId + "");
@@ -150,7 +150,7 @@ class HighlightManagerImpl implements HighlightManager {
 					snippet.toJson(jsonGen, df, this);
 				}
 				jsonGen.writeEndArray();
-				
+
 				if (includeGraphics) {
 					jsonGen.writeArrayFieldStart("snippetGraphics");
 					for (Snippet snippet : snippetMap.get(docId)) {
@@ -158,9 +158,9 @@ class HighlightManagerImpl implements HighlightManager {
 						ImageSnippet imageSnippet = this.getImageSnippet(snippet);
 						jsonGen.writeNumberField("left", imageSnippet.getRectangle().x);
 						jsonGen.writeNumberField("top", imageSnippet.getRectangle().y);
-						jsonGen.writeNumberField("width", imageSnippet.getRectangle().width );
+						jsonGen.writeNumberField("width", imageSnippet.getRectangle().width);
 						jsonGen.writeNumberField("height", imageSnippet.getRectangle().height);
-						
+
 						jsonGen.writeArrayFieldStart("highlights");
 						for (Rectangle highlight : imageSnippet.getHighlights()) {
 							jsonGen.writeStartObject();
@@ -185,7 +185,7 @@ class HighlightManagerImpl implements HighlightManager {
 			throw new JochreException(ioe);
 		}
 	}
-	
+
 	@Override
 	public String displayHighlights(int docId, String field, Set<HighlightTerm> terms) {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
@@ -204,7 +204,7 @@ class HighlightManagerImpl implements HighlightManager {
 				}
 				sb.append(content.substring(currentPos, term.getStartOffset()));
 				String termText = content.substring(term.getStartOffset(), term.getEndOffset());
-				if (term.getWeight()>=minWeight)
+				if (term.getWeight() >= minWeight)
 					sb.append(this.getDecorator().decorate(termText));
 				else
 					sb.append(termText);
@@ -212,13 +212,13 @@ class HighlightManagerImpl implements HighlightManager {
 			}
 		}
 		sb.append(content.substring(currentPos, content.length()));
-		
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace(sb.toString());
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String displaySnippet(Snippet snippet) {
 		JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, snippet.getDocId());
@@ -229,15 +229,27 @@ class HighlightManagerImpl implements HighlightManager {
 
 		StringBuilder sb = new StringBuilder();
 		int currentPos = snippet.getStartOffset();
-		
+
 		sb.append("<span offset=\"" + currentPos + "\">");
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
 			}
+			String substring = content.substring(currentPos, term.getStartOffset());
+			while (substring.indexOf(JochreSearchConstants.INDEX_PARAGRAPH) >= 0) {
+				int newlineIndex = substring.indexOf(JochreSearchConstants.INDEX_PARAGRAPH);
+				sb.append(substring.substring(0, newlineIndex));
+				sb.append("</span>");
+				sb.append("<br/>");
+				currentPos += newlineIndex + 1;
+				sb.append("<span offset=\"" + currentPos + "\">");
+				if (LOG.isTraceEnabled())
+					LOG.trace("Added linebreak at " + currentPos);
+				substring = substring.substring(newlineIndex + 1);
+			}
 			sb.append(content.substring(currentPos, term.getStartOffset()));
 			String termText = content.substring(term.getStartOffset(), term.getEndOffset());
-			if (term.getWeight()>=minWeight) {
+			if (term.getWeight() >= minWeight) {
 				sb.append("</span>");
 				termText = "<span offset=\"" + term.getStartOffset() + "\">" + termText + "</span>";
 				sb.append(this.getDecorator().decorate(termText));
@@ -247,7 +259,7 @@ class HighlightManagerImpl implements HighlightManager {
 		}
 		sb.append(content.substring(currentPos, snippet.getEndOffset()));
 		sb.append("</span>");
-		
+
 		if (LOG.isTraceEnabled()) {
 			LOG.trace(sb.toString());
 		}
@@ -262,10 +274,10 @@ class HighlightManagerImpl implements HighlightManager {
 
 	@Override
 	public void setDecimalPlaces(int decimalPlaces) {
-		if (this.decimalPlaces!=decimalPlaces) {
+		if (this.decimalPlaces != decimalPlaces) {
 			this.decimalPlaces = decimalPlaces;
 			String dfFormat = "0.";
-			for (int i = 0; i<decimalPlaces;i++) {
+			for (int i = 0; i < decimalPlaces; i++) {
 				dfFormat += "0";
 			}
 			df = new DecimalFormat(dfFormat, enSymbols);
@@ -274,7 +286,7 @@ class HighlightManagerImpl implements HighlightManager {
 
 	@Override
 	public SnippetFinder getSnippetFinder() {
-		if (snippetFinder==null) {
+		if (snippetFinder == null) {
 			snippetFinder = highlightService.getSnippetFinder(indexSearcher);
 		}
 		return snippetFinder;
@@ -285,61 +297,75 @@ class HighlightManagerImpl implements HighlightManager {
 		this.snippetFinder = snippetFinder;
 	}
 
+	@Override
 	public HighlightTermDecorator getDecorator() {
-		if (decorator==null) {
+		if (decorator == null) {
 			decorator = new WrappingDecorator("<b>", "</b>");
 		}
 		return decorator;
 	}
 
+	@Override
 	public void setDecorator(HighlightTermDecorator decorator) {
 		this.decorator = decorator;
 	}
 
+	@Override
 	public boolean isIncludeText() {
 		return includeText;
 	}
 
+	@Override
 	public void setIncludeText(boolean includeText) {
 		this.includeText = includeText;
 	}
 
+	@Override
 	public boolean isIncludeGraphics() {
 		return includeGraphics;
 	}
 
+	@Override
 	public void setIncludeGraphics(boolean includeGraphics) {
 		this.includeGraphics = includeGraphics;
 	}
 
+	@Override
 	public double getMinWeight() {
 		return minWeight;
 	}
 
+	@Override
 	public void setMinWeight(double minWeight) {
 		this.minWeight = minWeight;
 	}
 
+	@Override
 	public int getTitleSnippetCount() {
 		return titleSnippetCount;
 	}
 
+	@Override
 	public void setTitleSnippetCount(int titleSnippetCount) {
 		this.titleSnippetCount = titleSnippetCount;
 	}
 
+	@Override
 	public int getSnippetCount() {
 		return snippetCount;
 	}
 
+	@Override
 	public void setSnippetCount(int snippetCount) {
 		this.snippetCount = snippetCount;
 	}
 
+	@Override
 	public int getSnippetSize() {
 		return snippetSize;
 	}
 
+	@Override
 	public void setSnippetSize(int snippetSize) {
 		this.snippetSize = snippetSize;
 	}
@@ -366,6 +392,5 @@ class HighlightManagerImpl implements HighlightManager {
 	public void setHighlightService(HighlightService highlightService) {
 		this.highlightService = highlightService;
 	}
-	
-	
+
 }
