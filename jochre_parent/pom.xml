@@ -216,6 +216,43 @@
 		<module>../jochre_search_webapp</module>
 		<module>../jochre_distribution</module>
 	</modules>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<artifactId>maven-assembly-plugin</artifactId>
+							<version>2.6</version>
+							<goals>
+								<goal>single</goal>
+							</goals>
+							<configuration>
+								<descriptors>
+									<descriptor>src/assembly/bin.xml</descriptor>
+								</descriptors>
+							</configuration>
+						</plugin>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-gpg-plugin</artifactId>
+							<version>1.5</version>
+							<executions>
+								<execution>
+									<id>sign-artifacts</id>
+									<phase>package</phase>
+									<goals>
+										<goal>sign</goal>
+									</goals>
+								</execution>
+							</executions>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+	</profiles>
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -230,20 +267,6 @@
 							<descriptor>src/assembly/bin.xml</descriptor>
 						</descriptors>
 					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-gpg-plugin</artifactId>
-					<version>1.5</version>
-					<executions>
-						<execution>
-							<id>sign-artifacts</id>
-							<phase>package</phase>
-							<goals>
-								<goal>sign</goal>
-							</goals>
-						</execution>
-					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
