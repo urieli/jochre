@@ -19,7 +19,7 @@
 package com.joliciel.jochre.search;
 
 public class JochreSearchConstants {
-	public static final String INDEX_PARAGRAPH = "¶";
-	public static final String INDEX_NEWLINE = "\n";
+	public static final String INDEX_PARAGRAPH = "֎";
+	public static final String INDEX_NEWLINE = "֏";
 	public static final String INDEX_PUNCT_PREFIX = "※";
 }

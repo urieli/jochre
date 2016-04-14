@@ -141,7 +141,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 					if (endOfLineSpaceRequired && !spaceAdded) {
 						// add a space between lines, unless the last line ended
 						// with a hyphen
-						sb.append(' ');
+						sb.append(JochreSearchConstants.INDEX_NEWLINE);
 						spaceAdded = true;
 					}
 					AltoString lastString = null;
@@ -163,11 +163,12 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 						lastString = string;
 					}
-					if (lastString != null && lastString.getContent().endsWith("-")) {
+					if (lastString != null && lastString.getContent().contains(JochreSearchConstants.INDEX_NEWLINE)) {
 						endOfLineSpaceRequired = false;
 					} else {
 						endOfLineSpaceRequired = true;
 					}
+
 					lastSpanStart = textLine.getStrings().get(0).getSpanStart();
 					rowStartIndexes.put(textLine.getIndex(), lastSpanStart);
 				}

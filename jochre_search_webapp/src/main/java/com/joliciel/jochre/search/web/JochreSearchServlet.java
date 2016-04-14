@@ -31,8 +31,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -58,6 +58,7 @@ import com.joliciel.jochre.search.JochreIndexTermLister;
 import com.joliciel.jochre.search.JochreIndexWord;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.search.JochreQueryParseException;
+import com.joliciel.jochre.search.JochreSearchConstants;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
 import com.joliciel.jochre.search.SearchStatusHolder;
@@ -79,6 +80,7 @@ import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * Restful web service for Jochre search.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -86,28 +88,26 @@ public class JochreSearchServlet extends HttpServlet {
 	private static final Log LOG = LogFactory.getLog(JochreSearchServlet.class);
 	private static final long serialVersionUID = 1L;
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		
+
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
 		this.doGet(req, response);
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
 		long startTime = System.currentTimeMillis();
-		String user=null;
+		String user = null;
 		try {
 			response.addHeader("Access-Control-Allow-Origin", "*");
 			response.setCharacterEncoding("UTF-8");
-			
+
 			JochreSearchProperties props = JochreSearchProperties.getInstance(this.getServletContext());
-			
+
 			String command = req.getParameter("command");
-			if (command==null)
-				command="search";
-			
+			if (command == null)
+				command = "search";
+
 			if (command.equals("log4j")) {
 				response.setContentType("application/json;charset=UTF-8");
 				Log4jListener.reloadLog4jProperties(this.getServletContext());
@@ -116,8 +116,8 @@ public class JochreSearchServlet extends HttpServlet {
 				out.flush();
 				return;
 			}
-			
-			Map<String,String> argMap = new HashMap<String, String>();
+
+			Map<String, String> argMap = new HashMap<String, String>();
 			@SuppressWarnings("rawtypes")
 			Enumeration params = req.getParameterNames();
 			while (params.hasMoreElements()) {
@@ -126,7 +126,7 @@ public class JochreSearchServlet extends HttpServlet {
 				argMap.put(paramName, value);
 			}
 			argMap.remove("command");
-				
+
 			double minWeight = 0;
 			int titleSnippetCount = 1;
 			int snippetCount = 3;
@@ -144,12 +144,13 @@ public class JochreSearchServlet extends HttpServlet {
 			String docName = null;
 			int docIndex = -1;
 			Boolean expandInflections = null;
-			
+
 			int startOffset = -1;
 			int docId = -1;
-			
+
 			// suggestions
 			String suggestion = null;
+			String suggestion2 = null;
 			String languageCode = null;
 			String fontCode = null;
 			String ip = null;
@@ -177,7 +178,7 @@ public class JochreSearchServlet extends HttpServlet {
 				} else if (argName.equals("snippet")) {
 					snippetJson = argValue;
 				} else if (argName.equalsIgnoreCase("docIds")) {
-					if (argValue.length()>0) {
+					if (argValue.length() > 0) {
 						String[] idArray = argValue.split(",");
 						docIds = new HashSet<Integer>();
 						for (String id : idArray)
@@ -209,6 +210,8 @@ public class JochreSearchServlet extends HttpServlet {
 					ip = argValue;
 				} else if (argName.equals("suggestion")) {
 					suggestion = argValue;
+				} else if (argName.equals("suggestion2")) {
+					suggestion2 = argValue;
 				} else if (argName.equals("languageCode")) {
 					languageCode = argValue;
 				} else if (argName.equals("fontCode")) {
@@ -217,66 +220,66 @@ public class JochreSearchServlet extends HttpServlet {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
 			}
-	
+
 			PrintWriter out = null;
-			
+
 			if (!command.equals("imageSnippet") && !command.equals("wordImage"))
 				out = response.getWriter();
-			
+
 			File indexDir = new File(props.getIndexDirPath());
 			LOG.debug("Index dir: " + indexDir.getAbsolutePath());
 			File contentDir = new File(props.getContentDirPath());
 			LOG.debug("Content dir: " + contentDir.getAbsolutePath());
 			SearchServiceLocator searchServiceLocator = SearchServiceLocator.getInstance(props.getLocale(), indexDir, contentDir);
 			SearchService searchService = searchServiceLocator.getSearchService();
-			
+
 			String lexiconPath = props.getLexiconPath();
-			if (lexiconPath!=null && searchService.getLexicon()==null) {
+			if (lexiconPath != null && searchService.getLexicon() == null) {
 				LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(searchServiceLocator);
 				LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
 				File lexiconFile = new File(lexiconPath);
 				Lexicon lexicon = lexiconService.deserializeLexicon(lexiconFile);
 				searchService.setLexicon(lexicon);
 			}
-			
+
 			JochreIndexSearcher searcher = searchService.getJochreIndexSearcher();
-			
-			if (command.equals("search") || command.equals("highlight") || command.equals("snippets")) {		
+
+			if (command.equals("search") || command.equals("highlight") || command.equals("snippets")) {
 				response.setContentType("application/json;charset=UTF-8");
 				JochreQuery query = searchService.getJochreQuery();
 				query.setQueryString(queryString);
 				query.setAuthorQueryString(authorQueryString);
 				query.setTitleQueryString(titleQueryString);
-				if (decimalPlaces>=0)
+				if (decimalPlaces >= 0)
 					query.setDecimalPlaces(decimalPlaces);
-				if (maxDocs>=0)
+				if (maxDocs >= 0)
 					query.setMaxDocs(maxDocs);
-				if (expandInflections!=null)
+				if (expandInflections != null)
 					query.setExpandInflections(expandInflections);
-				
+
 				try {
 					if (command.equals("search")) {
 						int resultCount = searcher.search(query, out);
-						
+
 						String databasePropsPath = props.getDatabasePropertiesPath();
-						if (databasePropsPath!=null) {
+						if (databasePropsPath != null) {
 							FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(searchServiceLocator);
-							
+
 							feedbackServiceLocator.setDatabasePropertiesPath(props.getDatabasePropertiesPath());
 							FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
 							FeedbackQuery feedbackQuery = feedbackService.getEmptyQuery(user, ip);
 							feedbackQuery.setResultCount(resultCount);
 							feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
-							if (query.getAuthorQueryString()!=null && query.getAuthorQueryString().length()>0)
+							if (query.getAuthorQueryString() != null && query.getAuthorQueryString().length() > 0)
 								feedbackQuery.addClause(FeedbackCriterion.author, query.getAuthorQueryString());
-							if (query.getTitleQueryString()!=null && query.getTitleQueryString().length()>0)
+							if (query.getTitleQueryString() != null && query.getTitleQueryString().length() > 0)
 								feedbackQuery.addClause(FeedbackCriterion.title, query.getTitleQueryString());
 							if (!query.isExpandInflections())
 								feedbackQuery.addClause(FeedbackCriterion.strict, "true");
 							feedbackQuery.save();
 						}
 					} else {
-						if (docIds==null)
+						if (docIds == null)
 							throw new RuntimeException("Command " + command + " requires docIds");
 						HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
 						HighlightService highlightService = highlightServiceLocator.getHighlightService();
@@ -289,10 +292,10 @@ public class JochreSearchServlet extends HttpServlet {
 						highlightManager.setTitleSnippetCount(titleSnippetCount);
 						highlightManager.setSnippetCount(snippetCount);
 						highlightManager.setSnippetSize(snippetSize);
-			
+
 						Set<String> fields = new HashSet<String>();
 						fields.add(JochreIndexField.text.name());
-						
+
 						if (command.equals("highlight"))
 							highlightManager.highlight(highlighter, docIds, fields, out);
 						else
@@ -314,30 +317,30 @@ public class JochreSearchServlet extends HttpServlet {
 			} else if (command.equals("textSnippet")) {
 				response.setContentType("text/plain;charset=UTF-8");
 				Snippet snippet = new Snippet(snippetJson);
-				
+
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
 					LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 				}
-				
+
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				HighlightManager highlightManager = highlightService.getHighlightManager(searcher);
 				String text = highlightManager.displaySnippet(snippet);
-				
+
 				out.write(text);
 			} else if (command.equals("imageSnippet")) {
-				String mimeType="image/png";
+				String mimeType = "image/png";
 				response.setContentType(mimeType);
-				if (snippetJson==null)
+				if (snippetJson == null)
 					throw new JochreException("Command " + command + " requires a snippet");
 				Snippet snippet = new Snippet(snippetJson);
-				
+
 				if (LOG.isDebugEnabled()) {
 					Document doc = searcher.getIndexSearcher().doc(snippet.getDocId());
 					LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 				}
-				
+
 				HighlightServiceLocator highlightServiceLocator = HighlightServiceLocator.getInstance(searchServiceLocator);
 				HighlightService highlightService = highlightServiceLocator.getHighlightService();
 				HighlightManager highlightManager = highlightService.getHighlightManager(searcher);
@@ -351,15 +354,15 @@ public class JochreSearchServlet extends HttpServlet {
 				imageWriter.write(image);
 				ios.flush();
 			} else if (command.equals("wordImage")) {
-				String mimeType="image/png";
+				String mimeType = "image/png";
 				response.setContentType(mimeType);
-				if (startOffset<0)
+				if (startOffset < 0)
 					throw new JochreException("Command " + command + " requires a startOffset");
-				if (docId<0 && (docName==null || docIndex<0))
+				if (docId < 0 && (docName == null || docIndex < 0))
 					throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
-				
-				if (docId<0) {
-					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+
+				if (docId < 0) {
+					Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
 					docId = docs.keySet().iterator().next();
 				}
 				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher, docId);
@@ -368,7 +371,7 @@ public class JochreSearchServlet extends HttpServlet {
 
 				OutputStream os = response.getOutputStream();
 				ImageOutputStream ios = ImageIO.createImageOutputStream(os);
-				
+
 				ImageReader imageReader = ImageIO.getImageReadersByMIMEType(mimeType).next();
 				ImageWriter imageWriter = ImageIO.getImageWriter(imageReader);
 				imageWriter.setOutput(ios);
@@ -376,53 +379,68 @@ public class JochreSearchServlet extends HttpServlet {
 				ios.flush();
 			} else if (command.equals("word")) {
 				response.setContentType("application/json;charset=UTF-8");
-				if (startOffset<0)
+				if (startOffset < 0)
 					throw new JochreException("Command " + command + " requires a startOffset");
-				if (docId<0 && (docName==null || docIndex<0))
+				if (docId < 0 && (docName == null || docIndex < 0))
 					throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
-				
-				if (docId<0) {
-					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+
+				if (docId < 0) {
+					Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
 					docId = docs.keySet().iterator().next();
 				}
 				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher, docId);
 				JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
 				String word = jochreWord.getText();
-				out.write("{\"word\":\"" + word + "\"}\n");
+				String word2 = null;
+				if (word.contains(JochreSearchConstants.INDEX_NEWLINE)) {
+					word2 = word.substring(word.indexOf(JochreSearchConstants.INDEX_NEWLINE) + 1);
+					word = word.substring(0, word.indexOf(JochreSearchConstants.INDEX_NEWLINE));
+				}
+				JsonFactory jsonFactory = new JsonFactory();
+				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+				jsonGen.writeStartObject();
+				jsonGen.writeStringField("word", word);
+				if (word2 != null)
+					jsonGen.writeStringField("word2", word2);
+				jsonGen.writeEndObject();
+				jsonGen.flush();
 			} else if (command.equals("suggest")) {
-				if (startOffset<0)
+				if (startOffset < 0)
 					throw new RuntimeException("For command " + command + " startOffset is required");
-				if (docId<0 && (docName==null || docIndex<0))
+				if (docId < 0 && (docName == null || docIndex < 0))
 					throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
-				if (suggestion==null)
+				if (suggestion == null)
 					throw new RuntimeException("For command " + command + " suggestion is required");
-				if (user==null)
+				if (user == null)
 					throw new RuntimeException("For command " + command + " user is required");
-				if (fontCode==null)
+				if (fontCode == null)
 					throw new RuntimeException("For command " + command + " fontCode is required");
-				if (languageCode==null)
+				if (languageCode == null)
 					throw new RuntimeException("For command " + command + " languageCode is required");
-				
-				if (docId<0) {
-					Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+
+				if (docId < 0) {
+					Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
 					docId = docs.keySet().iterator().next();
 				}
-				
+
 				FeedbackServiceLocator feedbackServiceLocator = FeedbackServiceLocator.getInstance(searchServiceLocator);
 				String databasePropsPath = props.getDatabasePropertiesPath();
-				if (databasePropsPath==null)
+				if (databasePropsPath == null)
 					throw new JochreException("No database properties");
-				
+
+				if (suggestion2 != null && suggestion2.length() > 0)
+					suggestion += JochreSearchConstants.INDEX_NEWLINE + suggestion2;
+
 				feedbackServiceLocator.setDatabasePropertiesPath(databasePropsPath);
 				FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
 				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, user, ip, fontCode, languageCode);
 				out.write("{\"response\":\"suggestion saved\"}\n");
 			} else if (command.equals("index")) {
 				response.setContentType("application/json;charset=UTF-8");
-				
+
 				JochreIndexBuilder builder = searchService.getJochreIndexBuilder();
 				builder.setForceUpdate(forceUpdate);
-				
+
 				new Thread(builder).start();
 				out.write("{\"response\":\"index thread started\"}\n");
 			} else if (command.equals("status")) {
@@ -441,14 +459,14 @@ public class JochreSearchServlet extends HttpServlet {
 				Date updateDate = new Date(searchStatusHolder.getLastUpdated());
 				jsonGen.writeStringField("lastUpdated", dateFormat.format(updateDate));
 				jsonGen.writeNumberField("totalTime", searchStatusHolder.getTotalTime());
-				
+
 				jsonGen.writeEndObject();
 				jsonGen.flush();
 			} else if (command.equals("view")) {
 				response.setContentType("application/json;charset=UTF-8");
-				if (docName==null)
+				if (docName == null)
 					throw new RuntimeException("For command " + command + " docName is required");
-				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
 				JsonFactory jsonFactory = new JsonFactory();
 				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
@@ -465,11 +483,11 @@ public class JochreSearchServlet extends HttpServlet {
 				jsonGen.flush();
 			} else if (command.equals("list")) {
 				response.setContentType("application/json;charset=UTF-8");
-				if (docName==null)
+				if (docName == null)
 					throw new RuntimeException("For command " + command + " docName is required");
-				if (docIndex<0)
+				if (docIndex < 0)
 					throw new RuntimeException("For command " + command + " docIndex is required");
-				Map<Integer,Document> docs = searcher.findDocument(docName, docIndex);
+				Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
 				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
 				lister.list(out);
 				out.flush();
@@ -481,8 +499,8 @@ public class JochreSearchServlet extends HttpServlet {
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
-			
-			if (out!=null)
+
+			if (out != null)
 				out.flush();
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (RuntimeException e) {

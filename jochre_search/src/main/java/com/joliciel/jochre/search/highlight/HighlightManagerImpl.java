@@ -29,6 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -236,28 +238,22 @@ class HighlightManagerImpl implements HighlightManager {
 				LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
 			}
 			String substring = content.substring(currentPos, term.getStartOffset());
-			while (substring.indexOf(JochreSearchConstants.INDEX_PARAGRAPH) >= 0) {
-				int newlineIndex = substring.indexOf(JochreSearchConstants.INDEX_PARAGRAPH);
-				sb.append(substring.substring(0, newlineIndex));
-				sb.append("</span>");
-				sb.append("<br/>");
-				currentPos += newlineIndex + 1;
-				sb.append("<span offset=\"" + currentPos + "\">");
-				if (LOG.isTraceEnabled())
-					LOG.trace("Added linebreak at " + currentPos);
-				substring = substring.substring(newlineIndex + 1);
-			}
-			sb.append(content.substring(currentPos, term.getStartOffset()));
-			String termText = content.substring(term.getStartOffset(), term.getEndOffset());
+			substring = this.addLineBreaks(substring, currentPos);
+			sb.append(substring);
+			currentPos = term.getStartOffset();
+
 			if (term.getWeight() >= minWeight) {
+				String termText = content.substring(term.getStartOffset(), term.getEndOffset());
 				sb.append("</span>");
+				// note: an end-of-line hyphenated word can contain newlines
+				termText = this.addLineBreaks(termText, currentPos);
 				termText = "<span offset=\"" + term.getStartOffset() + "\">" + termText + "</span>";
 				sb.append(this.getDecorator().decorate(termText));
 				currentPos = term.getEndOffset();
 				sb.append("<span offset=\"" + currentPos + "\">");
 			}
 		}
-		sb.append(content.substring(currentPos, snippet.getEndOffset()));
+		sb.append(this.addLineBreaks(content.substring(currentPos, snippet.getEndOffset()), currentPos));
 		sb.append("</span>");
 
 		if (LOG.isTraceEnabled()) {
@@ -265,6 +261,27 @@ class HighlightManagerImpl implements HighlightManager {
 		}
 
 		return sb.toString();
+	}
+
+	private static final Pattern NEWLINE_PATTERN = Pattern.compile("[" + JochreSearchConstants.INDEX_NEWLINE + JochreSearchConstants.INDEX_PARAGRAPH + "]");
+
+	private String addLineBreaks(String text, int currentPos) {
+		StringBuilder sb = new StringBuilder();
+		int innerPos = 0;
+		Matcher matcher = NEWLINE_PATTERN.matcher(text);
+		while (matcher.find()) {
+			sb.append(text.substring(innerPos, matcher.start()));
+			sb.append("</span>");
+			sb.append("<br/>");
+			innerPos = matcher.end();
+			sb.append("<span offset=\"" + (currentPos + innerPos) + "\">");
+			if (LOG.isTraceEnabled())
+				LOG.trace("Added linebreak at " + (currentPos + innerPos));
+		}
+		if (innerPos < text.length())
+			sb.append(text.substring(innerPos));
+		text = sb.toString();
+		return text;
 	}
 
 	@Override
