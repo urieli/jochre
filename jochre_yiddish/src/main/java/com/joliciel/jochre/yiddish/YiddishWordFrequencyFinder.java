@@ -33,35 +33,33 @@ import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
- * Given a Yiddish word in an unknown orthographic standard,
- * attempts to generate all of the possible variants of this word in standard YIVO orthography,
- * and returns the frequency of the most frequent one, as indicated by the base lexicon.
+ * Given a Yiddish word in an unknown orthographic standard, attempts to
+ * generate all of the possible variants of this word in standard YIVO
+ * orthography, and returns the frequency of the most frequent one, as indicated
+ * by the base lexicon.
+ * 
  * @author Assaf Urieli
  *
  */
 public class YiddishWordFrequencyFinder implements Lexicon {
 	private static final Log LOG = LogFactory.getLog(YiddishWordFrequencyFinder.class);
-    private static final Pattern NUMBER = Pattern.compile("\\d+");
+	private static final Pattern NUMBER = Pattern.compile("\\d+");
 	Lexicon baseLexicon;
-		
+
 	public YiddishWordFrequencyFinder(Lexicon baseLexicon) {
 		super();
 		this.baseLexicon = baseLexicon;
 	}
-	
-
 
 	@Override
 	public int getFrequency(String word) {
 		List<CountedOutcome<String>> frequencies = this.getFrequencies(word);
-		if (frequencies.size()==0)
+		if (frequencies.size() == 0)
 			return 0;
 		else
-			return (int) frequencies.get(0).getCount();
+			return frequencies.get(0).getCount();
 	}
-	
-	
-	
+
 	@Override
 	public List<CountedOutcome<String>> getFrequencies(String initialWord) {
 		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
@@ -69,7 +67,7 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
 		}
-		
+
 		if (NUMBER.matcher(word).matches()) {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace(word + " is a number, setting freq to 1");
@@ -78,13 +76,12 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 			return results;
 		}
 
-
 		// systematic replacements for non-hebraic words
 		Set<String> variants = new TreeSet<String>();
-		
+
 		// in case it's a hebraic word, we keep the initial word in the mix
 		variants.add(word);
-		
+
 		// silent ה
 		variants = this.addVariants(variants, "(.)עה", "$1ע");
 		variants = this.addVariants(variants, "(.)יה", "$1י");
@@ -94,19 +91,19 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 
 		// silent א
 		variants = this.addVariants(variants, "(.)יא", "$1י");
-		
+
 		// diminutives with על
 		variants = this.addVariants(variants, "(.)על\\z", "$1ל");
-		
+
 		// the vowel י spelled יע
 		variants = this.addVariants(variants, "(.)יע(.)", "$1י$2");
 
 		// accusative ען instead of ן
 		variants = this.addVariants(variants, "(.)ען\\z", "$1ן");
-		
+
 		// ח instead of כ
 		variants = this.addVariants(variants, "ח(.)", "$1כ");
-		
+
 		// double letters
 		variants = this.addVariants(variants, "סס", "ס");
 		variants = this.addVariants(variants, "פּפּ", "פּ");
@@ -125,10 +122,15 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		variants = this.addVariants(variants, "ב([^ּֿ])", "בֿ$1");
 		variants = this.addVariants(variants, "ב([^ּֿ])", "בּ$1");
 		variants = this.addVariants(variants, "וּ", "ו");
-		
+
 		// niqqud
+		variants = this.addVariants(variants, "כ", "כּ");
+		variants = this.addVariants(variants, "ב", "בֿ");
 		variants = this.addVariants(variants, "בּ", "ב");
 		variants = this.addVariants(variants, "כֿ", "כ");
+		variants = this.addVariants(variants, "פ", "פֿ");
+		variants = this.addVariants(variants, "פּ", "פ");
+		variants = this.addVariants(variants, "װו", "װוּ");
 
 		// other typical variants
 		variants = this.addVariants(variants, "דט", "ט");
@@ -146,11 +148,11 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 		Set<CountedOutcome<String>> orderedResults = new TreeSet<CountedOutcome<String>>();
 		for (String variant : variants) {
 			int frequency = this.baseLexicon.getFrequency(variant);
-			if (frequency>0) {
+			if (frequency > 0) {
 				orderedResults.add(new CountedOutcome<String>(variant, frequency));
 			}
 			// only count multiple occurrences if it's the exact spelling
-			if (!variant.equals(initialWord)&&frequency>1)
+			if (!variant.equals(initialWord) && frequency > 1)
 				frequency = 1;
 			if (LOG.isTraceEnabled()) {
 				if (frequency > 0) {
@@ -159,14 +161,13 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 			}
 		}
 		results.addAll(orderedResults);
-		
+
 		return results;
 	}
 
-	
 	Set<String> addVariants(Set<String> variants, String regex, String replacement) {
 		Set<String> newVariants = new TreeSet<String>();
-		
+
 		for (String variant : variants) {
 			newVariants.add(variant);
 			newVariants.add(variant.replaceAll(regex, replacement));
@@ -189,6 +190,5 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	public Iterator<String> getWords() {
 		return this.baseLexicon.getWords();
 	}
-
 
 }

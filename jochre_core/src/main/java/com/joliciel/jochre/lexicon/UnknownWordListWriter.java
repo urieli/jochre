@@ -31,19 +31,21 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
+import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.CountedOutcome;
+import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * Lists all unknown words.
+ * 
  * @author Assaf Urieli
  *
  */
 public class UnknownWordListWriter implements DocumentObserver {
 	private static final Log LOG = LogFactory.getLog(UnknownWordListWriter.class);
 	private Writer writer;
-	
+
 	public UnknownWordListWriter(Writer writer) {
 		this.writer = writer;
 	}
@@ -75,11 +77,13 @@ public class UnknownWordListWriter implements DocumentObserver {
 				if (!paragraph.isJunk()) {
 					for (RowOfShapes row : paragraph.getRows()) {
 						for (GroupOfShapes group : row.getGroups()) {
-							if (group.getBestLetterSequence()!=null) {
-								for (CountedOutcome<String> wordFrequency : group.getBestLetterSequence().getWordFrequencies()) {
-									if (wordFrequency.getCount()==0) {
-										writer.write(wordFrequency.getOutcome() + "\n");
-										writer.flush();
+							if (group.getBestLetterSequence() != null) {
+								for (LetterSequence subsequence : group.getBestLetterSequence().getSubsequences()) {
+									for (CountedOutcome<String> wordFrequency : subsequence.getWordFrequencies()) {
+										if (wordFrequency.getCount() == 0) {
+											writer.write(wordFrequency.getOutcome() + "\n");
+											writer.flush();
+										}
 									}
 								}
 							}
