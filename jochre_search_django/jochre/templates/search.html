@@ -299,14 +299,15 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 
 					function applyFix() {
 						document.getElementById("imgWordLoading").style.display="inline";
-						
+
 						var suggestion = document.getElementById("txtSuggestion").value;
 						var suggestion2 = document.getElementById("txtSuggestion2").value;
-
+						
 						var selFont = document.getElementById("selFont");
 						var fontCode = selFont.options[selFont.selectedIndex].value;
+
 						var selLang = document.getElementById("selLang");
-						var languageCode = selLang.options[selFont.selectedIndex].value;
+						var languageCode = selLang.options[selLang.selectedIndex].value;						
 						
 						$.ajax({
 							  url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
