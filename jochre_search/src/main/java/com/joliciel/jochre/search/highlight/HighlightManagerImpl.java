@@ -43,6 +43,7 @@ import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreSearchConstants;
 import com.joliciel.jochre.search.SearchService;
+import com.joliciel.jochre.utils.Either;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
@@ -115,16 +116,25 @@ class HighlightManagerImpl implements HighlightManager {
 	}
 
 	@Override
-	public Map<Integer, List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets,
-			int snippetSize) {
+	public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds, Set<String> fields,
+			Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets, int snippetSize) {
 		SnippetFinder snippetFinder = this.getSnippetFinder();
 
-		Map<Integer, List<Snippet>> snippetMap = new HashMap<Integer, List<Snippet>>();
+		Map<Integer, Either<List<Snippet>, Exception>> snippetMap = new HashMap<Integer, Either<List<Snippet>, Exception>>();
 
 		for (int docId : docIds) {
 			Set<HighlightTerm> terms = termMap.get(docId);
-			List<Snippet> snippets = snippetFinder.findSnippets(docId, fields, terms, maxSnippets);
-			snippetMap.put(docId, snippets);
+			Either<List<Snippet>, Exception> result = null;
+			try {
+				List<Snippet> snippets = snippetFinder.findSnippets(docId, fields, terms, maxSnippets);
+				for (Snippet snippet : snippets) {
+					snippet.generateText(this);
+				}
+				result = Either.ofLeft(snippets);
+			} catch (Exception e) {
+				result = Either.ofRight(e);
+			}
+			snippetMap.put(docId, result);
 		}
 		return snippetMap;
 	}
@@ -133,7 +143,8 @@ class HighlightManagerImpl implements HighlightManager {
 	public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) {
 		try {
 			Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
-			Map<Integer, List<Snippet>> snippetMap = this.findSnippets(docIds, fields, termMap, this.getSnippetCount(), this.getSnippetSize());
+			Map<Integer, Either<List<Snippet>, Exception>> snippetMap = this.findSnippets(docIds, fields, termMap, this.getSnippetCount(),
+					this.getSnippetSize());
 
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
@@ -147,35 +158,48 @@ class HighlightManagerImpl implements HighlightManager {
 				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
 				jsonGen.writeNumberField("docId", docId);
 
-				jsonGen.writeArrayFieldStart("snippets");
-				for (Snippet snippet : snippetMap.get(docId)) {
-					snippet.toJson(jsonGen, df, this);
-				}
-				jsonGen.writeEndArray();
+				Either<List<Snippet>, Exception> result = snippetMap.get(docId);
 
-				if (includeGraphics) {
-					jsonGen.writeArrayFieldStart("snippetGraphics");
-					for (Snippet snippet : snippetMap.get(docId)) {
-						jsonGen.writeStartObject();
-						ImageSnippet imageSnippet = this.getImageSnippet(snippet);
-						jsonGen.writeNumberField("left", imageSnippet.getRectangle().x);
-						jsonGen.writeNumberField("top", imageSnippet.getRectangle().y);
-						jsonGen.writeNumberField("width", imageSnippet.getRectangle().width);
-						jsonGen.writeNumberField("height", imageSnippet.getRectangle().height);
+				if (result.isLeft()) {
+					List<Snippet> snippets = result.getLeft();
 
-						jsonGen.writeArrayFieldStart("highlights");
-						for (Rectangle highlight : imageSnippet.getHighlights()) {
+					jsonGen.writeArrayFieldStart("snippets");
+					for (Snippet snippet : snippets) {
+						snippet.toJson(jsonGen, df, this);
+					}
+					jsonGen.writeEndArray();
+
+					if (includeGraphics) {
+						jsonGen.writeArrayFieldStart("snippetGraphics");
+						for (Snippet snippet : snippets) {
 							jsonGen.writeStartObject();
-							jsonGen.writeNumberField("left", highlight.x);
-							jsonGen.writeNumberField("top", highlight.y);
-							jsonGen.writeNumberField("width", highlight.width);
-							jsonGen.writeNumberField("height", highlight.height);
+							ImageSnippet imageSnippet = this.getImageSnippet(snippet);
+							jsonGen.writeNumberField("left", imageSnippet.getRectangle().x);
+							jsonGen.writeNumberField("top", imageSnippet.getRectangle().y);
+							jsonGen.writeNumberField("width", imageSnippet.getRectangle().width);
+							jsonGen.writeNumberField("height", imageSnippet.getRectangle().height);
+
+							jsonGen.writeArrayFieldStart("highlights");
+							for (Rectangle highlight : imageSnippet.getHighlights()) {
+								jsonGen.writeStartObject();
+								jsonGen.writeNumberField("left", highlight.x);
+								jsonGen.writeNumberField("top", highlight.y);
+								jsonGen.writeNumberField("width", highlight.width);
+								jsonGen.writeNumberField("height", highlight.height);
+								jsonGen.writeEndObject();
+							}
+							jsonGen.writeEndArray();
 							jsonGen.writeEndObject();
 						}
 						jsonGen.writeEndArray();
-						jsonGen.writeEndObject();
-					}
-					jsonGen.writeEndArray();
+					} // include graphics ?
+				} else {
+					// exception
+					Exception e = result.getRight();
+					jsonGen.writeObjectFieldStart("snippetError");
+					jsonGen.writeStringField("message", e.getMessage());
+					jsonGen.writeStringField("stackTrace", LogUtils.getErrorString(e).replaceAll("[\r\n]+", "<br/>"));
+					jsonGen.writeEndObject();
 				}
 				jsonGen.writeEndObject();
 			} // next doc

@@ -129,49 +129,49 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				boolean endOfLineSpaceRequired = false;
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
-					if (textLine.getStrings().size() == 0) {
-						rowStartIndexes.put(textLine.getIndex(), lastSpanStart);
-						continue;
-					}
+					if (textLine.getStrings().size() > 0) {
 
-					if (LOG.isTraceEnabled())
-						LOG.trace("Adding row " + textLine.getIndex());
+						if (LOG.isTraceEnabled())
+							LOG.trace("Adding row " + textLine.getIndex());
 
-					rowRectangles.put(textLine.getIndex(), textLine.getRectangle());
-					if (endOfLineSpaceRequired && !spaceAdded) {
-						// add a space between lines, unless the last line ended
-						// with a hyphen
-						sb.append(JochreSearchConstants.INDEX_NEWLINE);
-						spaceAdded = true;
-					}
-					AltoString lastString = null;
-					for (AltoString string : textLine.getStrings()) {
-						int newSpanStart = sb.length();
-						if (string.isWhiteSpace() && !spaceAdded && lastString != null) {
-							sb.append(' ');
+						if (endOfLineSpaceRequired && !spaceAdded) {
+							// add a space between lines, unless the last line
+							// ended
+							// with a hyphen
+							sb.append(JochreSearchConstants.INDEX_NEWLINE);
 							spaceAdded = true;
-						} else {
-							sb.append(string.getContent());
-							spaceAdded = false;
-							if (LOG.isTraceEnabled())
-								LOG.trace("Added " + string + ". Offset: " + sb.length());
 						}
-						int newSpanEnd = sb.length();
+						AltoString lastString = null;
+						for (AltoString string : textLine.getStrings()) {
+							int newSpanStart = sb.length();
+							if (string.isWhiteSpace() && !spaceAdded && lastString != null) {
+								sb.append(' ');
+								spaceAdded = true;
+							} else {
+								sb.append(string.getContent());
+								spaceAdded = false;
+								if (LOG.isTraceEnabled())
+									LOG.trace("Added " + string + ". Offset: " + sb.length());
+							}
+							int newSpanEnd = sb.length();
 
-						string.setSpanStart(newSpanStart);
-						string.setSpanEnd(newSpanEnd);
+							string.setSpanStart(newSpanStart);
+							string.setSpanEnd(newSpanEnd);
 
-						lastString = string;
-					}
-					if (lastString != null && lastString.getContent().contains(JochreSearchConstants.INDEX_NEWLINE)) {
-						endOfLineSpaceRequired = false;
-					} else {
-						endOfLineSpaceRequired = true;
-					}
+							lastString = string;
+						}
+						if (lastString != null && lastString.getContent().contains(JochreSearchConstants.INDEX_NEWLINE)) {
+							endOfLineSpaceRequired = false;
+						} else {
+							endOfLineSpaceRequired = true;
+						}
 
-					lastSpanStart = textLine.getStrings().get(0).getSpanStart();
+						lastSpanStart = textLine.getStrings().get(0).getSpanStart();
+					} // have strings on this row
+
 					rowStartIndexes.put(textLine.getIndex(), lastSpanStart);
-				}
+					rowRectangles.put(textLine.getIndex(), textLine.getRectangle());
+				} // next row in this block
 				if (spaceAdded && sb.length() > 0) {
 					sb.deleteCharAt(sb.length() - 1);
 					spaceAdded = false;
@@ -182,8 +182,9 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 				if (LOG.isTraceEnabled())
 					LOG.trace("Added newline. Offset: " + sb.length());
-			}
-		}
+			} // next block in this page
+		} // next page
+
 		this.contents = sb.toString();
 		this.length = this.contents.length();
 
@@ -292,7 +293,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			String rectString = this.doc.get(fieldName);
 			if (rectString == null) {
 				throw new IndexFieldNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
-						+ ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()));
+						+ ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()) + " (docId="
+						+ this.docId + ")");
 			}
 			rect = this.stringToRect(rectString);
 		}

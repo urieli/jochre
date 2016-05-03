@@ -257,6 +257,10 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 			</table>
 			</td></tr>
 			<tr><td>
+			{% if result.snippetError %}
+			   <p style="color:red;">{{ result.snippetError.message }}</p>
+			   <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
+			{% else %}
 			{% for snippet in result.snippets %}
 				<table width="100%" border="0">
 				<tr>
@@ -388,6 +392,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				{% endif %}
 				</script>
 			{% endfor %}
+			{% endif %}
 			</td></tr>
 			<tr><td height="10px"></td></tr>
         {% endfor %}

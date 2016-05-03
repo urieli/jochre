@@ -143,6 +143,7 @@ public class JochreSearchServlet extends HttpServlet {
 			int decimalPlaces = -1;
 			String docName = null;
 			int docIndex = -1;
+
 			Boolean expandInflections = null;
 
 			int startOffset = -1;
@@ -464,31 +465,48 @@ public class JochreSearchServlet extends HttpServlet {
 				jsonGen.flush();
 			} else if (command.equals("view")) {
 				response.setContentType("application/json;charset=UTF-8");
-				if (docName == null)
-					throw new RuntimeException("For command " + command + " docName is required");
-				Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+				if (docId < 0 && docIndex < 0)
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
+				if (docId < 0) {
+					if (docName == null)
+						throw new RuntimeException("For command " + command + " docName is required");
+					if (docIndex < 0)
+						throw new RuntimeException("For command " + command + " docIndex is required");
+				}
+
+				if (docId < 0) {
+					Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+					docId = docs.keySet().iterator().next();
+				}
+
+				Document doc = searcher.getIndexSearcher().doc(docId);
 				JsonFactory jsonFactory = new JsonFactory();
 				JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
-				jsonGen.writeStartArray();
-				for (Document doc : docs.values()) {
-					jsonGen.writeStartObject();
-					for (IndexableField field : doc.getFields()) {
-						if (!field.name().equals(JochreIndexField.text.name()))
-							jsonGen.writeStringField(field.name(), field.stringValue());
-					}
-					jsonGen.writeEndObject();
+				jsonGen.writeStartObject();
+				for (IndexableField field : doc.getFields()) {
+					if (!field.name().equals(JochreIndexField.text.name()))
+						jsonGen.writeStringField(field.name(), field.stringValue());
 				}
-				jsonGen.writeEndArray();
+				jsonGen.writeEndObject();
 				jsonGen.flush();
 			} else if (command.equals("list")) {
 				response.setContentType("application/json;charset=UTF-8");
-				if (docName == null)
-					throw new RuntimeException("For command " + command + " docName is required");
-				if (docIndex < 0)
-					throw new RuntimeException("For command " + command + " docIndex is required");
-				Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
-				JochreIndexTermLister lister = new JochreIndexTermLister(docs.keySet().iterator().next(), searcher.getIndexSearcher());
+				if (docId < 0 && docIndex < 0)
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
+				if (docId < 0) {
+					if (docName == null)
+						throw new RuntimeException("For command " + command + " docName is required");
+					if (docIndex < 0)
+						throw new RuntimeException("For command " + command + " docIndex is required");
+				}
+
+				if (docId < 0) {
+					Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+					docId = docs.keySet().iterator().next();
+				}
+
+				JochreIndexTermLister lister = new JochreIndexTermLister(docId, searcher.getIndexSearcher());
 				lister.list(out);
 				out.flush();
 			} else if (command.equals("purge")) {

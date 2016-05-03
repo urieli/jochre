@@ -61,7 +61,7 @@ public class Snippet implements Comparable<Snippet> {
 	private String text;
 	private int startRowIndex = -1;
 	private int endRowIndex = -1;
-	
+
 	public Snippet(int docId, String field, int startOffset, int endOffset, int pageIndex) {
 		super();
 		this.docId = docId;
@@ -70,31 +70,31 @@ public class Snippet implements Comparable<Snippet> {
 		this.endOffset = endOffset;
 		this.pageIndex = pageIndex;
 	}
-	
+
 	public Snippet(String json) {
 		try {
 			Reader reader = new StringReader(json);
-			JsonFactory jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory 
-			JsonParser jsonParser = jsonFactory.createParser(reader); 
+			JsonFactory jsonFactory = new JsonFactory();
+			JsonParser jsonParser = jsonFactory.createParser(reader);
 			jsonParser.nextToken();
 			this.read(jsonParser);
- 		} catch (IOException e) {
- 			LOG.error(e);
- 			throw new JochreException(e);
- 		}
- 	}
-	
+		} catch (IOException e) {
+			LOG.error(e);
+			throw new JochreException(e);
+		}
+	}
+
 	public Snippet(JsonParser jsonParser) {
 		this.read(jsonParser);
 	}
-	
+
 	private void read(JsonParser jsonParser) {
 		try {
- 			if (jsonParser.getCurrentToken()!= JsonToken.START_OBJECT)
- 				throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
- 			while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+			if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT)
+				throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
+			while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 				String fieldName = jsonParser.getCurrentName();
-				
+
 				if (fieldName.equals("docId")) {
 					this.docId = jsonParser.nextIntValue(0);
 				} else if (fieldName.equals("field")) {
@@ -116,89 +116,90 @@ public class Snippet implements Comparable<Snippet> {
 				} else if (fieldName.equals("text")) {
 					this.text = jsonParser.nextTextValue();
 				} else if (fieldName.equals("terms")) {
-		 			if (jsonParser.nextToken() != JsonToken.START_ARRAY)
-		 				throw new RuntimeException("Expected START_ARRAY, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
-		 			while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-		 				if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT)
-		 	 				throw new RuntimeException("Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
-		 	 			int termDocId = docId;
-		 	 			String termField = field;
-		 				int termStart = 0;
-		 	 			int termEnd = 0;
-		 	 			int pageIndex = 0;
-		 	 			int paragraphIndex = 0;
-		 	 			int rowIndex = 0;
-		 	 			int left = 0;
-		 	 			int top = 0;
-		 	 			int width = 0;
-		 	 			int height = 0;
-		 	 			int left2 = -1;
-		 	 			int top2 = -1;
-		 	 			int width2 = -1;
-		 	 			int height2 = -1;
-		 	 			
-		 	 			double weight = 0.0;
-		 				while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-			 				String termFieldName = jsonParser.getCurrentName();
-			 				if (termFieldName.equals("docId")) {
-			 					termDocId = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("field")) {
-			 					termField = jsonParser.nextTextValue();
-			 				} else if (termFieldName.equals("start")) {
-			 					termStart = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("end")) {
-			 					termEnd = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("pageIndex")) {
-			 					pageIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("paragraphIndex")) {
-			 					paragraphIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("rowIndex")) {
-			 					rowIndex = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("left")) {
-			 					left = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("top")) {
-			 					top = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("width")) {
-			 					width = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("height")) {
-			 					height = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("left2")) {
-			 					left2 = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("top2")) {
-			 					top2 = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("width2")) {
-			 					width2 = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("height2")) {
-			 					height2 = jsonParser.nextIntValue(0);
-			 				} else if (termFieldName.equals("weight")) {
+					if (jsonParser.nextToken() != JsonToken.START_ARRAY)
+						throw new RuntimeException("Expected START_ARRAY, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
+					while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+						if (jsonParser.getCurrentToken() != JsonToken.START_OBJECT)
+							throw new RuntimeException(
+									"Expected START_OBJECT, but was " + jsonParser.getCurrentToken() + " at " + jsonParser.getCurrentLocation());
+						int termDocId = docId;
+						String termField = field;
+						int termStart = 0;
+						int termEnd = 0;
+						int pageIndex = 0;
+						int paragraphIndex = 0;
+						int rowIndex = 0;
+						int left = 0;
+						int top = 0;
+						int width = 0;
+						int height = 0;
+						int left2 = -1;
+						int top2 = -1;
+						int width2 = -1;
+						int height2 = -1;
+
+						double weight = 0.0;
+						while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+							String termFieldName = jsonParser.getCurrentName();
+							if (termFieldName.equals("docId")) {
+								termDocId = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("field")) {
+								termField = jsonParser.nextTextValue();
+							} else if (termFieldName.equals("start")) {
+								termStart = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("end")) {
+								termEnd = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("pageIndex")) {
+								pageIndex = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("paragraphIndex")) {
+								paragraphIndex = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("rowIndex")) {
+								rowIndex = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("left")) {
+								left = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("top")) {
+								top = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("width")) {
+								width = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("height")) {
+								height = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("left2")) {
+								left2 = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("top2")) {
+								top2 = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("width2")) {
+								width2 = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("height2")) {
+								height2 = jsonParser.nextIntValue(0);
+							} else if (termFieldName.equals("weight")) {
 								jsonParser.nextValue();
 								weight = jsonParser.getDoubleValue();
 							} else {
 								throw new RuntimeException("Unexpected term field name: " + termFieldName + " at " + jsonParser.getCurrentLocation());
 							}
-			 			}
-		 				Rectangle rect = new Rectangle(left, top, width, height);
-		 				Rectangle secondaryRect = null;
-		 				if (left2>=0)
-		 					secondaryRect = new Rectangle(left2, top2, width2, height2);
-		 				JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, paragraphIndex, rowIndex);
-	 	 				HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
-	 	 				highlightTerm.setWeight(weight);
-	 	 				this.highlightTerms.add(highlightTerm);
-		 			}
+						}
+						Rectangle rect = new Rectangle(left, top, width, height);
+						Rectangle secondaryRect = null;
+						if (left2 >= 0)
+							secondaryRect = new Rectangle(left2, top2, width2, height2);
+						JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, paragraphIndex, rowIndex);
+						HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
+						highlightTerm.setWeight(weight);
+						this.highlightTerms.add(highlightTerm);
+					}
 				} else {
 					throw new RuntimeException("Unexpected field name: " + fieldName + " at " + jsonParser.getCurrentLocation());
 				}
- 			}
+			}
 		} catch (JsonParseException e) {
- 			LOG.error(e);
- 			throw new JochreException(e);
- 		} catch (IOException e) {
- 			LOG.error(e);
- 			throw new JochreException(e);
- 		}
- 	}
-	
+			LOG.error(e);
+			throw new JochreException(e);
+		} catch (IOException e) {
+			LOG.error(e);
+			throw new JochreException(e);
+		}
+	}
+
 	public String toJson() {
 		try {
 			DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
@@ -219,7 +220,7 @@ public class Snippet implements Comparable<Snippet> {
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {
 		this.toJson(jsonGen, df, null);
 	}
-	
+
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df, HighlightManager highlightManager) {
 		try {
 			jsonGen.writeStartObject();
@@ -237,11 +238,14 @@ public class Snippet implements Comparable<Snippet> {
 				term.toJson(jsonGen, df);
 			}
 			jsonGen.writeEndArray(); // terms
-	
-			if (highlightManager!=null) {
+
+			if (this.text != null) {
+				jsonGen.writeStringField("text", text);
+			} else if (highlightManager != null) {
 				String text = highlightManager.displaySnippet(this);
 				jsonGen.writeStringField("text", text);
 			}
+
 			jsonGen.writeEndObject();
 			jsonGen.flush();
 		} catch (java.text.ParseException e) {
@@ -252,14 +256,15 @@ public class Snippet implements Comparable<Snippet> {
 			throw new JochreException(ioe);
 		}
 	}
-	
+
 	public int getStartOffset() {
 		return startOffset;
 	}
+
 	public int getEndOffset() {
 		return endOffset;
 	}
-	
+
 	public void setStartOffset(int startOffset) {
 		this.startOffset = startOffset;
 	}
@@ -271,10 +276,11 @@ public class Snippet implements Comparable<Snippet> {
 	public int getDocId() {
 		return docId;
 	}
-	
+
 	public String getField() {
 		return field;
 	}
+
 	public double getScore() {
 		if (!scoreCalculated) {
 			score = 0;
@@ -285,17 +291,17 @@ public class Snippet implements Comparable<Snippet> {
 		}
 		return score;
 	}
-	
+
 	public boolean hasOverlap(Snippet otherSnippet) {
-		return this.getDocId()==otherSnippet.getDocId() && this.getField().equals(otherSnippet.getField())
-				&& ((this.startOffset<otherSnippet.getEndOffset() && this.endOffset>=otherSnippet.getStartOffset())
-						|| (otherSnippet.getStartOffset()<this.endOffset && otherSnippet.getEndOffset()>=this.startOffset));
+		return this.getDocId() == otherSnippet.getDocId() && this.getField().equals(otherSnippet.getField())
+				&& ((this.startOffset < otherSnippet.getEndOffset() && this.endOffset >= otherSnippet.getStartOffset())
+						|| (otherSnippet.getStartOffset() < this.endOffset && otherSnippet.getEndOffset() >= this.startOffset));
 	}
-	
+
 	public void merge(Snippet otherSnippet) {
-		if (this.startOffset<otherSnippet.getStartOffset() && this.endOffset<otherSnippet.getEndOffset()) {
+		if (this.startOffset < otherSnippet.getStartOffset() && this.endOffset < otherSnippet.getEndOffset()) {
 			this.endOffset = otherSnippet.endOffset;
-		} else if (this.startOffset>otherSnippet.getStartOffset() && this.endOffset>otherSnippet.getEndOffset()) {
+		} else if (this.startOffset > otherSnippet.getStartOffset() && this.endOffset > otherSnippet.getEndOffset()) {
 			this.startOffset = otherSnippet.getStartOffset();
 		}
 		Set<HighlightTerm> newTerms = new TreeSet<HighlightTerm>(this.highlightTerms);
@@ -303,70 +309,72 @@ public class Snippet implements Comparable<Snippet> {
 		this.highlightTerms = new ArrayList<HighlightTerm>(newTerms);
 		this.scoreCalculated = false;
 	}
-	
+
 	@Override
 	public int compareTo(Snippet o) {
-		if (this==o)
+		if (this == o)
 			return 0;
-		
-		if (this.getScore()!=o.getScore())
+
+		if (this.getScore() != o.getScore())
 			return o.getScore() > this.getScore() ? 1 : -1;
-		
-		if (this.getDocId()!=o.getDocId())
+
+		if (this.getDocId() != o.getDocId())
 			return this.getDocId() - o.getDocId();
-		
+
 		if (!this.getField().equals(o.getField()))
 			return this.getField().compareTo(o.getField());
 
-		if (this.getPageIndex()!=o.getPageIndex())
+		if (this.getPageIndex() != o.getPageIndex())
 			return this.getPageIndex() - o.getPageIndex();
 
-		if (this.startOffset!=o.getStartOffset())
+		if (this.startOffset != o.getStartOffset())
 			return this.startOffset - o.getStartOffset();
-		
-		if (this.endOffset!=o.getEndOffset())
+
+		if (this.endOffset != o.getEndOffset())
 			return this.endOffset - o.getEndOffset();
-		
+
 		return o.getEndOffset() - this.endOffset;
 	}
-	
+
 	/**
 	 * The highlight terms contained in this snippet.
 	 */
 	public List<HighlightTerm> getHighlightTerms() {
 		return highlightTerms;
 	}
+
 	public void setHighlightTerms(List<HighlightTerm> highlightTerms) {
 		this.highlightTerms = highlightTerms;
 	}
 
 	public int getPageIndex() {
-		if (pageIndex<0 && this.highlightTerms.size()>0)
+		if (pageIndex < 0 && this.highlightTerms.size() > 0)
 			pageIndex = this.highlightTerms.get(0).getPayload().getPageIndex();
 		return pageIndex;
 	}
 
 	public Rectangle getRectangle(JochreIndexDocument jochreDoc) {
-		if (this.rect==null) {
+		if (this.rect == null) {
 			int startRowIndex = this.startRowIndex;
 			int endRowIndex = this.endRowIndex;
-			if (startRowIndex<0 || endRowIndex<0) {
-				if (this.highlightTerms.size()>0) {
-					startRowIndex = this.highlightTerms.get(0).getPayload().getRowIndex()-1;
-					endRowIndex = this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getRowIndex();
-					if (this.highlightTerms.get(this.highlightTerms.size()-1).getPayload().getSecondaryRectangle()!=null)
+			if (startRowIndex < 0 || endRowIndex < 0) {
+				if (this.highlightTerms.size() > 0) {
+					startRowIndex = this.highlightTerms.get(0).getPayload().getRowIndex() - 1;
+					endRowIndex = this.highlightTerms.get(this.highlightTerms.size() - 1).getPayload().getRowIndex();
+					if (this.highlightTerms.get(this.highlightTerms.size() - 1).getPayload().getSecondaryRectangle() != null)
 						endRowIndex += 2;
 					else
 						endRowIndex += 1;
-					if (startRowIndex<0) startRowIndex=0;
-					if (endRowIndex>=jochreDoc.getRowCount(pageIndex))
-						endRowIndex=jochreDoc.getRowCount(pageIndex)-1;
+					if (startRowIndex < 0)
+						startRowIndex = 0;
+					if (endRowIndex >= jochreDoc.getRowCount(pageIndex))
+						endRowIndex = jochreDoc.getRowCount(pageIndex) - 1;
 				} else {
 					startRowIndex = 0;
 					endRowIndex = 0;
 				}
 			}
-			
+
 			LOG.debug("Getting rectangle for snippet with terms " + this.highlightTerms.toString());
 			if (LOG.isTraceEnabled()) {
 				for (HighlightTerm term : this.highlightTerms) {
@@ -376,7 +384,7 @@ public class Snippet implements Comparable<Snippet> {
 			LOG.debug("pageIndex: " + pageIndex + ", startRowIndex: " + startRowIndex + ", endRowIndex: " + endRowIndex);
 			rect = new Rectangle(jochreDoc.getRowRectangle(pageIndex, startRowIndex));
 			LOG.debug("Start row rect: " + rect);
-			for (int i=startRowIndex+1; i<=endRowIndex; i++) {
+			for (int i = startRowIndex + 1; i <= endRowIndex; i++) {
 				Rectangle otherRect = jochreDoc.getRowRectangle(pageIndex, i);
 				LOG.debug("Expanding by end row rect: " + otherRect);
 				rect.add(otherRect);
@@ -387,11 +395,8 @@ public class Snippet implements Comparable<Snippet> {
 
 	@Override
 	public String toString() {
-		return "Snippet [docId=" + docId + ", field=" + field
-				+ ", startOffset=" + startOffset + ", endOffset=" + endOffset
-				+ ", score=" + score + ", highlightTerms=" + highlightTerms
-				+ ", pageIndex=" + pageIndex
-				+ ", startRowIndex=" + startRowIndex + ", endRowIndex=" + endRowIndex + "]";
+		return "Snippet [docId=" + docId + ", field=" + field + ", startOffset=" + startOffset + ", endOffset=" + endOffset + ", score=" + score
+				+ ", highlightTerms=" + highlightTerms + ", pageIndex=" + pageIndex + ", startRowIndex=" + startRowIndex + ", endRowIndex=" + endRowIndex + "]";
 	}
 
 	public String getText() {
@@ -400,6 +405,10 @@ public class Snippet implements Comparable<Snippet> {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	public void generateText(HighlightManager highlightManager) {
+		this.text = highlightManager.displaySnippet(this);
 	}
 
 	public int getStartRowIndex() {
