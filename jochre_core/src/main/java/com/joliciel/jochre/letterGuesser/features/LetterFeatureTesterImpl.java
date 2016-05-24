@@ -20,8 +20,8 @@ package com.joliciel.jochre.letterGuesser.features;
 
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
@@ -41,7 +41,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 class LetterFeatureTesterImpl implements LetterFeatureTester {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(LetterFeatureTesterImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureTesterImpl.class);
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;

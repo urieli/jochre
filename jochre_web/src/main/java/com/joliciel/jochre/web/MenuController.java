@@ -1,8 +1,8 @@
 package com.joliciel.jochre.web;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
@@ -21,7 +21,7 @@ public class MenuController extends GenericForwardComposer<Panel> {
 	private static final long serialVersionUID = 1664468221173319777L;
 
 
-	private static final Log LOG = LogFactory.getLog(MenuController.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MenuController.class);
 
 	Panel panelMenu;
 	Label lblName;

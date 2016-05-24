@@ -24,8 +24,8 @@ import mockit.Delegate;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
@@ -33,7 +33,7 @@ import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import static org.junit.Assert.*;
 
 public class ShapeImplTest  {
-    private static final Log LOG = LogFactory.getLog(ShapeImplTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShapeImplTest.class);
 
     @Test
 	public void testGetHeight() {

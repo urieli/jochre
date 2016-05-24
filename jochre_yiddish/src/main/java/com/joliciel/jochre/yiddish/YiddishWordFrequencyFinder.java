@@ -25,8 +25,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lexicon.Lexicon;
@@ -42,7 +42,7 @@ import com.joliciel.talismane.utils.CountedOutcome;
  *
  */
 public class YiddishWordFrequencyFinder implements Lexicon {
-	private static final Log LOG = LogFactory.getLog(YiddishWordFrequencyFinder.class);
+	private static final Logger LOG = LoggerFactory.getLogger(YiddishWordFrequencyFinder.class);
 	private static final Pattern NUMBER = Pattern.compile("\\d+");
 	Lexicon baseLexicon;
 

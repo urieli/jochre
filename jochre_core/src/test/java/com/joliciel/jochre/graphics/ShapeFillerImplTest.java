@@ -27,15 +27,15 @@ import javax.imageio.ImageIO;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 
 public class ShapeFillerImplTest  {
-	private static final Log LOG = LogFactory.getLog(ShapeFillerImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ShapeFillerImplTest.class);
 	
 	@Test
 	public void testGetFillFactor(@Mocked final JochreImage jochreImage) throws Exception {

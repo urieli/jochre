@@ -28,8 +28,8 @@ import javax.imageio.ImageIO;
 
 import mockit.Mocked;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.joliciel.jochre.JochreServiceLocator;
@@ -39,7 +39,7 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 
 public class SplitCandidateFinderImplTest {
-	private static final Log LOG = LogFactory.getLog(SplitCandidateFinderImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImplTest.class);
 
 	@Test
 	public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {

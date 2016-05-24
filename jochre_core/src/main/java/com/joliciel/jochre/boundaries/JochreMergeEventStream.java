@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.talismane.machineLearning.ClassificationEvent;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
@@ -41,7 +41,7 @@ import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
 
 class JochreMergeEventStream implements ClassificationEventStream {
-    private static final Log LOG = LogFactory.getLog(JochreMergeEventStream.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
 
 	private GraphicsService graphicsService;

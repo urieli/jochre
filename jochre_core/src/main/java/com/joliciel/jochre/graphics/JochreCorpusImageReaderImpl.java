@@ -18,12 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 class JochreCorpusImageReaderImpl extends JochreCorpusReaderImpl implements JochreCorpusImageReader {
-    private static final Log LOG = LogFactory.getLog(JochreCorpusImageReaderImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageReaderImpl.class);
 	
 	private JochreImage image = null;
 	private int imageIndex = 0;

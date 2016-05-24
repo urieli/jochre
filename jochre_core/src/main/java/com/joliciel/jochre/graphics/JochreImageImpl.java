@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
 import com.joliciel.jochre.EntityImpl;
@@ -40,7 +40,7 @@ import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitorable {
-    private static final Log LOG = LogFactory.getLog(JochreImageImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreImageImpl.class);
 	int blackThreshold;
 	int separationThreshold;
 	String name;

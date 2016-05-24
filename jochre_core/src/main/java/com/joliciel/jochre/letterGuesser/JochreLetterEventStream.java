@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
@@ -47,7 +47,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreLetterEventStream implements ClassificationEventStream {
-    private static final Log LOG = LogFactory.getLog(JochreLetterEventStream.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
 	private GraphicsService graphicsService;

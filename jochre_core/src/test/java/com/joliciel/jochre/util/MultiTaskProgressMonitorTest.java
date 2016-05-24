@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.joliciel.talismane.utils.Monitorable;
@@ -28,7 +28,7 @@ import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
 public class MultiTaskProgressMonitorTest {
-    private static final Log LOG = LogFactory.getLog(MultiTaskProgressMonitorTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MultiTaskProgressMonitorTest.class);
 
     @Test
     public void testMonitor() {

@@ -43,10 +43,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -76,7 +76,6 @@ import com.joliciel.jochre.search.lexicon.Lexicon;
 import com.joliciel.jochre.search.lexicon.LexiconService;
 import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * Restful web service for Jochre search.
@@ -85,7 +84,7 @@ import com.joliciel.talismane.utils.LogUtils;
  *
  */
 public class JochreSearchServlet extends HttpServlet {
-	private static final Log LOG = LogFactory.getLog(JochreSearchServlet.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreSearchServlet.class);
 	private static final long serialVersionUID = 1L;
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -110,7 +109,7 @@ public class JochreSearchServlet extends HttpServlet {
 
 			if (command.equals("log4j")) {
 				response.setContentType("application/json;charset=UTF-8");
-				Log4jListener.reloadLog4jProperties(this.getServletContext());
+				Slf4jListener.reloadLog4jProperties(this.getServletContext());
 				PrintWriter out = response.getWriter();
 				out.write("{\"response\":\"log4j reloaded\"}\n");
 				out.flush();
@@ -522,7 +521,7 @@ public class JochreSearchServlet extends HttpServlet {
 				out.flush();
 			response.setStatus(HttpServletResponse.SC_OK);
 		} catch (RuntimeException e) {
-			LogUtils.logError(LOG, e);
+			LOG.error("Failed to run " + req.getRequestURI() + "?" + req.getQueryString(), e);
 			throw e;
 		} finally {
 			long duration = System.currentTimeMillis() - startTime;

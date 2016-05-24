@@ -3,8 +3,8 @@ package com.joliciel.jochre.web;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zkplus.databind.AnnotateDataBinder;
@@ -23,7 +23,7 @@ import com.joliciel.jochre.web.ImageController.LetterLabelUpdater;
 public class FixTextWindowController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = -8451368652901943731L;
 
-	private static final Log LOG = LogFactory.getLog(FixTextWindowController.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FixTextWindowController.class);
 	
 	static final String ATTR_ROW_TEXT = "RowTextAttribute";
 	static final String ATTR_ROW_TEXTBOX ="RowTextBoxAttribute";

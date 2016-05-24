@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import com.joliciel.jochre.doc.JochreDocument;
@@ -42,7 +42,7 @@ import com.joliciel.jochre.output.TextGetterImpl;
 import static org.junit.Assert.*;
 
 public class TextGetterImplTest {
-    private static final Log LOG = LogFactory.getLog(TextGetterImplTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TextGetterImplTest.class);
 
     @Test
     public void testGetText(@Mocked final JochreDocument doc,

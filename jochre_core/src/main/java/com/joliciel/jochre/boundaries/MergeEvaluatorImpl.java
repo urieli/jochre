@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
@@ -27,49 +27,47 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.stats.FScoreCalculator;
 
 class MergeEvaluatorImpl implements MergeEvaluator {
-	private static final Log LOG = LogFactory.getLog(MergeEvaluatorImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MergeEvaluatorImpl.class);
 	double maxWidthRatio = 1.2;
 	double maxDistanceRatio = 0.15;
 	double minProbabilityForDecision = 0.5;
 	BoundaryServiceInternal boundaryServiceInternal;
 
 	@Override
-	public FScoreCalculator<String> evaluate(
-			JochreCorpusGroupReader groupReader, ShapeMerger shapeMerger) {
+	public FScoreCalculator<String> evaluate(JochreCorpusGroupReader groupReader, ShapeMerger shapeMerger) {
 		LOG.debug("evaluate");
 		FScoreCalculator<String> fScoreCalculator = new FScoreCalculator<String>();
-		
+
 		while (groupReader.hasNext()) {
 			GroupOfShapes group = groupReader.next();
 			Shape previousShape = null;
 			for (Shape shape : group.getShapes()) {
-				if (previousShape!=null) {
+				if (previousShape != null) {
 
 					ShapePair mergeCandidate = boundaryServiceInternal.getShapePair(previousShape, shape);
 					double widthRatio = 0;
 					double distanceRatio = 0;
-					if (mergeCandidate.getXHeight()>0) {
+					if (mergeCandidate.getXHeight() > 0) {
 						widthRatio = (double) mergeCandidate.getWidth() / (double) mergeCandidate.getXHeight();
 						distanceRatio = (double) mergeCandidate.getInnerDistance() / (double) mergeCandidate.getXHeight();
 					}
-					
-					
+
 					boolean shouldMerge = false;
 					if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
-						if (mergeCandidate.getSecondShape().getLetter().length()==0||mergeCandidate.getSecondShape().getLetter().endsWith("|"))
+						if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
 							shouldMerge = true;
 					} else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
-						if(mergeCandidate.getFirstShape().getLetter().length()==0)
+						if (mergeCandidate.getFirstShape().getLetter().length() == 0)
 							shouldMerge = true;
 					}
-					
+
 					if (LOG.isTraceEnabled()) {
-						LOG.trace(mergeCandidate);
+						LOG.trace(mergeCandidate.toString());
 						LOG.trace("widthRatio: " + widthRatio);
 						LOG.trace("distanceRatio: " + distanceRatio);
 						LOG.trace("shouldMerge: " + shouldMerge);
 					}
-					
+
 					if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
 						double mergeProb = shapeMerger.checkMerge(previousShape, shape);
 						boolean wantsToMerge = (mergeProb >= minProbabilityForDecision);
@@ -83,7 +81,7 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 					} // too wide?
 				} // have previous shape?
 				previousShape = shape;
-			} // next shape	
+			} // next shape
 		} // next group
 		return fScoreCalculator;
 	}
@@ -104,10 +102,12 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 		this.maxDistanceRatio = maxDistanceRatio;
 	}
 
+	@Override
 	public double getMinProbabilityForDecision() {
 		return minProbabilityForDecision;
 	}
 
+	@Override
 	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
 		this.minProbabilityForDecision = minProbabilityForDecision;
 	}
@@ -116,8 +116,7 @@ class MergeEvaluatorImpl implements MergeEvaluator {
 		return boundaryServiceInternal;
 	}
 
-	public void setBoundaryServiceInternal(
-			BoundaryServiceInternal boundaryServiceInternal) {
+	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
 		this.boundaryServiceInternal = boundaryServiceInternal;
 	}
 

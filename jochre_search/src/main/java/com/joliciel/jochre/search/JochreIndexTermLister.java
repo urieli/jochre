@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
@@ -24,14 +22,14 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreIndexTermLister {
-	private static final Log LOG = LogFactory.getLog(JochreIndexTermLister.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexTermLister.class);
 
 	private int docId;
 	private IndexSearcher indexSearcher;
@@ -94,8 +92,8 @@ public class JochreIndexTermLister {
 
 			return fieldTermMap;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to list terms for docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -139,8 +137,8 @@ public class JochreIndexTermLister {
 			jsonGen.writeEndArray();
 			jsonGen.flush();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to list terms for docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 

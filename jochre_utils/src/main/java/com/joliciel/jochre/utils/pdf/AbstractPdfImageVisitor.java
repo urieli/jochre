@@ -28,55 +28,55 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * A base class for visiting the images in a Pdf document one at a time.
+ * 
  * @author Assaf Urieli
  *
  */
 public abstract class AbstractPdfImageVisitor {
-	private static final Log LOG = LogFactory.getLog(AbstractPdfImageVisitor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractPdfImageVisitor.class);
 	private PDDocument pdfDocument = null;
 	private File pdfFile;
-	private Map<String,String> fields = new TreeMap<String, String>();
+	private Map<String, String> fields = new TreeMap<String, String>();
 	private boolean docClosed = false;
 	private boolean stopOnError = false;
-	
+
 	public AbstractPdfImageVisitor(File pdfFile) {
 		try {
 			this.pdfFile = pdfFile;
-	
+
 			pdfDocument = PDDocument.load(pdfFile);
 			PDDocumentInformation info = pdfDocument.getDocumentInformation();
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-			fields.put("PageCount",  "" + pdfDocument.getNumberOfPages());
-			if (info.getTitle()!=null)
+			fields.put("PageCount", "" + pdfDocument.getNumberOfPages());
+			if (info.getTitle() != null)
 				fields.put("Title", info.getTitle());
-			if (info.getAuthor()!=null)
+			if (info.getAuthor() != null)
 				fields.put("Author", info.getAuthor());
-			if (info.getSubject()!=null)
+			if (info.getSubject() != null)
 				fields.put("Subject", info.getSubject());
-			if (info.getKeywords()!=null)
+			if (info.getKeywords() != null)
 				fields.put("Keywords", info.getKeywords());
-			if (info.getCreator()!=null)
+			if (info.getCreator() != null)
 				fields.put("Creator", info.getCreator());
-			if (info.getProducer()!=null)
+			if (info.getProducer() != null)
 				fields.put("Producer", info.getProducer());
-			if (info.getCreationDate()!=null)
+			if (info.getCreationDate() != null)
 				fields.put("CreateDate", dateFormat.format(info.getCreationDate().getTime()));
-			if (info.getModificationDate()!=null)
-				fields.put("ModificationDate",  dateFormat.format(info.getModificationDate().getTime()));
+			if (info.getModificationDate() != null)
+				fields.put("ModificationDate", dateFormat.format(info.getModificationDate().getTime()));
 			for (String metaDataField : info.getMetadataKeys()) {
 				fields.put(metaDataField, info.getCustomMetadataValue(metaDataField));
 			}
@@ -87,11 +87,14 @@ public abstract class AbstractPdfImageVisitor {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * Visit all of the images in a pdf file.
-	 * @param firstPage a value of -1 means no first page
-	 * @param lastPage a value of -1 means no last page
+	 * 
+	 * @param firstPage
+	 *            a value of -1 means no first page
+	 * @param lastPage
+	 *            a value of -1 means no last page
 	 */
 	final protected void visitImages(int firstPage, int lastPage) {
 		try {
@@ -99,7 +102,7 @@ public abstract class AbstractPdfImageVisitor {
 			List<PDPage> allPages = pdfDocument.getDocumentCatalog().getAllPages();
 			Iterator<PDPage> pageIterator = allPages.iterator();
 
-			int i=0;
+			int i = 0;
 			while (pageIterator.hasNext()) {
 				PDPage pdfPage = pageIterator.next();
 				i++;
@@ -109,36 +112,34 @@ public abstract class AbstractPdfImageVisitor {
 					break;
 
 				LOG.info("Decoding page " + i + " (out of " + allPages.size() + ")");
-				
+
 				try {
 					PDResources resources = pdfPage.getResources();
-					Map<String,PDXObject> pdxObjects = resources.getXObjects();
+					Map<String, PDXObject> pdxObjects = resources.getXObjects();
 					int j = 0;
 					for (String key : pdxObjects.keySet()) {
 						PDXObject pdxObject = pdxObjects.get(key);
 						if (pdxObject instanceof PDXObjectImage) {
-			                PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
-			                BufferedImage image = pdfImage.getRGBImage();
-			                if (image==null) {
-			                	throw new PdfImageExtractionException("Something went wrong: unable to extract image " + j + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
-			                }
-			                this.visitImage(image, key, i, j);
-			                j++;
-			            }
-			        }
+							PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
+							BufferedImage image = pdfImage.getRGBImage();
+							if (image == null) {
+								throw new PdfImageExtractionException(
+										"Something went wrong: unable to extract image " + j + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+							}
+							this.visitImage(image, key, i, j);
+							j++;
+						}
+					}
 				} catch (PdfImageExtractionException e) {
-					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
-					LogUtils.logError(LOG, e);
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i, e);
 					if (stopOnError)
 						throw e;
 				} catch (IOException e) {
-					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
-					LogUtils.logError(LOG, e);
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i, e);
 					if (stopOnError)
 						throw new RuntimeException(e);
 				} catch (JochreException e) {
-					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i);
-					LogUtils.logError(LOG, e);
+					LOG.error("Error in file  " + pdfFile.getAbsolutePath() + ", page " + i, e);
 					if (stopOnError)
 						throw e;
 				}
@@ -147,16 +148,16 @@ public abstract class AbstractPdfImageVisitor {
 			this.close();
 		}
 	}
-	
+
 	/**
 	 * Visit a single image.
 	 */
 	protected abstract void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex);
-	
+
 	public int getPageCount() {
 		return pdfDocument.getNumberOfPages();
 	}
-	
+
 	public File getPdfFile() {
 		return pdfFile;
 	}
@@ -164,7 +165,7 @@ public abstract class AbstractPdfImageVisitor {
 	public Map<String, String> getFields() {
 		return fields;
 	}
-	
+
 	public void close() {
 		try {
 			if (!docClosed) {
@@ -177,7 +178,8 @@ public abstract class AbstractPdfImageVisitor {
 	}
 
 	/**
-	 * Should processing stop if an error is encountered extracting an image from a given page.
+	 * Should processing stop if an error is encountered extracting an image
+	 * from a given page.
 	 */
 	public boolean isStopOnError() {
 		return stopOnError;
@@ -186,6 +188,5 @@ public abstract class AbstractPdfImageVisitor {
 	public void setStopOnError(boolean stopOnError) {
 		this.stopOnError = stopOnError;
 	}
-	
-	
+
 }

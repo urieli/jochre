@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.Shape;
@@ -62,7 +62,7 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  *
  */
 class RecursiveShapeSplitter implements ShapeSplitter {
-	private static final Log LOG = LogFactory.getLog(RecursiveShapeSplitter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitter.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
 	private SplitCandidateFinder splitCandidateFinder;

@@ -8,14 +8,14 @@ import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.SortedMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.JochreIndexTermLister.JochreTerm;
 import com.joliciel.jochre.utils.JochreException;
 
 class JochreIndexWordImpl implements JochreIndexWord {
-	private static final Log LOG = LogFactory.getLog(JochreIndexWordImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexWordImpl.class);
 	private int startOffset;
 	private JochreIndexDocument doc;
 	private Rectangle rectangle;
@@ -40,13 +40,13 @@ class JochreIndexWordImpl implements JochreIndexWord {
 			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + doc.getName() + ", section " + doc.getSectionNumber());
 
 		if (LOG.isTraceEnabled()) {
-			LOG.trace(jochreTerm);
+			LOG.trace(jochreTerm.toString());
 			SortedMap<Integer, JochreTerm> ascendingMap = termMap.tailMap(startOffset);
 			Iterator<Integer> ascendingKeys = ascendingMap.keySet().iterator();
 			for (int i = 0; i < 5; i++) {
 				if (ascendingKeys.hasNext()) {
 					int key = ascendingKeys.next();
-					LOG.trace(termMap.get(key));
+					LOG.trace(termMap.get(key).toString());
 				}
 			}
 		}

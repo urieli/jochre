@@ -21,24 +21,23 @@ package com.joliciel.jochre.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.lexicon.LexiconService;
 import com.joliciel.jochre.search.lexicon.TextNormaliser;
-import com.joliciel.talismane.utils.LogUtils;
 
 class JochreQueryImpl implements JochreQuery {
-	private static final Log LOG = LogFactory.getLog(JochreQueryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreQueryImpl.class);
 	private int decimalPlaces = 4;
 	private int maxDocs = 20;
 	private String queryString = null;
@@ -48,13 +47,16 @@ class JochreQueryImpl implements JochreQuery {
 	private Query luceneTextQuery = null;
 	private int[] docIds = null;
 	private boolean expandInflections = true;
-	
+
 	private SearchServiceInternal searchService;
 	private LexiconService lexiconService;
 
-	public JochreQueryImpl() {}
-	
-	/* (non-Javadoc)
+	public JochreQueryImpl() {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#getDecimalPlaces()
 	 */
 	@Override
@@ -62,18 +64,22 @@ class JochreQueryImpl implements JochreQuery {
 		return decimalPlaces;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#setDecimalPlaces(int)
 	 */
 	@Override
 	public void setDecimalPlaces(int decimalPlaces) {
-		if (this.decimalPlaces!=decimalPlaces) {
+		if (this.decimalPlaces != decimalPlaces) {
 			this.decimalPlaces = decimalPlaces;
 
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#getMaxDocs()
 	 */
 	@Override
@@ -81,7 +87,9 @@ class JochreQueryImpl implements JochreQuery {
 		return maxDocs;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#setMaxDocs(int)
 	 */
 	@Override
@@ -89,7 +97,9 @@ class JochreQueryImpl implements JochreQuery {
 		this.maxDocs = maxDocs;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#getQueryString()
 	 */
 	@Override
@@ -97,7 +107,9 @@ class JochreQueryImpl implements JochreQuery {
 		return queryString;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see fr.cfh.search.CFHQuery#setQueryString(java.lang.String)
 	 */
 	@Override
@@ -112,7 +124,7 @@ class JochreQueryImpl implements JochreQuery {
 	public void setDocIds(int[] docIds) {
 		this.docIds = docIds;
 	}
-	
+
 	@Override
 	public String getAuthorQueryString() {
 		return authorQueryString;
@@ -133,9 +145,10 @@ class JochreQueryImpl implements JochreQuery {
 		this.titleQueryString = titleQueryString;
 	}
 
+	@Override
 	public Query getLuceneTextQuery() {
 		try {
-			if (luceneTextQuery==null) {
+			if (luceneTextQuery == null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
 				LOG.debug("Max docs: " + this.getMaxDocs());
 				LOG.debug("expandInflections: " + expandInflections);
@@ -144,60 +157,63 @@ class JochreQueryImpl implements JochreQuery {
 				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
 				String queryString = this.getQueryString();
 				TextNormaliser textNormaliser = lexiconService.getTextNormaliser(searchService.getLocale());
-				if (textNormaliser!=null)
+				if (textNormaliser != null)
 					queryString = textNormaliser.normalise(queryString);
 				luceneTextQuery = queryParser.parse(queryString);
 			}
 			LOG.debug(luceneTextQuery.toString());
 			return luceneTextQuery;
-		} catch (ParseException pe) {
-			LogUtils.logError(LOG, pe);
-			throw new JochreQueryParseException(pe.getMessage());
+		} catch (ParseException e) {
+			LOG.error("Failed to parse lucene text query: " + this.getQueryString(), e);
+			throw new JochreQueryParseException(e.getMessage());
 		}
 	}
-	
+
 	@Override
 	public Query getLuceneQuery() {
 		try {
 			Analyzer jochreAnalyzer = searchService.getJochreMetaDataAnalyzer();
-			if (luceneQuery==null) {
+			if (luceneQuery == null) {
 				Builder builder = new Builder();
 				builder.add(this.getLuceneTextQuery(), Occur.MUST);
-				List<Query> additionalQueries = new ArrayList<>(); 
-				if (this.authorQueryString!=null) {
-					MultiFieldQueryParser authorParser = new MultiFieldQueryParser(new String[] {JochreIndexField.author.name(),  JochreIndexField.authorLang.name()}, jochreAnalyzer);
+				List<Query> additionalQueries = new ArrayList<>();
+				if (this.authorQueryString != null) {
+					MultiFieldQueryParser authorParser = new MultiFieldQueryParser(
+							new String[] { JochreIndexField.author.name(), JochreIndexField.authorLang.name() }, jochreAnalyzer);
 					String queryString = authorQueryString;
 					LOG.debug("authorQueryString: " + authorQueryString);
 					TextNormaliser textNormaliser = lexiconService.getTextNormaliser(searchService.getLocale());
-					if (textNormaliser!=null)
+					if (textNormaliser != null)
 						queryString = textNormaliser.normalise(queryString);
 
 					Query authorQuery = authorParser.parse(queryString);
 					additionalQueries.add(authorQuery);
 				}
-				if (this.titleQueryString!=null) {
-					MultiFieldQueryParser titleParser = new MultiFieldQueryParser(new String[] {JochreIndexField.title.name(),  JochreIndexField.titleLang.name()}, jochreAnalyzer);
+				if (this.titleQueryString != null) {
+					MultiFieldQueryParser titleParser = new MultiFieldQueryParser(
+							new String[] { JochreIndexField.title.name(), JochreIndexField.titleLang.name() }, jochreAnalyzer);
 					String queryString = titleQueryString;
 					LOG.debug("titleQueryString: " + titleQueryString);
 					TextNormaliser textNormaliser = lexiconService.getTextNormaliser(searchService.getLocale());
-					if (textNormaliser!=null)
+					if (textNormaliser != null)
 						queryString = textNormaliser.normalise(queryString);
 
 					Query titleQuery = titleParser.parse(queryString);
 					additionalQueries.add(titleQuery);
 				}
-				
+
 				for (Query additionalQuery : additionalQueries) {
-					// In most cases, the queryClause will return a single boolean clause
+					// In most cases, the queryClause will return a single
+					// boolean clause
 					// in this case, we can simplify things
 					BooleanClause booleanClause = null;
 					if (additionalQuery instanceof BooleanQuery) {
 						BooleanQuery clauseBooleanQuery = (BooleanQuery) additionalQuery;
-						if (clauseBooleanQuery.clauses().size()==1) {
+						if (clauseBooleanQuery.clauses().size() == 1) {
 							booleanClause = clauseBooleanQuery.clauses().get(0);
 						}
 					}
-					if (booleanClause==null)
+					if (booleanClause == null)
 						builder.add(additionalQuery, Occur.MUST);
 					else
 						builder.add(booleanClause);
@@ -206,9 +222,9 @@ class JochreQueryImpl implements JochreQuery {
 				LOG.debug(luceneQuery.toString());
 			}
 			return luceneQuery;
-		} catch (ParseException pe) {
-			LogUtils.logError(LOG, pe);
-			throw new JochreQueryParseException(pe.getMessage());
+		} catch (ParseException e) {
+			LOG.error("Failed to parse author query: " + this.getAuthorQueryString() + ", or title query: " + this.getTitleQueryString(), e);
+			throw new JochreQueryParseException(e.getMessage());
 		}
 	}
 
@@ -228,13 +244,14 @@ class JochreQueryImpl implements JochreQuery {
 		this.lexiconService = lexiconService;
 	}
 
+	@Override
 	public boolean isExpandInflections() {
 		return expandInflections;
 	}
 
+	@Override
 	public void setExpandInflections(boolean expandInflections) {
 		this.expandInflections = expandInflections;
 	}
 
-	
 }

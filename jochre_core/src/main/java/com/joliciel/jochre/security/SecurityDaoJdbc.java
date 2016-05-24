@@ -24,8 +24,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -37,7 +37,7 @@ import com.joliciel.talismane.utils.DaoUtils;
 
 
 class SecurityDaoJdbc implements SecurityDao {
-	private static final Log LOG = LogFactory.getLog(SecurityDaoJdbc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SecurityDaoJdbc.class);
 	SecurityServiceInternal securityServiceInternal;
 	private DataSource dataSource;
 	

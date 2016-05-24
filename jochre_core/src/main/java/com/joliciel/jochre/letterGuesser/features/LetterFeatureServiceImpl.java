@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
@@ -38,7 +38,7 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
-    private static final Log LOG = LogFactory.getLog(LetterFeatureServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureServiceImpl.class);
 	private GraphicsService graphicsService;
 	private FeatureService featureService;
 	private BoundaryFeatureService boundaryFeatureService;

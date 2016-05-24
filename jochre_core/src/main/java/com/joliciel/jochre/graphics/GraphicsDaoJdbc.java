@@ -27,8 +27,8 @@ import java.util.Locale;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -43,7 +43,7 @@ import com.joliciel.jochre.utils.dao.ImageUtils;
 import com.joliciel.talismane.utils.DaoUtils;
 
 final class GraphicsDaoJdbc implements GraphicsDao {
-	private static final Log LOG = LogFactory.getLog(GraphicsDaoJdbc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(GraphicsDaoJdbc.class);
 	GraphicsServiceInternal graphicsServiceInternal;
 	private DataSource dataSource;
 

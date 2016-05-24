@@ -24,14 +24,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 
 public class PdfImageSaverImpl extends AbstractPdfImageVisitor implements PdfImageSaver {
-	private static final Log LOG = LogFactory.getLog(PdfImageSaverImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PdfImageSaverImpl.class);
 
 	private static String SEPARATOR = System.getProperty( "file.separator" );
 	private static String SUFFIX = "png";

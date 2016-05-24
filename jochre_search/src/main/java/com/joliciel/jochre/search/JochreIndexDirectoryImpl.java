@@ -36,19 +36,17 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.pdf.PdfMetadataReader;
 import com.joliciel.jochre.utils.text.DiacriticRemover;
-import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexDirectoryImpl implements JochreIndexDirectory {
-	private static final Log LOG = LogFactory.getLog(JochreIndexDirectoryImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexDirectoryImpl.class);
 
 	private File directory;
 	private File pdfFile;
@@ -66,31 +64,31 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 		this.path = contentDir.toURI().relativize(directory.toURI()).getPath();
 	}
 
+	@Override
 	public File getPdfFile() {
 		if (this.pdfFile == null) {
 			File pdfFile = new File(this.directory, this.name + ".pdf");
 			if (!pdfFile.exists()) {
 				pdfFile = null;
-				File[] pdfFiles = this.directory
-						.listFiles(new FilenameFilter() {
+				File[] pdfFiles = this.directory.listFiles(new FilenameFilter() {
 
-							@Override
-							public boolean accept(File dir, String name) {
-								return name.toLowerCase().endsWith(".pdf");
-							}
-						});
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.toLowerCase().endsWith(".pdf");
+					}
+				});
 				if (pdfFiles.length > 0) {
 					pdfFile = pdfFiles[0];
 				}
 			}
 			if (pdfFile == null)
-				throw new RuntimeException("Could not find PDF file in "
-						+ this.directory.getAbsolutePath());
+				throw new RuntimeException("Could not find PDF file in " + this.directory.getAbsolutePath());
 			this.pdfFile = pdfFile;
 		}
 		return this.pdfFile;
 	}
 
+	@Override
 	public File getAltoFile() {
 		if (this.altoFile == null) {
 			File altoFile = new File(this.directory, this.name + ".zip");
@@ -98,14 +96,13 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 				altoFile = new File(this.directory, this.name + ".xml");
 			if (!altoFile.exists()) {
 				altoFile = null;
-				File[] altoFiles = this.directory
-						.listFiles(new FilenameFilter() {
+				File[] altoFiles = this.directory.listFiles(new FilenameFilter() {
 
-							@Override
-							public boolean accept(File dir, String name) {
-								return name.toLowerCase().endsWith(".zip");
-							}
-						});
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.toLowerCase().endsWith(".zip");
+					}
+				});
 				if (altoFiles.length > 0) {
 					altoFile = altoFiles[0];
 				}
@@ -123,18 +120,18 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 				}
 			}
 			if (altoFile == null)
-				throw new RuntimeException("Could not find Alto file in "
-						+ this.directory.getAbsolutePath());
+				throw new RuntimeException("Could not find Alto file in " + this.directory.getAbsolutePath());
 			this.altoFile = altoFile;
 		}
 		return altoFile;
 	}
 
+	@Override
 	public File getMetaDataFile() {
 		if (!metaFileRetrieved) {
 			File pdfFile = this.getPdfFile();
-			if (pdfFile!=null) {
-				String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length()-".pdf".length());
+			if (pdfFile != null) {
+				String fileBase = pdfFile.getName().substring(0, pdfFile.getName().length() - ".pdf".length());
 				File metaFile = new File(this.directory, fileBase + "_meta.xml");
 				if (metaFile.exists()) {
 					this.metaFile = metaFile;
@@ -145,33 +142,34 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 		return this.metaFile;
 	}
 
+	@Override
 	public Map<String, String> getMetaData() {
 		if (this.metaData == null) {
-			if (this.getMetaDataFile()==null) {
-				PdfMetadataReader pdfMetadataReader = new PdfMetadataReader(
-						this.getPdfFile());
-				Map<String,String> pdfMetaData = pdfMetadataReader.getFields();
+			if (this.getMetaDataFile() == null) {
+				PdfMetadataReader pdfMetadataReader = new PdfMetadataReader(this.getPdfFile());
+				Map<String, String> pdfMetaData = pdfMetadataReader.getFields();
 				pdfMetadataReader.close();
-				
+
 				this.metaData = new HashMap<String, String>();
-				
-				//TODO: hack for Yiddish - need to generalize this through config settings
-				
-		        String bookUrl = pdfMetaData.get("Keywords");
-		        String title = pdfMetaData.get("Title");
-		        String author = pdfMetaData.get("Author");
-				
-		        if (bookUrl!=null && bookUrl.length()>0) {
-		        	this.metaData.put(JochreIndexField.url.name(), bookUrl);
-		        	String id = bookUrl.substring(bookUrl.lastIndexOf('/')+1);
-		        	this.metaData.put(JochreIndexField.id.name(), id);
-		        }
-		        if (title!=null && title.length()>0) {
+
+				// TODO: hack for Yiddish - need to generalize this through
+				// config settings
+
+				String bookUrl = pdfMetaData.get("Keywords");
+				String title = pdfMetaData.get("Title");
+				String author = pdfMetaData.get("Author");
+
+				if (bookUrl != null && bookUrl.length() > 0) {
+					this.metaData.put(JochreIndexField.url.name(), bookUrl);
+					String id = bookUrl.substring(bookUrl.lastIndexOf('/') + 1);
+					this.metaData.put(JochreIndexField.id.name(), id);
+				}
+				if (title != null && title.length() > 0) {
 					title = DiacriticRemover.apply(title);
-		        	this.metaData.put(JochreIndexField.title.name(), title);
-		        }
-		        if (author!=null && author.length()>0)
-		        	this.metaData.put(JochreIndexField.author.name(), author);
+					this.metaData.put(JochreIndexField.title.name(), title);
+				}
+				if (author != null && author.length() > 0)
+					this.metaData.put(JochreIndexField.author.name(), author);
 
 			} else {
 				try {
@@ -179,76 +177,79 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 					DocumentBuilder db = dbf.newDocumentBuilder();
 					Document dom = db.parse(this.getMetaDataFile());
 					Element docElement = dom.getDocumentElement();
-					
-			        XPathFactory xpf = XPathFactory.newInstance();
-			        XPath xp = xpf.newXPath();
-			        
-			        String id = xp.evaluate("/metadata/identifier/text()", docElement);
-			        String bookUrl = xp.evaluate("/metadata/identifier-access/text()", docElement);
-			        String title = xp.evaluate("/metadata/title/text()", docElement);
-			        String author = xp.evaluate("/metadata/creator/text()", docElement);
-			        String publisher = xp.evaluate("/metadata/publisher/text()", docElement);
-			        String date = xp.evaluate("/metadata/date/text()", docElement);
-			        String authorLang = xp.evaluate("/metadata/creator-alt-script/text()", docElement);
-			        String titleLang = xp.evaluate("/metadata/title-alt-script/text()", docElement);
-			        String volume = xp.evaluate("/metadata/volume/text()", docElement);
-			        
-			        LOG.debug("id: " + id);
-			        LOG.debug("bookUrl: " + bookUrl);
-			        LOG.debug("title: " + title);
-			        LOG.debug("author: " + author);
-			        LOG.debug("publisher: " + publisher);
-			        LOG.debug("date: " + date);
-			        LOG.debug("authorLang: " + authorLang);
-			        LOG.debug("titleLang: " + titleLang);
-			        LOG.debug("volume: " + volume);
-			        
-			        this.metaData = new HashMap<String, String>();
-			        if (id.length()>0)
-			        	this.metaData.put(JochreIndexField.id.name(), id);
-			        if (bookUrl.length()>0)
-			        	this.metaData.put(JochreIndexField.url.name(), bookUrl);
-			        if (title.length()>0)
-			        	this.metaData.put(JochreIndexField.title.name(), title);
-			        if (author.length()>0)
-			        	this.metaData.put(JochreIndexField.author.name(), author);
-			        if (publisher.length()>0)
-			        	this.metaData.put(JochreIndexField.publisher.name(), publisher);
-			        if (date.length()>0)
-			        	this.metaData.put(JochreIndexField.date.name(), date);
-			        if (authorLang.length()>0)
-			        	this.metaData.put(JochreIndexField.authorLang.name(), authorLang);
-			        if (titleLang.length()>0)
-			        	this.metaData.put(JochreIndexField.titleLang.name(), titleLang);
-			        if (volume.length()>0)
-			        	this.metaData.put(JochreIndexField.volume.name(), volume);
-			        
+
+					XPathFactory xpf = XPathFactory.newInstance();
+					XPath xp = xpf.newXPath();
+
+					String id = xp.evaluate("/metadata/identifier/text()", docElement);
+					String bookUrl = xp.evaluate("/metadata/identifier-access/text()", docElement);
+					String title = xp.evaluate("/metadata/title/text()", docElement);
+					String author = xp.evaluate("/metadata/creator/text()", docElement);
+					String publisher = xp.evaluate("/metadata/publisher/text()", docElement);
+					String date = xp.evaluate("/metadata/date/text()", docElement);
+					String authorLang = xp.evaluate("/metadata/creator-alt-script/text()", docElement);
+					String titleLang = xp.evaluate("/metadata/title-alt-script/text()", docElement);
+					String volume = xp.evaluate("/metadata/volume/text()", docElement);
+
+					LOG.debug("id: " + id);
+					LOG.debug("bookUrl: " + bookUrl);
+					LOG.debug("title: " + title);
+					LOG.debug("author: " + author);
+					LOG.debug("publisher: " + publisher);
+					LOG.debug("date: " + date);
+					LOG.debug("authorLang: " + authorLang);
+					LOG.debug("titleLang: " + titleLang);
+					LOG.debug("volume: " + volume);
+
+					this.metaData = new HashMap<String, String>();
+					if (id.length() > 0)
+						this.metaData.put(JochreIndexField.id.name(), id);
+					if (bookUrl.length() > 0)
+						this.metaData.put(JochreIndexField.url.name(), bookUrl);
+					if (title.length() > 0)
+						this.metaData.put(JochreIndexField.title.name(), title);
+					if (author.length() > 0)
+						this.metaData.put(JochreIndexField.author.name(), author);
+					if (publisher.length() > 0)
+						this.metaData.put(JochreIndexField.publisher.name(), publisher);
+					if (date.length() > 0)
+						this.metaData.put(JochreIndexField.date.name(), date);
+					if (authorLang.length() > 0)
+						this.metaData.put(JochreIndexField.authorLang.name(), authorLang);
+					if (titleLang.length() > 0)
+						this.metaData.put(JochreIndexField.titleLang.name(), titleLang);
+					if (volume.length() > 0)
+						this.metaData.put(JochreIndexField.volume.name(), volume);
+
 				} catch (IOException e) {
-					LogUtils.logError(LOG, e);
-					throw new JochreException(e);
+					LOG.error("Failed to read metadata from  " + this.getMetaDataFile().getAbsolutePath(), e);
+					throw new RuntimeException(e);
 				} catch (XPathExpressionException e) {
-					LogUtils.logError(LOG, e);
-					throw new JochreException(e);
+					LOG.error("Failed to read metadata from  " + this.getMetaDataFile().getAbsolutePath(), e);
+					throw new RuntimeException(e);
 				} catch (ParserConfigurationException e) {
-					LogUtils.logError(LOG, e);
-					throw new JochreException(e);
+					LOG.error("Failed to read metadata from  " + this.getMetaDataFile().getAbsolutePath(), e);
+					throw new RuntimeException(e);
 				} catch (SAXException e) {
-					LogUtils.logError(LOG, e);
-					throw new JochreException(e);
+					LOG.error("Failed to read metadata from  " + this.getMetaDataFile().getAbsolutePath(), e);
+					throw new RuntimeException(e);
 				}
 			}
 		}
 		return metaData;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public File getDirectory() {
 		return directory;
 	}
 
+	@Override
 	public Instructions getInstructions() {
 		if (instructions == null) {
 			File deleteFile = new File(this.directory, "delete");
@@ -285,25 +286,24 @@ class JochreIndexDirectoryImpl implements JochreIndexDirectory {
 			UnclosableInputStream uis = null;
 			File altoFile = this.getAltoFile();
 			if (altoFile.getName().endsWith(".zip")) {
-				ZipInputStream zis = new ZipInputStream(
-						new BufferedInputStream(new FileInputStream(altoFile)));
+				ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(altoFile)));
 				@SuppressWarnings("unused")
 				ZipEntry ze = null;
 				if ((ze = zis.getNextEntry()) != null) {
 					uis = new UnclosableInputStream(zis);
 				}
 			} else {
-				InputStream is = new BufferedInputStream(new FileInputStream(
-						altoFile));
+				InputStream is = new BufferedInputStream(new FileInputStream(altoFile));
 				uis = new UnclosableInputStream(is);
 			}
 			return uis;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to get altoInputStream", e);
+			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
 	public String getPath() {
 		return path;
 	}

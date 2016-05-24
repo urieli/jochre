@@ -24,14 +24,14 @@ import java.util.List;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class VectorizerImplTest {
-	private static final Log LOG = LogFactory.getLog(VectorizerImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
 
 	@Test
 	public void testGetLongestLines() {

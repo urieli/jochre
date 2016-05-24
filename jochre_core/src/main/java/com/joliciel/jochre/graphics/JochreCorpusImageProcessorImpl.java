@@ -21,15 +21,15 @@ package com.joliciel.jochre.graphics;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 
 class JochreCorpusImageProcessorImpl extends JochreCorpusReaderImpl implements JochreCorpusImageProcessor {
-    private static final Log LOG = LogFactory.getLog(JochreCorpusImageProcessorImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageProcessorImpl.class);
 	private List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 	
 	public JochreCorpusImageProcessorImpl(CorpusSelectionCriteria corpusSelectionCriteria) {

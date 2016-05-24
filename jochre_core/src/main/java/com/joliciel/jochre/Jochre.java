@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
@@ -49,9 +48,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.analyser.AnalyserService;
 import com.joliciel.jochre.analyser.ErrorLogger;
@@ -120,6 +118,7 @@ import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
 import com.joliciel.jochre.utils.JochreException;
+import com.joliciel.jochre.utils.JochreLogUtils;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.ClassificationModelTrainer;
@@ -130,7 +129,6 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.CSVFormatter;
-import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 /**
@@ -141,7 +139,7 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  *
  */
 public class Jochre implements LocaleSpecificLexiconService {
-	private static final Log LOG = LogFactory.getLog(Jochre.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Jochre.class);
 
 	public enum BoundaryDetectorType {
 		LetterByLetter, Deterministic
@@ -233,12 +231,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		String logConfigPath = argMap.get("logConfigFile");
-		if (logConfigPath != null) {
-			argMap.remove("logConfigFile");
-			Properties props = new Properties();
-			props.load(new FileInputStream(logConfigPath));
-			PropertyConfigurator.configure(props);
-		}
+		argMap.remove("logConfigFile");
+		JochreLogUtils.configureLogging(logConfigPath);
 
 		File performanceConfigFile = null;
 
@@ -631,7 +625,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 						Files.delete(analysisDir.toPath());
 					} catch (Exception e) {
 						// log errors, but continue processing
-						LogUtils.logError(LOG, e);
+						LOG.error("Error processing file: " + pdfFile.getAbsolutePath(), e);
 					}
 				}
 			} else if (command.equals("analyseFile")) {
@@ -648,7 +642,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				throw new RuntimeException("Unknown command: " + command);
 			}
 		} catch (Exception e) {
-			LogUtils.logError(LOG, e);
+			LOG.error("An error occurred while running Jochre", e);
 			throw e;
 		} finally {
 			PerformanceMonitor.end();
@@ -825,7 +819,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (minProbForDecision >= 0)
 			evaluator.setMinProbabilityForDecision(minProbForDecision);
 		FScoreCalculator<String> fScoreCalculator = evaluator.evaluate(groupReader, merger);
-		LOG.debug(fScoreCalculator.getTotalFScore());
+		LOG.debug("" + fScoreCalculator.getTotalFScore());
 	}
 
 	/**
@@ -905,7 +899,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			splitEvaluator.setMinProbabilityForDecision(minProbForDecision);
 
 		FScoreCalculator<String> fScoreCalculator = splitEvaluator.evaluate(shapeReader, shapeSplitter);
-		LOG.debug(fScoreCalculator.getTotalFScore());
+		LOG.debug("" + fScoreCalculator.getTotalFScore());
 	}
 
 	/**
@@ -1730,7 +1724,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			}
 			return observers;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
+			LOG.error("Couldn't configure observers", e);
 			throw new RuntimeException(e);
 		}
 	}

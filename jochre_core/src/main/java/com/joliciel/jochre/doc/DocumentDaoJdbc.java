@@ -25,8 +25,8 @@ import java.util.Locale;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -39,7 +39,7 @@ import com.joliciel.jochre.doc.JochrePageInternal;
 import com.joliciel.talismane.utils.DaoUtils;
 
 public final class DocumentDaoJdbc implements DocumentDao {
-	private static final Log LOG = LogFactory.getLog(DocumentDaoJdbc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DocumentDaoJdbc.class);
 	DocumentServiceInternal documentServiceInternal;
 	private DataSource dataSource;
 

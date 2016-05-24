@@ -18,11 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class JochreCorpusShapeReaderImpl extends JochreCorpusReaderImpl implements JochreCorpusShapeReader {
-    private static final Log LOG = LogFactory.getLog(JochreCorpusShapeReaderImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusShapeReaderImpl.class);
 	
 	private int shapeIndex = 0;
 

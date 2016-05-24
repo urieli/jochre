@@ -26,9 +26,9 @@ import java.text.Bidi;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
@@ -39,35 +39,34 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
- * Converts Jochre's analysis to human-readable text, either in plain or xhtml format.
- * Note that the current implementation has some Yiddish-specific rules (around Yiddish-style
- * double-quotes) which will need to be generalised.
+ * Converts Jochre's analysis to human-readable text, either in plain or xhtml
+ * format. Note that the current implementation has some Yiddish-specific rules
+ * (around Yiddish-style double-quotes) which will need to be generalised.
+ * 
  * @author Assaf Urieli
  *
  */
 class TextGetterImpl extends AbstractExporter implements DocumentObserver {
-	private static final Log LOG = LogFactory.getLog(TextGetterImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TextGetterImpl.class);
 
 	private TextFormat textFormat = TextFormat.PLAIN;
 	private Lexicon lexicon;
-	
+
 	public TextGetterImpl(Writer writer, TextFormat textFormat) {
 		this(writer, textFormat, null);
 	}
-	
+
 	public TextGetterImpl(Writer writer, TextFormat textFormat, Lexicon lexicon) {
 		super(writer);
 		this.writer = writer;
 		this.textFormat = textFormat;
 		this.lexicon = lexicon;
 	}
-	
+
 	public TextGetterImpl(File outputDir, TextFormat textFormat, Lexicon lexicon) {
-		super(outputDir, textFormat==TextFormat.PLAIN ? ".txt" : ".htm");
+		super(outputDir, textFormat == TextFormat.PLAIN ? ".txt" : ".htm");
 		this.textFormat = textFormat;
 		this.lexicon = lexicon;
 	}
@@ -84,9 +83,9 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 				writer.write("<body>\n");
 				writer.flush();
 			}
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -95,9 +94,9 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 		if (textFormat.equals(TextFormat.XHTML)) {
 			try {
 				writer.write("<h3>Page " + (jochrePage.getIndex()) + "</h3>\n");
-			} catch (IOException ioe) {
-				LogUtils.logError(LOG, ioe);
-				throw new JochreException(ioe);
+			} catch (IOException e) {
+				LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -111,7 +110,7 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 		try {
 			double minRatioBiggerFont = 1.15;
 			double maxRatioSmallerFont = 0.85;
-			
+
 			double meanXHeight = 0;
 			if (textFormat.equals(TextFormat.XHTML)) {
 				Mean xHeightMean = new Mean();
@@ -132,33 +131,33 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 			if (!image.isLeftToRight())
 				paragraphString = "<p dir=\"rtl\">";
 			for (Paragraph paragraph : image.getParagraphs()) {
-				if (!paragraph.isJunk()){
+				if (!paragraph.isJunk()) {
 					if (textFormat.equals(TextFormat.XHTML))
 						writer.append(paragraphString);
-					
+
 					Map<Integer, Boolean> fontSizeChanges = new TreeMap<Integer, Boolean>();
 					int currentFontSize = 0;
 					StringBuilder paragraphText = new StringBuilder();
-					
+
 					String lastWord = "";
 					boolean lastRowEndedWithHyphen = false;
 					for (RowOfShapes row : paragraph.getRows()) {
 						for (GroupOfShapes group : row.getGroups()) {
 							boolean endOfRowHyphen = false;
 							if (textFormat.equals(TextFormat.XHTML)) {
-								double ratio = (double) group.getXHeight() /  meanXHeight;
-								if (ratio>=minRatioBiggerFont) {
-									if (currentFontSize<=0)
+								double ratio = group.getXHeight() / meanXHeight;
+								if (ratio >= minRatioBiggerFont) {
+									if (currentFontSize <= 0)
 										fontSizeChanges.put(paragraphText.length(), true);
 									currentFontSize = 1;
-								} else if (ratio<=maxRatioSmallerFont) {
-									if (currentFontSize>=0)
+								} else if (ratio <= maxRatioSmallerFont) {
+									if (currentFontSize >= 0)
 										fontSizeChanges.put(paragraphText.length(), false);
 									currentFontSize = -1;
-								} else if (currentFontSize!=0) {
-									if (currentFontSize>0)
+								} else if (currentFontSize != 0) {
+									if (currentFontSize > 0)
 										fontSizeChanges.put(paragraphText.length(), false);
-									else if (currentFontSize<0)
+									else if (currentFontSize < 0)
 										fontSizeChanges.put(paragraphText.length(), true);
 									currentFontSize = 0;
 								}
@@ -167,16 +166,16 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 							StringBuilder currentSequence = new StringBuilder();
 							for (Shape shape : group.getShapes()) {
 								String letter = shape.getLetter();
-								
+
 								if (letter.startsWith("|")) {
 									// beginning of a gehakte letter
 									currentSequence.append(shape.getLetter());
 									continue;
 								} else if (letter.endsWith("|")) {
 									// end of a gehakte letter
-									if (currentSequence.length()>0&&currentSequence.charAt(0)=='|') {
+									if (currentSequence.length() > 0 && currentSequence.charAt(0) == '|') {
 										String letter1 = currentSequence.toString().substring(1);
-										String letter2 = letter.substring(0, letter.length()-1);
+										String letter2 = letter.substring(0, letter.length() - 1);
 										if (letter1.equals(letter2)) {
 											letter = letter1;
 										} else {
@@ -185,57 +184,62 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 										currentSequence = new StringBuilder();
 									}
 								}
-								
+
 								if (letter.equals(",")) {
-									//TODO: for Yiddish, need a way to generalise this
+									// TODO: for Yiddish, need a way to
+									// generalise this
 									// could be ",," = "„"
-									if (currentSequence.length()>0&&currentSequence.charAt(0)==',') {
+									if (currentSequence.length() > 0 && currentSequence.charAt(0) == ',') {
 										sb.append("„");
 										currentSequence = new StringBuilder();
 									} else {
 										currentSequence.append(shape.getLetter());
 									}
 								} else if (letter.equals("'")) {
-									//TODO: for Yiddish, need a way to generalise this
+									// TODO: for Yiddish, need a way to
+									// generalise this
 									// could be "''" = "“"
-									if (currentSequence.length()>0&&currentSequence.charAt(0)=='\'') {
+									if (currentSequence.length() > 0 && currentSequence.charAt(0) == '\'') {
 										sb.append("“");
 										currentSequence = new StringBuilder();
 									} else {
 										currentSequence.append(shape.getLetter());
 									}
 								} else if (letter.equals("-")) {
-									if (shape.getIndex()==group.getShapes().size()-1
-											&& group.getIndex()==row.getGroups().size()-1
-											&& row.getIndex()!=paragraph.getRows().size()-1) {
-										// do nothing - dash at the end of the line
-										// we'll assume for now these dashes are always supposed to disappear
-										// though of course they could be used in the place of a real mid-word dash
+									if (shape.getIndex() == group.getShapes().size() - 1 && group.getIndex() == row.getGroups().size() - 1
+											&& row.getIndex() != paragraph.getRows().size() - 1) {
+										// do nothing - dash at the end of the
+										// line
+										// we'll assume for now these dashes are
+										// always supposed to disappear
+										// though of course they could be used
+										// in the place of a real mid-word dash
 										endOfRowHyphen = true;
 									} else {
-										sb.append(shape.getLetter());									
+										sb.append(shape.getLetter());
 									}
 								} else {
 									sb.append(currentSequence);
 									currentSequence = new StringBuilder();
-									//TODO: for Yiddish, need a way to generalise this
+									// TODO: for Yiddish, need a way to
+									// generalise this
 									if (letter.equals(",,")) {
 										sb.append("„");
 									} else if (letter.equals("''")) {
 										sb.append("“");
 									} else {
-										sb.append(letter);									
+										sb.append(letter);
 									}
 								}
 							} // next shape
 							sb.append(currentSequence);
-							
+
 							String word = sb.toString();
 							if (endOfRowHyphen) {
 								lastRowEndedWithHyphen = true;
 								endOfRowHyphen = false;
 							} else if (lastRowEndedWithHyphen) {
-								if (lexicon!=null) {
+								if (lexicon != null) {
 									String hyphenatedWord = lastWord + "-" + word;
 									int frequency = lexicon.getFrequency(hyphenatedWord);
 									LOG.debug("hyphenatedWord: " + hyphenatedWord + ", Frequency: " + frequency);
@@ -252,41 +256,41 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 						} // next group
 					} // next row
 					String paragraphStr = paragraphText.toString();
-					
+
 					Writer currentWriter = writer;
-					boolean haveFontSizes = fontSizeChanges.size()>0;
+					boolean haveFontSizes = fontSizeChanges.size() > 0;
 					if (haveFontSizes) {
 						currentWriter = new StringWriter();
 					}
-					
+
 					if (image.getPage().getDocument().isLeftToRight()) {
-						currentWriter.append(paragraphText);					
+						currentWriter.append(paragraphText);
 					} else {
 						this.appendBidiText(paragraphStr, currentWriter);
 					}
-					
+
 					if (haveFontSizes) {
 						currentFontSize = 0;
-	
+
 						String text = currentWriter.toString();
 						int currentIndex = 0;
-						
+
 						for (int fontSizeChange : fontSizeChanges.keySet()) {
 							boolean isBigger = fontSizeChanges.get(fontSizeChange);
 							writer.append(text.substring(currentIndex, fontSizeChange));
 							if (isBigger) {
-								if (currentFontSize==0) {
-									writer.append("<big>"); 
+								if (currentFontSize == 0) {
+									writer.append("<big>");
 									currentFontSize++;
-								} else if (currentFontSize<0) {
+								} else if (currentFontSize < 0) {
 									writer.append("</small>");
 									currentFontSize++;
 								}
 							} else {
-								if (currentFontSize==0) {
+								if (currentFontSize == 0) {
 									writer.append("<small>");
 									currentFontSize--;
-								} else if (currentFontSize>0) {
+								} else if (currentFontSize > 0) {
 									writer.append("</big>");
 									currentFontSize--;
 								}
@@ -294,24 +298,24 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 							currentIndex = fontSizeChange;
 						}
 						writer.append(text.substring(currentIndex));
-						
-						if (currentFontSize>0) {
+
+						if (currentFontSize > 0) {
 							writer.append("</big>");
-						} else if (currentFontSize<0) {
+						} else if (currentFontSize < 0) {
 							writer.append("</small>");
 						}
 					} // haveFontSizes?
-	
+
 					if (textFormat.equals(TextFormat.XHTML))
 						writer.append("</p>");
 					else
 						writer.append('\n');
 					writer.flush();
-				} //paragraph.isJunk()?
+				} // paragraph.isJunk()?
 			} // next paragraph
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -320,9 +324,9 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 		if (textFormat.equals(TextFormat.XHTML)) {
 			try {
 				writer.write("<hr/>\n");
-			} catch (IOException ioe) {
-				LogUtils.logError(LOG, ioe);
-				throw new JochreException(ioe);
+			} catch (IOException e) {
+				LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -335,9 +339,9 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 				writer.write("</html>\n");
 				writer.flush();
 			}
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -345,33 +349,38 @@ class TextGetterImpl extends AbstractExporter implements DocumentObserver {
 		try {
 			// assumption here is that if text is marked as left-to-right
 			// it should be reversed.
-	        Bidi bidi = new Bidi(text, Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT);
-	
-	        // From Bidi API:
-	        // If there are multiple runs of text, information about the runs can be accessed by indexing
-	        // to get the start, limit, and level of a run.
-	        // The level represents both the direction and the 'nesting level' of a directional run.
-	        // Odd levels are right-to-left, while even levels are left-to-right.
-	        // So for example level 0 represents left-to-right text, while level 1 represents right-to-left text,
-	        // and level 2 represents left-to-right text embedded in a right-to-left run. 
-	        for (int i = 0; i < bidi.getRunCount(); ++i) {
-	
-	            int start = bidi.getRunStart(i);
-	            int limit = bidi.getRunLimit(i);
-	            int level = bidi.getRunLevel(i);
-	            String str = text.substring(start, limit);
-	            if (level % 2 == 1) {
-	            	writer.append(str);
-	            } else {
-	            	StringBuilder reverseString = new StringBuilder();
-	            	for (int j = str.length()-1; j>=0; j--)
-	            		reverseString.append(str.charAt(j));
-	            	writer.append(reverseString.toString());
-	            }
-	        }	
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+			Bidi bidi = new Bidi(text, Bidi.DIRECTION_DEFAULT_RIGHT_TO_LEFT);
+
+			// From Bidi API:
+			// If there are multiple runs of text, information about the runs
+			// can be accessed by indexing
+			// to get the start, limit, and level of a run.
+			// The level represents both the direction and the 'nesting level'
+			// of a directional run.
+			// Odd levels are right-to-left, while even levels are
+			// left-to-right.
+			// So for example level 0 represents left-to-right text, while level
+			// 1 represents right-to-left text,
+			// and level 2 represents left-to-right text embedded in a
+			// right-to-left run.
+			for (int i = 0; i < bidi.getRunCount(); ++i) {
+
+				int start = bidi.getRunStart(i);
+				int limit = bidi.getRunLimit(i);
+				int level = bidi.getRunLevel(i);
+				String str = text.substring(start, limit);
+				if (level % 2 == 1) {
+					writer.append(str);
+				} else {
+					StringBuilder reverseString = new StringBuilder();
+					for (int j = str.length() - 1; j >= 0; j--)
+						reverseString.append(str.charAt(j));
+					writer.append(reverseString.toString());
+				}
+			}
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 }

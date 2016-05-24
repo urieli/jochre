@@ -18,14 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 
 class JochreCorpusGroupReaderImpl extends JochreCorpusReaderImpl implements JochreCorpusGroupReader {
-    private static final Log LOG = LogFactory.getLog(JochreCorpusGroupReaderImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusGroupReaderImpl.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreCorpusGroupReaderImpl.class);
 
 	private int imageIndex = 0;

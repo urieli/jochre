@@ -15,8 +15,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
@@ -36,7 +36,7 @@ import com.joliciel.talismane.utils.PersistentListImpl;
 class JochreDocumentImpl extends EntityImpl implements
 		JochreDocumentInternal {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(JochreDocumentImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreDocumentImpl.class);
 	private DocumentServiceInternal documentServiceInternal;
 	private GraphicsService graphicsService;
 	private SecurityService securityService;

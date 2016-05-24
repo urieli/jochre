@@ -21,8 +21,8 @@ package com.joliciel.jochre.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
@@ -38,7 +38,7 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
  *
  */
 class JochreTokeniser extends Tokenizer {
-	private static final Log LOG = LogFactory.getLog(JochreTokeniser.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreTokeniser.class);
 
 	private SearchServiceInternal searchService;
 

@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zkoss.image.Images;
 import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.ui.Executions;
@@ -53,13 +54,12 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;
 
-	private static final Log LOG = LogFactory.getLog(ImageController.class);
-	
+	private static final Logger LOG = LoggerFactory.getLogger(ImageController.class);
+
 	public static final String HEBREW_ACCENTS = "\u0591\u0592\u0593\u0594\u0595\u0596\u0597\u0598\u0599\u059A\u059B\u059C\u059D\u059E\u059F\u05A0\u05A1\u05A2\u05A3\u05A4\u05A5\u05A6\u05A7\u05A8\u05A9\u05AA\u05AB\u05AC\u05AD\u05AE\u05AF\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BA\u05BB\u05BC\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7";
 	private JochreServiceLocator locator = null;
 	private GraphicsService graphicsService;
@@ -68,8 +68,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 	private int docId;
 	private User currentUser;
 	private boolean currentImageOwner;
-	private Map<RowOfShapes,Textbox> currentTextBoxes;
-	
+	private Map<RowOfShapes, Textbox> currentTextBoxes;
+
 	AnnotateDataBinder binder;
 
 	Window winJochreImage;
@@ -84,37 +84,38 @@ public class ImageController extends GenericForwardComposer<Window> {
 	Label lblImageStatus;
 	Combobox cmbOwner;
 	Label lblOwner;
-	
+
 	public ImageController() {
 	}
-	
+
+	@Override
 	public void doAfterCompose(Window window) throws Exception {
 		super.doAfterCompose(window);
 
 		Session session = Sessions.getCurrent();
 		currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-		if (currentUser==null)
+		if (currentUser == null)
 			Executions.sendRedirect("login.zul");
-		
-        locator = JochreServiceLocator.getInstance();
 
-    	String resourcePath = "/jdbc-jochreWeb.properties";
-    	LOG.debug("resource path: " + resourcePath);
-        locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-        graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-        
-		//comp.setVariable(comp.getId() + "Ctrl", this, true);
-		
-        hebrewAccentsSpan.setContent("var hebrewAccents=\"" + HEBREW_ACCENTS + "\";");
+		locator = JochreServiceLocator.getInstance();
+
+		String resourcePath = "/jdbc-jochreWeb.properties";
+		LOG.debug("resource path: " + resourcePath);
+		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
+		graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
+
+		// comp.setVariable(comp.getId() + "Ctrl", this, true);
+
+		hebrewAccentsSpan.setContent("var hebrewAccents=\"" + HEBREW_ACCENTS + "\";");
 		rowGrid.setRowRenderer(new ImageGridRowRenderer());
-		
+
 		HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 		imageId = Integer.parseInt(request.getParameter("imageId"));
 		currentImage = graphicsService.loadJochreImage(imageId);
 		docId = currentImage.getPage().getDocumentId();
-		
-		currentImageOwner = (currentUser.getRole().equals(UserRole.ADMIN)||currentImage.getOwner().equals(currentUser));
-		
+
+		currentImageOwner = (currentUser.getRole().equals(UserRole.ADMIN) || currentImage.getOwner().equals(currentUser));
+
 		if (!currentImageOwner) {
 			btnSave.setVisible(false);
 			btnSave2.setVisible(false);
@@ -130,7 +131,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 			cmbStatus.setVisible(true);
 			lblImageStatus.setVisible(false);
 		}
-		
+
 		if (currentUser.getRole().equals(UserRole.ADMIN)) {
 			cmbOwner.setVisible(true);
 			lblOwner.setVisible(false);
@@ -152,26 +153,28 @@ public class ImageController extends GenericForwardComposer<Window> {
 			lblOwner.setVisible(true);
 			lblOwner.setValue(currentImage.getOwner().getFullName());
 		}
-		
+
 		String pageTitle = Labels.getLabel("image.title");
 		winJochreImage.getPage().setTitle(pageTitle);
-		
-		String windowTitle = Labels.getLabel("image.winJochreImage.title", new Object[] {currentImage.getPage().getDocument().getName(), currentImage.getPage().getIndex()});
+
+		String windowTitle = Labels.getLabel("image.winJochreImage.title",
+				new Object[] { currentImage.getPage().getDocument().getName(), currentImage.getPage().getIndex() });
 		winJochreImage.setTitle(windowTitle);
 
 		List<Comboitem> cmbStatusItems = cmbStatus.getItems();
 		Comboitem selectedItem = null;
-		
+
 		List<ImageStatus> imageStatuses = new ArrayList<ImageStatus>();
 		if (currentUser.getRole().equals(UserRole.ADMIN)) {
 			for (ImageStatus imageStatus : ImageStatus.values()) {
 				imageStatuses.add(imageStatus);
 			}
-		} else if (currentImage.getImageStatus().equals(ImageStatus.AUTO_NEW)||currentImage.getImageStatus().equals(ImageStatus.AUTO_VALIDATED)) {
+		} else if (currentImage.getImageStatus().equals(ImageStatus.AUTO_NEW) || currentImage.getImageStatus().equals(ImageStatus.AUTO_VALIDATED)) {
 			imageStatuses.add(ImageStatus.AUTO_NEW);
 			imageStatuses.add(ImageStatus.AUTO_VALIDATED);
 		} else {
-			// a bit dangerous - leaving the image as "training" and allowing modifications, but oh well!
+			// a bit dangerous - leaving the image as "training" and allowing
+			// modifications, but oh well!
 			imageStatuses.add(currentImage.getImageStatus());
 		}
 		for (ImageStatus imageStatus : imageStatuses) {
@@ -183,35 +186,35 @@ public class ImageController extends GenericForwardComposer<Window> {
 			cmbStatusItems.add(item);
 		}
 		cmbStatus.setSelectedItem(selectedItem);
-		
+
 		lblImageStatus.setValue(Labels.getLabel("ImageStatus." + currentImage.getImageStatus().getCode()));
-		
+
 		reloadRowGrid();
-		
+
 		binder = new AnnotateDataBinder(window);
 		binder.loadAll();
 	}
-    
-    void reloadRowGrid() {
+
+	void reloadRowGrid() {
 		LOG.trace("reloadRowGrid");
-		
+
 		List<RowOfShapes> imageRows = new ArrayList<RowOfShapes>();
 		for (Paragraph paragraph : currentImage.getParagraphs()) {
 			for (RowOfShapes row : paragraph.getRows()) {
 				imageRows.add(row);
 			}
 		}
-		
+
 		currentTextBoxes = new HashMap<RowOfShapes, Textbox>();
 		rowGrid.setModel(new SimpleListModel<RowOfShapes>(imageRows));
-    }
-    
-    class ImageGridRowRenderer implements RowRenderer<RowOfShapes> {
+	}
+
+	class ImageGridRowRenderer implements RowRenderer<RowOfShapes> {
 
 		@Override
 		public void render(Row gridRow, RowOfShapes row, int index) throws Exception {
 			try {
-//				gridRow.setWidth("740px");
+				// gridRow.setWidth("740px");
 				LOG.trace("Rendering paragraph " + row.getParagraph().getIndex() + ", row " + row.getIndex());
 				boolean leftToRight = (row.getParagraph().getImage().getPage().getDocument().isLeftToRight());
 				if (!leftToRight) {
@@ -219,66 +222,69 @@ public class ImageController extends GenericForwardComposer<Window> {
 				}
 				Div imageDiv = new Div();
 				imageDiv.setStyle("position:relative; left:0px;");
-				
+
 				Image gridRowImage = new Image();
 				gridRowImage.setContent(row.getImage());
 				gridRowImage.setId("RowImage" + row.getId());
 
 				int imageWidth = RowOfShapes.ROW_IMAGE_WIDTH;
-				int imageHeight = (int) (((double) row.getImage().getHeight()) * ((double) RowOfShapes.ROW_IMAGE_WIDTH / (double) row.getImage().getWidth()));
+				int imageHeight = (int) ((row.getImage().getHeight()) * ((double) RowOfShapes.ROW_IMAGE_WIDTH / (double) row.getImage().getWidth()));
 				gridRowImage.setWidth(imageWidth + "px");
 				gridRowImage.setHeight(imageHeight + "px");
-				//gridRowImage.setStyle("position: absolute;  left: 0px;");
+				// gridRowImage.setStyle("position: absolute; left: 0px;");
 				gridRowImage.setStyle("position: relative;  left: 0px;");
 				gridRowImage.addEventListener("onClick", new RowImageOnClickEventListener(row));
-				
+
 				imageDiv.appendChild(gridRowImage);
-				
+
 				// get the string to display in the textbox
 				StringBuilder sb = new StringBuilder();
 				StringBuilder emptyLetterBuilder = new StringBuilder();
 				for (GroupOfShapes group : row.getGroups()) {
-					for (Shape shape : group.getShapes()) {							
+					for (Shape shape : group.getShapes()) {
 						String letter = shape.getLetter();
-						if (letter==null) letter="";
-			    		String newLetter = ImageController.getLetterForDisplay(letter);
-			    		if (letter.length()==0)
-			    			emptyLetterBuilder.append(newLetter);
-			    		else {
-			    			if (emptyLetterBuilder.length()>0) {
-			    				sb.append(emptyLetterBuilder.toString());
-			    				emptyLetterBuilder = new StringBuilder();
-			    			}
-				    		sb.append(newLetter);
-			    		}
+						if (letter == null)
+							letter = "";
+						String newLetter = ImageController.getLetterForDisplay(letter);
+						if (letter.length() == 0)
+							emptyLetterBuilder.append(newLetter);
+						else {
+							if (emptyLetterBuilder.length() > 0) {
+								sb.append(emptyLetterBuilder.toString());
+								emptyLetterBuilder = new StringBuilder();
+							}
+							sb.append(newLetter);
+						}
 					}
 					emptyLetterBuilder.append(" ");
 				}
-				
+
 				Div letterDiv = this.getLetterDiv(row, true);
 				imageDiv.appendChild(letterDiv);
 				if (!row.getParagraph().getImage().getImageStatus().equals(ImageStatus.AUTO_NEW)) {
 					Div letterDivOrig = this.getLetterDiv(row, false);
 					imageDiv.appendChild(letterDivOrig);
 				}
-				
+
 				Textbox gridRowText = new Textbox();
 				gridRowText.setWidth("90%");
-//					gridRowText.setStyle("position: absolute;  left: 0px; top: " + (imageHeight+35) + "px;");
-				//gridRowText.setStyle("position: relative;");
+				// gridRowText.setStyle("position: absolute; left: 0px; top: " +
+				// (imageHeight+35) + "px;");
+				// gridRowText.setStyle("position: relative;");
 				gridRowText.setId("RowText" + row.getId());
 				if (!leftToRight)
 					gridRowText.setSclass("rightToLeft");
 				gridRowText.setText(sb.toString());
-				
+
 				if (!currentImageOwner) {
 					gridRowText.setVisible(false);
 					gridRowText.setReadonly(true);
 				}
-				
-				// write an action which updates all of the spans for this line to the current letters onkeyup!
+
+				// write an action which updates all of the spans for this line
+				// to the current letters onkeyup!
 				StringBuilder onkeyupAction = new StringBuilder();
-				
+
 				onkeyupAction.append("updateLetters(this");
 				for (GroupOfShapes group : row.getGroups()) {
 					onkeyupAction.append(",[");
@@ -293,41 +299,42 @@ public class ImageController extends GenericForwardComposer<Window> {
 					onkeyupAction.append("]");
 				}
 				onkeyupAction.append(");");
-				
+
 				gridRowText.setWidgetListener("onKeyUp", onkeyupAction.toString());
 				imageDiv.appendChild(gridRowText);
-				
+
 				currentTextBoxes.put(row, gridRowText);
-				
+
 				Separator separator = new Separator("horizontal");
 				separator.setBar(true);
 				separator.setSpacing("10px");
-				
+
 				imageDiv.appendChild(separator);
-				
+
 				gridRow.appendChild(imageDiv);
 
-				
 				gridRow.setZclass("z-grid-body");
-				gridRow.setHeight((imageHeight+75) + "px");
-				
+				gridRow.setHeight((imageHeight + 75) + "px");
+
 				LetterLabelUpdater updater = new LetterLabelUpdater(row);
 				updater.updateLetterLabels();
 			} catch (Exception e) {
-				LogUtils.logError(LOG, e);
+				LOG.error("Failure in ImageGridRowRenderer$render", e);
 				throw new RuntimeException(e);
 			}
 		}
-		
+
 		private Div getLetterDiv(RowOfShapes row, boolean realLetter) {
-			// Now comes the fun part: a bunch of span tags to show how the letters align!
+			// Now comes the fun part: a bunch of span tags to show how the
+			// letters align!
 			Div letterDiv = new Div();
 			int imageWidth = RowOfShapes.ROW_IMAGE_WIDTH;
 			boolean leftToRight = (row.getParagraph().getImage().getPage().getDocument().isLeftToRight());
 
 			letterDiv.setWidth(imageWidth + "px");
 			letterDiv.setHeight("30px");
-//			letterDiv.setStyle("position: absolute; left: 0px; top: " + (imageHeight+5) + "px;");
+			// letterDiv.setStyle("position: absolute; left: 0px; top: " +
+			// (imageHeight+5) + "px;");
 			letterDiv.setStyle("position: relative; ");
 			for (Shape shape : row.getShapes()) {
 				Span letterSpan = new Span();
@@ -346,11 +353,11 @@ public class ImageController extends GenericForwardComposer<Window> {
 					int right = shape.getRight();
 					double scale = (double) imageWidth / (double) row.getParagraph().getImage().getWidth();
 					right = (int) Math.floor(scale * right);
-					letterSpan.setStyle("position: absolute;  left: " + (right-30) + "px;");
+					letterSpan.setStyle("position: absolute;  left: " + (right - 30) + "px;");
 					letterSpan.setSclass("rightToLeft");
 					letterLabel.setSclass("rightToLeft");
 				}
-				
+
 				if (realLetter) {
 					letterLabel.setStyle("color:#7E2217; background-color:white;");
 				} else {
@@ -362,20 +369,21 @@ public class ImageController extends GenericForwardComposer<Window> {
 				}
 				letterSpan.appendChild(letterLabel);
 				letterDiv.appendChild(letterSpan);
-				
+
 			}
 			return letterDiv;
 		}
 
-    }
-    
-    class RowImageOnClickEventListener implements EventListener<MouseEvent> {
-    	private RowOfShapes row;
-    	public RowImageOnClickEventListener(RowOfShapes row) {
-    		this.row = row;
-    	}
+	}
 
-    	@Override
+	class RowImageOnClickEventListener implements EventListener<MouseEvent> {
+		private RowOfShapes row;
+
+		public RowImageOnClickEventListener(RowOfShapes row) {
+			this.row = row;
+		}
+
+		@Override
 		public void onEvent(MouseEvent mouseEvent) throws Exception {
 			try {
 				int x = mouseEvent.getX();
@@ -385,25 +393,25 @@ public class ImageController extends GenericForwardComposer<Window> {
 				GroupOfShapes clickedGroup = null;
 				int groupIndex = 0;
 				for (GroupOfShapes group : row.getGroups()) {
-					if (group.getLeft()<=clickPos && group.getRight()>=clickPos) {
+					if (group.getLeft() <= clickPos && group.getRight() >= clickPos) {
 						clickedGroup = group;
 						break;
 					}
 					groupIndex++;
 				}
-				if (clickedGroup!=null) {
+				if (clickedGroup != null) {
 					boolean leftToRight = (row.getParagraph().getImage().getPage().getDocument().isLeftToRight());
 
 					List<List<String>> letterGroups = getLetterGroups(row);
 					List<String> letterGroup = null;
 					if (groupIndex < letterGroups.size())
-						letterGroup =letterGroups.get(groupIndex);
-					
+						letterGroup = letterGroups.get(groupIndex);
+
 					StringBuilder rowTextBuilder = new StringBuilder();
 					boolean foundLetterGroup = false;
 					int j = 0;
 					for (List<String> oneGroup : letterGroups) {
-						if (j==groupIndex) {
+						if (j == groupIndex) {
 							foundLetterGroup = true;
 							rowTextBuilder.append(FixTextWindowController.ROW_TEXT_PLACE_HOLDER);
 						} else {
@@ -415,32 +423,32 @@ public class ImageController extends GenericForwardComposer<Window> {
 					}
 					if (!foundLetterGroup)
 						rowTextBuilder.append(FixTextWindowController.ROW_TEXT_PLACE_HOLDER);
-					
+
 					Window winFixWord = (Window) Path.getComponent("//pgImage/winFixText");
 					winFixWord.setAttribute(FixTextWindowController.ATTR_ROW_TEXT, rowTextBuilder.toString());
-					
+
 					Textbox rowTextBox = currentTextBoxes.get(row);
 					winFixWord.setAttribute(FixTextWindowController.ATTR_ROW_TEXTBOX, rowTextBox);
-					
+
 					LetterLabelUpdater updater = new LetterLabelUpdater(row);
 					winFixWord.setAttribute(FixTextWindowController.ATTR_LETTER_UPDATER, updater);
-					
+
 					winFixWord.setAttribute(FixTextWindowController.ATTR_GROUP, clickedGroup);
-					
+
 					winFixWord.setTitle(Labels.getLabel("image.title") + ": " + clickedGroup.getWord());
-					
+
 					Checkbox chkSkip = (Checkbox) winFixWord.getFellow("chkSkip");
 					chkSkip.setChecked(clickedGroup.isSkip());
 
 					Checkbox chkHardHyphen = (Checkbox) winFixWord.getFellow("chkHardHyphen");
 					chkHardHyphen.setChecked(clickedGroup.isHardHyphen());
-					
+
 					Checkbox chkBrokenWord = (Checkbox) winFixWord.getFellow("chkBrokenWord");
 					chkBrokenWord.setChecked(clickedGroup.isBrokenWord());
-					
+
 					Checkbox chkSegmentProblem = (Checkbox) winFixWord.getFellow("chkSegmentProblem");
 					chkSegmentProblem.setChecked(clickedGroup.isSegmentationProblem());
-					
+
 					Grid letterGrid = (Grid) winFixWord.getFellow("letterGrid");
 					if (!leftToRight)
 						letterGrid.setSclass("rightToLeft");
@@ -449,7 +457,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 					if (!leftToRight)
 						letterGridRows.setSclass("rightToLeft");
 					LOG.trace(letterGridRows.getId());
-					
+
 					Row shapeRow = (Row) winFixWord.getFellow("shapeRow");
 					LOG.trace(shapeRow.getId());
 					shapeRow.getChildren().clear();
@@ -461,16 +469,16 @@ public class ImageController extends GenericForwardComposer<Window> {
 					letterBoxRow.getChildren().clear();
 					if (!leftToRight)
 						letterBoxRow.setSclass("rightToLeft");
-					
+
 					Row arrowRow = (Row) winFixWord.getFellow("arrowRow");
 					arrowRow.getChildren().clear();
 					if (!leftToRight)
 						arrowRow.setSclass("rightToLeft");
-					
+
 					int totalWidth = 0;
 					for (int i = 0; i < clickedGroup.getShapes().size(); i++) {
 						Shape shape = clickedGroup.getShapes().get(i);
-						
+
 						Image shapeImage = new Image();
 						org.zkoss.image.Image convertedImage = Images.encode("shape_" + shape.getId() + ".png", shape.getImage());
 						shapeImage.setContent(convertedImage);
@@ -480,33 +488,33 @@ public class ImageController extends GenericForwardComposer<Window> {
 						shapeImage.setHeight((shape.getImage().getHeight()) + "px");
 						Cell shapeCell = new Cell();
 						int shapeWidth = shape.getImage().getWidth();
-						if (shapeWidth<20)
-							shapeWidth=20;
+						if (shapeWidth < 20)
+							shapeWidth = 20;
 
 						shapeCell.setWidth(shapeWidth + "px");
-						
+
 						shapeCell.appendChild(shapeImage);
 						shapeRow.appendChild(shapeCell);
 						Textbox letterBox = new Textbox();
 						letterBox.setId("FixTextLetterBox_" + shape.getId());
-						if (letterGroup!=null) {
+						if (letterGroup != null) {
 							String letter = "";
-							if (i<letterGroup.size())
+							if (i < letterGroup.size())
 								letter = letterGroup.get(i);
-							if (letter.startsWith("[")&&letter.endsWith("]"))
-								letter = letter.substring(1, letter.length()-1);
+							if (letter.startsWith("[") && letter.endsWith("]"))
+								letter = letter.substring(1, letter.length() - 1);
 							letterBox.setText(letter);
 						}
 						totalWidth += shapeWidth;
 						letterBox.setWidth(shapeWidth + "px");
 						if (!leftToRight)
 							letterBox.setSclass("rightToLeft");
-						
+
 						Cell letterBoxCell = new Cell();
 						letterBoxCell.setWidth(shapeWidth + "px");
 						letterBoxCell.appendChild(letterBox);
 						letterBoxRow.appendChild(letterBoxCell);
-						
+
 						// add arrows for pushing letters right & left
 						Hbox hbox = new Hbox();
 						if (!leftToRight)
@@ -518,7 +526,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 						Image arrowPushForward = new Image();
 						StringBuilder textBoxArray = new StringBuilder();
 						textBoxArray.append("[");
-						boolean firstShape = true;							
+						boolean firstShape = true;
 						for (Shape otherShape : clickedGroup.getShapes()) {
 							String label = "FixTextLetterBox_" + otherShape.getId();
 							if (!firstShape)
@@ -527,13 +535,13 @@ public class ImageController extends GenericForwardComposer<Window> {
 							firstShape = false;
 						}
 						textBoxArray.append("]");
-						arrowPushForward.setWidgetListener("onClick","pushLetters(1, " + i + "," + textBoxArray.toString() + ");");
-						
+						arrowPushForward.setWidgetListener("onClick", "pushLetters(1, " + i + "," + textBoxArray.toString() + ");");
+
 						Image arrowPushBack = new Image("images/arrowRight.gif");
-						arrowPushBack.setWidgetListener("onClick","pushLetters(-1, " + i + "," + textBoxArray.toString() + ");");
-						if (i!=0)
+						arrowPushBack.setWidgetListener("onClick", "pushLetters(-1, " + i + "," + textBoxArray.toString() + ");");
+						if (i != 0)
 							hbox.appendChild(arrowPushBack);
-						if (i!=clickedGroup.getShapes().size()-1)
+						if (i != clickedGroup.getShapes().size() - 1)
 							hbox.appendChild(arrowPushForward);
 						if (leftToRight) {
 							arrowPushForward.setSrc("images/arrowRight.gif");
@@ -543,48 +551,48 @@ public class ImageController extends GenericForwardComposer<Window> {
 							arrowPushBack.setSrc("images/arrowRight.gif");
 						}
 					}
-					
+
 					totalWidth = (int) (totalWidth * 1.6);
 					letterGrid.setWidth(totalWidth + "px");
 					int windowWidth = totalWidth + 60;
-					winFixWord.setWidth(windowWidth+ "px");
-					shapeRow.setHeight((clickedGroup.getBottom()-clickedGroup.getTop()) + "px");
+					winFixWord.setWidth(windowWidth + "px");
+					shapeRow.setHeight((clickedGroup.getBottom() - clickedGroup.getTop()) + "px");
 					winFixWord.setVisible(true);
 
 					winFixWord.doModal();
 				}
 			} catch (Exception e) {
-				LogUtils.logError(LOG, e);
-				throw e;
+				LOG.error("Failure in RowImageOnClickEventListener$listen", e);
+				throw new RuntimeException(e);
 			}
 		}
-    	
-    }
-    
-    public void onClick$btnSaveAndExit(Event event) {
-       	try {
+
+	}
+
+	public void onClick$btnSaveAndExit(Event event) {
+		try {
 			LOG.debug("onClick$btnExitWithoutSave");
 			this.save();
 			Executions.sendRedirect("docs.zul?docId=" + docId + "&imageId=" + imageId);
-    	} catch (Exception e) {
-    		LogUtils.logError(LOG, e);
+		} catch (Exception e) {
+			LOG.error("Failure in onClick$btnExitWithoutSave", e);
 			throw new RuntimeException(e);
-    	}
-    }
-    
-    public void onClick$btnSaveAndExit2(Event event) {
-    	this.onClick$btnSaveAndExit(event);
-    }
-    
-    public void onClick$btnSave(Event event) {
+		}
+	}
+
+	public void onClick$btnSaveAndExit2(Event event) {
+		this.onClick$btnSaveAndExit(event);
+	}
+
+	public void onClick$btnSave(Event event) {
 		LOG.debug("onClick$btnSave");
 		this.save();
-    }
-    
-    void save() {
-       	try {
+	}
+
+	void save() {
+		try {
 			Comboitem selectedItem = cmbStatus.getSelectedItem();
-			ImageStatus imageStatus = ImageStatus.forId((Integer)selectedItem.getValue());
+			ImageStatus imageStatus = ImageStatus.forId((Integer) selectedItem.getValue());
 			currentImage.setImageStatus(imageStatus);
 			if (currentUser.getRole().equals(UserRole.ADMIN)) {
 				User owner = (User) cmbOwner.getSelectedItem().getValue();
@@ -605,16 +613,18 @@ public class ImageController extends GenericForwardComposer<Window> {
 							letters = iLetterGroups.next();
 						else
 							letters = new ArrayList<String>();
-	
+
 						LOG.trace("Found " + letters.size() + " letters in text");
 						Iterator<String> iLetters = letters.iterator();
 						for (Shape shape : group.getShapes()) {
 							String currentLetter = shape.getLetter();
-							if (currentLetter == null) currentLetter="";
+							if (currentLetter == null)
+								currentLetter = "";
 							String newLetter = "";
-							if (iLetters.hasNext()) newLetter = iLetters.next();
-							if (newLetter.startsWith("[")&&newLetter.endsWith("]")) {
-								newLetter = newLetter.substring(1, newLetter.length()-1);
+							if (iLetters.hasNext())
+								newLetter = iLetters.next();
+							if (newLetter.startsWith("[") && newLetter.endsWith("]")) {
+								newLetter = newLetter.substring(1, newLetter.length() - 1);
 							}
 							LOG.trace("currentLetter:  " + currentLetter + ", newLetter: " + newLetter);
 							if (!currentLetter.equals(newLetter)) {
@@ -624,50 +634,51 @@ public class ImageController extends GenericForwardComposer<Window> {
 								hasChange = true;
 							}
 						}
-	
+
 						if (hasChange)
 							LOG.trace("Group text after : " + group.getWord());
 					} // next group
 				} // next row
 			} // next paragraph
-			
+
 			Messagebox.show(Labels.getLabel("button.saveComplete"));
 
-    	} catch (Exception e) {
-    		LogUtils.logError(LOG, e);
+		} catch (Exception e) {
+			LOG.error("Failure in save", e);
 			throw new RuntimeException(e);
-    	}
-    }
-    
-    public void onClick$btnSave2(Event event) {
-    	this.onClick$btnSave(event);
-    }
-    
-    public void onClick$btnExitWithoutSave(Event event) {
-    	try {
+		}
+	}
+
+	public void onClick$btnSave2(Event event) {
+		this.onClick$btnSave(event);
+	}
+
+	public void onClick$btnExitWithoutSave(Event event) {
+		try {
 			LOG.debug("onClick$btnExitWithoutSave");
 			Executions.sendRedirect("docs.zul?docId=" + docId + "&imageId=" + imageId);
-    	} catch (Exception e) {
-    		LogUtils.logError(LOG, e);
+		} catch (Exception e) {
+			LOG.error("Failure in onClick$btnExitWithoutSave", e);
 			throw new RuntimeException(e);
-    	}
-    }
-    
-    public void onClick$btnExitWithoutSave2(Event event) {
-    	this.onClick$btnExitWithoutSave(event);
-    }   
-    
-    class LetterLabelUpdater {
-    	private RowOfShapes row;
-    	public LetterLabelUpdater(RowOfShapes row) {
-    		this.row = row;
-    	}
-    	
-    	public void updateLetterLabels() {
-    		try {
-    			LOG.debug("updateLetterLabels");
-	    		List<List<String>> letterGroups = getLetterGroups(row);
-	    		List<List<Label>> labelGroups = new ArrayList<List<Label>>();
+		}
+	}
+
+	public void onClick$btnExitWithoutSave2(Event event) {
+		this.onClick$btnExitWithoutSave(event);
+	}
+
+	class LetterLabelUpdater {
+		private RowOfShapes row;
+
+		public LetterLabelUpdater(RowOfShapes row) {
+			this.row = row;
+		}
+
+		public void updateLetterLabels() {
+			try {
+				LOG.debug("updateLetterLabels");
+				List<List<String>> letterGroups = getLetterGroups(row);
+				List<List<Label>> labelGroups = new ArrayList<List<Label>>();
 				for (GroupOfShapes group : row.getGroups()) {
 					List<Label> labelGroup = new ArrayList<Label>();
 					labelGroups.add(labelGroup);
@@ -677,62 +688,63 @@ public class ImageController extends GenericForwardComposer<Window> {
 						labelGroup.add(label);
 					}
 				}
-	
+
 				int letterGroupIndex = 0;
 				for (List<Label> labelGroup : labelGroups) {
 					// no more groups to assign
 					if (letterGroupIndex >= letterGroups.size()) {
 						for (Label label : labelGroup)
 							label.setValue("");
-						continue;				
+						continue;
 					}
 					List<String> letterGroup = letterGroups.get(letterGroupIndex++);
-					LOG.trace(letterGroup);
+					if (LOG.isTraceEnabled())
+						LOG.trace(letterGroup.toString());
 					boolean wrongLength = true;
-					if (letterGroup!=null) {
-						wrongLength = (labelGroup.size()!=letterGroup.size());
+					if (letterGroup != null) {
+						wrongLength = (labelGroup.size() != letterGroup.size());
 						if (wrongLength)
 							LOG.trace("wrongLength");
 					}
 					int letterIndex = 0;
 					for (Label label : labelGroup) {
 						// no more letters in this group
-						if (letterIndex>=letterGroup.size()) {
+						if (letterIndex >= letterGroup.size()) {
 							label.setValue("");
 							continue;
 						}
 						String letter = letterGroup.get(letterIndex++);
-						if (letter.startsWith("[")&&letter.endsWith("]")) {
-							letter = letter.substring(1, letter.length()-1);
+						if (letter.startsWith("[") && letter.endsWith("]")) {
+							letter = letter.substring(1, letter.length() - 1);
 						}
 						label.setValue(letter);
 						if (wrongLength)
 							label.setStyle("color:red; background-color:yellow;");
 						else
 							label.setStyle("color:black; background-color:white;");
-						
+
 						label.invalidate();
 					}
 				}
-    		} catch (Exception e) {
-    			LogUtils.logError(LOG, e);
-    			throw new RuntimeException(e);
-    		}
-    	}
-    }
-    
-    /**
-     * Divide the text in a given row's textbox into separate letter groups,
-     * which will then be used to populate labels that are aligned
-     * with the letters in the image.
-     * @param row
-     * @return
-     */
-    List<List<String>> getLetterGroups(RowOfShapes row) {
+			} catch (Exception e) {
+				LOG.error("Failure in LetterLabelUpdater$updateLetterLabels", e);
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	/**
+	 * Divide the text in a given row's textbox into separate letter groups,
+	 * which will then be used to populate labels that are aligned with the
+	 * letters in the image.
+	 * 
+	 * @param row
+	 * @return
+	 */
+	List<List<String>> getLetterGroups(RowOfShapes row) {
 		List<List<String>> letterGroups = new ArrayList<List<String>>();
 		Textbox rowText = currentTextBoxes.get(row);
-		if (rowText==null)
-		{
+		if (rowText == null) {
 			LOG.trace("No textbox for this row!");
 			return letterGroups;
 		} else {
@@ -741,42 +753,41 @@ public class ImageController extends GenericForwardComposer<Window> {
 		String text = rowText.getText();
 
 		List<String> letters = new ArrayList<String>();
-		for (int i = 0; i<text.length(); i++) {
-			String letter = text.substring(i,i+1);
+		for (int i = 0; i < text.length(); i++) {
+			String letter = text.substring(i, i + 1);
 			if (letter.equals(" ")) {
-				if (letters.size()>0) {
+				if (letters.size() > 0) {
 					letterGroups.add(letters);
 				}
 				letters = new ArrayList<String>();
 			} else {
 				if (letter.equals("[")) {
 					int endIndex = text.indexOf("]", i);
-					if (endIndex>=0) {
-						letter = text.substring(i, endIndex+1);
+					if (endIndex >= 0) {
+						letter = text.substring(i, endIndex + 1);
 						LOG.trace("Letter: " + letter);
 						i = endIndex;
 					}
 				} else if (letter.equals("-")) {
-					if (i+1<text.length()) {
-						String nextLetter = text.substring(i+1,i+2);
+					if (i + 1 < text.length()) {
+						String nextLetter = text.substring(i + 1, i + 2);
 						if (nextLetter.equals("-")) {
 							letter = "—";
 							i++;
 						}
 					}
 				}
-				//LOG.debug("Letter: " + letter);
-				if (HEBREW_ACCENTS.indexOf(letter)>=0 && letters.size()!=0) {
-					if (letter.equals("ַ")&&letters.size()>1
-							&&letters.get(letters.size()-1).equals("י")
-							&&letters.get(letters.size()-2).equals("י")) {
-						letters.remove(letters.size()-1);
-						letters.remove(letters.size()-1);
+				// LOG.debug("Letter: " + letter);
+				if (HEBREW_ACCENTS.indexOf(letter) >= 0 && letters.size() != 0) {
+					if (letter.equals("ַ") && letters.size() > 1 && letters.get(letters.size() - 1).equals("י")
+							&& letters.get(letters.size() - 2).equals("י")) {
+						letters.remove(letters.size() - 1);
+						letters.remove(letters.size() - 1);
 						letters.add("ײַ");
 					} else {
-						String lastLetter = letters.get(letters.size()-1);
+						String lastLetter = letters.get(letters.size() - 1);
 						lastLetter += letter;
-						letters.remove(letters.size()-1);
+						letters.remove(letters.size() - 1);
 						letters.add(lastLetter);
 					}
 				} else if (letter.equals("װ")) {
@@ -799,36 +810,36 @@ public class ImageController extends GenericForwardComposer<Window> {
 				}
 			}
 		}
-		if (letters.size()>0) {
+		if (letters.size() > 0) {
 			letterGroups.add(letters);
 		}
 
 		LOG.trace("Found " + letterGroups.size() + " letter groups");
 		return letterGroups;
-    }
-    
-    static String getLetterForDisplay(String letter) {
-    	String newLetter = letter;
-    	if (letter.equals("װ"))
-    		newLetter="וו";
+	}
+
+	static String getLetterForDisplay(String letter) {
+		String newLetter = letter;
+		if (letter.equals("װ"))
+			newLetter = "וו";
 		else if (letter.equals("ױ"))
-			newLetter="וי";
+			newLetter = "וי";
 		else if (letter.equals("ײַ"))
-			newLetter="ײַ";
+			newLetter = "ײַ";
 		else if (letter.equals("ײ"))
-			newLetter="יי";
+			newLetter = "יי";
 		else if (letter.equals("„"))
 			newLetter = ",,";
 		else if (letter.equals("“"))
-			newLetter="''";
-		
-		if (letter.length()==2&&ImageController.HEBREW_ACCENTS.indexOf(letter.substring(1))>0) {
+			newLetter = "''";
+
+		if (letter.length() == 2 && ImageController.HEBREW_ACCENTS.indexOf(letter.substring(1)) > 0) {
 			// do nothing
-		} else if (letter.length()>=2) {
+		} else if (letter.length() >= 2) {
 			newLetter = "[" + letter + "]";
-		} else if (letter.length()==0) {
+		} else if (letter.length() == 0) {
 			newLetter = "[]";
 		}
 		return newLetter;
-    }
+	}
 }

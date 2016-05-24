@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultLinguistics implements Linguistics {
-	private static final Log LOG = LogFactory.getLog(Linguistics.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Linguistics.class);
 	private static Map<Locale, Linguistics> instances = new HashMap<Locale, Linguistics>();
 	private Locale locale;
 	private Set<String> dualCharacterLetters = null;

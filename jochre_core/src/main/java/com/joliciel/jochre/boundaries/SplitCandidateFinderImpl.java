@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.graphics.Shape;
 
 class SplitCandidateFinderImpl implements SplitCandidateFinder {
-	private static final Log LOG = LogFactory.getLog(SplitCandidateFinderImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImpl.class);
 	private BoundaryServiceInternal boundaryServiceInternal;
 	private int minDistanceBetweenSplits = 5;
 	

@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 
 import com.joliciel.jochre.EntityImpl;
@@ -50,7 +50,7 @@ import com.joliciel.talismane.utils.PersistentList;
 import com.joliciel.talismane.utils.PersistentListImpl;
 
 class ShapeImpl extends EntityImpl implements ShapeInternal {
-    private static final Log LOG = LogFactory.getLog(ShapeImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShapeImpl.class);
     
 	private int top;
 	private int left;

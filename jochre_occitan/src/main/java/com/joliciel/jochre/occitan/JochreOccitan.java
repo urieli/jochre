@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.Jochre;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
@@ -31,6 +31,6 @@ public class JochreOccitan extends Jochre implements LocaleSpecificLexiconServic
 	}
 	
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(JochreOccitan.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreOccitan.class);
 
 }

@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.graphics.GraphicsService;
@@ -19,7 +19,7 @@ import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.utils.JochreException;
 
 class JochrePageImpl extends EntityImpl implements JochrePageInternal {
-    private static final Log LOG = LogFactory.getLog(JochrePageImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JochrePageImpl.class);
 	private DocumentServiceInternal documentService;
 	private GraphicsService graphicsService;
 	

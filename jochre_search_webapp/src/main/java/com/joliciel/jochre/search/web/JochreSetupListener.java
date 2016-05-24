@@ -6,8 +6,8 @@ import javax.imageio.ImageIO;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.search.SearchServiceLocator;
@@ -16,7 +16,7 @@ import com.joliciel.jochre.search.lexicon.LexiconService;
 import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 
 public class JochreSetupListener implements ServletContextListener {
-	private static final Log LOG = LogFactory.getLog(JochreSetupListener.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreSetupListener.class);
 
 	public JochreSetupListener() {
 	}

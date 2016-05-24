@@ -24,15 +24,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 
 public class InflectedFormFilter extends TokenFilter {
-	private static final Log LOG = LogFactory.getLog(InflectedFormFilter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(InflectedFormFilter.class);
 
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);

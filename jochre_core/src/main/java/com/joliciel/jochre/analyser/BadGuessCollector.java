@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.GraphicsService;
@@ -33,7 +33,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 
 public class BadGuessCollector implements LetterGuessObserver {
-    private static final Log LOG = LogFactory.getLog(BadGuessCollector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BadGuessCollector.class);
 	private String[] outcomesToAnalyse = new String[0];
 	List<String> outcomesToAnalyseList = new ArrayList<String>();
 	Map<Integer,String> shapeIdsToAnalyse = new HashMap<Integer,String>();

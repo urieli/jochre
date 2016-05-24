@@ -32,9 +32,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -44,11 +44,10 @@ import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreSearchConstants;
 import com.joliciel.jochre.search.SearchService;
 import com.joliciel.jochre.utils.Either;
-import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.LogUtils;
 
 class HighlightManagerImpl implements HighlightManager {
-	private static final Log LOG = LogFactory.getLog(HighlightManagerImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(HighlightManagerImpl.class);
 
 	private JochreIndexSearcher indexSearcher;
 	private int decimalPlaces = 2;
@@ -109,9 +108,9 @@ class HighlightManagerImpl implements HighlightManager {
 
 			jsonGen.writeEndObject();
 			jsonGen.flush();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to highlight docIds " + docIds, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -206,9 +205,9 @@ class HighlightManagerImpl implements HighlightManager {
 
 			jsonGen.writeEndObject();
 			jsonGen.flush();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to find snippets in docIds " + docIds, e);
+			throw new RuntimeException(e);
 		}
 	}
 

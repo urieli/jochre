@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
@@ -49,7 +49,7 @@ import com.joliciel.jochre.stats.DBSCANClusterer;
 import com.joliciel.jochre.utils.JochreException;
 
 class SourceImageImpl extends JochreImageImpl implements SourceImageInternal {
-	private static final Log LOG = LogFactory.getLog(SourceImageImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SourceImageImpl.class);
 
 	List<RowOfShapes> rows;
 	Set<Set<RowOfShapes>> rowClusters = null;

@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.Shape;
@@ -35,7 +35,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class ShapeMergerImpl implements ShapeMerger {
-	private static final Log LOG = LogFactory.getLog(ShapeMergerImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ShapeMergerImpl.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
 	DecisionMaker decisionMaker;

@@ -21,8 +21,8 @@ package com.joliciel.jochre.letterGuesser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.graphics.Shape;
@@ -35,7 +35,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 final class LetterGuesserImpl implements LetterGuesser {
-	private static final Log LOG = LogFactory.getLog(LetterGuesserImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LetterGuesserImpl.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterGuesserImpl.class);
 	
 	private static final double MIN_PROB_TO_STORE = 0.001;

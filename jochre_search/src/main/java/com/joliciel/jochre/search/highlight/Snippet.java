@@ -31,8 +31,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -41,14 +41,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochrePayload;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * A single snippet within a document, used for displaying the document.
  */
 public class Snippet implements Comparable<Snippet> {
-	private static final Log LOG = LogFactory.getLog(Snippet.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Snippet.class);
 	private int docId;
 	private String field;
 	private int startOffset;
@@ -79,8 +77,8 @@ public class Snippet implements Comparable<Snippet> {
 			jsonParser.nextToken();
 			this.read(jsonParser);
 		} catch (IOException e) {
-			LOG.error(e);
-			throw new JochreException(e);
+			LOG.error("Failed to parse json: " + json, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -192,11 +190,11 @@ public class Snippet implements Comparable<Snippet> {
 				}
 			}
 		} catch (JsonParseException e) {
-			LOG.error(e);
-			throw new JochreException(e);
+			LOG.error("Failed to parse json", e);
+			throw new RuntimeException(e);
 		} catch (IOException e) {
-			LOG.error(e);
-			throw new JochreException(e);
+			LOG.error("Failed to parse json", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -211,9 +209,9 @@ public class Snippet implements Comparable<Snippet> {
 			writer.flush();
 			String json = writer.toString();
 			return json;
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to write json", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -249,11 +247,11 @@ public class Snippet implements Comparable<Snippet> {
 			jsonGen.writeEndObject();
 			jsonGen.flush();
 		} catch (java.text.ParseException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+			LOG.error("Failed to parse json", e);
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			LOG.error("Failed to parse json", e);
+			throw new RuntimeException(e);
 		}
 	}
 

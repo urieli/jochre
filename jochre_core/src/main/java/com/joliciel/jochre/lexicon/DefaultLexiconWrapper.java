@@ -26,8 +26,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.talismane.utils.CountedOutcome;
@@ -39,7 +39,7 @@ import com.joliciel.talismane.utils.CountedOutcome;
  */
 public class DefaultLexiconWrapper implements Lexicon {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(DefaultLexiconWrapper.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultLexiconWrapper.class);
 	Lexicon baseLexicon;
 	Set<String> upperCaseLexicon = new HashSet<String>();
 	

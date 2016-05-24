@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -17,13 +15,14 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
@@ -31,7 +30,7 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 class JochreIndexDocumentImpl implements JochreIndexDocument {
-	private static final Log LOG = LogFactory.getLog(JochreIndexDocumentImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexDocumentImpl.class);
 
 	private String contents;
 	private Document doc;
@@ -92,8 +91,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			this.directory = new JochreIndexDirectoryImpl(indexSearcher.getContentDir(), dir);
 			this.name = this.directory.getName();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed setup jochreIndexDocument for id " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -254,12 +253,12 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			if (LOG.isTraceEnabled()) {
 				for (IndexableField field : doc.getFields()) {
 					if (!field.name().equals(JochreIndexField.text.name()))
-						LOG.trace(field);
+						LOG.trace(field.toString());
 				}
 			}
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed save JochreIndexDocument " + this.getName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 

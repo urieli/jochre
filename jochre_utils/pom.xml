@@ -77,10 +77,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox-app</artifactId>
 		</dependency>
@@ -91,6 +87,14 @@
 		<dependency>
 			<groupId>com.joliciel.talismane</groupId>
 			<artifactId>talismane-utils</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 	</dependencies>
 </project>

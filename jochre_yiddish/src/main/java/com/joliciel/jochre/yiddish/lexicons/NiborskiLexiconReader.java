@@ -36,13 +36,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class NiborskiLexiconReader {
-	private static final Log LOG = LogFactory.getLog(NiborskiLexiconReader.class);
+	private static final Logger LOG = LoggerFactory.getLogger(NiborskiLexiconReader.class);
 
 	private int maxEntries = 0;
 	private Writer variantWriter = null;

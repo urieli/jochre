@@ -23,15 +23,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.graphics.JochreCorpusShapeReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.stats.FScoreCalculator;
 
 class SplitEvaluatorImpl implements SplitEvaluator {
-    private static final Log LOG = LogFactory.getLog(SplitEvaluatorImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SplitEvaluatorImpl.class);
 	int tolerance = 4;
 	double minWidthRatio = 1.1;
 	double minHeightRatio = 1.0;

@@ -31,13 +31,13 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class HarkavyLexiconReader {
-    private static final Log LOG = LogFactory.getLog(HarkavyLexiconReader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HarkavyLexiconReader.class);
 
     private Set<HarkavyLexicalFormEntry> allVariants = new TreeSet<HarkavyLexiconReader.HarkavyLexicalFormEntry>();
     private Set<String> entries = new TreeSet<String>();

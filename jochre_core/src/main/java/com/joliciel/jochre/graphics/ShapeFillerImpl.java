@@ -20,11 +20,11 @@ package com.joliciel.jochre.graphics;
 
 import java.util.BitSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ShapeFillerImpl implements ShapeFiller {
-	private static final Log LOG = LogFactory.getLog(ShapeFillerImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ShapeFillerImpl.class);
 	public static final int MAX_FILL_FACTOR = 10;
 	
 	/**

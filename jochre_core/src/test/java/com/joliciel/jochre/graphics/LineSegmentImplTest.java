@@ -25,15 +25,15 @@ import java.util.ArrayList;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LineSegmentImplTest {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(LineSegmentImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LineSegmentImplTest.class);
 
 	@Test
 	public void testGetEnclosingRectangle(@Mocked final Shape shape) {

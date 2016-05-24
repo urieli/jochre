@@ -24,8 +24,8 @@ import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
@@ -57,7 +57,7 @@ import com.joliciel.talismane.utils.SimpleProgressMonitor;
  *
  */
 class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
-    private static final Log LOG = LogFactory.getLog(BeamSearchImageAnalyser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BeamSearchImageAnalyser.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
     
     private static final int DEFAULT_BEAM_WIDTH = 5;

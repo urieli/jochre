@@ -25,15 +25,15 @@ import java.util.ArrayList;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class LineDefinitionImplTest {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(LineDefinitionImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LineDefinitionImplTest.class);
 
 	@Test
 	public void testTrace(@Mocked final Shape shape) {

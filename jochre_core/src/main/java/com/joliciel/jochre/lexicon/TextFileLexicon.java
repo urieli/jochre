@@ -39,8 +39,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.CountedOutcome;
@@ -57,7 +57,7 @@ import com.joliciel.talismane.utils.CountedOutcome;
 public class TextFileLexicon implements Lexicon, Serializable {
 
 	private static final long serialVersionUID = 1278484873657866572L;
-	private static final Log LOG = LogFactory.getLog(TextFileLexicon.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TextFileLexicon.class);
 	private Map<String,Integer> entries = new HashMap<String, Integer>();
 
 	public TextFileLexicon() {

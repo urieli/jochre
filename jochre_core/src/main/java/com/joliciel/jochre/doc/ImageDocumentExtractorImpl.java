@@ -24,97 +24,90 @@ import java.io.FilenameFilter;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.jochre.doc.SourceFileProcessor;
-import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 
-
-class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
-	private static final Log LOG = LogFactory.getLog(ImageDocumentExtractorImpl.class);
+class ImageDocumentExtractorImpl implements ImageDocumentExtractor {
+	private static final Logger LOG = LoggerFactory.getLogger(ImageDocumentExtractorImpl.class);
 	SourceFileProcessor documentProcessor;
 	MultiTaskProgressMonitor currentMonitor;
 	File imageFile;
 	int pageNumber = 1;
 
-	public ImageDocumentExtractorImpl(File imageFile,
-			SourceFileProcessor documentProcessor) {
-		this.documentProcessor = documentProcessor;	
+	public ImageDocumentExtractorImpl(File imageFile, SourceFileProcessor documentProcessor) {
+		this.documentProcessor = documentProcessor;
 		this.imageFile = imageFile;
 	}
-	
-	
-	
+
 	@Override
 	public void run() {
 		this.extractDocument();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.joliciel.jochre.doc.ImageDocumentExtractor#extractDocument(java.io.File, com.joliciel.jochre.doc.SourceFileProcessor)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.joliciel.jochre.doc.ImageDocumentExtractor#extractDocument(java.io.
+	 * File, com.joliciel.jochre.doc.SourceFileProcessor)
 	 */
 	@Override
 	public JochreDocument extractDocument() {
 		LOG.debug("ImageDocumentExtractorImpl.extractDocument");
 		try {
 			File[] files = new File[1];
-			
+
 			if (imageFile.isDirectory()) {
 				files = imageFile.listFiles(new FilenameFilter() {
-					
+
 					@Override
 					public boolean accept(File dir, String name) {
-						return (name.toLowerCase().endsWith(".png")
-								|| name.toLowerCase().endsWith(".jpg")
-								|| name.toLowerCase().endsWith(".jpeg")
-								|| name.toLowerCase().endsWith(".gif"));	
+						return (name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg")
+								|| name.toLowerCase().endsWith(".gif"));
 					}
 				});
 			} else {
 				files[0] = imageFile;
 			}
-			
+
 			JochreDocument doc = this.documentProcessor.onDocumentStart();
 			doc.setTotalPageCount(files.length);
-			
+
 			int currentPageNumber = this.pageNumber;
 			for (File file : files) {
 				JochrePage page = this.documentProcessor.onPageStart(currentPageNumber++);
-			
+
 				BufferedImage image = ImageIO.read(file);
 				String imageName = file.getName();
 
-				if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
-					ProgressMonitor monitor = ((Monitorable)documentProcessor).monitorTask();
-					double percentAllotted = (1 / (double)(files.length));
+				if (currentMonitor != null && documentProcessor instanceof Monitorable) {
+					ProgressMonitor monitor = ((Monitorable) documentProcessor).monitorTask();
+					double percentAllotted = (1 / (double) (files.length));
 					currentMonitor.startTask(monitor, percentAllotted);
 				}
-				
+
 				documentProcessor.onImageFound(page, image, imageName, 0);
-				if (currentMonitor!=null&&documentProcessor instanceof Monitorable) {
+				if (currentMonitor != null && documentProcessor instanceof Monitorable) {
 					currentMonitor.endTask();
 				}
-				
+
 				this.documentProcessor.onPageComplete(page);
 			}
 			this.documentProcessor.onDocumentComplete(doc);
-			
-			if (currentMonitor!=null)
+
+			if (currentMonitor != null)
 				currentMonitor.setFinished(true);
 			return doc;
 		} catch (Exception e) {
 			LOG.debug("Exception occurred. Have monitor? " + currentMonitor);
-			if (currentMonitor!=null)
+			if (currentMonitor != null)
 				currentMonitor.setException(e);
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Exception while processing document", e);
+			throw new RuntimeException(e);
 		} finally {
 			LOG.debug("Exit ImageDocumentExtractorImpl.extractDocument");
 		}
@@ -123,7 +116,7 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 	@Override
 	public ProgressMonitor monitorTask() {
 		currentMonitor = new MultiTaskProgressMonitor();
-		
+
 		return currentMonitor;
 	}
 
@@ -137,5 +130,4 @@ class ImageDocumentExtractorImpl implements ImageDocumentExtractor  {
 		this.pageNumber = pageNumber;
 	}
 
-    
 }

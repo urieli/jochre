@@ -28,8 +28,8 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape;
@@ -38,7 +38,7 @@ import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.utils.CountedOutcome;
 
 class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
-	private static final Log LOG = LogFactory.getLog(MostLikelyWordChooserImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MostLikelyWordChooserImpl.class);
 	private double additiveSmoothing = 0.75;
 	private double frequencyLogBase = 100.0;
 	private boolean frequencyAdjusted = false;

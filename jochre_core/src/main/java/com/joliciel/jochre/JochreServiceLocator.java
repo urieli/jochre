@@ -27,8 +27,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.analyser.AnalyserServiceLocator;
 import com.joliciel.jochre.boundaries.BoundaryServiceLocator;
@@ -55,7 +55,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  *
  */
 public class JochreServiceLocator {
-	private static final Log LOG = LogFactory.getLog(JochreServiceLocator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreServiceLocator.class);
 	private GraphicsServiceLocator graphicsServiceLocator;
 	private DocumentServiceLocator documentServiceLocator;
 	private LetterGuesserServiceLocator letterGuesserServiceLocator;

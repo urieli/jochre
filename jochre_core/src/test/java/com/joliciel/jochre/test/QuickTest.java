@@ -18,30 +18,30 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.test;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QuickTest {
-    private static final Log LOG = LogFactory.getLog(QuickTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(QuickTest.class);
 
-    @Test
+	@Test
 	public void testSubstring() {
 		String text = "blah[blah]blah";
-		for (int i = 0; i<text.length(); i++) {
-			String letter = text.substring(i,i+1);
+		for (int i = 0; i < text.length(); i++) {
+			String letter = text.substring(i, i + 1);
 			if (letter.equals("[")) {
 				int endIndex = text.indexOf("]", i);
-				if (endIndex>=0) {
-					letter = text.substring(i+1, endIndex);
+				if (endIndex >= 0) {
+					letter = text.substring(i + 1, endIndex);
 					i = endIndex;
 				}
 			}
 			LOG.debug(letter);
 		}
 	}
-	
-    @Test
+
+	@Test
 	public void testReplaceAll() {
 		String text = "bl|aa|h";
 		text = text.replaceAll("\\|(.)\\1\\|", "$1");
@@ -51,11 +51,11 @@ public class QuickTest {
 		text = text.replaceAll("\\|(..)\\1\\|", "$1");
 		LOG.debug(text);
 	}
-	
-    @Test
+
+	@Test
 	public void testNumberFormat() {
 		String number = "888888";
 		int j = Integer.parseInt(number, 16);
-		LOG.debug(j);
+		LOG.debug("" + j);
 	}
 }

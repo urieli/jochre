@@ -31,13 +31,13 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class PlaceListReader {
-    private static final Log LOG = LogFactory.getLog(PlaceListReader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PlaceListReader.class);
 
     private Set<PlaceLexicalEntry> allVariants = new TreeSet<PlaceListReader.PlaceLexicalEntry>();
     private Set<String> entries = new TreeSet<String>();

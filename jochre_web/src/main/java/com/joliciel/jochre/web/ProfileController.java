@@ -1,8 +1,7 @@
 package com.joliciel.jochre.web;
 
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Session;
@@ -14,12 +13,11 @@ import org.zkoss.zul.Div;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.SimpleConstraint;
-import org.zkoss.zul.Window;
 import org.zkoss.zul.Textbox;
+import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.security.User;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class ProfileController extends GenericForwardComposer<Div> {
 	/**
@@ -27,9 +25,8 @@ public class ProfileController extends GenericForwardComposer<Div> {
 	 */
 	private static final long serialVersionUID = 1664468221173319777L;
 
+	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
 
-	private static final Log LOG = LogFactory.getLog(ProfileController.class);
-	
 	private JochreServiceLocator locator = null;
 
 	Window winProfile;
@@ -39,11 +36,11 @@ public class ProfileController extends GenericForwardComposer<Div> {
 	Textbox txtFirstName;
 	Textbox txtLastName;
 	Label lblPwdError;
-	
-	
+
 	public ProfileController() {
 	}
-	
+
+	@Override
 	public void doAfterCompose(Div div) throws Exception {
 		super.doAfterCompose(div);
 		div.setAttribute("controller", this);
@@ -52,28 +49,28 @@ public class ProfileController extends GenericForwardComposer<Div> {
 
 		Session session = Sessions.getCurrent();
 		User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-		if (user==null) {
+		if (user == null) {
 			Executions.sendRedirect("login.zul");
 			return;
 		}
-		
-        locator = JochreServiceLocator.getInstance();
-    	String resourcePath = "/jdbc-jochreWeb.properties";
-    	LOG.debug("resource path: " + resourcePath);
-        locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-        
-        lblUsername.setValue(user.getUsername());
-        txtFirstName.setText(user.getFirstName());
-        txtLastName.setText(user.getLastName());
+
+		locator = JochreServiceLocator.getInstance();
+		String resourcePath = "/jdbc-jochreWeb.properties";
+		LOG.debug("resource path: " + resourcePath);
+		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
+
+		lblUsername.setValue(user.getUsername());
+		txtFirstName.setText(user.getFirstName());
+		txtLastName.setText(user.getLastName());
 
 	}
-	
-    public void onClick$btnSave(Event event) {
-    	LOG.debug("onClick$btnsave");
-    	try {
+
+	public void onClick$btnSave(Event event) {
+		LOG.debug("onClick$btnsave");
+		try {
 			Session session = Sessions.getCurrent();
 			User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-			if (txtPassword.getText().length()>0) {
+			if (txtPassword.getText().length() > 0) {
 				if (!txtPassword.getText().equals(txtPassword2.getText())) {
 					lblPwdError.setVisible(true);
 					return;
@@ -83,22 +80,22 @@ public class ProfileController extends GenericForwardComposer<Div> {
 			user.setFirstName(txtFirstName.getText());
 			user.setLastName(txtLastName.getText());
 			user.save();
-			
+
 			Messagebox.show(Labels.getLabel("button.saveComplete"));
-	
+
 		} catch (Exception e) {
-			LogUtils.logError(LOG, e);
+			LOG.error("Failure in onClick$btnsave", e);
 			throw new RuntimeException(e);
 		}
-    }
-    
-    public void onClick$btnCancel(Event event) {
-       	LOG.debug("onClick$btnCancel");
+	}
+
+	public void onClick$btnCancel(Event event) {
+		LOG.debug("onClick$btnCancel");
 		Executions.sendRedirect("docs.zul");
-    }
-    
-    public Constraint getNoEmpty() {
-    	Constraint noEmpty = SimpleConstraint.getInstance("no empty");
-    	return noEmpty;
-    }
+	}
+
+	public Constraint getNoEmpty() {
+		Constraint noEmpty = SimpleConstraint.getInstance("no empty");
+		return noEmpty;
+	}
 }

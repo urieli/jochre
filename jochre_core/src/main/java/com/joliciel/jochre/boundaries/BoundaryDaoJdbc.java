@@ -23,8 +23,8 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -35,7 +35,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.utils.DaoUtils;
 
 final class BoundaryDaoJdbc implements BoundaryDao {
-	private static final Log LOG = LogFactory.getLog(BoundaryDaoJdbc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BoundaryDaoJdbc.class);
 	BoundaryServiceInternal boundaryServiceInternal;
 	private DataSource dataSource;
 
