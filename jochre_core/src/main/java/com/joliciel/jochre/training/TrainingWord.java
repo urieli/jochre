@@ -16,29 +16,23 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search.feedback;
+package com.joliciel.jochre.training;
 
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 
 /**
- * A word for which a user has given feedback.
+ * A single word, associated with one (or two) rectangles, depending on whether
+ * it is hyphenated at the end of a row or simple, the containing rows and their
+ * images, and the text.
  * 
  * @author Assaf Urieli
  *
  */
-public interface FeedbackWord {
-	/**
-	 * The unique internal id for this word.
-	 */
-	public int getId();
-
+public interface TrainingWord {
 	/**
 	 * The row on which this word is found.
 	 */
-	public FeedbackRow getRow();
-
-	public int getRowId();
+	public TrainingRow getRow();
 
 	/**
 	 * The word's rectangle within the page containing it.
@@ -48,9 +42,7 @@ public interface FeedbackWord {
 	/**
 	 * The row containing the second half of a hyphenated word.
 	 */
-	public FeedbackRow getSecondRow();
-
-	public int getSecondRowId();
+	public TrainingRow getSecondRow();
 
 	/**
 	 * The rectangle containing the 2nd half of a hyphenated word, within the
@@ -59,14 +51,24 @@ public interface FeedbackWord {
 	public Rectangle getSecondRectangle();
 
 	/**
-	 * The initial guess for this word.
+	 * The font which the user indicated for this word.
 	 */
-	public String getInitialGuess();
+	String getFont();
 
 	/**
-	 * This word's image - in the case of a hyphenated word, this combines both
-	 * halves. If separate images are required, they can be acquired via the row
-	 * images and rectangles.
+	 * The language which the user indicated for this word.
 	 */
-	public BufferedImage getImage();
+	String getLanguage();
+
+	/**
+	 * The text.
+	 */
+	String getText();
+
+	/**
+	 * The text for the second half in the case of a hyphenated word.
+	 * 
+	 * @return
+	 */
+	String getSecondText();
 }

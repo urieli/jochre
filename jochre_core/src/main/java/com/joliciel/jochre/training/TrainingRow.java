@@ -16,57 +16,26 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.search.feedback;
+package com.joliciel.jochre.training;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 /**
- * A word for which a user has given feedback.
+ * A single row, containing one or more training words.
  * 
  * @author Assaf Urieli
  *
  */
-public interface FeedbackWord {
-	/**
-	 * The unique internal id for this word.
-	 */
-	public int getId();
+public interface TrainingRow {
 
 	/**
-	 * The row on which this word is found.
-	 */
-	public FeedbackRow getRow();
-
-	public int getRowId();
-
-	/**
-	 * The word's rectangle within the page containing it.
+	 * This row's rectangle within the page.
 	 */
 	public Rectangle getRectangle();
 
 	/**
-	 * The row containing the second half of a hyphenated word.
-	 */
-	public FeedbackRow getSecondRow();
-
-	public int getSecondRowId();
-
-	/**
-	 * The rectangle containing the 2nd half of a hyphenated word, within the
-	 * page containing it.
-	 */
-	public Rectangle getSecondRectangle();
-
-	/**
-	 * The initial guess for this word.
-	 */
-	public String getInitialGuess();
-
-	/**
-	 * This word's image - in the case of a hyphenated word, this combines both
-	 * halves. If separate images are required, they can be acquired via the row
-	 * images and rectangles.
+	 * This row's image.
 	 */
 	public BufferedImage getImage();
 }
