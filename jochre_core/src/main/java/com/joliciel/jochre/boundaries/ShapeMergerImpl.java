@@ -30,7 +30,6 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
@@ -41,10 +40,8 @@ public class ShapeMergerImpl implements ShapeMerger {
 	DecisionMaker decisionMaker;
 	Set<MergeFeature<?>> mergeFeatures;
 	BoundaryServiceInternal boundaryServiceInternal;
-	FeatureService featureService;
-	
-	public ShapeMergerImpl(DecisionMaker decisionMaker,
-			Set<MergeFeature<?>> mergeFeatures) {
+
+	public ShapeMergerImpl(DecisionMaker decisionMaker, Set<MergeFeature<?>> mergeFeatures) {
 		super();
 		this.decisionMaker = decisionMaker;
 		this.mergeFeatures = mergeFeatures;
@@ -54,20 +51,20 @@ public class ShapeMergerImpl implements ShapeMerger {
 	public double checkMerge(Shape shape1, Shape shape2) {
 		MONITOR.startTask("checkMerge");
 		try {
-			ShapePair mergeCandidate = this.boundaryServiceInternal.getShapePair(shape1, shape2);		
+			ShapePair mergeCandidate = this.boundaryServiceInternal.getShapePair(shape1, shape2);
 			if (LOG.isTraceEnabled())
 				LOG.trace("mergeCandidate: " + mergeCandidate);
-			
+
 			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
-			
+
 			MONITOR.startTask("analyse features");
 			try {
 				for (MergeFeature<?> feature : mergeFeatures) {
 					MONITOR.startTask(feature.getName());
 					try {
-						RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+						RuntimeEnvironment env = new RuntimeEnvironment();
 						FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-						if (featureResult!=null) {
+						if (featureResult != null) {
 							featureResults.add(featureResult);
 							if (LOG.isTraceEnabled()) {
 								LOG.trace(featureResult.toString());
@@ -80,7 +77,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			} finally {
 				MONITOR.endTask();
 			}
-			
+
 			List<Decision> decisions = null;
 			MONITOR.startTask("decision maker");
 			try {
@@ -88,7 +85,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 			} finally {
 				MONITOR.endTask();
 			}
-			
+
 			double yesProb = 0.0;
 			for (Decision decision : decisions) {
 				if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
@@ -96,7 +93,7 @@ public class ShapeMergerImpl implements ShapeMerger {
 					break;
 				}
 			}
-			
+
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("yesProb: " + yesProb);
 			}
@@ -117,17 +114,8 @@ public class ShapeMergerImpl implements ShapeMerger {
 		return boundaryServiceInternal;
 	}
 
-	public void setBoundaryServiceInternal(
-			BoundaryServiceInternal boundaryServiceInternal) {
+	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
 		this.boundaryServiceInternal = boundaryServiceInternal;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
 	}
 
 }

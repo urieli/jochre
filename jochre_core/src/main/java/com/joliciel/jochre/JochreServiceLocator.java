@@ -42,15 +42,13 @@ import com.joliciel.jochre.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.output.OutputServiceLocator;
 import com.joliciel.jochre.pdf.PdfServiceLocator;
 import com.joliciel.jochre.security.SecurityServiceLocator;
-import com.joliciel.talismane.machineLearning.MachineLearningServiceLocator;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
-import com.joliciel.talismane.machineLearning.features.FeatureServiceLocator;
 import com.joliciel.talismane.utils.ObjectCache;
 import com.joliciel.talismane.utils.SimpleObjectCache;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * Top-level locator for implementations of Jochre interfaces.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -68,181 +66,174 @@ public class JochreServiceLocator {
 	private BoundaryFeatureServiceLocator boundaryFeatureServiceLocator;
 	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
 	private LetterFeatureServiceLocator letterFeatureServiceLocator;
-	private MachineLearningServiceLocator machineLearningServiceLocator;
-	
-	private FeatureService featureService;
-	
-    private DataSource dataSource;
-    private String dataSourcePropertiesResource;
-    private String dataSourcePropertiesFile;
-    private Properties dataSourceProperties;
-    private ObjectCache objectCache;
-    private static JochreServiceLocator instance = null;
 
-    private JochreServiceLocator() {
-    	
-    }
-    
-    public static JochreServiceLocator getInstance() {
-    	if (instance==null) {
-    		instance = new JochreServiceLocator();
-    	}
-    	return instance;
-    }
-    
-    /**
-     * The data source resource path as a classpath resource.
-     */
-    public String getDataSourcePropertiesResource() {
-        return dataSourcePropertiesResource;
-    }
+	private DataSource dataSource;
+	private String dataSourcePropertiesResource;
+	private String dataSourcePropertiesFile;
+	private Properties dataSourceProperties;
+	private ObjectCache objectCache;
+	private static JochreServiceLocator instance = null;
 
-    public void setDataSourcePropertiesResource(String dataSourcePropertiesFile) {
-        this.dataSourcePropertiesResource = dataSourcePropertiesFile;
-    }
-    
-    public void setDataSourceProperties(InputStream is) {
-        dataSourceProperties = new Properties();
-        try {
-	         dataSourceProperties.load(is);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } 
-    }
-    
-    private Properties getDataSourceProperties() {
-        if (dataSourceProperties==null && 
-        		(this.getDataSourcePropertiesResource()!=null||this.getDataSourcePropertiesFile()!=null)) {
-            dataSourceProperties = new Properties();
-            try {
-            	String filePath = null;
-            	if (this.getDataSourcePropertiesFile()!=null) {
-            		filePath = this.getDataSourcePropertiesFile();
-            	} else if (this.getDataSourcePropertiesResource()!=null) {
-	            	LOG.debug("Loading database properties from: " + this.getDataSourcePropertiesResource());
-	                URL url =  ClassLoader.getSystemResource(this.getDataSourcePropertiesResource());
-	                filePath = url.getFile();
-            	}
-                FileInputStream fis = new FileInputStream(filePath);
-                dataSourceProperties.load(fis);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }        
-        }
-        return dataSourceProperties;
-    }
-    
-    private DataSource getDataSource() {
-        if (dataSource==null) {
-             Properties props = this.getDataSourceProperties();
-            if (props!=null) {
-                ComboPooledDataSource ds = new ComboPooledDataSource();
-	            try {
-	                ds.setDriverClass(props.getProperty("jdbc.driverClassName"));
-	            } catch (PropertyVetoException e) {
-	                 e.printStackTrace();
-	                 throw new RuntimeException(e);
-	            }
-	            ds.setJdbcUrl(props.getProperty("jdbc.url"));
-	            ds.setUser(props.getProperty("jdbc.username"));
-	            ds.setPassword(props.getProperty("jdbc.password"));
-	            dataSource = ds;
-            }
-        }
-        return dataSource;
-    }
+	private JochreServiceLocator() {
+
+	}
+
+	public static JochreServiceLocator getInstance() {
+		if (instance == null) {
+			instance = new JochreServiceLocator();
+		}
+		return instance;
+	}
+
+	/**
+	 * The data source resource path as a classpath resource.
+	 */
+	public String getDataSourcePropertiesResource() {
+		return dataSourcePropertiesResource;
+	}
+
+	public void setDataSourcePropertiesResource(String dataSourcePropertiesFile) {
+		this.dataSourcePropertiesResource = dataSourcePropertiesFile;
+	}
+
+	public void setDataSourceProperties(InputStream is) {
+		dataSourceProperties = new Properties();
+		try {
+			dataSourceProperties.load(is);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Properties getDataSourceProperties() {
+		if (dataSourceProperties == null && (this.getDataSourcePropertiesResource() != null || this.getDataSourcePropertiesFile() != null)) {
+			dataSourceProperties = new Properties();
+			try {
+				String filePath = null;
+				if (this.getDataSourcePropertiesFile() != null) {
+					filePath = this.getDataSourcePropertiesFile();
+				} else if (this.getDataSourcePropertiesResource() != null) {
+					LOG.debug("Loading database properties from: " + this.getDataSourcePropertiesResource());
+					URL url = ClassLoader.getSystemResource(this.getDataSourcePropertiesResource());
+					filePath = url.getFile();
+				}
+				FileInputStream fis = new FileInputStream(filePath);
+				dataSourceProperties.load(fis);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+		return dataSourceProperties;
+	}
+
+	private DataSource getDataSource() {
+		if (dataSource == null) {
+			Properties props = this.getDataSourceProperties();
+			if (props != null) {
+				ComboPooledDataSource ds = new ComboPooledDataSource();
+				try {
+					ds.setDriverClass(props.getProperty("jdbc.driverClassName"));
+				} catch (PropertyVetoException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+				ds.setJdbcUrl(props.getProperty("jdbc.url"));
+				ds.setUser(props.getProperty("jdbc.username"));
+				ds.setPassword(props.getProperty("jdbc.password"));
+				dataSource = ds;
+			}
+		}
+		return dataSource;
+	}
 
 	public GraphicsServiceLocator getGraphicsServiceLocator() {
-		if (this.graphicsServiceLocator==null) {
+		if (this.graphicsServiceLocator == null) {
 			this.graphicsServiceLocator = new GraphicsServiceLocator(this, this.getDataSource());
 		}
 		return graphicsServiceLocator;
 	}
-	
+
 	public DocumentServiceLocator getDocumentServiceLocator() {
-		if (this.documentServiceLocator==null) {
+		if (this.documentServiceLocator == null) {
 			this.documentServiceLocator = new DocumentServiceLocator(this, this.getDataSource());
 		}
 		return documentServiceLocator;
 	}
-	
+
 	public LetterGuesserServiceLocator getLetterGuesserServiceLocator() {
-		if (this.letterGuesserServiceLocator==null) {
+		if (this.letterGuesserServiceLocator == null) {
 			this.letterGuesserServiceLocator = new LetterGuesserServiceLocator(this);
 		}
 		return letterGuesserServiceLocator;
 	}
-	
-	
-	
+
 	public AnalyserServiceLocator getAnalyserServiceLocator() {
-		if (analyserServiceLocator==null) {
+		if (analyserServiceLocator == null) {
 			analyserServiceLocator = new AnalyserServiceLocator(this);
 		}
 		return analyserServiceLocator;
 	}
 
 	public BoundaryServiceLocator getBoundaryServiceLocator() {
-		if (boundaryServiceLocator==null) {
+		if (boundaryServiceLocator == null) {
 			boundaryServiceLocator = new BoundaryServiceLocator(this, this.getDataSource());
 		}
 		return boundaryServiceLocator;
 	}
 
 	public LexiconServiceLocator getLexiconServiceLocator() {
-		if (this.lexiconServiceLocator==null) {
+		if (this.lexiconServiceLocator == null) {
 			this.lexiconServiceLocator = new LexiconServiceLocator(this);
 		}
 		return lexiconServiceLocator;
 	}
-	
+
 	public SecurityServiceLocator getSecurityServiceLocator() {
-		if (this.securityServiceLocator==null) {
+		if (this.securityServiceLocator == null) {
 			this.securityServiceLocator = new SecurityServiceLocator(this, this.getDataSource());
 		}
 		return securityServiceLocator;
 	}
 
 	public OutputServiceLocator getTextServiceLocator() {
-		if (this.textServiceLocator==null) {
+		if (this.textServiceLocator == null) {
 			this.textServiceLocator = new OutputServiceLocator(this, this.getDataSource());
 		}
 		return textServiceLocator;
 	}
 
 	public PdfServiceLocator getPdfServiceLocator() {
-		if (this.pdfServiceLocator==null) {
+		if (this.pdfServiceLocator == null) {
 			this.pdfServiceLocator = new PdfServiceLocator(this);
 		}
 		return pdfServiceLocator;
 	}
-	
+
 	public BoundaryFeatureServiceLocator getBoundaryFeatureServiceLocator() {
-		if (this.boundaryFeatureServiceLocator==null) {
+		if (this.boundaryFeatureServiceLocator == null) {
 			this.boundaryFeatureServiceLocator = new BoundaryFeatureServiceLocator(this);
 		}
 		return boundaryFeatureServiceLocator;
 	}
 
-	
 	public GraphicsFeatureServiceLocator getGraphicsFeatureServiceLocator() {
-		if (this.graphicsFeatureServiceLocator==null) {
+		if (this.graphicsFeatureServiceLocator == null) {
 			this.graphicsFeatureServiceLocator = new GraphicsFeatureServiceLocator(this);
 		}
 		return graphicsFeatureServiceLocator;
 	}
-	
+
 	public LetterFeatureServiceLocator getLetterFeatureServiceLocator() {
-		if (this.letterFeatureServiceLocator==null) {
+		if (this.letterFeatureServiceLocator == null) {
 			this.letterFeatureServiceLocator = new LetterFeatureServiceLocator(this);
 		}
 		return letterFeatureServiceLocator;
 	}
-	
+
 	public ObjectCache getObjectCache() {
-		if (this.objectCache==null)
+		if (this.objectCache == null)
 			this.objectCache = new SimpleObjectCache();
 		return objectCache;
 	}
@@ -255,19 +246,6 @@ public class JochreServiceLocator {
 		this.dataSource = dataSource;
 	}
 
-	public FeatureService getFeatureService() {
-		if (featureService==null) {
-			featureService = FeatureServiceLocator.getInstance().getFeatureService();
-		}
-		return featureService;
-	}
-
-	public MachineLearningServiceLocator getMachineLearningServiceLocator() {
-		if (machineLearningServiceLocator==null)
-			machineLearningServiceLocator = MachineLearningServiceLocator.getInstance();
-		return machineLearningServiceLocator;
-	}
-
 	public String getDataSourcePropertiesFile() {
 		return dataSourcePropertiesFile;
 	}
@@ -275,5 +253,5 @@ public class JochreServiceLocator {
 	public void setDataSourcePropertiesFile(String dataSourcePropertiesFile) {
 		this.dataSourcePropertiesFile = dataSourcePropertiesFile;
 	}
-	
+
 }

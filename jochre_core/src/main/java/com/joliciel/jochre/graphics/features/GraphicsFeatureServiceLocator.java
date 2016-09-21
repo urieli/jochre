@@ -23,24 +23,21 @@ import com.joliciel.jochre.JochreServiceLocator;
 public class GraphicsFeatureServiceLocator {
 	GraphicsFeatureServiceImpl graphicsFeatureService = null;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public GraphicsFeatureServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
 	}
-	
+
 	public GraphicsFeatureService getGraphicsFeatureService() {
-		if (graphicsFeatureService==null) {
+		if (graphicsFeatureService == null) {
 			graphicsFeatureService = new GraphicsFeatureServiceImpl();
-			graphicsFeatureService.setFeatureService(this.jochreServiceLocator.getFeatureService());
 			graphicsFeatureService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 		}
 		return graphicsFeatureService;
 	}
-	
 
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

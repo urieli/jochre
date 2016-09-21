@@ -26,26 +26,24 @@ public class BoundaryServiceLocator {
 	BoundaryServiceImpl boundaryService = null;
 	BoundaryDao boundaryDao = null;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	private DataSource dataSource;
-	
+
 	public BoundaryServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
 		this.jochreServiceLocator = jochreServiceLocator;
 		this.dataSource = dataSource;
 	}
-	
+
 	public BoundaryService getBoundaryService() {
-		if (boundaryService==null) {
+		if (boundaryService == null) {
 			boundaryService = new BoundaryServiceImpl();
 			boundaryService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			boundaryService.setBoundaryDao(this.getBoundaryDao());
-			boundaryService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
-			boundaryService.setFeatureService(this.jochreServiceLocator.getFeatureService());
 			boundaryService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 		}
 		return boundaryService;
 	}
-	
+
 	BoundaryDao getBoundaryDao() {
 		if (this.boundaryDao == null) {
 			this.boundaryDao = new BoundaryDaoJdbc();
@@ -57,6 +55,5 @@ public class BoundaryServiceLocator {
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

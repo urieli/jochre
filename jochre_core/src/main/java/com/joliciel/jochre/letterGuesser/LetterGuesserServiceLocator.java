@@ -23,27 +23,23 @@ import com.joliciel.jochre.JochreServiceLocator;
 public class LetterGuesserServiceLocator {
 	LetterGuesserServiceImpl letterGuesserService = null;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public LetterGuesserServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
 	}
-	
+
 	public LetterGuesserService getLetterGuesserService() {
-		if (letterGuesserService==null) {
+		if (letterGuesserService == null) {
 			letterGuesserService = new LetterGuesserServiceImpl();
 			letterGuesserService.setObjectCache(this.jochreServiceLocator.getObjectCache());
 			letterGuesserService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			letterGuesserService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
-			letterGuesserService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
-			letterGuesserService.setFeatureService(this.jochreServiceLocator.getFeatureService());
 		}
 		return letterGuesserService;
 	}
-	
 
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

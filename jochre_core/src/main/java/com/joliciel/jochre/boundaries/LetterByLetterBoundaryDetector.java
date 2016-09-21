@@ -25,11 +25,11 @@ import java.util.PriorityQueue;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
 
 /**
  * Returns shapes each representing a single letter (after splitting/merging),
  * regardless of the original boundaries.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -42,8 +42,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	private double minHeightRatioForSplit = 1.0;
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
-	private MachineLearningService machineLearningService;
-	
+
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
 		// find the possible shape sequences that make up this group
@@ -55,48 +54,48 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 			heap = new PriorityQueue<ShapeSequence>();
 
 			// check if shape is wide enough to bother with
-			
+
 			double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
 			double heightRatio = (double) shape.getHeight() / (double) shape.getXHeight();
 
 			// Splitting/merging shapes as required
 			List<ShapeSequence> splitSequences = null;
-			if (this.shapeSplitter!=null && widthRatio>=minWidthRatioForSplit && heightRatio>=minHeightRatioForSplit) {
+			if (this.shapeSplitter != null && widthRatio >= minWidthRatioForSplit && heightRatio >= minHeightRatioForSplit) {
 				splitSequences = shapeSplitter.split(shape);
 			} else {
 				// create a sequence containing only this shape
 				ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
 				singleShapeSequence.addShape(shape);
-				
+
 				splitSequences = new ArrayList<ShapeSequence>();
 				splitSequences.add(singleShapeSequence);
 			}
-			
+
 			// limit the breadth to K
 			int maxSequences = previousHeap.size() > this.beamWidth ? this.beamWidth : previousHeap.size();
-			
-			for (int j = 0; j<maxSequences; j++) {
+
+			for (int j = 0; j < maxSequences; j++) {
 				ShapeSequence history = previousHeap.poll();
 				for (ShapeSequence splitSequence : splitSequences) {
 					ShapeInSequence previousShapeInSequence = null;
 					Shape previousShape = null;
-					if (history.size()>0) {
-						previousShapeInSequence = history.get(history.size()-1);
+					if (history.size() > 0) {
+						previousShapeInSequence = history.get(history.size() - 1);
 						previousShape = previousShapeInSequence.getShape();
 					}
-					
+
 					ShapeInSequence firstShapeInSequence = splitSequence.get(0);
 					Shape firstShape = firstShapeInSequence.getShape();
-					
+
 					double mergeProb = 0;
-					if (this.shapeMerger!=null && previousShape!=null) {
+					if (this.shapeMerger != null && previousShape != null) {
 						ShapePair mergeCandidate = boundaryService.getShapePair(previousShape, shape);
 						double mergeCandidateWidthRatio = 0;
 						double mergeCandidateDistanceRatio = 0;
-						
+
 						mergeCandidateWidthRatio = (double) mergeCandidate.getWidth() / (double) mergeCandidate.getXHeight();
 						mergeCandidateDistanceRatio = (double) mergeCandidate.getInnerDistance() / (double) mergeCandidate.getXHeight();
-						
+
 						if (mergeCandidateWidthRatio <= maxWidthRatioForMerge && mergeCandidateDistanceRatio <= maxDistanceRatioForMerge) {
 							mergeProb = shapeMerger.checkMerge(previousShape, firstShape);
 						}
@@ -104,8 +103,8 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 					if (mergeProb > 0) {
 						Shape mergedShape = shapeMerger.merge(previousShape, firstShape);
 						ShapeSequence mergedSequence = boundaryService.getShapeSequencePlusOne(history);
-						mergedSequence.remove(mergedSequence.size()-1);
-						
+						mergedSequence.remove(mergedSequence.size() - 1);
+
 						List<Shape> originalShapesForMerge = new ArrayList<Shape>();
 						originalShapesForMerge.addAll(previousShapeInSequence.getOriginalShapes());
 						originalShapesForMerge.addAll(firstShapeInSequence.getOriginalShapes());
@@ -117,22 +116,22 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 							isFirstShape = false;
 						}
 						heap.add(mergedSequence);
-						
-						Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_MERGE.name(), mergeProb);
+
+						Decision mergeDecision = new Decision(MergeOutcome.DO_MERGE.name(), mergeProb);
 						mergedSequence.addDecision(mergeDecision);
 						for (Decision splitDecision : splitSequence.getDecisions())
 							mergedSequence.addDecision(splitDecision);
 					}
-					
-					if (mergeProb<1) {
+
+					if (mergeProb < 1) {
 						ShapeSequence totalSequence = boundaryService.getShapeSequencePlusOne(history);
-						if (mergeProb>0) {
-							Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_NOT_MERGE.name(), 1-mergeProb);
+						if (mergeProb > 0) {
+							Decision mergeDecision = new Decision(MergeOutcome.DO_NOT_MERGE.name(), 1 - mergeProb);
 							totalSequence.addDecision(mergeDecision);
 						}
 						for (Decision splitDecision : splitSequence.getDecisions())
 							totalSequence.addDecision(splitDecision);
-						
+
 						for (ShapeInSequence splitShape : splitSequence) {
 							totalSequence.add(splitShape);
 						}
@@ -141,15 +140,15 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 				} // next split sequence for this shape
 			} // next history from previous heap
 		} // next shape in group
-		
+
 		List<ShapeSequence> result = new ArrayList<ShapeSequence>();
-		for (int i=0;i<this.beamWidth;i++) {
+		for (int i = 0; i < this.beamWidth; i++) {
 			if (heap.isEmpty())
 				break;
 			ShapeSequence nextSequence = heap.poll();
 			result.add(nextSequence);
 		}
-		
+
 		return result;
 	}
 
@@ -225,14 +224,4 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 		this.minHeightRatioForSplit = minHeightRatioForSplit;
 	}
 
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
-	}
-
-	
 }

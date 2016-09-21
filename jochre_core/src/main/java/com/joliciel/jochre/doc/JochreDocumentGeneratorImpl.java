@@ -53,7 +53,7 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
@@ -70,7 +70,6 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	BoundaryService boundaryService;
 	LetterFeatureService letterFeatureService;
 	BoundaryFeatureService boundaryFeatureService;
-	MachineLearningService machineLearningService;
 
 	File outputDirectory = null;
 	String filename = "";
@@ -94,7 +93,7 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	 * Constructor for existing documents.
 	 * 
 	 * @param jochreDocument
-	 *            existing document to which we want to add stuff
+	 *          existing document to which we want to add stuff
 	 */
 	public JochreDocumentGeneratorImpl(JochreDocument jochreDocument) {
 		this.doc = jochreDocument;
@@ -104,11 +103,11 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	 * Constructor
 	 * 
 	 * @param filename
-	 *            name of the document (required if saving)
+	 *          name of the document (required if saving)
 	 * @param userFriendlyName
-	 *            user-friendly name for the document (required if saving)
+	 *          user-friendly name for the document (required if saving)
 	 * @param locale
-	 *            document's locale
+	 *          document's locale
 	 */
 	public JochreDocumentGeneratorImpl(String filename, String userFriendlyName, Locale locale) {
 		this.filename = filename;
@@ -405,8 +404,12 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 		this.mergeModelFile = mergeModelFile;
 
 		try {
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
-			ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+			ClassificationModel letterModel = null;
+			MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+			try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile))) {
+				letterModel = modelFactory.getClassificationModel(zis);
+
+			}
 
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -453,14 +456,6 @@ class JochreDocumentGeneratorImpl implements JochreDocumentGenerator {
 	public void requestSegmentation(File outputDirectory) {
 		this.showSegmentation = true;
 		this.outputDirectory = outputDirectory;
-	}
-
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
 	}
 
 	@Override

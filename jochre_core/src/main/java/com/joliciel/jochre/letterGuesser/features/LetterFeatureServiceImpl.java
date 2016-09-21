@@ -30,17 +30,12 @@ import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.features.GraphicsFeatureService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureTester;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureTesterImpl;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
-    private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureServiceImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureServiceImpl.class);
 	private GraphicsService graphicsService;
-	private FeatureService featureService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private GraphicsFeatureService graphicsFeatureService;
 	private BoundaryService boundaryService;
@@ -52,39 +47,37 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 		featureTester.setGraphicsService(this.getGraphicsService());
 		featureTester.setBoundaryService(this.getBoundaryService());
 		featureTester.setLetterGuesserService(this.getLetterGuesserService());
-		featureTester.setFeatureService(this.getFeatureService());
-		
+
 		return featureTester;
 	}
-	
+
 	public GraphicsService getGraphicsService() {
 		return graphicsService;
 	}
 
 	@Override
-	public Set<LetterFeature<?>> getLetterFeatureSet(
-			List<String> featureDescriptors) {
+	public Set<LetterFeature<?>> getLetterFeatureSet(List<String> featureDescriptors) {
 		Set<LetterFeature<?>> features = new TreeSet<LetterFeature<?>>();
-		FunctionDescriptorParser descriptorParser = this.getFeatureService().getFunctionDescriptorParser();
+		FunctionDescriptorParser descriptorParser = new FunctionDescriptorParser();
 		LetterFeatureParser mergeFeatureParser = this.getLetterFeatureParser();
-		
+
 		for (String featureDescriptor : featureDescriptors) {
 			LOG.trace(featureDescriptor);
-			if (featureDescriptor.length()>0 && !featureDescriptor.startsWith("#")) {
+			if (featureDescriptor.length() > 0 && !featureDescriptor.startsWith("#")) {
 				FunctionDescriptor functionDescriptor = descriptorParser.parseDescriptor(featureDescriptor);
 				List<LetterFeature<?>> myFeatures = mergeFeatureParser.parseDescriptor(functionDescriptor);
 				features.addAll(myFeatures);
-				
+
 			}
 		}
 		return features;
 	}
 
 	private LetterFeatureParser getLetterFeatureParser() {
-		LetterFeatureParser parser = new LetterFeatureParser(this.getFeatureService());
+		LetterFeatureParser parser = new LetterFeatureParser();
 		parser.setShapeFeatureParser(this.getGraphicsFeatureService().getShapeFeatureParser());
 		parser.setShapeInSequenceFeatureParser(this.getBoundaryFeatureService().getShapeInSequenceFeatureParser());
-		
+
 		return parser;
 	}
 
@@ -92,20 +85,11 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 		this.graphicsService = graphicsService;
 	}
 
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
-	}
-
 	public BoundaryFeatureService getBoundaryFeatureService() {
 		return boundaryFeatureService;
 	}
 
-	public void setBoundaryFeatureService(
-			BoundaryFeatureService boundaryFeatureService) {
+	public void setBoundaryFeatureService(BoundaryFeatureService boundaryFeatureService) {
 		this.boundaryFeatureService = boundaryFeatureService;
 	}
 
@@ -113,8 +97,7 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 		return graphicsFeatureService;
 	}
 
-	public void setGraphicsFeatureService(
-			GraphicsFeatureService graphicsFeatureService) {
+	public void setGraphicsFeatureService(GraphicsFeatureService graphicsFeatureService) {
 		this.graphicsFeatureService = graphicsFeatureService;
 	}
 

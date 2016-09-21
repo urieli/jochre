@@ -19,25 +19,15 @@
 package com.joliciel.jochre.graphics.features;
 
 import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 
 class GraphicsFeatureServiceImpl implements GraphicsFeatureServiceInternal {
-	private FeatureService featureService;
 	private GraphicsService graphicsService;
 
+	@Override
 	public ShapeFeatureParser getShapeFeatureParser() {
-		ShapeFeatureParserImpl parser = new ShapeFeatureParserImpl(this.getFeatureService());
-		parser.setFeatureService(this.getFeatureService());
+		ShapeFeatureParserImpl parser = new ShapeFeatureParserImpl();
 		parser.setGraphicsService(this.getGraphicsService());
 		return parser;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
 	}
 
 	public GraphicsService getGraphicsService() {

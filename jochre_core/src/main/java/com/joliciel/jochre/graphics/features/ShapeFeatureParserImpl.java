@@ -8,17 +8,15 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureSyntaxException;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
-class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> implements
-		ShapeFeatureParser {
+class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> implements ShapeFeatureParser {
 	private FeatureClassContainer container;
 	private GraphicsService graphicsService;
-	
-	public ShapeFeatureParserImpl(FeatureService featureService) {
-		super(featureService);
+
+	public ShapeFeatureParserImpl() {
+		super();
 	}
 
 	@Override
@@ -42,25 +40,24 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 		container.addFeatureClass("OpeningOnBottom", OpeningOnBottomFeature.class);
 		container.addFeatureClass("Height", HeightFeature.class);
 		container.addFeatureClass("Width", WidthFeature.class);
-		
+
 		this.container = container;
 	}
-	
+
 	@Override
-	public List<FunctionDescriptor> getModifiedDescriptors(
-			FunctionDescriptor functionDescriptor) {
+	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
 		List<FunctionDescriptor> descriptors = new ArrayList<FunctionDescriptor>();
 		String functionName = functionDescriptor.getFunctionName();
-		
+
 		@SuppressWarnings("rawtypes")
 		List<Class<? extends Feature>> featureClasses = container.getFeatureClasses(functionName);
-		
+
 		@SuppressWarnings("rawtypes")
 		Class<? extends Feature> featureClass = null;
-		if (featureClasses!=null && featureClasses.size()>0)
+		if (featureClasses != null && featureClasses.size() > 0)
 			featureClass = featureClasses.get(0);
-		
-		if (functionName.equalsIgnoreCase("SectionRelativeBrightnessGrid")) {	
+
+		if (functionName.equalsIgnoreCase("SectionRelativeBrightnessGrid")) {
 			if (!(functionDescriptor.getArguments().get(0).getObject() instanceof Integer))
 				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(1).getObject() instanceof Integer))
@@ -69,13 +66,13 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 				throw new FeatureSyntaxException(functionName + " argument 3 must be a decimal number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(3).getObject() instanceof Double))
 				throw new FeatureSyntaxException(functionName + " argument 4 must be a decimal number", functionDescriptor, functionDescriptor);
-			
-			int verticalSections = ((Integer)functionDescriptor.getArguments().get(0).getObject()).intValue();
-			int horizontalSections = ((Integer)functionDescriptor.getArguments().get(1).getObject()).intValue();
+
+			int verticalSections = ((Integer) functionDescriptor.getArguments().get(0).getObject()).intValue();
+			int horizontalSections = ((Integer) functionDescriptor.getArguments().get(1).getObject()).intValue();
 			String newFunctionName = "SectionRelativeBrightness";
-	        for (int x = 0; x < verticalSections; x++) {
-	        	for (int y = 0; y < horizontalSections; y++) {
-					FunctionDescriptor descriptor = this.getFeatureService().getFunctionDescriptor(newFunctionName);
+			for (int x = 0; x < verticalSections; x++) {
+				for (int y = 0; y < horizontalSections; y++) {
+					FunctionDescriptor descriptor = new FunctionDescriptor(newFunctionName);
 					descriptor.addArgument(x);
 					descriptor.addArgument(y);
 					descriptor.addArgument(verticalSections);
@@ -84,30 +81,30 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 					descriptor.addArgument(functionDescriptor.getArguments().get(3));
 					descriptors.add(descriptor);
 				}
-	        }
-		} else if (functionName.equalsIgnoreCase("SectionRelativeBrightnessNoMarginsGrid")) {		
+			}
+		} else if (functionName.equalsIgnoreCase("SectionRelativeBrightnessNoMarginsGrid")) {
 			if (!(functionDescriptor.getArguments().get(0).getObject() instanceof Integer))
 				throw new FeatureSyntaxException(functionName + " argument 1 must be a whole number", functionDescriptor, functionDescriptor);
 			if (!(functionDescriptor.getArguments().get(1).getObject() instanceof Integer))
 				throw new FeatureSyntaxException(functionName + " argument 2 must be a whole number", functionDescriptor, functionDescriptor);
-			
-			int verticalSections = ((Integer)functionDescriptor.getArguments().get(0).getObject()).intValue();
-			int horizontalSections = ((Integer)functionDescriptor.getArguments().get(1).getObject()).intValue();
+
+			int verticalSections = ((Integer) functionDescriptor.getArguments().get(0).getObject()).intValue();
+			int horizontalSections = ((Integer) functionDescriptor.getArguments().get(1).getObject()).intValue();
 			String newFunctionName = "SectionRelativeBrightnessNoMargins";
-	        for (int x = 0; x < verticalSections; x++) {
-	        	for (int y = 0; y < horizontalSections; y++) {
-					FunctionDescriptor descriptor = this.getFeatureService().getFunctionDescriptor(newFunctionName);
+			for (int x = 0; x < verticalSections; x++) {
+				for (int y = 0; y < horizontalSections; y++) {
+					FunctionDescriptor descriptor = new FunctionDescriptor(newFunctionName);
 					descriptor.addArgument(x);
 					descriptor.addArgument(y);
 					descriptor.addArgument(verticalSections);
 					descriptor.addArgument(horizontalSections);
 					descriptors.add(descriptor);
 				}
-	        }
-		} else if (featureClass==null) {
+			}
+		} else if (featureClass == null) {
 			// do nothing
 		}
-		
+
 		return descriptors;
 	}
 
@@ -118,7 +115,7 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	public void setGraphicsService(GraphicsService graphicsService) {
 		this.graphicsService = graphicsService;
 	}
-	
+
 	@Override
 	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
 		if (feature instanceof InnerEmptyChupchikLowerLeftFeature) {
@@ -127,20 +124,17 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 	}
 
 	@Override
-	protected boolean canConvert(Class<?> parameterType,
-			Class<?> originalArgumentType) {
+	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
 		return false;
 	}
 
 	@Override
-	protected Feature<ShapeWrapper, ?> convertArgument(Class<?> parameterType,
-			Feature<ShapeWrapper, ?> originalArgument) {
+	protected Feature<ShapeWrapper, ?> convertArgument(Class<?> parameterType, Feature<ShapeWrapper, ?> originalArgument) {
 		return null;
 	}
 
 	@Override
-	public Feature<ShapeWrapper, ?> convertFeatureCustomType(
-			Feature<ShapeWrapper, ?> feature) {
+	public Feature<ShapeWrapper, ?> convertFeatureCustomType(Feature<ShapeWrapper, ?> feature) {
 		return null;
 	}
 

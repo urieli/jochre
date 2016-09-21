@@ -37,14 +37,11 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
+import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 
 class BoundaryServiceImpl implements BoundaryServiceInternal {
 	private static final Logger LOG = LoggerFactory.getLogger(BoundaryServiceImpl.class);
-	private MachineLearningService machineLearningService;
 	private GraphicsService graphicsService;
-	private FeatureService featureService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private BoundaryDao boundaryDao;
 
@@ -58,7 +55,6 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		boundaryDetector.setShapeMerger(shapeMerger);
 		boundaryDetector.setMinProbabilityForDecision(minProbabilityForDecision);
 		boundaryDetector.setBoundaryService(this);
-		boundaryDetector.setMachineLearningService(this.getMachineLearningService());
 		return boundaryDetector;
 	}
 
@@ -69,7 +65,6 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		boundaryDetector.setShapeMerger(shapeMerger);
 		boundaryDetector.setBeamWidth(beamWidth);
 		boundaryDetector.setBoundaryService(this);
-		boundaryDetector.setMachineLearningService(this.getMachineLearningService());
 		return boundaryDetector;
 	}
 
@@ -176,11 +171,9 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
-		eventStream.setMachineLearningService(this.getMachineLearningService());
 		eventStream.setCriteria(criteria);
 		eventStream.setMinWidthRatio(minWidthRatio);
 		eventStream.setMinHeightRatio(minHeightRatio);
-		eventStream.setFeatureService(this.getFeatureService());
 
 		SplitCandidateFinder splitCandidateFinder = this.getSplitCandidateFinder();
 		eventStream.setSplitCandidateFinder(splitCandidateFinder);
@@ -193,11 +186,9 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures);
 		eventStream.setBoundaryService(this);
 		eventStream.setGraphicsService(this.getGraphicsService());
-		eventStream.setMachineLearningService(this.getMachineLearningService());
 		eventStream.setCriteria(criteria);
 		eventStream.setMaxWidthRatio(maxWidthRatio);
 		eventStream.setMaxDistanceRatio(maxDistanceRatio);
-		eventStream.setFeatureService(this.getFeatureService());
 
 		return eventStream;
 	}
@@ -210,8 +201,6 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		shapeSplitter.setBeamWidth(beamWidth);
 		shapeSplitter.setMaxDepth(maxDepth);
 		shapeSplitter.setBoundaryServiceInternal(this);
-		shapeSplitter.setFeatureService(this.getFeatureService());
-		shapeSplitter.setMachineLearningService(this.getMachineLearningService());
 
 		return shapeSplitter;
 	}
@@ -251,24 +240,7 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	public ShapeMerger getShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker decisionMaker) {
 		ShapeMergerImpl merger = new ShapeMergerImpl(decisionMaker, mergeFeatures);
 		merger.setBoundaryServiceInternal(this);
-		merger.setFeatureService(this.getFeatureService());
 		return merger;
-	}
-
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
 	}
 
 	@Override
@@ -282,15 +254,22 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 			SplitCandidateFinder splitCandidateFinder = this.getSplitCandidateFinder();
 			splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-			ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
+			MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+
+			ClassificationModel splitModel = null;
+			try (ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile))) {
+				splitModel = modelFactory.getClassificationModel(splitZis);
+			}
 			List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 			Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
 			ShapeSplitter shapeSplitter = this.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit,
 					splitBeamWidth, maxSplitDepth);
 
-			ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(splitModelFile));
-			ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
+			ClassificationModel mergeModel = null;
+			try (ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelFile))) {
+				mergeModel = modelFactory.getClassificationModel(mergeZis);
+			}
+
 			List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 			Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
 			double maxWidthRatioForMerge = 1.2;

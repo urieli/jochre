@@ -30,17 +30,13 @@ import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
-	private ObjectCache objectCache;	
+	private ObjectCache objectCache;
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
-	private MachineLearningService machineLearningService;
-	private FeatureService featureService;
-	
+
 	public LetterGuesserServiceImpl() {
 	}
 
@@ -51,11 +47,11 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	public void setObjectCache(ObjectCache objectCache) {
 		this.objectCache = objectCache;
 	}
-	
+
+	@Override
 	public LetterGuesser getLetterGuesser(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
 		LetterGuesserImpl letterGuesser = new LetterGuesserImpl(features, decisionMaker);
 		letterGuesser.setLetterGuesserServiceInternal(this);
-		letterGuesser.setFeatureService(this.getFeatureService());
 		return letterGuesser;
 	}
 
@@ -78,23 +74,22 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
-	
+
 	@Override
 	public LetterSequence getLetterSequence(LetterSequence sequence1, LetterSequence sequence2) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(sequence1, sequence2, this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
-	
 
 	@Override
-	public LetterSequence getLetterSequence(ShapeSequence shapeSequence,
-			List<String> letters) {
+	public LetterSequence getLetterSequence(ShapeSequence shapeSequence, List<String> letters) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, letters);
 		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
-	}	
+	}
+
 	@Override
 	public LetterGuesserContext getContext(ShapeInSequence shapeInSequence, LetterSequence history) {
 		LetterGuesserContext context = new LetterGuesserContextImpl(shapeInSequence, history);
@@ -110,16 +105,14 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	}
 
 	@Override
-	public ClassificationEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features, 
+	public ClassificationEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features,
 			BoundaryDetector boundaryDetector, LetterValidator letterValidator) {
 		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator);
 		eventStream.setCriteria(criteria);
 		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setLetterGuesserServiceInternal(this);
 		eventStream.setBoundaryService(this.getBoundaryService());
-		eventStream.setMachineLearningService(this.getMachineLearningService());
-		eventStream.setFeatureService(this.getFeatureService());
-		
+
 		eventStream.setBoundaryDetector(boundaryDetector);
 		return eventStream;
 	}
@@ -128,22 +121,4 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		this.boundaryService = boundaryService;
 	}
 
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
-	}
-
-	
 }

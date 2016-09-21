@@ -20,6 +20,7 @@ package com.joliciel.jochre.letterGuesser.features;
 
 import java.util.List;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,6 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
 class LetterFeatureTesterImpl implements LetterFeatureTester {
@@ -45,29 +45,29 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;
-	private FeatureService featureService;
 
 	@Override
-	public void applyFeatures(Set<LetterFeature<?>> features, Set<String> letters, int minImageId, int minShapeId) {	
-		List<JochreImage> images = this.getGraphicsService().findImages(new ImageStatus[] {ImageStatus.TRAINING_VALIDATED});
+	public void applyFeatures(Set<LetterFeature<?>> features, Set<String> letters, int minImageId, int minShapeId) {
+		List<JochreImage> images = this.getGraphicsService().findImages(new ImageStatus[] { ImageStatus.TRAINING_VALIDATED });
 		for (JochreImage image : images) {
-			if (image.getId()>=minImageId) {
+			if (image.getId() >= minImageId) {
 				this.testFeatures(image, features, letters, minShapeId);
 			}
 			image.clearMemory();
 		}
-	}	
+	}
 
 	void testFeatures(JochreImage jochreImage, Set<LetterFeature<?>> features, Set<String> letters, int minShapeId) {
 		for (Paragraph paragraph : jochreImage.getParagraphs()) {
-			for (RowOfShapes row: paragraph.getRows()) {
-				for (GroupOfShapes group : row.getGroups()) {// simply add this group's shapes
+			for (RowOfShapes row : paragraph.getRows()) {
+				for (GroupOfShapes group : row.getGroups()) {// simply add this group's
+																											// shapes
 					ShapeSequence shapeSequence = boundaryService.getEmptyShapeSequence();
 					for (Shape shape : group.getShapes())
 						shapeSequence.addShape(shape);
 					for (ShapeInSequence shapeInSequence : shapeSequence) {
 						Shape shape = shapeInSequence.getShape();
-						if (shape.getId()>=minShapeId&&(letters==null||letters.size()==0||letters.contains(shape.getLetter())))
+						if (shape.getId() >= minShapeId && (letters == null || letters.size() == 0 || letters.contains(shape.getLetter())))
 							this.testFeatures(shapeInSequence, features);
 					} // next shape
 				} // next group
@@ -79,11 +79,10 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 		LetterSequence history = null;
 		LetterGuesserContext context = this.letterGuesserService.getContext(shapeInSequence, history);
 		for (LetterFeature<?> feature : features) {
-			RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+			RuntimeEnvironment env = new RuntimeEnvironment();
 			feature.check(context, env);
 		}
 	}
-
 
 	public GraphicsService getGraphicsService() {
 		return graphicsService;
@@ -108,13 +107,4 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
 	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
-	}
-
 }

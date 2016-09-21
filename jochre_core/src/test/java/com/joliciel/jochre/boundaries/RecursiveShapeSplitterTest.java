@@ -19,8 +19,6 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
-import com.joliciel.talismane.machineLearning.MachineLearningServiceLocator;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 import mockit.Mocked;
@@ -41,7 +39,6 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape21, @Mocked final Shape shape22, @Mocked final Decision yesDecision, @Mocked final Decision noDecision) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
-		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 
 		new NonStrictExpectations() {
 			{
@@ -231,7 +228,6 @@ public class RecursiveShapeSplitterTest {
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
-		splitter.setMachineLearningService(machineLearningService);
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);
@@ -249,11 +245,9 @@ public class RecursiveShapeSplitterTest {
 	public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker,
 			@Mocked final Shape shape, @Mocked final JochreImage jochreImage, @Mocked final DataSource dataSource, @Mocked final Split split,
 			@Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Split split1, @Mocked final Split split2, @Mocked final Shape shape11,
-			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22, @Mocked final Decision yesDecision,
-			@Mocked final Decision noDecision) {
+			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
-		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 
 		new NonStrictExpectations() {
 			{
@@ -287,15 +281,8 @@ public class RecursiveShapeSplitterTest {
 				splitCandidateFinder.findSplitCandidates(shape);
 				returns(splits);
 
-				yesDecision.getOutcome();
-				returns(SplitOutcome.DO_SPLIT.name());
-				yesDecision.getProbability();
-				returns(0.4);
-				noDecision.getOutcome();
-				returns(SplitOutcome.DO_NOT_SPLIT.name());
-				noDecision.getProbability();
-				returns(0.6);
-
+				Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.4);
+				Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.6);
 				List<Decision> decisions = new ArrayList<Decision>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
@@ -444,7 +431,7 @@ public class RecursiveShapeSplitterTest {
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
-		splitter.setMachineLearningService(machineLearningService);
+
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);
@@ -495,11 +482,9 @@ public class RecursiveShapeSplitterTest {
 	public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker,
 			@Mocked final Shape shape, @Mocked final JochreImage jochreImage, @Mocked final DataSource dataSource, @Mocked final Split split,
 			@Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Split split1, @Mocked final Split split2, @Mocked final Shape shape11,
-			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22, @Mocked final Decision yesDecision,
-			@Mocked final Decision noDecision) {
+			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22) {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance();
 		locator.setDataSource(dataSource);
-		MachineLearningService machineLearningService = MachineLearningServiceLocator.getInstance().getMachineLearningService();
 
 		new NonStrictExpectations() {
 			{
@@ -531,15 +516,8 @@ public class RecursiveShapeSplitterTest {
 				splitCandidateFinder.findSplitCandidates(shape);
 				returns(splits);
 
-				yesDecision.getOutcome();
-				returns(SplitOutcome.DO_SPLIT.name());
-				yesDecision.getProbability();
-				returns(0.6);
-				noDecision.getOutcome();
-				returns(SplitOutcome.DO_NOT_SPLIT.name());
-				noDecision.getProbability();
-				returns(0.4);
-
+				Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.6);
+				Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.4);
 				List<Decision> decisions = new ArrayList<Decision>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
@@ -686,7 +664,6 @@ public class RecursiveShapeSplitterTest {
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
-		splitter.setMachineLearningService(machineLearningService);
 		splitter.setBeamWidth(10);
 		splitter.setMaxDepth(2);
 		splitter.setMinWidthRatio(1.0);

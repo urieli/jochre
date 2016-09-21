@@ -23,15 +23,14 @@ import com.joliciel.jochre.JochreServiceLocator;
 public class BoundaryFeatureServiceLocator {
 	BoundaryFeatureServiceImpl boundaryFeatureService = null;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public BoundaryFeatureServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
 	}
-	
+
 	public BoundaryFeatureService getBoundaryFeatureService() {
-		if (boundaryFeatureService==null) {
+		if (boundaryFeatureService == null) {
 			boundaryFeatureService = new BoundaryFeatureServiceImpl();
-			boundaryFeatureService.setFeatureService(this.jochreServiceLocator.getFeatureService());
 		}
 		return boundaryFeatureService;
 	}
@@ -39,6 +38,5 @@ public class BoundaryFeatureServiceLocator {
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

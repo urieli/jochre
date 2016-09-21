@@ -29,7 +29,6 @@ import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
@@ -40,10 +39,10 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(MergeFeatureParser.class);
 
-	public MergeFeatureParser(FeatureService featureService) {
-		super(featureService);
+	public MergeFeatureParser() {
+		super();
 	}
-	
+
 	@Override
 	public void addFeatureClasses(FeatureClassContainer container) {
 		container.addFeatureClass("MergedWidth", MergedWidthFeature.class);
@@ -52,14 +51,12 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 	}
 
 	@Override
-	public List<FunctionDescriptor> getModifiedDescriptors(
-			FunctionDescriptor functionDescriptor) {
+	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
 		return null;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public List<MergeFeature<?>> parseDescriptor(
-			FunctionDescriptor functionDescriptor) {
+	public List<MergeFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
 		MONITOR.startTask("parseDescriptor");
 		try {
 			List<Feature<ShapePair, ?>> mergeFeatures = this.parse(functionDescriptor);
@@ -87,82 +84,73 @@ class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
 		}
 	}
 
-	private static class MergeFeatureWrapper<T> extends AbstractFeature<ShapePair,T> implements
-		MergeFeature<T>, FeatureWrapper<ShapePair, T> {
-		private Feature<ShapePair,T> wrappedFeature = null;
-		
-		public MergeFeatureWrapper(
-				Feature<ShapePair, T> wrappedFeature) {
+	private static class MergeFeatureWrapper<T> extends AbstractFeature<ShapePair, T> implements MergeFeature<T>, FeatureWrapper<ShapePair, T> {
+		private Feature<ShapePair, T> wrappedFeature = null;
+
+		public MergeFeatureWrapper(Feature<ShapePair, T> wrappedFeature) {
 			super();
 			this.wrappedFeature = wrappedFeature;
 			this.setName(wrappedFeature.getName());
 		}
-		
+
 		@Override
 		public FeatureResult<T> check(ShapePair context, RuntimeEnvironment env) {
 			return wrappedFeature.check(context, env);
 		}
-		
+
 		@Override
 		public Feature<ShapePair, T> getWrappedFeature() {
 			return this.wrappedFeature;
 		}
-	
+
 		@SuppressWarnings("rawtypes")
 		@Override
 		public Class<? extends Feature> getFeatureType() {
 			return wrappedFeature.getFeatureType();
 		}
 	}
-	
+
 	private class MergeBooleanFeatureWrapper extends MergeFeatureWrapper<Boolean> implements BooleanFeature<ShapePair> {
-		public MergeBooleanFeatureWrapper(
-				Feature<ShapePair, Boolean> wrappedFeature) {
+		public MergeBooleanFeatureWrapper(Feature<ShapePair, Boolean> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class MergeStringFeatureWrapper extends MergeFeatureWrapper<String> implements StringFeature<ShapePair> {
-		public MergeStringFeatureWrapper(
-				Feature<ShapePair, String> wrappedFeature) {
+		public MergeStringFeatureWrapper(Feature<ShapePair, String> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class MergeDoubleFeatureWrapper extends MergeFeatureWrapper<Double> implements DoubleFeature<ShapePair> {
-		public MergeDoubleFeatureWrapper(
-				Feature<ShapePair, Double> wrappedFeature) {
+		public MergeDoubleFeatureWrapper(Feature<ShapePair, Double> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class MergeIntegerFeatureWrapper extends MergeFeatureWrapper<Integer> implements IntegerFeature<ShapePair> {
-		public MergeIntegerFeatureWrapper(
-				Feature<ShapePair, Integer> wrappedFeature) {
+		public MergeIntegerFeatureWrapper(Feature<ShapePair, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	@Override
 	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
 		// no dependencies to inject
 	}
 
 	@Override
-	protected boolean canConvert(Class<?> parameterType,
-			Class<?> originalArgumentType) {
+	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
 		return false;
 	}
 
 	@Override
-	protected Feature<ShapePair, ?> convertArgument(Class<?> parameterType,
-			Feature<ShapePair, ?> originalArgument) {
+	protected Feature<ShapePair, ?> convertArgument(Class<?> parameterType, Feature<ShapePair, ?> originalArgument) {
 		return null;
 	}
 
 	@Override
-	public Feature<ShapePair, ?> convertFeatureCustomType(
-			Feature<ShapePair, ?> feature) {
+	public Feature<ShapePair, ?> convertFeatureCustomType(Feature<ShapePair, ?> feature) {
 		return null;
 	}
 }

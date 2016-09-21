@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -122,14 +123,15 @@ import com.joliciel.jochre.utils.JochreLogUtils;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.ClassificationModelTrainer;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
+import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
-import com.joliciel.talismane.machineLearning.TrainingParameters;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * Class encapsulating the various top-level Jochre commands and command-line
@@ -159,8 +161,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	PdfService pdfService;
 	LetterFeatureService letterFeatureService;
 	BoundaryFeatureService boundaryFeatureService;
-	MachineLearningService machineLearningService;
-	FeatureService featureService;
 
 	Locale locale = null;
 	int userId = -1;
@@ -191,8 +191,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		pdfService = locator.getPdfServiceLocator().getPdfService();
 		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
 		boundaryFeatureService = locator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService();
-		machineLearningService = locator.getMachineLearningServiceLocator().getMachineLearningService();
-		featureService = locator.getFeatureService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -277,11 +275,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String csvSeparator = "\t";
 		String csvLocale = null;
 		String docSelectionPath = null;
-
-		TrainingParameters trainingParameters = new TrainingParameters("");
-		Set<String> propsRead = trainingParameters.load(null, argMap);
-		for (String propRead : propsRead)
-			argMap.remove(propRead);
+		List<String> featureDescriptors = null;
 
 		for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 			String argName = argMapEntry.getKey();
@@ -412,7 +406,17 @@ public class Jochre implements LocaleSpecificLexiconService {
 				csvEncoding = argValue;
 			else if (argName.equals("csvLocale"))
 				csvLocale = argValue;
-			else
+			else if (argName.equals("features")) {
+				featureDescriptors = new ArrayList<>();
+				InputStream featureFile = new FileInputStream(new File(argValue));
+				try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
+					while (scanner.hasNextLine()) {
+						String descriptor = scanner.nextLine();
+						featureDescriptors.add(descriptor);
+						LOG.debug(descriptor);
+					}
+				}
+			} else
 				throw new RuntimeException("Unknown argument: " + argName);
 		}
 
@@ -528,9 +532,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 			} else if (command.equals("updateImages")) {
 				this.doCommandUpdateImages(inFilePath, docId, firstPage, lastPage);
 			} else if (command.equals("applyFeatures")) {
-				this.doCommandApplyFeatures(imageId, shapeId, trainingParameters);
+				this.doCommandApplyFeatures(imageId, shapeId, featureDescriptors);
 			} else if (command.equals("train")) {
-				this.doCommandTrain(letterModelPath, trainingParameters, criteria, reconstructLetters);
+				this.doCommandTrain(letterModelPath, featureDescriptors, criteria, reconstructLetters);
 			} else if (command.equals("evaluate") || command.equals("evaluateComplex")) {
 				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
 			} else if (command.equals("evaluateFull")) {
@@ -539,11 +543,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 			} else if (command.equals("analyse")) {
 				this.doCommandAnalyse(letterModelPath, criteria, wordChooser, observers);
 			} else if (command.equals("trainSplits")) {
-				this.doCommandTrainSplits(splitModelPath, trainingParameters, criteria);
+				this.doCommandTrainSplits(splitModelPath, featureDescriptors, criteria);
 			} else if (command.equals("evaluateSplits")) {
 				this.doCommandEvaluateSplits(splitModelPath, criteria, minProbForDecision);
 			} else if (command.equals("trainMerge")) {
-				this.doCommandTrainMerge(mergeModelPath, trainingParameters, multiplier, criteria);
+				this.doCommandTrainMerge(mergeModelPath, featureDescriptors, multiplier, criteria);
 			} else if (command.equals("evaluateMerge")) {
 				this.doCommandEvaluateMerge(mergeModelPath, criteria, minProbForDecision);
 			} else if (command.equals("logImage")) {
@@ -668,7 +672,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (shapeId > 0) {
 			Shape shape = graphicsService.loadShape(shapeId);
 			shape.writeImageToLog();
-			RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+			RuntimeEnvironment env = new RuntimeEnvironment();
 			feature.check(shape, env);
 		} else {
 
@@ -684,7 +688,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			for (int oneShapeId : shapeIds) {
 				Shape shape = graphicsService.loadShape(oneShapeId);
 				shape.writeImageToLog();
-				RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+				RuntimeEnvironment env = new RuntimeEnvironment();
 				FeatureResult<?> weightedOutcome = feature.check(shape, env);
 
 				Object outcome = weightedOutcome.getOutcome();
@@ -748,29 +752,27 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train the letter merging model.
 	 * 
 	 * @param mergeModelPath
-	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the training parameters to use for building the model
+	 *          the path where the model should be saved
+	 * @param featureDescriptors
+	 *          feature descriptors for training
 	 * @param multiplier
-	 *            if &gt; 0, will be used to equalize the outcomes
+	 *          if &gt; 0, will be used to equalize the outcomes
 	 * @param criteria
-	 *            the criteria used to select the training corpus
+	 *          the criteria used to select the training corpus
 	 */
-	public void doCommandTrainMerge(String mergeModelPath, TrainingParameters trainingParameters, int multiplier, CorpusSelectionCriteria criteria) {
+	public void doCommandTrainMerge(String mergeModelPath, List<String> featureDescriptors, int multiplier, CorpusSelectionCriteria criteria) {
 		if (mergeModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: mergeModel");
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
 		File mergeModelFile = new File(mergeModelPath);
 		mergeModelFile.getParentFile().mkdirs();
 
-		Set<MergeFeature<?>> mergeFeatures = this.boundaryFeatureService.getMergeFeatureSet(trainingParameters.getFeatureDescriptors());
+		Set<MergeFeature<?>> mergeFeatures = this.boundaryFeatureService.getMergeFeatureSet(featureDescriptors);
 		double maxWidthRatio = 1.2;
 		double maxDistanceRatio = 0.15;
 		ClassificationEventStream corpusEventStream = boundaryService.getJochreMergeEventStream(criteria, mergeFeatures, maxWidthRatio, maxDistanceRatio);
@@ -778,10 +780,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 			corpusEventStream = new OutcomeEqualiserEventStream(corpusEventStream, multiplier);
 		}
 
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
+		Config config = ConfigFactory.load();
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
 
-		ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		mergeModel.persist(mergeModelFile);
 	}
 
@@ -789,12 +792,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate the letter merging model on its own.
 	 * 
 	 * @param mergeModelPath
-	 *            the path of the model to be evaluated.
+	 *          the path of the model to be evaluated.
 	 * @param criteria
-	 *            for selecting the portion of the corpus to evaluate
+	 *          for selecting the portion of the corpus to evaluate
 	 * @param minProbForDecision
-	 *            at which probability should a merge be made. If &lt; 0, 0.5 is
-	 *            assumed.
+	 *          at which probability should a merge be made. If &lt; 0, 0.5 is
+	 *          assumed.
 	 */
 	public void doCommandEvaluateMerge(String mergeModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
 		if (mergeModelPath.length() == 0)
@@ -802,8 +805,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel mergeModel = machineLearningService.getClassificationModel(zis);
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel mergeModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath))) {
+			mergeModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
@@ -826,35 +832,34 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train the letter splitting model.
 	 * 
 	 * @param splitModelPath
-	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the parameters for training the model
+	 *          the path where the model should be saved
+	 * @param featureDescriptors
+	 *          the feature descriptors for training this model
 	 * @param criteria
-	 *            the criteria used to select the training corpus
+	 *          the criteria used to select the training corpus
 	 */
-	public void doCommandTrainSplits(String splitModelPath, TrainingParameters trainingParameters, CorpusSelectionCriteria criteria) {
+	public void doCommandTrainSplits(String splitModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria) {
 		if (splitModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: splitModel");
 		if (!splitModelPath.endsWith(".zip"))
 			throw new RuntimeException("splitModel must end with .zip");
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
 		File splitModelFile = new File(splitModelPath);
 		splitModelFile.getParentFile().mkdirs();
 
-		Set<SplitFeature<?>> splitFeatures = this.boundaryFeatureService.getSplitFeatureSet(trainingParameters.getFeatureDescriptors());
+		Set<SplitFeature<?>> splitFeatures = this.boundaryFeatureService.getSplitFeatureSet(featureDescriptors);
 
 		double minWidthRatio = 1.1;
 		double minHeightRatio = 1.0;
 		ClassificationEventStream corpusEventStream = boundaryService.getJochreSplitEventStream(criteria, splitFeatures, minWidthRatio, minHeightRatio);
 
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
+		Config config = ConfigFactory.load();
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
 
-		ClassificationModel splitModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ClassificationModel splitModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		splitModel.persist(splitModelFile);
 	}
 
@@ -862,12 +867,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate the letter splitting model on its own.
 	 * 
 	 * @param splitModelPath
-	 *            the path of the model to be evaluated.
+	 *          the path of the model to be evaluated.
 	 * @param criteria
-	 *            the criteria used to select the evaluation corpus
+	 *          the criteria used to select the evaluation corpus
 	 * @param minProbForDecision
-	 *            at which probability should a split be made. If &lt; 0, 0.5 is
-	 *            assumed.
+	 *          at which probability should a split be made. If &lt; 0, 0.5 is
+	 *          assumed.
 	 */
 	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
 		if (splitModelPath.length() == 0)
@@ -875,8 +880,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (!splitModelPath.endsWith(".zip"))
 			throw new RuntimeException("splitModel must end with .zip");
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel splitModel = machineLearningService.getClassificationModel(zis);
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel splitModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath))) {
+			splitModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
@@ -888,8 +896,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatio,
-				beamWidth, maxDepth);
+		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatio, beamWidth,
+				maxDepth);
 
 		JochreCorpusShapeReader shapeReader = graphicsService.getJochreCorpusShapeReader();
 		shapeReader.setSelectionCriteria(criteria);
@@ -906,26 +914,24 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train a letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the parameters used for training
+	 *          the path where the model should be saved
+	 * @param featureDescriptors
+	 *          the feature descriptors for training
 	 * @param criteria
-	 *            criteria for selecting images to include when training
+	 *          criteria for selecting images to include when training
 	 * @param reconstructLetters
-	 *            whether or not complete letters should be reconstructed for
-	 *            training, from merged/split letters
+	 *          whether or not complete letters should be reconstructed for
+	 *          training, from merged/split letters
 	 */
-	public void doCommandTrain(String letterModelPath, TrainingParameters trainingParameters, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
+	public void doCommandTrain(String letterModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
 		if (letterModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: letterModel");
 		if (!letterModelPath.endsWith(".zip"))
 			throw new RuntimeException("letterModel must end with .zip");
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(trainingParameters.getFeatureDescriptors());
+		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(featureDescriptors);
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
@@ -942,10 +948,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		File letterModelFile = new File(letterModelPath);
 		letterModelFile.getParentFile().mkdirs();
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
+		Config config = ConfigFactory.load();
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
 
-		ClassificationModel letterModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ClassificationModel letterModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		letterModel.persist(letterModelFile);
 	}
 
@@ -953,11 +960,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate a given letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *            the path to the model
+	 *          the path to the model
 	 * @param criteria
-	 *            the criteria used to select the evaluation corpus
+	 *          the criteria used to select the evaluation corpus
 	 * @param outputDirPath
-	 *            the directory to which we write the evaluation files
+	 *          the directory to which we write the evaluation files
 	 */
 	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser,
 			boolean reconstructLetters, boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
@@ -971,8 +978,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		File outputDir = new File(outputDirPath);
 		outputDir.mkdirs();
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel letterModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
+			letterModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1089,13 +1099,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Analyse a set of images based on a given letter-guessing model.
 	 * 
 	 * @param letterModelPath
-	 *            the path to the letter-guessing model.
+	 *          the path to the letter-guessing model.
 	 * @param criteria
-	 *            the criteria used to select the documents to be analysed
+	 *          the criteria used to select the documents to be analysed
 	 * @param wordChooser
-	 *            the word chooser to use
+	 *          the word chooser to use
 	 * @param observers
-	 *            the observers, used to create analysis output
+	 *          the observers, used to create analysis output
 	 */
 	public void doCommandAnalyse(String letterModelPath, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers)
 			throws IOException {
@@ -1104,8 +1114,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (!letterModelPath.endsWith(".zip"))
 			throw new RuntimeException("letterModel must end with .zip");
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel letterModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
+			letterModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1131,8 +1144,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 */
 	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser,
 			int firstPage, int lastPage, List<DocumentObserver> observers) throws IOException {
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel letterModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile))) {
+			letterModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1188,17 +1205,17 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate a suite of split/merge models and letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *            the path to the letter-guessing model
+	 *          the path to the letter-guessing model
 	 * @param splitModelPath
-	 *            the path to the splitting model
+	 *          the path to the splitting model
 	 * @param mergeModelPath
-	 *            the path to the merging model
+	 *          the path to the merging model
 	 * @param criteria
-	 *            for selecting the evaluation corpus
+	 *          for selecting the evaluation corpus
 	 * @param save
-	 *            whether or not the letter guesses should be saved
+	 *          whether or not the letter guesses should be saved
 	 * @param outputDirPath
-	 *            the output directory where we write the evaluation results
+	 *          the output directory where we write the evaluation results
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, boolean save,
 			String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix,
@@ -1214,8 +1231,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (baseName.lastIndexOf("/") > 0)
 			baseName = baseName.substring(baseName.lastIndexOf("/") + 1);
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+		ClassificationModel letterModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
+			letterModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
@@ -1227,8 +1247,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (!splitModelPath.endsWith(".zip"))
 			throw new RuntimeException("splitModel must end with .zip");
 
-		ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
+		ClassificationModel splitModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath))) {
+			splitModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
@@ -1240,16 +1262,18 @@ public class Jochre implements LocaleSpecificLexiconService {
 		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(),
-				minWidthRatioForSplit, beamWidth, maxSplitDepth);
+		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit,
+				beamWidth, maxSplitDepth);
 
 		if (mergeModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: mergeModel");
 		if (!mergeModelPath.endsWith(".zip"))
 			throw new RuntimeException("mergeModel must end with .zip");
 
-		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
+		ClassificationModel mergeModel = null;
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath))) {
+			mergeModel = modelFactory.getClassificationModel(zis);
+		}
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
@@ -1316,14 +1340,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	}
 
 	/**
-	 * Apply a set of images to a given image or a given shape.
+	 * Apply a set of features to a given image or a given shape.
 	 */
-	public void doCommandApplyFeatures(int imageId, int shapeId, TrainingParameters trainingParameters) {
-		if (trainingParameters.getFeatureDescriptors() == null)
-			throw new RuntimeException("Missing argument: features");
+	public void doCommandApplyFeatures(int imageId, int shapeId, List<String> featureDescriptors) {
 		LetterFeatureTester featureTester = letterFeatureService.getFeatureTester();
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(trainingParameters.getFeatureDescriptors());
+		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(featureDescriptors);
 		Set<String> letters = new HashSet<String>();
 
 		featureTester.applyFeatures(features, letters, imageId, shapeId);
@@ -1333,15 +1355,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Update the images in an existing Jochre document.
 	 * 
 	 * @param filename
-	 *            the PDF file containing the images
+	 *          the PDF file containing the images
 	 * @param docId
-	 *            the id of the document to update
+	 *          the id of the document to update
 	 * @param firstPage
-	 *            the first page to segment, if &lt;=0 will start with first
-	 *            document page
+	 *          the first page to segment, if &lt;=0 will start with first
+	 *          document page
 	 * @param lastPage
-	 *            the last page to segment, if &lt;=0 will segment until last
-	 *            document page
+	 *          the last page to segment, if &lt;=0 will segment until last
+	 *          document page
 	 */
 	public void doCommandUpdateImages(String filename, int docId, int firstPage, int lastPage) {
 		if (filename.length() == 0)
@@ -1363,15 +1385,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Extract the images from a PDF file.
 	 * 
 	 * @param filename
-	 *            the path to the PDF file
+	 *          the path to the PDF file
 	 * @param outputDirPath
-	 *            the directory where to store the images extracted.
+	 *          the directory where to store the images extracted.
 	 * @param firstPage
-	 *            the first page to segment, if &lt;=0 will start with first
-	 *            document page
+	 *          the first page to segment, if &lt;=0 will start with first
+	 *          document page
 	 * @param lastPage
-	 *            the last page to segment, if &lt;=0 will segment until last
-	 *            document page
+	 *          the last page to segment, if &lt;=0 will segment until last
+	 *          document page
 	 */
 	public void doCommandExtractImages(String filename, String outputDirPath, int firstPage, int lastPage) {
 		if (filename.length() == 0)
@@ -1392,24 +1414,24 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Segment a file, without analysing it.
 	 * 
 	 * @param filename
-	 *            the path of the file to load
+	 *          the path of the file to load
 	 * @param userFriendlyName
-	 *            a name to store against this file in the database
+	 *          a name to store against this file in the database
 	 * @param showSegmentation
-	 *            whether or not to output the graphical segmentation files
+	 *          whether or not to output the graphical segmentation files
 	 * @param outputDirPath
-	 *            an output directory for the graphical segmentation files
+	 *          an output directory for the graphical segmentation files
 	 * @param save
-	 *            should we save this file to the database?
+	 *          should we save this file to the database?
 	 * @param firstPage
-	 *            the first page to segment, if &lt;=0 will start with first
-	 *            document page
+	 *          the first page to segment, if &lt;=0 will start with first
+	 *          document page
 	 * @param lastPage
-	 *            the last page to segment, if &lt;=0 will segment until last
-	 *            document page
+	 *          the last page to segment, if &lt;=0 will segment until last
+	 *          document page
 	 */
-	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath,
-			boolean save, int firstPage, int lastPage) {
+	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath, boolean save,
+			int firstPage, int lastPage) {
 
 		if (filename.length() == 0)
 			throw new RuntimeException("Missing argument: file");

@@ -29,7 +29,6 @@ import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
@@ -40,10 +39,10 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(SplitFeatureParser.class);
 
-	public SplitFeatureParser(FeatureService featureService) {
-		super(featureService);
+	public SplitFeatureParser() {
+		super();
 	}
-	
+
 	@Override
 	public void addFeatureClasses(FeatureClassContainer container) {
 		container.addFeatureClass("BridgeWidth", BridgeWidthFeature.class);
@@ -55,14 +54,12 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	}
 
 	@Override
-	public List<FunctionDescriptor> getModifiedDescriptors(
-			FunctionDescriptor functionDescriptor) {
+	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
 		return null;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public List<SplitFeature<?>> parseDescriptor(
-			FunctionDescriptor functionDescriptor) {
+	public List<SplitFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
 		MONITOR.startTask("parseDescriptor");
 		try {
 			List<Feature<Split, ?>> mergeFeatures = this.parse(functionDescriptor);
@@ -90,58 +87,52 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 		}
 	}
 
-	private static class SplitFeatureWrapper<T> extends AbstractFeature<Split,T> implements
-		SplitFeature<T>, FeatureWrapper<Split, T> {
-		private Feature<Split,T> wrappedFeature = null;
-		
-		public SplitFeatureWrapper(
-				Feature<Split, T> wrappedFeature) {
+	private static class SplitFeatureWrapper<T> extends AbstractFeature<Split, T> implements SplitFeature<T>, FeatureWrapper<Split, T> {
+		private Feature<Split, T> wrappedFeature = null;
+
+		public SplitFeatureWrapper(Feature<Split, T> wrappedFeature) {
 			super();
 			this.wrappedFeature = wrappedFeature;
 			this.setName(wrappedFeature.getName());
 		}
-		
+
 		@Override
 		public FeatureResult<T> check(Split context, RuntimeEnvironment env) {
 			return wrappedFeature.check(context, env);
 		}
-		
+
 		@Override
 		public Feature<Split, T> getWrappedFeature() {
 			return this.wrappedFeature;
 		}
-	
+
 		@SuppressWarnings("rawtypes")
 		@Override
 		public Class<? extends Feature> getFeatureType() {
 			return wrappedFeature.getFeatureType();
 		}
 	}
-	
+
 	private class SplitBooleanFeatureWrapper extends SplitFeatureWrapper<Boolean> implements BooleanFeature<Split> {
-		public SplitBooleanFeatureWrapper(
-				Feature<Split, Boolean> wrappedFeature) {
+		public SplitBooleanFeatureWrapper(Feature<Split, Boolean> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class SplitStringFeatureWrapper extends SplitFeatureWrapper<String> implements StringFeature<Split> {
-		public SplitStringFeatureWrapper(
-				Feature<Split, String> wrappedFeature) {
+		public SplitStringFeatureWrapper(Feature<Split, String> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class SplitDoubleFeatureWrapper extends SplitFeatureWrapper<Double> implements DoubleFeature<Split> {
-		public SplitDoubleFeatureWrapper(
-				Feature<Split, Double> wrappedFeature) {
+		public SplitDoubleFeatureWrapper(Feature<Split, Double> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
-	
+
 	private class SplitIntegerFeatureWrapper extends SplitFeatureWrapper<Integer> implements IntegerFeature<Split> {
-		public SplitIntegerFeatureWrapper(
-				Feature<Split, Integer> wrappedFeature) {
+		public SplitIntegerFeatureWrapper(Feature<Split, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
@@ -152,14 +143,12 @@ class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	}
 
 	@Override
-	protected boolean canConvert(Class<?> parameterType,
-			Class<?> originalArgumentType) {
+	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
 		return false;
 	}
 
 	@Override
-	protected Feature<Split, ?> convertArgument(Class<?> parameterType,
-			Feature<Split, ?> originalArgument) {
+	protected Feature<Split, ?> convertArgument(Class<?> parameterType, Feature<Split, ?> originalArgument) {
 		return null;
 	}
 

@@ -19,25 +19,18 @@
 package com.joliciel.jochre.doc;
 
 import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.joliciel.jochre.EntityNotFoundException;
 import com.joliciel.jochre.analyser.AnalyserService;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
-import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.jochre.doc.JochreDocumentImpl;
-import com.joliciel.jochre.doc.JochreDocumentInternal;
-import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.doc.JochrePageImpl;
-import com.joliciel.jochre.doc.JochrePageInternal;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 import com.joliciel.jochre.security.SecurityService;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
@@ -51,8 +44,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	private LetterFeatureService letterFeatureService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private BoundaryService boundaryService;
-	private MachineLearningService machineLearningService;
-	
+
 	public DocumentDao getDocumentDao() {
 		return documentDao;
 	}
@@ -94,26 +86,24 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	@Override
 	public JochreDocument loadJochreDocument(int documentId) {
-		JochreDocument document = (JochreDocument) this.objectCache.getEntity(JochreDocument.class, documentId);
-        if (document==null) {
-        	document = this.getDocumentDao().loadJochreDocument(documentId);
-            if (document==null) {
-                throw new EntityNotFoundException("No JochreDocument found for documentId " + documentId);
-            }
-            this.objectCache.putEntity(JochreDocument.class, documentId, document);
-        }
-        return document;
+		JochreDocument document = this.objectCache.getEntity(JochreDocument.class, documentId);
+		if (document == null) {
+			document = this.getDocumentDao().loadJochreDocument(documentId);
+			if (document == null) {
+				throw new EntityNotFoundException("No JochreDocument found for documentId " + documentId);
+			}
+			this.objectCache.putEntity(JochreDocument.class, documentId, document);
+		}
+		return document;
 	}
-	
-
 
 	@Override
 	public JochreDocument loadJochreDocument(String name) {
 		JochreDocument document = this.getDocumentDao().loadJochreDocument(name);
-        if (document==null) {
-            throw new EntityNotFoundException("No JochreDocument found for name " + name);
-        }
-        return document;
+		if (document == null) {
+			throw new EntityNotFoundException("No JochreDocument found for name " + name);
+		}
+		return document;
 	}
 
 	@Override
@@ -123,15 +113,15 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	@Override
 	public JochrePage loadJochrePage(int pageId) {
-		JochrePage page = (JochrePage) this.objectCache.getEntity(JochrePage.class, pageId);
-        if (page==null) {
-        	page = this.getDocumentDao().loadJochrePage(pageId);
-            if (page==null) {
-                throw new EntityNotFoundException("No JochrePage found for pageId " + pageId);
-            }
-            this.objectCache.putEntity(JochrePage.class, pageId, page);
-        }
-        return page;		
+		JochrePage page = this.objectCache.getEntity(JochrePage.class, pageId);
+		if (page == null) {
+			page = this.getDocumentDao().loadJochrePage(pageId);
+			if (page == null) {
+				throw new EntityNotFoundException("No JochrePage found for pageId " + pageId);
+			}
+			this.objectCache.putEntity(JochrePage.class, pageId, page);
+		}
+		return page;
 	}
 
 	@Override
@@ -149,23 +139,22 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		List<JochreDocument> documents = this.documentDao.findDocuments();
 		List<JochreDocument> docsFinal = new ArrayList<JochreDocument>();
 		for (JochreDocument doc : documents) {
-//			JochreDocument otherDoc = (JochreDocument) this.objectCache.getEntity(JochreDocument.class, doc.getId());
-//			if (otherDoc==null) {
-//				this.objectCache.putEntity(JochreDocument.class, doc.getId(), doc);
-//				docsFinal.add(doc);
-//			} else {
-//				docsFinal.add(otherDoc);
-//			}
+			// JochreDocument otherDoc = (JochreDocument)
+			// this.objectCache.getEntity(JochreDocument.class, doc.getId());
+			// if (otherDoc==null) {
+			// this.objectCache.putEntity(JochreDocument.class, doc.getId(), doc);
+			// docsFinal.add(doc);
+			// } else {
+			// docsFinal.add(otherDoc);
+			// }
 			this.objectCache.putEntity(JochreDocument.class, doc.getId(), doc);
 			docsFinal.add(doc);
 		}
 		return docsFinal;
 	}
-	
 
 	@Override
-	public ImageDocumentExtractor getImageDocumentExtractor(File imageFile,
-			SourceFileProcessor documentProcessor) {
+	public ImageDocumentExtractor getImageDocumentExtractor(File imageFile, SourceFileProcessor documentProcessor) {
 		ImageDocumentExtractor extractor = new ImageDocumentExtractorImpl(imageFile, documentProcessor);
 		return extractor;
 	}
@@ -180,7 +169,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		return this.documentDao.findAuthors(doc);
 	}
 
-	
 	@Override
 	public Author getEmptyAuthor() {
 		return this.getEmptyAuthorInternal();
@@ -195,15 +183,15 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	@Override
 	public Author loadAuthor(int authorId) {
-		Author author = (Author) this.objectCache.getEntity(Author.class, authorId);
-        if (author==null) {
-        	author = this.getDocumentDao().loadAuthor(authorId);
-            if (author==null) {
-                throw new EntityNotFoundException("No Author found for authorId " + authorId);
-            }
-            this.objectCache.putEntity(Author.class, authorId, author);
-        }
-        return author;
+		Author author = this.objectCache.getEntity(Author.class, authorId);
+		if (author == null) {
+			author = this.getDocumentDao().loadAuthor(authorId);
+			if (author == null) {
+				throw new EntityNotFoundException("No Author found for authorId " + authorId);
+			}
+			this.objectCache.putEntity(Author.class, authorId, author);
+		}
+		return author;
 	}
 
 	@Override
@@ -257,14 +245,12 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		return boundaryFeatureService;
 	}
 
-	public void setBoundaryFeatureService(
-			BoundaryFeatureService boundaryFeatureService) {
+	public void setBoundaryFeatureService(BoundaryFeatureService boundaryFeatureService) {
 		this.boundaryFeatureService = boundaryFeatureService;
 	}
 
 	@Override
-	public JochreDocumentGenerator getJochreDocumentGenerator(
-			JochreDocument jochreDocument) {
+	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument) {
 		JochreDocumentGeneratorImpl generator = new JochreDocumentGeneratorImpl(jochreDocument);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setBoundaryFeatureService(this.getBoundaryFeatureService());
@@ -273,13 +259,11 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		generator.setGraphicsService(this.getGraphicsService());
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
-		generator.setMachineLearningService(this.getMachineLearningService());
 		return generator;
 	}
 
 	@Override
-	public JochreDocumentGenerator getJochreDocumentGenerator(String filename,
-			String userFriendlyName, Locale locale) {
+	public JochreDocumentGenerator getJochreDocumentGenerator(String filename, String userFriendlyName, Locale locale) {
 		JochreDocumentGeneratorImpl generator = new JochreDocumentGeneratorImpl(filename, userFriendlyName, locale);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setBoundaryFeatureService(this.getBoundaryFeatureService());
@@ -288,7 +272,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		generator.setGraphicsService(this.getGraphicsService());
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
-		generator.setMachineLearningService(this.getMachineLearningService());
 		return generator;
 	}
 
@@ -308,13 +291,4 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		this.boundaryService = boundaryService;
 	}
 
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
-	}
-	
 }

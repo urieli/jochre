@@ -27,14 +27,14 @@ public class DocumentServiceLocator {
 	DocumentDaoJdbc documentDao = null;
 	private DataSource dataSource;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public DocumentServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
 		this.jochreServiceLocator = jochreServiceLocator;
 		this.dataSource = dataSource;
 	}
-	
+
 	public DocumentService getDocumentService() {
-		if (documentService==null) {
+		if (documentService == null) {
 			documentService = new DocumentServiceImpl();
 			documentService.setDocumentDao(this.getDocumentDao());
 			documentService.setObjectCache(this.jochreServiceLocator.getObjectCache());
@@ -45,11 +45,10 @@ public class DocumentServiceLocator {
 			documentService.setSecurityService(this.jochreServiceLocator.getSecurityServiceLocator().getSecurityService());
 			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
 			documentService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
-			documentService.setMachineLearningService(this.jochreServiceLocator.getMachineLearningServiceLocator().getMachineLearningService());
 		}
 		return documentService;
 	}
-	
+
 	DocumentDao getDocumentDao() {
 		if (this.documentDao == null) {
 			this.documentDao = new DocumentDaoJdbc();
@@ -61,6 +60,5 @@ public class DocumentServiceLocator {
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

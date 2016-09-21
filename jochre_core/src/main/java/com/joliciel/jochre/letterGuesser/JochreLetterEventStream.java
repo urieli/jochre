@@ -18,11 +18,11 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,50 +40,51 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.ClassificationEvent;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
 class JochreLetterEventStream implements ClassificationEventStream {
-    private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
 	private GraphicsService graphicsService;
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
 	private BoundaryService boundaryService;
-	private MachineLearningService machineLearningService;
-	private FeatureService featureService;
 
 	private BoundaryDetector boundaryDetector;
-	
+
 	private Set<LetterFeature<?>> features = null;
 	private int shapeIndex = 0;
-	
+
 	private ShapeInSequence shapeInSequence = null;
 
 	private LetterSequence history = null;
-	
+
 	private JochreCorpusGroupReader groupReader;
 	ShapeSequence shapeSequence = null;
 	LetterValidator letterValidator = null;
-	
+
 	private int invalidLetterCount = 0;
-	
+
 	JochreCorpusReader corpusReader = null;
 	CorpusSelectionCriteria criteria = null;
 
 	/**
 	 * Constructor.
-	 * @param features the features to analyse when training
-	 * @param recalculateFeatures if true, features will be recalculated from scratch (slower, but doesn't require previous analysis & database storage space. If false, features will be loaded from the data store.
+	 * 
+	 * @param features
+	 *          the features to analyse when training
+	 * @param recalculateFeatures
+	 *          if true, features will be recalculated from scratch (slower, but
+	 *          doesn't require previous analysis & database storage space. If
+	 *          false, features will be loaded from the data store.
 	 */
 	public JochreLetterEventStream(Set<LetterFeature<?>> features, LetterValidator letterValidator) {
 		this.features = features;
 		this.letterValidator = letterValidator;
 	}
-	
+
 	@Override
 	public ClassificationEvent next() {
 		MONITOR.startTask("next");
@@ -93,16 +94,16 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				Shape shape = shapeInSequence.getShape();
 				LOG.debug("next event, shape: " + shape);
 				LetterGuesserContext context = this.letterGuesserServiceInternal.getContext(shapeInSequence, history);
-				
+
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 				MONITOR.startTask("analyse features");
 				try {
 					for (LetterFeature<?> feature : features) {
 						MONITOR.startTask(feature.getName());
 						try {
-							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+							RuntimeEnvironment env = new RuntimeEnvironment();
 							FeatureResult<?> featureResult = feature.check(context, env);
-							if (featureResult!=null) {
+							if (featureResult != null) {
 								featureResults.add(featureResult);
 								if (LOG.isTraceEnabled()) {
 									LOG.trace(featureResult.toString());
@@ -115,11 +116,11 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				} finally {
 					MONITOR.endTask();
 				}
-				
+
 				String outcome = shape.getLetter();
-				
-				event = this.machineLearningService.getClassificationEvent(featureResults, outcome);
-				
+
+				event = new ClassificationEvent(featureResults, outcome);
+
 				history.getLetters().add(outcome);
 				// set shape to null so that hasNext can retrieve the next one.
 				this.shapeInSequence = null;
@@ -135,45 +136,47 @@ class JochreLetterEventStream implements ClassificationEventStream {
 		MONITOR.startTask("hasNext");
 		try {
 			this.initialiseStream();
-			
-			while (shapeInSequence==null && shapeSequence!=null) {
-				while (shapeInSequence==null && shapeIndex < shapeSequence.size()) {
+
+			while (shapeInSequence == null && shapeSequence != null) {
+				while (shapeInSequence == null && shapeIndex < shapeSequence.size()) {
 					shapeInSequence = shapeSequence.get(shapeIndex);
 					shapeIndex++;
-					
+
 					Shape shape = shapeInSequence.getShape();
 					String letter = shape.getLetter();
 					if (!letterValidator.validate(letter)) {
 						// if there's an invalid letter, skip the rest of this group
-						// note we allow empty letters (which is how we indicate ink smudges in the text)
+						// note we allow empty letters (which is how we indicate ink smudges
+						// in the text)
 						LOG.debug("Invalid letter for shape " + shapeInSequence.getOriginalShapes().get(0).getId() + ": " + letter);
 						invalidLetterCount++;
 						shapeInSequence = null;
 						break;
 					}
-				} 
-				
-				if (shapeInSequence==null) {
+				}
+
+				if (shapeInSequence == null) {
 					this.getNextGroup();
 				}
 			}
-		
-			if (shapeInSequence==null) {
+
+			if (shapeInSequence == null) {
 				LOG.debug("invalidLetterCount: " + invalidLetterCount);
 			}
-			return shapeInSequence!=null;
+			return shapeInSequence != null;
 		} finally {
-			MONITOR.endTask();			
+			MONITOR.endTask();
 		}
 	}
-	
+
 	void getNextGroup() {
 		shapeSequence = null;
 		shapeIndex = 0;
 		if (groupReader.hasNext()) {
 			GroupOfShapes group = groupReader.next();
-			if (boundaryDetector!=null) {
-				// in this case the boundary detector is supposed to give us the correct splits and merges
+			if (boundaryDetector != null) {
+				// in this case the boundary detector is supposed to give us the correct
+				// splits and merges
 				shapeSequence = boundaryDetector.findBoundaries(group).get(0);
 			} else {
 				// simply add this group's shapes
@@ -181,14 +184,14 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				for (Shape shape : group.getShapes())
 					shapeSequence.addShape(shape);
 			}
-			
+
 			history = this.letterGuesserServiceInternal.getEmptyLetterSequence(shapeSequence);
 
 		}
 	}
-	
+
 	void initialiseStream() {
-		if (groupReader==null) {
+		if (groupReader == null) {
 			groupReader = this.graphicsService.getJochreCorpusGroupReader();
 			groupReader.setSelectionCriteria(criteria);
 			this.getNextGroup();
@@ -208,8 +211,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 		return letterGuesserServiceInternal;
 	}
 
-	public void setLetterGuesserServiceInternal(
-			LetterGuesserServiceInternal letterGuesserServiceInternal) {
+	public void setLetterGuesserServiceInternal(LetterGuesserServiceInternal letterGuesserServiceInternal) {
 		this.letterGuesserServiceInternal = letterGuesserServiceInternal;
 	}
 
@@ -231,20 +233,11 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	@Override
 	public Map<String, String> getAttributes() {
-		Map<String,String> attributes = new LinkedHashMap<String, String>();
-		attributes.put("eventStream", this.getClass().getSimpleName());		
-		attributes.putAll(this.criteria.getAttributes());	
-		
+		Map<String, String> attributes = new LinkedHashMap<String, String>();
+		attributes.put("eventStream", this.getClass().getSimpleName());
+		attributes.putAll(this.criteria.getAttributes());
+
 		return attributes;
-	}
-
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
 	}
 
 	public CorpusSelectionCriteria getCriteria() {
@@ -253,14 +246,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	public void setCriteria(CorpusSelectionCriteria criteria) {
 		this.criteria = criteria;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
 	}
 
 }
