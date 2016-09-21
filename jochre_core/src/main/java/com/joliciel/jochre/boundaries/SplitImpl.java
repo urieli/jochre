@@ -21,22 +21,22 @@ package com.joliciel.jochre.boundaries;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.joliciel.jochre.EntityImpl;
-import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
-class SplitImpl extends EntityImpl implements SplitInternal {
+class SplitImpl implements SplitInternal {
 	private BoundaryServiceInternal boundaryServiceInternal;
 	private GraphicsService graphicsService;
-	
+
 	private int shapeId;
 	private Shape shape;
 	private int position;
 	private boolean dirty;
-	
-	private Map<String,FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
+	private int id;
+
+	private Map<String, FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
 
 	@Override
 	public int getShapeId() {
@@ -45,7 +45,7 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 
 	@Override
 	public void setShapeId(int shapeId) {
-		if (this.shapeId!=shapeId) {
+		if (this.shapeId != shapeId) {
 			this.shapeId = shapeId;
 			this.setDirty(true);
 		}
@@ -58,7 +58,7 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 
 	@Override
 	public void setPosition(int position) {
-		if (this.position!=position) {
+		if (this.position != position) {
 			this.position = position;
 			this.dirty = true;
 		}
@@ -66,32 +66,30 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 
 	@Override
 	public Shape getShape() {
-		if (shape==null && shapeId!=0) {
+		if (shape == null && shapeId != 0) {
 			shape = graphicsService.loadShape(shapeId);
 		}
 		return shape;
 	}
-	
-	
 
 	@Override
 	public void setShape(Shape shape) {
 		this.shape = shape;
-		if (shape!=null)
+		if (shape != null)
 			this.setShapeId(shape.getId());
 		else
 			this.setShapeId(0);
 	}
 
 	@Override
-	public void saveInternal() {
+	public void save() {
 		if (this.dirty)
 			boundaryServiceInternal.saveSplit(this);
 	}
 
 	@Override
 	public void delete() {
-		if (!this.isNew())
+		if (this.id != 0)
 			this.boundaryServiceInternal.deleteSplit(this);
 	}
 
@@ -99,8 +97,7 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 		return boundaryServiceInternal;
 	}
 
-	public void setBoundaryServiceInternal(
-			BoundaryServiceInternal boundaryServiceInternal) {
+	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
 		this.boundaryServiceInternal = boundaryServiceInternal;
 	}
 
@@ -159,7 +156,7 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 	@Override
 	public <T> FeatureResult<T> getResultFromCache(SplitFeature<T> splitFeature) {
 		FeatureResult<T> result = null;
-	
+
 		if (this.featureResults.containsKey(splitFeature.getName())) {
 			result = (FeatureResult<T>) this.featureResults.get(splitFeature.getName());
 		}
@@ -167,9 +164,19 @@ class SplitImpl extends EntityImpl implements SplitInternal {
 		return result;
 	}
 
-	
 	@Override
 	public <T> void putResultInCache(SplitFeature<T> splitFeature, FeatureResult<T> featureResult) {
-		this.featureResults.put(splitFeature.getName(), featureResult);		
+		this.featureResults.put(splitFeature.getName(), featureResult);
 	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
 }

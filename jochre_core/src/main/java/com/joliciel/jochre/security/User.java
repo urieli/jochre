@@ -18,37 +18,161 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.security;
 
-import com.joliciel.jochre.Entity;
+import java.util.List;
 
 /**
  * A User of the Jochre application.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface User extends Entity {
+public class User {
+	private int id;
+	private String username;
+	private String password;
+	private String firstName;
+	private String lastName;
+	private int failedLoginCount = 0;
+	private int loginCount = 0;
+	private UserRole role = UserRole.GUEST;
+
+	public static User loadUser(int userId) {
+		SecurityDao securityDao = SecurityDao.getInstance();
+		User user = securityDao.loadUser(userId);
+		return user;
+	}
+
+	public static User findUser(String username) {
+		SecurityDao securityDao = SecurityDao.getInstance();
+		User user = securityDao.findUser(username);
+		return user;
+	}
+
+	/**
+	 * Return all users in the system.
+	 */
+	public static List<User> findUsers() {
+		SecurityDao securityDao = SecurityDao.getInstance();
+		return securityDao.findUsers();
+	}
+
 	/**
 	 * Attempt to login using a given password.
+	 * 
 	 * @return true if succeeded, false if failed.
 	 */
-	public boolean login(String password);
+	public boolean login(String password) {
+		if (password.equals(this.password)) {
+			this.setLoginCount(this.loginCount + 1);
+			this.save();
+			return true;
+		} else {
+			this.setFailedLoginCount(this.failedLoginCount + 1);
+			this.save();
 
-	public abstract String getUsername();
+			Parameters parameters = Parameters.loadParameters();
+			parameters.loginFailed();
+			parameters.save();
+			return false;
+		}
+	}
 
-	public abstract String getLastName();
+	public void save() {
+		SecurityDao securityDao = SecurityDao.getInstance();
+		securityDao.saveUserInternal(this);
+	}
 
-	public abstract String getFirstName();
+	public String getUsername() {
+		return username;
+	}
 
-	public abstract UserRole getRole();
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-	public abstract void setLastName(String lastName);
+	public String getPassword() {
+		return password;
+	}
 
-	public abstract void setFirstName(String firstName);
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-	public abstract void setPassword(String password);
+	public String getFirstName() {
+		return firstName;
+	}
 
-	public abstract int getLoginCount();
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-	public abstract int getFailedLoginCount();
-	public abstract String getFullName();
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public int getFailedLoginCount() {
+		return failedLoginCount;
+	}
+
+	void setFailedLoginCount(int failedLoginCount) {
+		this.failedLoginCount = failedLoginCount;
+	}
+
+	public UserRole getRole() {
+		return role;
+	}
+
+	public void setRole(UserRole role) {
+		this.role = role;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
+	}
+
+	public int getLoginCount() {
+		return loginCount;
+	}
+
+	void setLoginCount(int loginCount) {
+		this.loginCount = loginCount;
+	}
+
+	public String getFullName() {
+		return this.firstName + " " + this.lastName;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	void setId(int id) {
+		this.id = id;
+	}
 
 }

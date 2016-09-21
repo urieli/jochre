@@ -27,25 +27,24 @@ public class GraphicsServiceLocator {
 	GraphicsDaoJdbc graphicsDao = null;
 	private DataSource dataSource;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public GraphicsServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
 		this.jochreServiceLocator = jochreServiceLocator;
 		this.dataSource = dataSource;
 	}
-	
+
 	public GraphicsService getGraphicsService() {
-		if (graphicsService==null) {
+		if (graphicsService == null) {
 			graphicsService = new GraphicsServiceImpl();
 			graphicsService.setGraphicsDao(this.getGraphicsDao());
 			graphicsService.setObjectCache(this.jochreServiceLocator.getObjectCache());
 			graphicsService.setBoundaryService(this.getJochreServiceLocator().getBoundaryServiceLocator().getBoundaryService());
 			graphicsService.setDocumentService(this.getJochreServiceLocator().getDocumentServiceLocator().getDocumentService());
-			graphicsService.setSecurityService(this.getJochreServiceLocator().getSecurityServiceLocator().getSecurityService());
 			graphicsService.setLetterGuesserService(this.getJochreServiceLocator().getLetterGuesserServiceLocator().getLetterGuesserService());
 		}
 		return graphicsService;
 	}
-	
+
 	GraphicsDao getGraphicsDao() {
 		if (this.graphicsDao == null) {
 			this.graphicsDao = new GraphicsDaoJdbc();
@@ -57,6 +56,5 @@ public class GraphicsServiceLocator {
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
-	
+
 }

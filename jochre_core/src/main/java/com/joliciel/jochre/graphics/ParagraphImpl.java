@@ -1,50 +1,51 @@
 package com.joliciel.jochre.graphics;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
-import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
 
-public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
+public class ParagraphImpl implements ParagraphInternal {
+	private int id;
 	List<RowOfShapes> rows;
 	private GraphicsServiceInternal graphicsService;
-	
+
 	private int index;
 	private int imageId;
 	private JochreImage image = null;
-	
+
 	private boolean coordinatesFound = false;
 	private int left;
 	private int top;
 	private int right;
 	private int bottom;
-	
+
 	private Boolean junk = null;
-	
+
 	@Override
 	public JochreImage getImage() {
-		if (this.imageId!=0 && this.image==null) {
+		if (this.imageId != 0 && this.image == null) {
 			this.image = this.graphicsService.loadJochreImage(this.imageId);
 		}
 		return this.image;
 	}
-	
+
+	@Override
 	public void setImage(JochreImage image) {
 		this.image = image;
-		if (image!=null)
+		if (image != null)
 			this.setImageId(image.getId());
 		else
 			this.setImageId(0);
 	}
 
 	@Override
-	public void saveInternal() {
-		if (this.image!=null && this.imageId==0)
+	public void save() {
+		if (this.image != null && this.imageId == 0)
 			this.imageId = this.image.getId();
 
 		this.graphicsService.saveParagraph(this);
-		if (this.rows!=null) {
+		if (this.rows != null) {
 			int index = 0;
 			for (RowOfShapes row : this.rows) {
 				RowOfShapesInternal iRow = (RowOfShapesInternal) row;
@@ -55,25 +56,30 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		}
 	}
 
+	@Override
 	public int getIndex() {
 		return index;
 	}
 
+	@Override
 	public void setIndex(int index) {
 		this.index = index;
 	}
 
+	@Override
 	public int getImageId() {
 		return imageId;
 	}
 
+	@Override
 	public void setImageId(int imageId) {
 		this.imageId = imageId;
 	}
-	
+
+	@Override
 	public List<RowOfShapes> getRows() {
-		if (rows==null) {
-			if (this.isNew())
+		if (rows == null) {
+			if (this.id == 0)
 				rows = new ArrayList<RowOfShapes>();
 			else {
 				rows = graphicsService.findRows(this);
@@ -84,7 +90,8 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		}
 		return rows;
 	}
-	
+
+	@Override
 	public RowOfShapes newRow() {
 		RowOfShapesInternal row = graphicsService.getEmptyRowOfShapesInternal();
 		row.setParagraph(this);
@@ -99,7 +106,6 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 	public void setGraphicsService(GraphicsServiceInternal graphicsService) {
 		this.graphicsService = graphicsService;
 	}
-	
 
 	@Override
 	public int getLeft() {
@@ -125,7 +131,6 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		return this.bottom;
 	}
 
-	
 	private void findCoordinates() {
 		if (!coordinatesFound) {
 			RowOfShapes firstRow = this.getRows().iterator().next();
@@ -133,7 +138,7 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 			top = firstRow.getTop();
 			right = firstRow.getRight();
 			bottom = firstRow.getBottom();
-			
+
 			for (RowOfShapes row : this.getRows()) {
 				if (row.getLeft() < left)
 					left = row.getLeft();
@@ -150,13 +155,13 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 
 	@Override
 	public boolean isJunk() {
-		if (junk==null) {
-			if (this.getRows().size()>0) {
+		if (junk == null) {
+			if (this.getRows().size() > 0) {
 				double averageConfidence = 0;
 				double shapeCount = 0;
 				for (RowOfShapes row : this.getRows()) {
 					for (GroupOfShapes group : row.getGroups()) {
-						if (group.getShapes().size()>0) {
+						if (group.getShapes().size() > 0) {
 							for (Shape shape : group.getShapes()) {
 								averageConfidence += shape.getConfidence();
 								shapeCount += 1;
@@ -165,7 +170,7 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 					}
 				}
 				averageConfidence = averageConfidence / shapeCount;
-				
+
 				JochreSession jochreSession = JochreSession.getInstance();
 				if (averageConfidence < jochreSession.getJunkConfidenceThreshold())
 					junk = true;
@@ -177,31 +182,36 @@ public class ParagraphImpl extends EntityImpl implements ParagraphInternal {
 		}
 		return junk;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "Par " + this.getIndex() + ", left(" + this.getLeft() + ")"
-		+ ", top(" + this.getTop() + ")"
-		+ ", right(" + this.getRight() + ")"
-		+ ", bot(" + this.getBottom() + ")"
-		+ ", width(" + this.getWidth() + ")"
-		+ ", height(" + this.getHeight() + ")";
+		return "Par " + this.getIndex() + ", left(" + this.getLeft() + ")" + ", top(" + this.getTop() + ")" + ", right(" + this.getRight() + ")" + ", bot("
+				+ this.getBottom() + ")" + ", width(" + this.getWidth() + ")" + ", height(" + this.getHeight() + ")";
 	}
-	
 
 	@Override
 	public int getWidth() {
-		return right-left+1;
+		return right - left + 1;
 	}
-	
+
 	@Override
 	public int getHeight() {
-		return bottom-top+1;
+		return bottom - top + 1;
 	}
 
 	@Override
 	public void addRow(RowOfShapes row) {
 		this.getRows().add(row);
-		((RowOfShapesInternal)row).setParagraph(this);
+		((RowOfShapesInternal) row).setParagraph(this);
+	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
 	}
 }

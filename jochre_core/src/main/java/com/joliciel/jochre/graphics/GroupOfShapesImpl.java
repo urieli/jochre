@@ -18,49 +18,49 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
-import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.utils.CountedOutcome;
 
-class GroupOfShapesImpl extends EntityImpl implements
-		GroupOfShapesInternal {
-	
+class GroupOfShapesImpl implements GroupOfShapesInternal {
+
 	private GraphicsServiceInternal graphicsService;
+	private int id;
 
 	private List<Shape> shapes;
 	private List<Shape> correctedShapes;
 	private int index;
 	private int rowId;
 	private RowOfShapes row = null;
-	
+
 	private boolean hardHyphen = false;
 	private boolean brokenWord = false;
 	private boolean segmentationProblem = false;
 	private boolean skip = false;
-	
+
 	private boolean coordinatesFound = false;
 	private int left;
 	private int top;
 	private int right;
 	private int bottom;
 	private int xHeight = -1;
-	
+
 	private int[] meanLine = null;
 	private int[] baseLine = null;
-	
+
 	private boolean dirty = true;
-	
+
 	private LetterSequence bestLetterSequence = null;
 	private Boolean junk = null;
-	
+
+	@Override
 	public List<Shape> getShapes() {
-		if (shapes==null) {
-			if (this.isNew())
+		if (shapes == null) {
+			if (this.id == 0)
 				shapes = new ArrayList<Shape>();
 			else {
 				shapes = this.graphicsService.findShapes(this);
@@ -71,15 +71,13 @@ class GroupOfShapesImpl extends EntityImpl implements
 		}
 		return shapes;
 	}
-	
-
 
 	@Override
 	public void addShapes(List<Shape> shapesToAdd) {
-		if (this.shapes==null) {
+		if (this.shapes == null) {
 			this.shapes = new ArrayList<Shape>();
 			for (Shape shape : shapesToAdd) {
-				if (shape.getGroupId()==this.getId()) {
+				if (shape.getGroupId() == this.getId()) {
 					this.shapes.add(shape);
 					((ShapeInternal) shape).setGroup(this);
 				}
@@ -93,71 +91,65 @@ class GroupOfShapesImpl extends EntityImpl implements
 		shape.setGroup(this);
 	}
 
-
-
+	@Override
 	public int getIndex() {
 		return index;
 	}
 
+	@Override
 	public void setIndex(int index) {
-		if (this.index!=index) {
+		if (this.index != index) {
 			this.index = index;
 			dirty = true;
 		}
 	}
 
-
-
+	@Override
 	public int getRowId() {
 		return rowId;
 	}
 
-
-
+	@Override
 	public void setRowId(int rowId) {
-		if (this.rowId!=rowId) {
+		if (this.rowId != rowId) {
 			this.rowId = rowId;
 			dirty = true;
 		}
 	}
 
-
-
+	@Override
 	public RowOfShapes getRow() {
-		if (this.row==null && this.rowId!=0) {
+		if (this.row == null && this.rowId != 0) {
 			this.row = this.graphicsService.loadRowOfShapes(this.rowId);
 		}
 		return row;
 	}
 
-
-
+	@Override
 	public void setRow(RowOfShapes row) {
 		this.row = row;
-		if (row!=null)
+		if (row != null)
 			this.setRowId(row.getId());
 		else
 			this.setRowId(0);
 	}
 
-
-
 	@Override
-	public void saveInternal() {
-		if (this.row!=null && this.rowId==0)
+	public void save() {
+		if (this.row != null && this.rowId == 0)
 			this.setRowId(this.row.getId());
 
 		if (this.dirty)
 			this.graphicsService.saveGroupOfShapes(this);
-		
-		if (this.shapes!=null) {
+
+		if (this.shapes != null) {
 			int index = 0;
 			for (Shape shape : this.shapes) {
 				shape.setGroup(this);
 				shape.setIndex(index++);
 				shape.save();
 			}
-		}	
+		}
 	}
 
 	public GraphicsServiceInternal getGraphicsService() {
@@ -191,7 +183,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 		this.findCoordinates();
 		return this.bottom;
 	}
-	
+
 	private void findCoordinates() {
 		if (!coordinatesFound) {
 			Shape firstShape = this.getShapes().iterator().next();
@@ -199,7 +191,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 			top = firstShape.getTop();
 			right = firstShape.getRight();
 			bottom = firstShape.getBottom();
-			
+
 			for (Shape shape : shapes) {
 				if (shape.getLeft() < left)
 					left = shape.getLeft();
@@ -218,30 +210,30 @@ class GroupOfShapesImpl extends EntityImpl implements
 	public String getWord() {
 		StringBuilder sb = new StringBuilder();
 		for (Shape shape : this.getCorrectedShapes()) {
-			if (shape.getLetter()!=null)
+			if (shape.getLetter() != null)
 				sb.append(shape.getLetter());
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public int hashCode() {
-		if (this.isNew())
+		if (this.id == 0)
 			return super.hashCode();
 		else
-			return ((Integer)this.getId()).hashCode();
+			return this.id;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.isNew()) {
+		if (this.id == 0) {
 			return super.equals(obj);
 		} else {
 			GroupOfShapes otherGroup = (GroupOfShapes) obj;
-			return (this.getId()==otherGroup.getId());
+			return (this.getId() == otherGroup.getId());
 		}
 	}
-	
+
 	@Override
 	public void recalculate() {
 		this.coordinatesFound = false;
@@ -251,13 +243,10 @@ class GroupOfShapesImpl extends EntityImpl implements
 
 	@Override
 	public String toString() {
-		return "Group " + this.getIndex() + ", left(" + this.getLeft() + ")"
-		+ ", top(" + this.getTop() + ")"
-		+ ", right(" + this.getRight() + ")"
-		+ ", bot(" + this.getBottom() + ")"
-		+ " [id=" + this.getId() + "]";
+		return "Group " + this.getIndex() + ", left(" + this.getLeft() + ")" + ", top(" + this.getTop() + ")" + ", right(" + this.getRight() + ")" + ", bot("
+				+ this.getBottom() + ")" + " [id=" + this.getId() + "]";
 	}
-	
+
 	@Override
 	public int[] getMeanLine() {
 		this.getGuideLines();
@@ -269,37 +258,35 @@ class GroupOfShapesImpl extends EntityImpl implements
 		this.getGuideLines();
 		return this.baseLine;
 	}
-	
+
 	private void getGuideLines() {
-		if (this.meanLine==null) {
+		if (this.meanLine == null) {
 			Shape leftMostShape = null;
 			Shape rightMostShape = null;
 			for (Shape shape : this.getShapes()) {
-				if (leftMostShape==null) {
+				if (leftMostShape == null) {
 					leftMostShape = shape;
 					rightMostShape = shape;
 				} else {
-					if (shape.getLeft()<leftMostShape.getLeft())
+					if (shape.getLeft() < leftMostShape.getLeft())
 						leftMostShape = shape;
-					if (shape.getRight()>rightMostShape.getRight())
+					if (shape.getRight() > rightMostShape.getRight())
 						rightMostShape = shape;
-				}				
+				}
 			}
-			int[] meanLine = { leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getMeanLine(),
-					rightMostShape.getRight(), rightMostShape.getTop() + rightMostShape.getMeanLine()};
-			int[] baseLine = {leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getBaseLine(),
-					rightMostShape.getRight(), rightMostShape.getTop() + rightMostShape.getBaseLine()};
-			
+			int[] meanLine = { leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getMeanLine(), rightMostShape.getRight(),
+					rightMostShape.getTop() + rightMostShape.getMeanLine() };
+			int[] baseLine = { leftMostShape.getLeft(), leftMostShape.getTop() + leftMostShape.getBaseLine(), rightMostShape.getRight(),
+					rightMostShape.getTop() + rightMostShape.getBaseLine() };
+
 			this.meanLine = meanLine;
 			this.baseLine = baseLine;
 		}
 	}
 
-
-
 	@Override
 	public int getXHeight() {
-		if (xHeight<0) {
+		if (xHeight < 0) {
 			Shape firstShape = this.getShapes().get(0);
 			xHeight = firstShape.getBaseLine() - firstShape.getMeanLine();
 		}
@@ -313,18 +300,20 @@ class GroupOfShapesImpl extends EntityImpl implements
 
 	@Override
 	public void setHardHyphen(boolean hardHyphen) {
-		if (this.hardHyphen!=hardHyphen) {
+		if (this.hardHyphen != hardHyphen) {
 			this.hardHyphen = hardHyphen;
 			dirty = true;
 		}
 	}
 
+	@Override
 	public boolean isBrokenWord() {
 		return brokenWord;
 	}
 
+	@Override
 	public void setBrokenWord(boolean brokenWord) {
-		if (this.brokenWord!=brokenWord) {
+		if (this.brokenWord != brokenWord) {
 			this.brokenWord = brokenWord;
 			dirty = true;
 		}
@@ -340,43 +329,49 @@ class GroupOfShapesImpl extends EntityImpl implements
 		this.dirty = dirty;
 	}
 
+	@Override
 	public boolean isSegmentationProblem() {
 		return segmentationProblem;
 	}
 
+	@Override
 	public void setSegmentationProblem(boolean segmentationProblem) {
-		if (this.segmentationProblem!=segmentationProblem) {
+		if (this.segmentationProblem != segmentationProblem) {
 			this.segmentationProblem = segmentationProblem;
 			dirty = true;
-		}		
+		}
 	}
-	
+
+	@Override
 	public boolean isSkip() {
 		return skip;
 	}
 
+	@Override
 	public void setSkip(boolean skip) {
-		if (this.skip!=skip) {
+		if (this.skip != skip) {
 			this.skip = skip;
 			dirty = true;
-		}		
-	}	
+		}
+	}
 
+	@Override
 	public int getFrequency() {
-		if (this.bestLetterSequence!=null)
+		if (this.bestLetterSequence != null)
 			return this.bestLetterSequence.getFrequency();
 		return -1;
 	}
 
 	@Override
 	public boolean isSplit() {
-		if (this.bestLetterSequence!=null)
+		if (this.bestLetterSequence != null)
 			return this.bestLetterSequence.isSplit();
 		return false;
 	}
-	
+
+	@Override
 	public List<Shape> getCorrectedShapes() {
-		if (this.correctedShapes==null) {
+		if (this.correctedShapes == null) {
 			correctedShapes = new ArrayList<Shape>(shapes.size());
 			List<Shape> splitShapes = null;
 			boolean haveSplitShape = false;
@@ -386,7 +381,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 			int mergedRight = 0;
 			String lastLetter = "";
 			for (Shape shape : shapes) {
-				if (shape.getLetter().length()==0) {
+				if (shape.getLetter().length() == 0) {
 					// do nothing
 				} else if (shape.getLetter().contains("|") && haveSplitShape) {
 					// end of a split shape
@@ -402,9 +397,9 @@ class GroupOfShapesImpl extends EntityImpl implements
 							continue;
 						} else if (letter.endsWith("|")) {
 							// end of a gehakte letter
-							if (currentSequence.length()>0&&currentSequence.charAt(0)=='|') {
+							if (currentSequence.length() > 0 && currentSequence.charAt(0) == '|') {
 								String letter1 = currentSequence.toString().substring(1);
-								String letter2 = letter.substring(0, letter.length()-1);
+								String letter2 = letter.substring(0, letter.length() - 1);
 								if (letter1.equals(letter2)) {
 									letter = letter1;
 								} else {
@@ -431,30 +426,29 @@ class GroupOfShapesImpl extends EntityImpl implements
 						mergedRight = shape.getRight();
 					} else {
 						splitShapes.add(shape);
-						if (shape.getTop()<mergedTop)
+						if (shape.getTop() < mergedTop)
 							mergedTop = shape.getTop();
-						if (shape.getLeft()<mergedLeft)
+						if (shape.getLeft() < mergedLeft)
 							mergedLeft = shape.getLeft();
-						if (shape.getBottom()>mergedBottom)
+						if (shape.getBottom() > mergedBottom)
 							mergedBottom = shape.getBottom();
-						if (shape.getRight()>mergedRight)
+						if (shape.getRight() > mergedRight)
 							mergedRight = shape.getRight();
 					}
-				} else if ((shape.getLetter().equals(",") && lastLetter.equals(","))
-						|| (shape.getLetter().equals("'") && lastLetter.equals("'"))){
-					//TODO: specific to Yiddish, need to generalise
+				} else if ((shape.getLetter().equals(",") && lastLetter.equals(",")) || (shape.getLetter().equals("'") && lastLetter.equals("'"))) {
+					// TODO: specific to Yiddish, need to generalise
 					mergedTop = shape.getTop();
 					mergedBottom = shape.getBottom();
 					mergedLeft = shape.getLeft();
 					mergedRight = shape.getRight();
-					Shape lastShape = correctedShapes.remove(correctedShapes.size()-1);
-					if (lastShape.getTop()<mergedTop)
+					Shape lastShape = correctedShapes.remove(correctedShapes.size() - 1);
+					if (lastShape.getTop() < mergedTop)
 						mergedTop = lastShape.getTop();
-					if (lastShape.getLeft()<mergedLeft)
+					if (lastShape.getLeft() < mergedLeft)
 						mergedLeft = lastShape.getLeft();
-					if (lastShape.getBottom()>mergedBottom)
+					if (lastShape.getBottom() > mergedBottom)
 						mergedBottom = lastShape.getBottom();
-					if (lastShape.getRight()>mergedRight)
+					if (lastShape.getRight() > mergedRight)
 						mergedRight = lastShape.getRight();
 					Shape mergedShape = shape.getJochreImage().getShape(mergedLeft, mergedTop, mergedRight, mergedBottom);
 					if (lastLetter.equals(","))
@@ -464,13 +458,13 @@ class GroupOfShapesImpl extends EntityImpl implements
 					mergedShape.setConfidence(shape.getConfidence() * lastShape.getConfidence());
 					correctedShapes.add(mergedShape);
 				} else if (shape.getLetter().equals(",,")) {
-					//TODO: specific to Yiddish, need to generalise
+					// TODO: specific to Yiddish, need to generalise
 					Shape newShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getRight(), shape.getBottom());
 					newShape.setLetter("„");
 					newShape.setConfidence(shape.getConfidence());
 					correctedShapes.add(newShape);
 				} else if (shape.getLetter().equals("''")) {
-					//TODO: specific to Yiddish, need to generalise
+					// TODO: specific to Yiddish, need to generalise
 					Shape newShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getRight(), shape.getBottom());
 					newShape.setLetter("“");
 					newShape.setConfidence(shape.getConfidence());
@@ -484,12 +478,11 @@ class GroupOfShapesImpl extends EntityImpl implements
 		return correctedShapes;
 	}
 
-
 	public boolean isJunk() {
-		if (junk==null) {
-			if (this.getFrequency()<=0 || this.getShapes().size()<=1) {
+		if (junk == null) {
+			if (this.getFrequency() <= 0 || this.getShapes().size() <= 1) {
 				double averageConfidence = 0;
-				if (this.getShapes().size()>0) {
+				if (this.getShapes().size() > 0) {
 					for (Shape shape : this.getShapes()) {
 						averageConfidence += shape.getConfidence();
 					}
@@ -507,12 +500,12 @@ class GroupOfShapesImpl extends EntityImpl implements
 		return junk;
 	}
 
-
-
 	@Override
 	public LetterSequence getBestLetterSequence() {
 		return this.bestLetterSequence;
 	}
+
+	@Override
 	public void setBestLetterSequence(LetterSequence bestLetterSequence) {
 		this.bestLetterSequence = bestLetterSequence;
 	}
@@ -522,7 +515,7 @@ class GroupOfShapesImpl extends EntityImpl implements
 		Linguistics linguistics = JochreSession.getInstance().getLinguistics();
 		String word = this.getWord();
 		int wordStart = 0;
-		for (int i=0; i<word.length(); i++) {
+		for (int i = 0; i < word.length(); i++) {
 			wordStart = i;
 			char c = word.charAt(i);
 			if (linguistics.getPunctuation().contains(c)) {
@@ -530,8 +523,8 @@ class GroupOfShapesImpl extends EntityImpl implements
 			}
 			break;
 		}
-		int wordEnd = word.length()-1;
-		for (int i=word.length()-1; i>=0; i--) {
+		int wordEnd = word.length() - 1;
+		for (int i = word.length() - 1; i >= 0; i--) {
 			wordEnd = i;
 			char c = word.charAt(i);
 			if (linguistics.getPunctuation().contains(c)) {
@@ -539,60 +532,70 @@ class GroupOfShapesImpl extends EntityImpl implements
 			}
 			break;
 		}
-		wordEnd+=1;
-		if (wordStart>wordEnd)
-			wordStart=wordEnd;
+		wordEnd += 1;
+		if (wordStart > wordEnd)
+			wordStart = wordEnd;
 		String wordForIndex = word.substring(wordStart, wordEnd);
 		return wordForIndex;
 	}
 
+	@Override
 	public List<CountedOutcome<String>> getWordFrequencies() {
-		if (bestLetterSequence!=null)
+		if (bestLetterSequence != null)
 			return bestLetterSequence.getWordFrequencies();
 		return null;
 	}
 
 	@Override
 	public double getConfidence() {
-		if (bestLetterSequence!=null)
+		if (bestLetterSequence != null)
 			return bestLetterSequence.getAdjustedScore();
 		return 0;
 	}
-	
+
 	@Override
 	public int getWidth() {
-		return right-left+1;
+		return right - left + 1;
 	}
-	
+
 	@Override
 	public int getHeight() {
-		return bottom-top+1;
+		return bottom - top + 1;
 	}
 
 	@Override
 	public Rectangle getPrecedingSpace() {
 		Rectangle prevSpace = null;
-		if (this.index>0) {
-			GroupOfShapes prevGroup = this.getRow().getGroups().get(this.index-1);
+		if (this.index > 0) {
+			GroupOfShapes prevGroup = this.getRow().getGroups().get(this.index - 1);
 			int top = this.top < prevGroup.getTop() ? this.top : prevGroup.getTop();
 			int bottom = this.bottom > prevGroup.getBottom() ? this.bottom : prevGroup.getBottom();
 			if (this.getRow().getParagraph().getImage().isLeftToRight()) {
-				prevSpace = new RectangleImpl(prevGroup.getRight()+1, top, this.getLeft()-1, bottom);
+				prevSpace = new RectangleImpl(prevGroup.getRight() + 1, top, this.getLeft() - 1, bottom);
 			} else {
-				prevSpace = new RectangleImpl(this.getRight()+1, top, prevGroup.getLeft()-1, bottom);
+				prevSpace = new RectangleImpl(this.getRight() + 1, top, prevGroup.getLeft() - 1, bottom);
 			}
 		}
 		return prevSpace;
 	}
 
-
-
 	@Override
 	public List<LetterSequence> getSubsequences() {
 		LetterSequence bestLetterSequence = this.getBestLetterSequence();
 		List<LetterSequence> subsequences = new ArrayList<LetterSequence>();
-		if (bestLetterSequence!=null)
+		if (bestLetterSequence != null)
 			subsequences = bestLetterSequence.getSubsequences();
 		return subsequences;
 	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
 }

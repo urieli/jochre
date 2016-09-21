@@ -225,7 +225,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			this.currentDoc.setYear(Integer.parseInt(txtYear.getValue()));
 			this.currentDoc.setReference(txtReference.getValue());
 
-			boolean isNew = this.currentDoc.isNew();
+			boolean isNew = this.currentDoc.getId() == 0;
 			this.currentDoc.save();
 
 			Messagebox.show(Labels.getLabel("button.saveComplete"));

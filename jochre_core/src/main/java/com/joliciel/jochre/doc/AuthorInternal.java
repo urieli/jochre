@@ -18,8 +18,6 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.doc;
 
-import com.joliciel.jochre.EntityInternal;
-
-interface AuthorInternal extends Author, EntityInternal {
+interface AuthorInternal extends Author {
 
 }

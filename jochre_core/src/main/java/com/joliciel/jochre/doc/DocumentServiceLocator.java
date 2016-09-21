@@ -42,7 +42,6 @@ public class DocumentServiceLocator {
 			documentService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 			documentService.setLetterFeatureService(this.jochreServiceLocator.getLetterFeatureServiceLocator().getLetterFeatureService());
 			documentService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
-			documentService.setSecurityService(this.jochreServiceLocator.getSecurityServiceLocator().getSecurityService());
 			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
 			documentService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 		}

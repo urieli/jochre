@@ -36,11 +36,12 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.JochreSession;
 
-class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
+class RowOfShapesImpl implements RowOfShapesInternal {
 	private static final Logger LOG = LoggerFactory.getLogger(RowOfShapesImpl.class);
+
+	private int id;
 
 	private List<Shape> shapes;
 	private List<GroupOfShapes> groups;
@@ -87,7 +88,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	public List<Shape> getShapes() {
 		if (shapes == null) {
 			shapes = new ArrayList<Shape>();
-			if (!this.isNew()) {
+			if (this.id != 0) {
 				for (GroupOfShapes group : this.getGroups()) {
 					shapes.addAll(group.getShapes());
 				}
@@ -145,7 +146,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	@Override
 	public List<GroupOfShapes> getGroups() {
 		if (groups == null) {
-			if (this.isNew())
+			if (this.id == 0)
 				groups = new ArrayList<GroupOfShapes>();
 			else {
 				groups = this.graphicsService.findGroups(this);
@@ -195,7 +196,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	}
 
 	@Override
-	public void saveInternal() {
+	public void save() {
 		if (this.paragraph != null && this.paragraphId == 0)
 			this.paragraphId = this.paragraph.getId();
 
@@ -428,7 +429,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 
 	@Override
 	public int hashCode() {
-		if (this.isNew())
+		if (this.id == 0)
 			return super.hashCode();
 		else
 			return ((Integer) this.getId()).hashCode();
@@ -436,7 +437,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.isNew()) {
+		if (this.id == 0) {
 			return super.equals(obj);
 		} else {
 			RowOfShapes otherRow = (RowOfShapes) obj;
@@ -498,9 +499,9 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	}
 
 	/**
-	 * The regression passes through the bottom of average shapes on this line.
-	 * It gives the line's slope, and a starting point for finding the baseline
-	 * and meanline.
+	 * The regression passes through the bottom of average shapes on this line. It
+	 * gives the line's slope, and a starting point for finding the baseline and
+	 * meanline.
 	 */
 	@Override
 	public SimpleRegression getRegression() {
@@ -596,8 +597,7 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	}
 
 	/**
-	 * Assign guidelines for a certain subset of shapes, and return the
-	 * x-height.
+	 * Assign guidelines for a certain subset of shapes, and return the x-height.
 	 */
 	int assignGuideLines(List<GroupOfShapes> groupsToAssign) {
 		LOG.debug("assignGuideLines internal");
@@ -1112,4 +1112,15 @@ class RowOfShapesImpl extends EntityImpl implements RowOfShapesInternal {
 	public int getHeight() {
 		return bottom - top + 1;
 	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
 }

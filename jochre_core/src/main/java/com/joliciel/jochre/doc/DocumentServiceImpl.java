@@ -30,7 +30,6 @@ import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
@@ -39,7 +38,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	private AnalyserService analyserService;
 	private GraphicsService graphicsService;
-	private SecurityService securityService;
 	private LetterGuesserService letterGuesserService;
 	private LetterFeatureService letterFeatureService;
 	private BoundaryFeatureService boundaryFeatureService;
@@ -79,7 +77,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	public JochreDocumentInternal getEmptyJochreDocumentInternal() {
 		JochreDocumentImpl doc = new JochreDocumentImpl();
 		doc.setDocumentServiceInternal(this);
-		doc.setSecurityService(this.getSecurityService());
 		doc.setGraphicsService(this.getGraphicsService());
 		return doc;
 	}
@@ -215,14 +212,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	public void setGraphicsService(GraphicsService graphicsService) {
 		this.graphicsService = graphicsService;
-	}
-
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public LetterGuesserService getLetterGuesserService() {

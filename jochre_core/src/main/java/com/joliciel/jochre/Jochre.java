@@ -115,7 +115,6 @@ import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageSaver;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.pdf.PdfService;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
 import com.joliciel.jochre.utils.JochreException;
@@ -157,7 +156,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	LexiconService lexiconService;
 	LetterGuesserService letterGuesserService;
 	BoundaryService boundaryService;
-	SecurityService securityService;
 	PdfService pdfService;
 	LetterFeatureService letterFeatureService;
 	BoundaryFeatureService boundaryFeatureService;
@@ -187,7 +185,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
 		boundaryService = locator.getBoundaryServiceLocator().getBoundaryService();
-		securityService = locator.getSecurityServiceLocator().getSecurityService();
 		pdfService = locator.getPdfServiceLocator().getPdfService();
 		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
 		boundaryFeatureService = locator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService();
@@ -1440,7 +1437,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		User user = null;
 		if (userId >= 0) {
-			user = securityService.loadUser(userId);
+			user = User.loadUser(userId);
 		}
 
 		File file = new File(filename);

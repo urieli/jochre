@@ -22,7 +22,6 @@ import org.zkoss.zul.Window;
 import com.joliciel.jochre.EntityNotFoundException;
 import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.security.Parameters;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 
 public class LoginController extends GenericForwardComposer<Window> {
@@ -34,7 +33,6 @@ public class LoginController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(LoginController.class);
 	public static String SESSION_JOCHRE_USER = "SESSION_JOCHRE_USER";
 	private JochreServiceLocator locator = null;
-	private SecurityService securityService = null;
 
 	Window winLogin;
 	Button btnLogin;
@@ -64,7 +62,6 @@ public class LoginController extends GenericForwardComposer<Window> {
 
 		String resourcePath = "/jdbc-jochreWeb.properties";
 		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-		securityService = locator.getSecurityServiceLocator().getSecurityService();
 
 		HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 		String failed = request.getParameter("failed");
@@ -73,7 +70,7 @@ public class LoginController extends GenericForwardComposer<Window> {
 		else
 			lblError.setVisible(true);
 
-		Parameters parameters = securityService.loadParameters();
+		Parameters parameters = Parameters.loadParameters();
 		Date lastFailedLoginAttempt = parameters.getLastFailedLoginAttempt();
 		int captchaIntervalSeconds = parameters.getCaptachaIntervalSeconds();
 		Date now = new Date();
@@ -114,7 +111,7 @@ public class LoginController extends GenericForwardComposer<Window> {
 
 			User user = null;
 			try {
-				user = securityService.findUser(txtUserName.getValue());
+				user = User.findUser(txtUserName.getValue());
 			} catch (EntityNotFoundException enfe) {
 				LOG.debug("Unknown user: " + txtUserName.getValue());
 				lblError.setVisible(true);
@@ -130,7 +127,7 @@ public class LoginController extends GenericForwardComposer<Window> {
 					captcha.randomValue();
 					txtCaptcha.setValue("");
 
-					Parameters parameters = securityService.loadParameters();
+					Parameters parameters = Parameters.loadParameters();
 					Date lastFailedLoginAttempt = parameters.getLastFailedLoginAttempt();
 					int captchaIntervalSeconds = parameters.getCaptachaIntervalSeconds();
 					Date now = new Date();

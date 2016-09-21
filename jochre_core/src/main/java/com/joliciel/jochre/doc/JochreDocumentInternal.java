@@ -22,8 +22,6 @@ import com.joliciel.jochre.EntityInternal;
 
 interface JochreDocumentInternal extends JochreDocument, EntityInternal {
 
-
 	public abstract void setOwnerId(int ownerId);
-
 
 }

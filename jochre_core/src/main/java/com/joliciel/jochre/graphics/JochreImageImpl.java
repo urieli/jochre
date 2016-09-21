@@ -19,28 +19,27 @@
 package com.joliciel.jochre.graphics;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
-import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
 
-class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitorable {
-    private static final Logger LOG = LoggerFactory.getLogger(JochreImageImpl.class);
+class JochreImageImpl implements JochreImageInternal, Monitorable {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreImageImpl.class);
+	private int id;
 	int blackThreshold;
 	int separationThreshold;
 	String name;
@@ -64,31 +63,30 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 	private ImagePixelGrabber pixelGrabber;
 
 	private double confidence = -1;
-	
+
 	GraphicsServiceInternal graphicsService;
 	DocumentService documentService;
-	SecurityService securityService;
-	
+
 	ImageStatus imageStatus;
-	
+
 	private Map<String, Shape> shapeMap = null;
 	SimpleProgressMonitor currentMonitor = null;
 	int shapesSaved = 0;
-	
-	JochreImageImpl() {	
+
+	JochreImageImpl() {
 	}
-	
+
 	public JochreImageImpl(BufferedImage originalImage) {
 		this.originalImage = originalImage;
 	}
-	
+
 	ImagePixelGrabber getPixelGrabber() {
-		if (this.pixelGrabber==null) {
+		if (this.pixelGrabber == null) {
 			this.pixelGrabber = new ImagePixelGrabberImpl(this.getOriginalImage());
 		}
 		return this.pixelGrabber;
 	}
-	
+
 	@Override
 	public int getAbsolutePixel(int x, int y) {
 		int brightness = this.getRawAbsolutePixel(x, y);
@@ -96,7 +94,6 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		// all we need to do is normalise it
 		return this.normalize(brightness);
 	}
-
 
 	@Override
 	public int getPixel(int x, int y) {
@@ -107,7 +104,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 	public int getRawPixel(int x, int y) {
 		return this.getRawAbsolutePixel(x, y);
 	}
-	
+
 	@Override
 	public int getRawAbsolutePixel(int x, int y) {
 		return this.getPixelGrabber().getPixelBrightness(x, y);
@@ -118,47 +115,63 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
 			return false;
 
-		if (this.getPixel(x, y)<=threshold)
+		if (this.getPixel(x, y) <= threshold)
 			return true;
 		else
 			return false;
 	}
-	
+
+	@Override
 	public int getBlackThreshold() {
 		return blackThreshold;
 	}
+
+	@Override
 	public void setBlackThreshold(int blackThreshold) {
 		this.blackThreshold = blackThreshold;
 	}
+
+	@Override
 	public String getName() {
 		return name;
 	}
+
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	@Override
 	public int getWidth() {
 		return width;
 	}
+
+	@Override
 	public void setWidth(int width) {
 		this.width = width;
 	}
+
+	@Override
 	public int getHeight() {
 		return height;
 	}
+
+	@Override
 	public void setHeight(int height) {
 		this.height = height;
 	}
+
 	@Override
 	public List<Paragraph> getParagraphs() {
-		if (paragraphs==null) {
-			if (this.isNew())
+		if (paragraphs == null) {
+			if (this.id == 0)
 				paragraphs = new ArrayList<Paragraph>();
 			else
 				paragraphs = graphicsService.findParagraphs(this);
 		}
 		return paragraphs;
 	}
-	
+
 	public GraphicsServiceInternal getGraphicsService() {
 		return graphicsService;
 	}
@@ -166,21 +179,22 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 	public void setGraphicsService(GraphicsServiceInternal graphicsService) {
 		this.graphicsService = graphicsService;
 	}
-	
+
 	@Override
-	public void saveInternal() {
-		if (this.currentMonitor!=null)
+	public void save() {
+		if (this.currentMonitor != null)
 			this.currentMonitor.setCurrentAction("imageMonitor.savingImage");
-		if (this.pageId==0 && this.page!=null) this.pageId = this.page.getId();
+		if (this.pageId == 0 && this.page != null)
+			this.pageId = this.page.getId();
 		this.graphicsService.saveJochreImage(this);
-		if (this.paragraphs!=null) {
+		if (this.paragraphs != null) {
 			int index = 0;
 			for (Paragraph paragraph : this.paragraphs) {
 				paragraph.setIndex(index++);
 				paragraph.save();
 			}
 		}
-		
+
 		if (this.originalImageChanged) {
 			this.graphicsService.saveOriginalImage(this);
 		}
@@ -193,82 +207,107 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		paragraph.setImage(this);
 		return paragraph;
 	}
-	
+
 	@Override
 	public int getPageId() {
 		return pageId;
 	}
+
 	@Override
 	public void setPageId(int pageId) {
 		this.pageId = pageId;
 	}
+
 	@Override
 	public JochrePage getPage() {
-		if (this.page==null && this.pageId!=0)
+		if (this.page == null && this.pageId != 0)
 			this.page = this.documentService.loadJochrePage(this.pageId);
 		return page;
 	}
-	
+
+	@Override
 	public void setPage(JochrePage page) {
 		this.page = page;
 		this.pageId = page.getId();
 	}
+
+	@Override
 	public int getIndex() {
 		return index;
 	}
+
+	@Override
 	public void setIndex(int index) {
 		this.index = index;
 	}
+
+	@Override
 	public int getSeparationThreshold() {
 		return separationThreshold;
 	}
+
+	@Override
 	public void setSeparationThreshold(int separationThreshold) {
 		this.separationThreshold = separationThreshold;
 	}
+
 	@Override
 	public int getWhiteLimit() {
 		return whiteLimit;
 	}
+
 	@Override
 	public void setWhiteLimit(int whiteLimit) {
 		this.whiteLimit = whiteLimit;
 	}
+
 	@Override
 	public int getBlackLimit() {
 		return blackLimit;
 	}
+
 	@Override
 	public void setBlackLimit(int blackLimit) {
 		this.blackLimit = blackLimit;
 	}
+
 	@Override
 	public final int normalize(int brightness) {
-		if (normalizedBrightnessValues==null) {
+		if (normalizedBrightnessValues == null) {
 			normalizedBrightnessValues = new int[256];
-			double greyscaleMultiplier = (255.0 / (double) (whiteLimit - blackLimit));
-			for (int i=0;i<256;i++) {
+			double greyscaleMultiplier = (255.0 / (whiteLimit - blackLimit));
+			for (int i = 0; i < 256; i++) {
 				if (i < blackLimit)
-					normalizedBrightnessValues[i]=0;
+					normalizedBrightnessValues[i] = 0;
 				if (i > whiteLimit)
-					normalizedBrightnessValues[i]=255;
-				normalizedBrightnessValues[i] = (int) Math.round((double)(i - blackLimit) * greyscaleMultiplier);
+					normalizedBrightnessValues[i] = 255;
+				normalizedBrightnessValues[i] = (int) Math.round((i - blackLimit) * greyscaleMultiplier);
 			}
 		}
 
 		return normalizedBrightnessValues[brightness];
 	}
+
+	@Override
 	public int getWhiteGapFillFactor() {
 		return whiteGapFillFactor;
 	}
+
+	@Override
 	public void setWhiteGapFillFactor(int whiteGapFillFactor) {
 		this.whiteGapFillFactor = whiteGapFillFactor;
 	}
+
+	@Override
 	public ImageStatus getImageStatus() {
 		return imageStatus;
 	}
+
+	@Override
 	public void setImageStatus(ImageStatus imageStatus) {
 		this.imageStatus = imageStatus;
 	}
+
 	@Override
 	public void clearMemory() {
 		this.paragraphs = null;
@@ -276,11 +315,13 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		this.pixelGrabber = null;
 		this.shapeMap = null;
 		System.gc();
-	}	
-	
+	}
+
 	public void recalculate() {
 		this.averageRowHeight = 0;
 	}
+
+	@Override
 	public double getAverageRowHeight() {
 		if (averageRowHeight == 0) {
 			DescriptiveStatistics rowHeightStats = new DescriptiveStatistics();
@@ -295,53 +336,61 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		}
 		return averageRowHeight;
 	}
-	
 
+	@Override
 	public BufferedImage getOriginalImage() {
-		if (this.originalImage==null) {
+		if (this.originalImage == null) {
 			this.getGraphicsService().loadOriginalImage(this);
 		}
 		return originalImage;
 	}
+
+	@Override
 	public void setOriginalImage(BufferedImage originalImage) {
 		this.originalImage = originalImage;
 		originalImageChanged = true;
 	}
-	
+
+	@Override
 	public void setOriginalImageDB(BufferedImage originalImage) {
 		this.originalImage = originalImage;
 	}
+
 	public DocumentService getDocumentService() {
 		return documentService;
 	}
+
 	public void setDocumentService(DocumentService documentService) {
 		this.documentService = documentService;
 	}
+
+	@Override
 	public int getShapeCount() {
-		if (shapeCount<0) {
+		if (shapeCount < 0) {
 			shapeCount = this.graphicsService.getShapeCount(this);
 		}
 		return shapeCount;
 	}
+
 	public void setShapeCount(int shapeCount) {
 		this.shapeCount = shapeCount;
 	}
-	
+
 	@Override
 	public int hashCode() {
-		if (this.isNew())
+		if (this.id == 0)
 			return super.hashCode();
 		else
-			return ((Integer)this.getId()).hashCode();
+			return ((Integer) this.getId()).hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.isNew()) {
+		if (this.id == 0) {
 			return super.equals(obj);
 		} else {
 			JochreImage other = (JochreImage) obj;
-			return (this.getId()==other.getId());
+			return (this.getId() == other.getId());
 		}
 	}
 
@@ -358,8 +407,8 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 
 	@Override
 	public User getOwner() {
-		if (this.owner==null && this.ownerId!=0)
-			this.owner = this.getSecurityService().loadUser(this.ownerId);
+		if (this.owner == null && this.ownerId != 0)
+			this.owner = User.loadUser(this.ownerId);
 		return owner;
 	}
 
@@ -368,21 +417,15 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		this.setOwnerId(owner.getId());
 		this.owner = owner;
 	}
-	public SecurityService getSecurityService() {
-		return securityService;
-	}
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
 
 	@Override
 	public Shape getShape(int left, int top, int right, int bottom) {
 		String key = left + "," + top + "," + right + "," + bottom;
-		
-		if (this.shapeMap==null)
+
+		if (this.shapeMap == null)
 			this.shapeMap = new HashMap<String, Shape>();
 		Shape shape = this.shapeMap.get(key);
-		if (shape==null) {
+		if (shape == null) {
 			ShapeInternal shapeInternal = this.graphicsService.getEmptyShapeInternal();
 			shapeInternal.setJochreImage(this);
 			shapeInternal.setLeft(left);
@@ -394,7 +437,6 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		}
 		return shape;
 	}
-	
 
 	@Override
 	public boolean isLeftToRight() {
@@ -410,18 +452,18 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 
 	@Override
 	public void onSaveShape(Shape shape) {
-		if (this.currentMonitor!=null) {
+		if (this.currentMonitor != null) {
 			shapesSaved++;
 			int shapeCount = this.getShapeCount();
-			if (shapeCount==0)
+			if (shapeCount == 0)
 				shapeCount = 1;
-			this.currentMonitor.setPercentComplete((double)shapesSaved / (double) shapeCount);
+			this.currentMonitor.setPercentComplete((double) shapesSaved / (double) shapeCount);
 		}
 	}
 
 	@Override
 	public double getConfidence() {
-		if (confidence<0) {
+		if (confidence < 0) {
 			confidence = 0;
 			int count = 0;
 			for (Paragraph paragraph : paragraphs) {
@@ -432,7 +474,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 					}
 				}
 			}
-			if (count==0) {
+			if (count == 0) {
 				confidence = 0;
 			} else {
 				confidence /= count;
@@ -447,13 +489,13 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 		RectangleImpl printSpace = new RectangleImpl(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
 		for (Paragraph paragraph : this.getParagraphs()) {
 			if (!paragraph.isJunk()) {
-				if (paragraph.getTop()<printSpace.getTop())
+				if (paragraph.getTop() < printSpace.getTop())
 					printSpace.setTop(paragraph.getTop());
-				if (paragraph.getLeft()<printSpace.getLeft())
+				if (paragraph.getLeft() < printSpace.getLeft())
 					printSpace.setLeft(paragraph.getLeft());
-				if (paragraph.getBottom()>printSpace.getBottom())
+				if (paragraph.getBottom() > printSpace.getBottom())
 					printSpace.setBottom(paragraph.getBottom());
-				if (paragraph.getRight()>printSpace.getRight())
+				if (paragraph.getRight() > printSpace.getRight())
 					printSpace.setRight(paragraph.getRight());
 			}
 		}
@@ -470,7 +512,7 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 				((RowOfShapesInternal) row).setIndex(iRow++);
 				int iGroup = 0;
 				for (GroupOfShapes group : row.getGroups()) {
-					((GroupOfShapesInternal)group).setIndex(iGroup++);
+					((GroupOfShapesInternal) group).setIndex(iGroup++);
 					int iShape = 0;
 					for (Shape shape : group.getShapes()) {
 						((ShapeInternal) shape).setIndex(iShape++);
@@ -478,6 +520,16 @@ class JochreImageImpl extends EntityImpl implements JochreImageInternal, Monitor
 				}
 			}
 		}
+	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
 	}
 
 }

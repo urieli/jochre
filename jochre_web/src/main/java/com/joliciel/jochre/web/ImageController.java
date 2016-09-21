@@ -51,7 +51,6 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
 
@@ -135,8 +134,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 		if (currentUser.getRole().equals(UserRole.ADMIN)) {
 			cmbOwner.setVisible(true);
 			lblOwner.setVisible(false);
-			SecurityService securityService = locator.getSecurityServiceLocator().getSecurityService();
-			List<User> users = securityService.findUsers();
+			List<User> users = User.findUsers();
 
 			List<Comboitem> cmbOwnerItems = cmbOwner.getItems();
 			Comboitem selectedUser = null;
@@ -734,9 +732,9 @@ public class ImageController extends GenericForwardComposer<Window> {
 	}
 
 	/**
-	 * Divide the text in a given row's textbox into separate letter groups,
-	 * which will then be used to populate labels that are aligned with the
-	 * letters in the image.
+	 * Divide the text in a given row's textbox into separate letter groups, which
+	 * will then be used to populate labels that are aligned with the letters in
+	 * the image.
 	 * 
 	 * @param row
 	 * @return
@@ -779,8 +777,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 				}
 				// LOG.debug("Letter: " + letter);
 				if (HEBREW_ACCENTS.indexOf(letter) >= 0 && letters.size() != 0) {
-					if (letter.equals("ַ") && letters.size() > 1 && letters.get(letters.size() - 1).equals("י")
-							&& letters.get(letters.size() - 2).equals("י")) {
+					if (letter.equals("ַ") && letters.size() > 1 && letters.get(letters.size() - 1).equals("י") && letters.get(letters.size() - 2).equals("י")) {
 						letters.remove(letters.size() - 1);
 						letters.remove(letters.size() - 1);
 						letters.add("ײַ");

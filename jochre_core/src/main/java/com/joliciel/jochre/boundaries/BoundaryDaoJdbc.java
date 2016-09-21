@@ -21,6 +21,7 @@ package com.joliciel.jochre.boundaries;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -29,8 +30,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import com.joliciel.jochre.boundaries.Split;
-import com.joliciel.jochre.boundaries.SplitInternal;
+
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.utils.DaoUtils;
 
@@ -47,8 +47,7 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 	}
 
 	@Override
-	public void setBoundaryServiceInternal(
-			BoundaryServiceInternal boundaryServiceInternal) {
+	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
 		this.boundaryServiceInternal = boundaryServiceInternal;
 	}
 
@@ -62,8 +61,6 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		this.dataSource = dataSource;
 	}
 
-
-
 	@Override
 	public Split loadSplit(int splitId) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -75,7 +72,7 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		logParameters(paramSource);
 		Split split = null;
 		try {
-			split = (Split)  jt.queryForObject(sql, paramSource, new SplitMapper(this.getBoundaryServiceInternal()));
+			split = jt.queryForObject(sql, paramSource, new SplitMapper(this.getBoundaryServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
@@ -85,8 +82,7 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 	@Override
 	public List<Split> findSplits(Shape shape) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_SPLIT + " FROM ocr_split WHERE split_shape_id=:split_shape_id" +
-		" ORDER BY split_position";
+		String sql = "SELECT " + SELECT_SPLIT + " FROM ocr_split WHERE split_shape_id=:split_shape_id" + " ORDER BY split_position";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("split_shape_id", shape.getId());
 
@@ -97,26 +93,29 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 
 		return splits;
 	}
-	
+
 	protected static final class SplitMapper implements RowMapper<Split> {
 		private BoundaryServiceInternal boundaryService;
 
 		protected SplitMapper(BoundaryServiceInternal boundaryService) {
 			this.boundaryService = boundaryService;
 		}
+
+		@Override
 		public Split mapRow(ResultSet rs, int rowNum) throws SQLException {
 			SplitInternal split = boundaryService.getEmptySplitInternal();
 			// split_id, split_top, split_left, split_bottom, split_right
-			// split_cap_line, split_mean_line, split_base_line, split_pixels, split_letter, split_group_id, split_index
+			// split_cap_line, split_mean_line, split_base_line, split_pixels,
+			// split_letter, split_group_id, split_index
 			split.setId(rs.getInt("split_id"));
 			split.setShapeId(rs.getInt("split_shape_id"));
 			split.setPosition(rs.getInt("split_position"));
-			
+
 			split.setDirty(false);
 			return split;
 		}
 	}
-	
+
 	@Override
 	public void saveSplit(Split split) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -127,14 +126,13 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		paramSource.addValue("split_position", split.getPosition());
 		String sql = null;
 
-		if (split.isNew()) {
+		if (split.getId() == 0) {
 			sql = "SELECT nextval('ocr_split_id_seq')";
 			LOG.debug(sql);
 			int splitId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("split_id", splitId);
 
-			sql = "INSERT INTO ocr_split (split_id, split_shape_id, split_position) " +
-			"VALUES (:split_id, :split_shape_id, :split_position)";
+			sql = "INSERT INTO ocr_split (split_id, split_shape_id, split_position) " + "VALUES (:split_id, :split_shape_id, :split_position)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -144,31 +142,29 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 		} else {
 			paramSource.addValue("split_id", split.getId());
 
-			sql = "UPDATE ocr_split" +
-			" SET split_shape_id = :split_shape_id" +
-			", split_position = :split_position" +
-			" WHERE split_id = :split_id";
+			sql = "UPDATE ocr_split" + " SET split_shape_id = :split_shape_id" + ", split_position = :split_position" + " WHERE split_id = :split_id";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
 			jt.update(sql, paramSource);
 		}
 	}
+
 	@Override
 	public void deleteSplit(Split split) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("split_id", split.getId());
 		String sql = null;
-		
+
 		sql = "delete from ocr_split where split_id = :split_id";
 
 		LOG.debug(sql);
 		logParameters(paramSource);
 		jt.update(sql, paramSource);
 	}
-	
-    public static void logParameters(MapSqlParameterSource paramSource) {
-       DaoUtils.LogParameters(paramSource.getValues());
-    }
+
+	public static void logParameters(MapSqlParameterSource paramSource) {
+		DaoUtils.LogParameters(paramSource.getValues());
+	}
 }

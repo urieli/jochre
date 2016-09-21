@@ -31,26 +31,25 @@ import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.jochre.security.SecurityService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	private GraphicsDao graphicsDao;
 	private ObjectCache objectCache;
 	private LetterGuesserService letterGuesserService;
-	private SecurityService securityService;
 	private DocumentService documentService;
 	private BoundaryService boundaryService;
-	
+
 	public GraphicsServiceImpl() {
 	}
-	
+
+	@Override
 	public Segmenter getSegmenter(SourceImage sourceImage) {
 		SegmenterImpl shapeExtractor = new SegmenterImpl(sourceImage);
 		shapeExtractor.setGraphicsService(this);
 		return shapeExtractor;
 	}
-	
+
 	@Override
 	public Vectorizer getVectorizer() {
 		VectorizerImpl vectorizer = new VectorizerImpl();
@@ -67,9 +66,9 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		shape.setRight(x);
 		shape.setTop(y);
 		shape.setBottom(y);
-		
-		shape.setStartingPoint(new int[] {x,y});
-		
+
+		shape.setStartingPoint(new int[] { x, y });
+
 		return shape;
 	}
 
@@ -79,8 +78,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	}
 
 	@Override
-	public SourceImage getSourceImage(JochrePage page, String name,
-			BufferedImage image) {
+	public SourceImage getSourceImage(JochrePage page, String name, BufferedImage image) {
 		SourceImageInternal sourceImage = this.getSourceImageInternal(name, image);
 		sourceImage.setPage(page);
 		return sourceImage;
@@ -88,24 +86,22 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 
 	@Override
 	public SourceImageInternal getSourceImageInternal(String name, BufferedImage image) {
-		SourceImageImpl sourceImage =  new SourceImageImpl(this, name, image);
+		SourceImageImpl sourceImage = new SourceImageImpl(this, name, image);
 		sourceImage.setGraphicsService(this);
 		sourceImage.setDocumentService(this.getDocumentService());
-		sourceImage.setSecurityService(this.getSecurityService());
 		return sourceImage;
 	}
 
+	@Override
 	public RowOfShapes getEmptyRow(SourceImage sourceImage) {
 		RowOfShapesImpl row = new RowOfShapesImpl(sourceImage);
 		row.setGraphicsService(this);
 		return row;
 	}
-	
+
 	public JochreImage getEmptyJochreImage() {
 		return this.getEmptyJochreImageInternal();
 	}
-	
-	
 
 	@Override
 	public ShapeInternal getEmptyShapeInternal() {
@@ -113,7 +109,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		shape.setGraphicsService(this);
 		shape.setLetterGuesserService(this.getLetterGuesserService());
 		shape.setBoundaryService(this.getBoundaryService());
-		
+
 		return shape;
 	}
 
@@ -122,7 +118,6 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		JochreImageImpl jochreImage = new JochreImageImpl();
 		jochreImage.setGraphicsService(this);
 		jochreImage.setDocumentService(this.getDocumentService());
-		jochreImage.setSecurityService(this.getSecurityService());
 		return jochreImage;
 	}
 
@@ -132,7 +127,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 		rowOfShapes.setGraphicsService(this);
 		return rowOfShapes;
 	}
-	
+
 	@Override
 	public GroupOfShapesInternal getEmptyGroupOfShapesInternal() {
 		GroupOfShapesImpl groupOfShapes = new GroupOfShapesImpl();
@@ -142,54 +137,54 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 
 	@Override
 	public Shape loadShape(int shapeId) {
-		Shape shape = (Shape) this.objectCache.getEntity(Shape.class, shapeId);
-        if (shape==null) {
-        	shape = this.getGraphicsDao().loadShape(shapeId);
-            if (shape==null) {
-                throw new EntityNotFoundException("No ContiguousShape found for shapeId " + shapeId);
-            }
-            this.objectCache.putEntity(Shape.class, shapeId, shape);
-        }
-        return shape;
+		Shape shape = this.objectCache.getEntity(Shape.class, shapeId);
+		if (shape == null) {
+			shape = this.getGraphicsDao().loadShape(shapeId);
+			if (shape == null) {
+				throw new EntityNotFoundException("No ContiguousShape found for shapeId " + shapeId);
+			}
+			this.objectCache.putEntity(Shape.class, shapeId, shape);
+		}
+		return shape;
 	}
 
 	@Override
 	public JochreImage loadJochreImage(int imageId) {
-		JochreImage image = (JochreImage) this.objectCache.getEntity(JochreImage.class, imageId);
-        if (image==null) {
-        	image = this.getGraphicsDao().loadJochreImage(imageId);
-            if (image==null) {
-                throw new EntityNotFoundException("No JochreImage found for imageId " + imageId);
-            }
-            this.objectCache.putEntity(JochreImage.class, imageId, image);
-        }
-        return image;
+		JochreImage image = this.objectCache.getEntity(JochreImage.class, imageId);
+		if (image == null) {
+			image = this.getGraphicsDao().loadJochreImage(imageId);
+			if (image == null) {
+				throw new EntityNotFoundException("No JochreImage found for imageId " + imageId);
+			}
+			this.objectCache.putEntity(JochreImage.class, imageId, image);
+		}
+		return image;
 	}
 
 	@Override
 	public RowOfShapes loadRowOfShapes(int rowId) {
-		RowOfShapes row = (RowOfShapes) this.objectCache.getEntity(RowOfShapes.class, rowId);
-        if (row==null) {
-        	row = this.getGraphicsDao().loadRowOfShapes(rowId);
-            if (row==null) {
-                throw new EntityNotFoundException("No RowOfShapes found for rowId " + rowId);
-            }
-            this.objectCache.putEntity(RowOfShapes.class, rowId, row);
-        }
-        return row;
+		RowOfShapes row = this.objectCache.getEntity(RowOfShapes.class, rowId);
+		if (row == null) {
+			row = this.getGraphicsDao().loadRowOfShapes(rowId);
+			if (row == null) {
+				throw new EntityNotFoundException("No RowOfShapes found for rowId " + rowId);
+			}
+			this.objectCache.putEntity(RowOfShapes.class, rowId, row);
+		}
+		return row;
 	}
-	
+
 	@Override
 	public GroupOfShapes loadGroupOfShapes(int groupId) {
-		GroupOfShapes group = (GroupOfShapes) this.objectCache.getEntity(GroupOfShapes.class, groupId);
-        if (group==null) {
-        	group = this.getGraphicsDao().loadGroupOfShapes(groupId);
-            if (group==null) {
-                throw new EntityNotFoundException("No GroupOfShapes found for groupId " + groupId);
-            }
-            this.objectCache.putEntity(GroupOfShapes.class, groupId, group);
-        }
-        return group;
+		GroupOfShapes group = this.objectCache.getEntity(GroupOfShapes.class, groupId);
+		if (group == null) {
+			group = this.getGraphicsDao().loadGroupOfShapes(groupId);
+			if (group == null) {
+				throw new EntityNotFoundException("No GroupOfShapes found for groupId " + groupId);
+			}
+			this.objectCache.putEntity(GroupOfShapes.class, groupId, group);
+		}
+		return group;
 	}
 
 	@Override
@@ -211,7 +206,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	public void saveGroupOfShapes(GroupOfShapes group) {
 		this.graphicsDao.saveGroupOfShapes(group);
 	}
-	
+
 	public GraphicsDao getGraphicsDao() {
 		return graphicsDao;
 	}
@@ -230,8 +225,7 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	}
 
 	@Override
-	public void deleteShapeInternal(
-			ShapeInternal contiguousShapeInternal) {
+	public void deleteShapeInternal(ShapeInternal contiguousShapeInternal) {
 		this.graphicsDao.deleteContiguousShapeInternal(contiguousShapeInternal);
 	}
 
@@ -257,15 +251,15 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 
 	@Override
 	public Paragraph loadParagraph(int paragraphId) {
-		Paragraph paragraph = (Paragraph) this.objectCache.getEntity(Paragraph.class, paragraphId);
-        if (paragraph==null) {
-        	paragraph = this.getGraphicsDao().loadParagraph(paragraphId);
-            if (paragraph==null) {
-                throw new EntityNotFoundException("No Paragraph found for paragraphId " + paragraphId);
-            }
-            this.objectCache.putEntity(Paragraph.class, paragraphId, paragraph);
-        }
-        return paragraph;
+		Paragraph paragraph = this.objectCache.getEntity(Paragraph.class, paragraphId);
+		if (paragraph == null) {
+			paragraph = this.getGraphicsDao().loadParagraph(paragraphId);
+			if (paragraph == null) {
+				throw new EntityNotFoundException("No Paragraph found for paragraphId " + paragraphId);
+			}
+			this.objectCache.putEntity(Paragraph.class, paragraphId, paragraph);
+		}
+		return paragraph;
 	}
 
 	@Override
@@ -295,17 +289,17 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	List<JochreImage> findCachedImages(List<JochreImage> images) {
 		List<JochreImage> cachedImages = new ArrayList<JochreImage>();
 		for (JochreImage image : images) {
-			JochreImage cachedImage = (JochreImage) this.objectCache.getEntity(JochreImage.class, image.getId());
-	        if (cachedImage==null) {
-	            this.objectCache.putEntity(JochreImage.class, image.getId(), image);
-	            cachedImages.add(image);
-	        } else {
-	        	cachedImages.add(cachedImage);
-	        }
+			JochreImage cachedImage = this.objectCache.getEntity(JochreImage.class, image.getId());
+			if (cachedImage == null) {
+				this.objectCache.putEntity(JochreImage.class, image.getId(), image);
+				cachedImages.add(image);
+			} else {
+				cachedImages.add(cachedImage);
+			}
 		}
-		return cachedImages;		
+		return cachedImages;
 	}
-	
+
 	@Override
 	public LineSegment getEmptyLineSegment(Shape shape, LineDefinition lineDefinition, int startX, int startY, int endX, int endY) {
 		return new LineSegmentImpl(shape, lineDefinition, startX, startY, endX, endY);
@@ -334,21 +328,13 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	public LetterGuesserService getLetterGuesserService() {
 		return this.letterGuesserService;
 	}
-	
+
 	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
-	}
-	
-	public SecurityService getSecurityService() {
-		return this.securityService;
 	}
 
 	public DocumentService getDocumentService() {
 		return this.documentService;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
 	}
 
 	public void setDocumentService(DocumentService documentService) {
@@ -429,13 +415,11 @@ final class GraphicsServiceImpl implements GraphicsServiceInternal {
 	}
 
 	@Override
-	public JochreCorpusImageProcessor getJochreCorpusImageProcessor(
-			CorpusSelectionCriteria corpusSelectionCriteria) {
+	public JochreCorpusImageProcessor getJochreCorpusImageProcessor(CorpusSelectionCriteria corpusSelectionCriteria) {
 		JochreCorpusImageProcessorImpl processor = new JochreCorpusImageProcessorImpl(corpusSelectionCriteria);
 		processor.setGraphicsService(this);
 		processor.setDocumentService(this.getDocumentService());
 		return processor;
 	}
 
-	
 }

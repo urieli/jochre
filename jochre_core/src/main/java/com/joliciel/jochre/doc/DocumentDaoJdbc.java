@@ -32,10 +32,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.jochre.doc.JochreDocumentInternal;
-import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.doc.JochrePageInternal;
 import com.joliciel.talismane.utils.DaoUtils;
 
 public final class DocumentDaoJdbc implements DocumentDao {
@@ -43,11 +39,10 @@ public final class DocumentDaoJdbc implements DocumentDao {
 	DocumentServiceInternal documentServiceInternal;
 	private DataSource dataSource;
 
-	private static final String SELECT_DOCUMENT = "doc_id, doc_filename, doc_name, doc_locale, doc_owner_id" +
-			", doc_name_local, doc_publisher, doc_city, doc_year, doc_reference";
+	private static final String SELECT_DOCUMENT = "doc_id, doc_filename, doc_name, doc_locale, doc_owner_id"
+			+ ", doc_name_local, doc_publisher, doc_city, doc_year, doc_reference";
 	private static final String SELECT_PAGE = "page_id, page_doc_id, page_index";
 	private static final String SELECT_AUTHOR = "author_id, author_first_name, author_last_name, author_first_name_local, author_last_name_local";
-
 
 	@Override
 	public JochrePage loadJochrePage(int jochrePageId) {
@@ -60,26 +55,25 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		logParameters(paramSource);
 		JochrePage jochrePage = null;
 		try {
-			jochrePage = (JochrePage)  jt.queryForObject(sql, paramSource, new JochrePageMapper(this.getDocumentServiceInternal()));
+			jochrePage = jt.queryForObject(sql, paramSource, new JochrePageMapper(this.getDocumentServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return jochrePage;
 	}
-	
+
 	@Override
 	public List<JochrePage> findJochrePages(JochreDocument jochreDocument) {
-        NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-        String sql = "SELECT " + SELECT_PAGE + " FROM ocr_page WHERE page_doc_id=:page_doc_id" +
-        		" ORDER BY page_index";
-        MapSqlParameterSource paramSource = new MapSqlParameterSource();
-        paramSource.addValue("page_doc_id", jochreDocument.getId());
-       
-        LOG.info(sql);
-        logParameters(paramSource);
-        List<JochrePage> jochrePages = jt.query(sql, paramSource, new JochrePageMapper(this.getDocumentServiceInternal()));
-       
-        return jochrePages;
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT " + SELECT_PAGE + " FROM ocr_page WHERE page_doc_id=:page_doc_id" + " ORDER BY page_index";
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("page_doc_id", jochreDocument.getId());
+
+		LOG.info(sql);
+		logParameters(paramSource);
+		List<JochrePage> jochrePages = jt.query(sql, paramSource, new JochrePageMapper(this.getDocumentServiceInternal()));
+
+		return jochrePages;
 	}
 
 	protected static final class JochrePageMapper implements RowMapper<JochrePage> {
@@ -88,6 +82,8 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		protected JochrePageMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
+
+		@Override
 		public JochrePage mapRow(ResultSet rs, int rowNum) throws SQLException {
 			JochrePageInternal jochrePage = graphicsService.getEmptyJochrePageInternal();
 			jochrePage.setId(rs.getInt("page_id"));
@@ -96,7 +92,7 @@ public final class DocumentDaoJdbc implements DocumentDao {
 			return jochrePage;
 		}
 	}
-	
+
 	@Override
 	public void saveJochrePage(JochrePage jochrePage) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -107,14 +103,13 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		paramSource.addValue("page_index", jochrePage.getIndex());
 		String sql = null;
 
-		if (jochrePage.isNew()) {
+		if (jochrePage.getId() == 0) {
 			sql = "SELECT nextval('ocr_page_id_seq')";
 			LOG.info(sql);
 			int jochrePageId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("page_id", jochrePageId);
 
-			sql = "INSERT INTO ocr_page (page_id, page_doc_id, page_index) " +
-			"VALUES (:page_id, :page_doc_id, :page_index)";
+			sql = "INSERT INTO ocr_page (page_id, page_doc_id, page_index) " + "VALUES (:page_id, :page_doc_id, :page_index)";
 
 			LOG.info(sql);
 			logParameters(paramSource);
@@ -124,28 +119,22 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		} else {
 			paramSource.addValue("page_id", jochrePage.getId());
 
-			sql = "UPDATE ocr_page" +
-			" SET page_doc_id = :page_doc_id" +
-			", page_index = :page_index" +
-			" WHERE page_id = :page_id";
+			sql = "UPDATE ocr_page" + " SET page_doc_id = :page_doc_id" + ", page_index = :page_index" + " WHERE page_id = :page_id";
 
 			LOG.info(sql);
 			logParameters(paramSource);
 			jt.update(sql, paramSource);
 		}
 	}
-	
-	
-	
+
 	@Override
 	public void deleteJochrePage(JochrePage page) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("page_id", page.getId());
 		String sql = null;
-		
-		sql = "delete from ocr_page" +
-			" WHERE page_id = :page_id";
+
+		sql = "delete from ocr_page" + " WHERE page_id = :page_id";
 
 		LOG.info(sql);
 		logParameters(paramSource);
@@ -163,13 +152,13 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		logParameters(paramSource);
 		JochreDocument jochreDocument = null;
 		try {
-			jochreDocument = (JochreDocument)  jt.queryForObject(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
+			jochreDocument = jt.queryForObject(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return jochreDocument;
 	}
-	
+
 	@Override
 	public JochreDocument loadJochreDocument(String name) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -181,13 +170,12 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		logParameters(paramSource);
 		JochreDocument jochreDocument = null;
 		try {
-			jochreDocument = (JochreDocument)  jt.queryForObject(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
+			jochreDocument = jt.queryForObject(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return jochreDocument;
 	}
-
 
 	@Override
 	public List<JochreDocument> findDocuments() {
@@ -197,40 +185,42 @@ public final class DocumentDaoJdbc implements DocumentDao {
 
 		LOG.info(sql);
 		logParameters(paramSource);
-		List<JochreDocument> documents =  jt.query(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
+		List<JochreDocument> documents = jt.query(sql, paramSource, new JochreDocumentMapper(this.getDocumentServiceInternal()));
 
 		return documents;
 	}
-	
+
 	protected static final class JochreDocumentMapper implements RowMapper<JochreDocument> {
 		private DocumentServiceInternal graphicsService;
 
 		protected JochreDocumentMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
+
+		@Override
 		public JochreDocument mapRow(ResultSet rs, int rowNum) throws SQLException {
 			JochreDocumentInternal jochreDocument = graphicsService.getEmptyJochreDocumentInternal();
 			jochreDocument.setId(rs.getInt("doc_id"));
 			jochreDocument.setFileName(rs.getString("doc_filename"));
 			jochreDocument.setName(rs.getString("doc_name"));
 			jochreDocument.setOwnerId(rs.getInt("doc_owner_id"));
-            if (rs.getObject("doc_name_local")!=null)
-            	jochreDocument.setNameLocal(rs.getString("doc_name_local"));
-            if (rs.getObject("doc_publisher")!=null)
-            	jochreDocument.setPublisher(rs.getString("doc_publisher"));
-            if (rs.getObject("doc_city")!=null)
-            	jochreDocument.setCity(rs.getString("doc_city"));
-            if (rs.getObject("doc_year")!=null)
-            	jochreDocument.setYear(rs.getInt("doc_year"));
-            if (rs.getObject("doc_reference")!=null)
-            	jochreDocument.setReference(rs.getString("doc_reference"));
-			
+			if (rs.getObject("doc_name_local") != null)
+				jochreDocument.setNameLocal(rs.getString("doc_name_local"));
+			if (rs.getObject("doc_publisher") != null)
+				jochreDocument.setPublisher(rs.getString("doc_publisher"));
+			if (rs.getObject("doc_city") != null)
+				jochreDocument.setCity(rs.getString("doc_city"));
+			if (rs.getObject("doc_year") != null)
+				jochreDocument.setYear(rs.getInt("doc_year"));
+			if (rs.getObject("doc_reference") != null)
+				jochreDocument.setReference(rs.getString("doc_reference"));
+
 			Locale locale = new Locale(rs.getString("doc_locale"));
 			jochreDocument.setLocale(locale);
 			return jochreDocument;
 		}
 	}
-	
+
 	@Override
 	public void saveJochreDocument(JochreDocument jochreDocument) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -246,19 +236,18 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		paramSource.addValue("doc_city", jochreDocument.getCity());
 		paramSource.addValue("doc_year", jochreDocument.getYear());
 		paramSource.addValue("doc_reference", jochreDocument.getReference());
-		
+
 		String sql = null;
 
-		if (jochreDocument.isNew()) {
+		if (jochreDocument.getId() == 0) {
 			sql = "SELECT nextval('ocr_doc_id_seq')";
 			LOG.info(sql);
 			int jochreDocumentId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("doc_id", jochreDocumentId);
 
-			sql = "INSERT INTO ocr_document (doc_id, doc_filename, doc_name, doc_locale, doc_owner_id" +
-					", doc_name_local, doc_publisher, doc_city, doc_year, doc_reference) " +
-					"VALUES (:doc_id, :doc_filename, :doc_name, :doc_locale, :doc_owner_id" +
-					", :doc_name_local, :doc_publisher, :doc_city, :doc_year, :doc_reference)";
+			sql = "INSERT INTO ocr_document (doc_id, doc_filename, doc_name, doc_locale, doc_owner_id"
+					+ ", doc_name_local, doc_publisher, doc_city, doc_year, doc_reference) " + "VALUES (:doc_id, :doc_filename, :doc_name, :doc_locale, :doc_owner_id"
+					+ ", :doc_name_local, :doc_publisher, :doc_city, :doc_year, :doc_reference)";
 
 			LOG.info(sql);
 			logParameters(paramSource);
@@ -268,24 +257,15 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		} else {
 			paramSource.addValue("doc_id", jochreDocument.getId());
 
-			sql = "UPDATE ocr_document" +
-			" SET doc_filename = :doc_filename" +
-			", doc_name = :doc_name" +
-			", doc_locale = :doc_locale" +
-			", doc_owner_id = :doc_owner_id" +
-			", doc_name_local = :doc_name_local" +
-			", doc_publisher = :doc_publisher" +
-			", doc_city = :doc_city" +
-			", doc_year = :doc_year" +
-			", doc_reference = :doc_reference" +
-			" WHERE doc_id = :doc_id";
+			sql = "UPDATE ocr_document" + " SET doc_filename = :doc_filename" + ", doc_name = :doc_name" + ", doc_locale = :doc_locale"
+					+ ", doc_owner_id = :doc_owner_id" + ", doc_name_local = :doc_name_local" + ", doc_publisher = :doc_publisher" + ", doc_city = :doc_city"
+					+ ", doc_year = :doc_year" + ", doc_reference = :doc_reference" + " WHERE doc_id = :doc_id";
 
 			LOG.info(sql);
 			logParameters(paramSource);
 			jt.update(sql, paramSource);
 		}
 	}
-	
 
 	@Override
 	public Author loadAuthor(int authorId) {
@@ -298,42 +278,39 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		logParameters(paramSource);
 		Author author = null;
 		try {
-			author = (Author)  jt.queryForObject(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
+			author = jt.queryForObject(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return author;
 	}
-	
+
 	@Override
 	public List<Author> findAuthors() {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-	    String sql = "SELECT " + SELECT_AUTHOR + " FROM ocr_author" +
-	    	" ORDER BY author_last_name, author_first_name";
-	    MapSqlParameterSource paramSource = new MapSqlParameterSource();
-	   
-	    LOG.info(sql);
-	    logParameters(paramSource);
-	    List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
-	   
-	    return authors;
-     }
+		String sql = "SELECT " + SELECT_AUTHOR + " FROM ocr_author" + " ORDER BY author_last_name, author_first_name";
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+
+		LOG.info(sql);
+		logParameters(paramSource);
+		List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
+
+		return authors;
+	}
 
 	@Override
 	public List<Author> findAuthors(JochreDocument jochreDocument) {
-        NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-        String sql = "SELECT " + SELECT_AUTHOR + " FROM ocr_author" +
-        		" INNER JOIN ocr_doc_author_map ON docauthor_author_id = author_id" +
-        		" WHERE docauthor_doc_id=:docauthor_doc_id" +
-        		" ORDER BY author_last_name, author_first_name";
-        MapSqlParameterSource paramSource = new MapSqlParameterSource();
-        paramSource.addValue("docauthor_doc_id", jochreDocument.getId());
-       
-        LOG.info(sql);
-        logParameters(paramSource);
-        List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
-       
-        return authors;
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		String sql = "SELECT " + SELECT_AUTHOR + " FROM ocr_author" + " INNER JOIN ocr_doc_author_map ON docauthor_author_id = author_id"
+				+ " WHERE docauthor_doc_id=:docauthor_doc_id" + " ORDER BY author_last_name, author_first_name";
+		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+		paramSource.addValue("docauthor_doc_id", jochreDocument.getId());
+
+		LOG.info(sql);
+		logParameters(paramSource);
+		List<Author> authors = jt.query(sql, paramSource, new AuthorMapper(this.getDocumentServiceInternal()));
+
+		return authors;
 	}
 
 	protected static final class AuthorMapper implements RowMapper<Author> {
@@ -342,6 +319,8 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		protected AuthorMapper(DocumentServiceInternal graphicsService) {
 			this.graphicsService = graphicsService;
 		}
+
+		@Override
 		public Author mapRow(ResultSet rs, int rowNum) throws SQLException {
 			AuthorInternal author = graphicsService.getEmptyAuthorInternal();
 			author.setId(rs.getInt("author_id"));
@@ -352,7 +331,6 @@ public final class DocumentDaoJdbc implements DocumentDao {
 			return author;
 		}
 	}
-	
 
 	@Override
 	public void saveAuthor(Author author) {
@@ -366,16 +344,14 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		paramSource.addValue("author_last_name_local", author.getLastNameLocal());
 		String sql = null;
 
-		if (author.isNew()) {
+		if (author.getId() == 0) {
 			sql = "SELECT nextval('ocr_author_id_seq')";
 			LOG.info(sql);
 			int authorId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("author_id", authorId);
 
-			sql = "INSERT INTO ocr_author (author_id, author_first_name, author_last_name" +
-					", author_first_name_local, author_last_name_local) " +
-					"VALUES (:author_id, :author_first_name, :author_last_name" +
-					", :author_first_name_local, :author_last_name_local)";
+			sql = "INSERT INTO ocr_author (author_id, author_first_name, author_last_name" + ", author_first_name_local, author_last_name_local) "
+					+ "VALUES (:author_id, :author_first_name, :author_last_name" + ", :author_first_name_local, :author_last_name_local)";
 
 			LOG.info(sql);
 			logParameters(paramSource);
@@ -385,20 +361,15 @@ public final class DocumentDaoJdbc implements DocumentDao {
 		} else {
 			paramSource.addValue("author_id", author.getId());
 
-			sql = "UPDATE ocr_author" +
-				" SET author_first_name = :author_first_name" +
-				", author_last_name = :author_last_name" +
-				", author_first_name_local = :author_first_name_local" +
-				", author_last_name_local = :author_last_name_local" +
-				" WHERE author_id = :author_id";
+			sql = "UPDATE ocr_author" + " SET author_first_name = :author_first_name" + ", author_last_name = :author_last_name"
+					+ ", author_first_name_local = :author_first_name_local" + ", author_last_name_local = :author_last_name_local" + " WHERE author_id = :author_id";
 
 			LOG.info(sql);
 			logParameters(paramSource);
 			jt.update(sql, paramSource);
 		}
 	}
-	
-	
+
 	@Override
 	public void replaceAuthors(JochreDocument doc) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -415,22 +386,22 @@ public final class DocumentDaoJdbc implements DocumentDao {
 
 			paramSource.addValue("docauthor_doc_id", doc.getId());
 			paramSource.addValue("docauthor_author_id", author.getId());
-			
-			sql = "INSERT INTO ocr_doc_author_map (docauthor_doc_id, docauthor_author_id)" +
-					" VALUES (:docauthor_doc_id, :docauthor_author_id)";
-			
+
+			sql = "INSERT INTO ocr_doc_author_map (docauthor_doc_id, docauthor_author_id)" + " VALUES (:docauthor_doc_id, :docauthor_author_id)";
+
 			LOG.info(sql);
 			logParameters(paramSource);
-			jt.update(sql, paramSource);			
+			jt.update(sql, paramSource);
 		}
 	}
 
+	@Override
 	public DocumentServiceInternal getDocumentServiceInternal() {
 		return documentServiceInternal;
 	}
 
-	public void setDocumentServiceInternal(
-			DocumentServiceInternal documentServiceInternal) {
+	@Override
+	public void setDocumentServiceInternal(DocumentServiceInternal documentServiceInternal) {
 		this.documentServiceInternal = documentServiceInternal;
 	}
 
@@ -441,8 +412,8 @@ public final class DocumentDaoJdbc implements DocumentDao {
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-	
-    public static void logParameters(MapSqlParameterSource paramSource) {
-       DaoUtils.LogParameters(paramSource.getValues());
-    }
+
+	public static void logParameters(MapSqlParameterSource paramSource) {
+		DaoUtils.LogParameters(paramSource.getValues());
+	}
 }

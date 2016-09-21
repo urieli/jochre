@@ -3,42 +3,43 @@ package com.joliciel.jochre.doc;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.EntityImpl;
 import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Segmenter;
 import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.utils.JochreException;
 
-class JochrePageImpl extends EntityImpl implements JochrePageInternal {
-    private static final Logger LOG = LoggerFactory.getLogger(JochrePageImpl.class);
+class JochrePageImpl implements JochrePageInternal {
+	private static final Logger LOG = LoggerFactory.getLogger(JochrePageImpl.class);
 	private DocumentServiceInternal documentService;
 	private GraphicsService graphicsService;
-	
+
 	private int index;
 	private int documentId;
 	private JochreDocument document;
 	private List<JochreImage> jochreImages;
-	
+
+	private int id;
+
 	@Override
 	public JochreDocument getDocument() {
-		if (this.document==null && this.documentId!=0)
+		if (this.document == null && this.documentId != 0)
 			this.document = this.documentService.loadJochreDocument(this.documentId);
 		return this.document;
 	}
 
 	@Override
 	public List<JochreImage> getImages() {
-		if (this.jochreImages==null) {
-			if (this.isNew())
+		if (this.jochreImages == null) {
+			if (this.id == 0)
 				this.jochreImages = new ArrayList<JochreImage>();
 			else
 				this.jochreImages = this.graphicsService.findImages(this);
@@ -55,29 +56,33 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 	}
 
 	@Override
-	public void saveInternal() {
-		if (this.document!=null && this.documentId==0)
+	public void save() {
+		if (this.document != null && this.documentId == 0)
 			this.documentId = this.document.getId();
 		this.documentService.saveJochrePage(this);
-		if (this.jochreImages!=null) {
+		if (this.jochreImages != null) {
 			for (JochreImage jochreImage : this.jochreImages) {
 				jochreImage.save();
 			}
 		}
 	}
 
+	@Override
 	public int getIndex() {
 		return index;
 	}
 
+	@Override
 	public void setIndex(int index) {
 		this.index = index;
 	}
 
+	@Override
 	public int getDocumentId() {
 		return documentId;
 	}
 
+	@Override
 	public void setDocumentId(int documentId) {
 		this.documentId = documentId;
 	}
@@ -99,7 +104,7 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 	@Override
 	public void segment() {
 		int i = 0;
-		
+
 		for (JochreImage image : this.getImages()) {
 			SourceImage sourceImage = (SourceImage) image;
 			Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
@@ -112,20 +117,20 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 	@Override
 	public void segmentAndShow(String outputDirectory) {
 		int i = 0;
-		
+
 		for (JochreImage image : this.getImages()) {
 			SourceImage sourceImage = (SourceImage) image;
 			Segmenter segmenter = graphicsService.getSegmenter(sourceImage);
 			segmenter.setDrawSegmentation(true);
 			segmenter.segment();
-			
+
 			BufferedImage segmentedImage = segmenter.getSegmentedImage();
 			try {
 				ImageIO.write(segmentedImage, "PNG", new File(outputDirectory + "/" + image.getName() + "_seg.png"));
 			} catch (IOException e) {
 				throw new JochreException(e);
 			}
-			
+
 			LOG.debug("Image " + i + " segmented: " + sourceImage.getName());
 			i++;
 		}
@@ -148,5 +153,15 @@ class JochrePageImpl extends EntityImpl implements JochrePageInternal {
 	public void setDocumentService(DocumentServiceInternal documentService) {
 		this.documentService = documentService;
 	}
-	
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
 }

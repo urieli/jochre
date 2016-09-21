@@ -18,17 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.doc;
 
-import com.joliciel.jochre.EntityImpl;
-
-class AuthorImpl extends EntityImpl implements AuthorInternal {
+class AuthorImpl implements AuthorInternal {
 	private DocumentServiceInternal documentServiceInternal;
 	private String firstName;
 	private String lastName;
 	private String firstNameLocal;
 	private String lastNameLocal;
-	
+	private int id;
+
 	@Override
-	public void saveInternal() {
+	public void save() {
 		this.documentServiceInternal.saveAuthor(this);
 	}
 
@@ -76,8 +75,7 @@ class AuthorImpl extends EntityImpl implements AuthorInternal {
 		return documentServiceInternal;
 	}
 
-	public void setDocumentServiceInternal(
-			DocumentServiceInternal documentServiceInternal) {
+	public void setDocumentServiceInternal(DocumentServiceInternal documentServiceInternal) {
 		this.documentServiceInternal = documentServiceInternal;
 	}
 
@@ -89,23 +87,34 @@ class AuthorImpl extends EntityImpl implements AuthorInternal {
 	@Override
 	public String getFullNameLocal() {
 		return this.firstNameLocal + " " + this.lastNameLocal;
-	 }
+	}
 
 	@Override
 	public int hashCode() {
-		if (this.isNew())
+		if (this.id == 0)
 			return super.hashCode();
 		else
-			return ((Integer)this.getId()).hashCode();
+			return this.getId();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this.isNew()) {
+		if (this.id == 0) {
 			return super.equals(obj);
 		} else {
 			Author other = (Author) obj;
-			return (this.getId()==other.getId());
+			return (this.getId() == other.getId());
 		}
 	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
 }

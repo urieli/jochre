@@ -142,4 +142,5 @@ public interface JochreDocument extends Entity {
 	 * Get a file base useful for saving files based on this document.
 	 */
 	public String getFileBase();
+
 }
