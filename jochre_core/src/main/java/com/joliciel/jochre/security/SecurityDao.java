@@ -34,6 +34,7 @@ import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.joliciel.jochre.EntityNotFoundException;
+import com.joliciel.jochre.utils.dao.DaoConfig;
 import com.joliciel.talismane.utils.DaoUtils;
 import com.joliciel.talismane.utils.ObjectCache;
 import com.joliciel.talismane.utils.SimpleObjectCache;
@@ -49,6 +50,7 @@ class SecurityDao {
 
 	private SecurityDao(Config config) {
 		objectCache = new SimpleObjectCache();
+		this.dataSource = DaoConfig.getDataSource(config);
 	}
 
 	public static SecurityDao getInstance() {
