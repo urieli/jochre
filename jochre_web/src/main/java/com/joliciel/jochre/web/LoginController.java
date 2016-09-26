@@ -20,9 +20,11 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.EntityNotFoundException;
-import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.security.Parameters;
+import com.joliciel.jochre.security.SecurityDao;
 import com.joliciel.jochre.security.User;
+import com.typesafe.config.ConfigFactory;
 
 public class LoginController extends GenericForwardComposer<Window> {
 	/**
@@ -32,7 +34,8 @@ public class LoginController extends GenericForwardComposer<Window> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LoginController.class);
 	public static String SESSION_JOCHRE_USER = "SESSION_JOCHRE_USER";
-	private JochreServiceLocator locator = null;
+
+	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 
 	Window winLogin;
 	Button btnLogin;
@@ -58,11 +61,6 @@ public class LoginController extends GenericForwardComposer<Window> {
 		Session session = Sessions.getCurrent();
 		session.removeAttribute(SESSION_JOCHRE_USER);
 
-		locator = JochreServiceLocator.getInstance();
-
-		String resourcePath = "/jdbc-jochreWeb.properties";
-		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-
 		HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 		String failed = request.getParameter("failed");
 		if (failed == null)
@@ -70,7 +68,8 @@ public class LoginController extends GenericForwardComposer<Window> {
 		else
 			lblError.setVisible(true);
 
-		Parameters parameters = Parameters.loadParameters();
+		SecurityDao securityDao = SecurityDao.getInstance(jochreSession);
+		Parameters parameters = securityDao.loadParameters();
 		Date lastFailedLoginAttempt = parameters.getLastFailedLoginAttempt();
 		int captchaIntervalSeconds = parameters.getCaptachaIntervalSeconds();
 		Date now = new Date();
@@ -108,10 +107,11 @@ public class LoginController extends GenericForwardComposer<Window> {
 			}
 
 			Session session = Sessions.getCurrent();
+			SecurityDao securityDao = SecurityDao.getInstance(jochreSession);
 
 			User user = null;
 			try {
-				user = User.findUser(txtUserName.getValue());
+				user = securityDao.findUser(txtUserName.getValue());
 			} catch (EntityNotFoundException enfe) {
 				LOG.debug("Unknown user: " + txtUserName.getValue());
 				lblError.setVisible(true);
@@ -127,7 +127,7 @@ public class LoginController extends GenericForwardComposer<Window> {
 					captcha.randomValue();
 					txtCaptcha.setValue("");
 
-					Parameters parameters = Parameters.loadParameters();
+					Parameters parameters = securityDao.loadParameters();
 					Date lastFailedLoginAttempt = parameters.getLastFailedLoginAttempt();
 					int captchaIntervalSeconds = parameters.getCaptachaIntervalSeconds();
 					Date now = new Date();

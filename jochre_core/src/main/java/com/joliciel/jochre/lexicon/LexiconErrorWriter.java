@@ -59,16 +59,16 @@ import com.joliciel.talismane.utils.CSVFormatter;
 public class LexiconErrorWriter implements LetterGuessObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(LexiconErrorWriter.class);
 	private static final CSVFormatter CSV = new CSVFormatter(5);
-	private File outputDir;
-	private String baseName;
-	MostLikelyWordChooser wordChooser;
+	private final File outputDir;
+	private final String baseName;
+	private final MostLikelyWordChooser wordChooser;
 
-	Writer knownWordErrorWriter;
-	Writer knownWordCorrectWriter;
-	Writer unknownWordErrorWriter;
-	Writer unknownWordCorrectWriter;
-	Writer allErrorWriter;
-	Writer allWordWriter;
+	private final Writer knownWordErrorWriter;
+	private final Writer knownWordCorrectWriter;
+	private final Writer unknownWordErrorWriter;
+	private final Writer unknownWordCorrectWriter;
+	private final Writer allErrorWriter;
+	private final Writer allWordWriter;
 
 	private static final String ALL_GROUP = "All";
 	Map<String, Set<Integer>> documentGroups = new HashMap<String, Set<Integer>>();
@@ -84,8 +84,11 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 
 	private static DecimalFormat df = new DecimalFormat("0.##");
 
-	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser, String encoding) {
+	private final JochreSession jochreSession;
+
+	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser, String encoding, JochreSession jochreSession) {
 		try {
+			this.jochreSession = jochreSession;
 			this.outputDir = outputDir;
 			this.baseName = baseName;
 			this.wordChooser = wordChooser;
@@ -93,18 +96,14 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			errorMap.put(ALL_GROUP, new ErrorStatistics());
 
 			knownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KE.csv"), false), encoding));
-			knownWordCorrectWriter = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KC.csv"), false), encoding));
-			unknownWordErrorWriter = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UE.csv"), false), encoding));
-			unknownWordCorrectWriter = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UC.csv"), false), encoding));
+			knownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KC.csv"), false), encoding));
+			unknownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UE.csv"), false), encoding));
+			unknownWordCorrectWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_UC.csv"), false), encoding));
 			allWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_all.csv"), false), encoding));
 			allErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_err.csv"), false), encoding));
 
 			String line = CSV.format("realSeq") + CSV.format("realWord") + CSV.format("guessSeq") + CSV.format("guessWord") + CSV.format("realFreq")
-					+ CSV.format("guessFreq") + CSV.format("file") + CSV.format("page") + CSV.format("par") + CSV.format("row") + CSV.format("group")
-					+ CSV.format("id");
+					+ CSV.format("guessFreq") + CSV.format("file") + CSV.format("page") + CSV.format("par") + CSV.format("row") + CSV.format("group") + CSV.format("id");
 
 			if (this.includeBeam) {
 				line += CSV.format("beam");
@@ -221,7 +220,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						beamContainsRightWord = false;
 					}
 
-					Linguistics linguistics = JochreSession.getInstance().getLinguistics();
+					Linguistics linguistics = jochreSession.getLinguistics();
 					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
 						String letterGuess = bestSequence.getLetters().get(j++);
 						String letter = shapeInSequence.getShape().getLetter();
@@ -359,8 +358,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			allWordWriter.close();
 			allErrorWriter.close();
 
-			Writer statsWriter = new BufferedWriter(
-					new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KEMatrix.csv"), false), "UTF8"));
+			Writer statsWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KEMatrix.csv"), false), "UTF8"));
 			writeStats(statsWriter, errorMap);
 
 			statsWriter.flush();
@@ -431,11 +429,10 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
-				statsWriter.write(CSV.format("known%")
-						+ CSV.format(stats.getKnownWordCount() == 0 ? "0" : df.format(stats.knownWordCorrectCount / stats.getKnownWordCount() * 100))
-						+ CSV.format(stats.getKnownWordCount() == 0 ? "0" : df.format(stats.knownWordErrorCount / stats.getKnownWordCount() * 100))
-						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getKnownWordCount() / stats.getTotalCount() * 100))
-						+ CSV.getCsvSeparator());
+				statsWriter.write(
+						CSV.format("known%") + CSV.format(stats.getKnownWordCount() == 0 ? "0" : df.format(stats.knownWordCorrectCount / stats.getKnownWordCount() * 100))
+								+ CSV.format(stats.getKnownWordCount() == 0 ? "0" : df.format(stats.knownWordErrorCount / stats.getKnownWordCount() * 100))
+								+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getKnownWordCount() / stats.getTotalCount() * 100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
@@ -444,50 +441,43 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 				statsWriter.write(CSV.format("unknown%")
 						+ CSV.format(stats.getUnknownWordCount() == 0 ? "0" : df.format(stats.unknownWordCorrectCount / stats.getUnknownWordCount() * 100))
 						+ CSV.format(stats.getUnknownWordCount() == 0 ? "0" : df.format(stats.unknownWordErrorCount / stats.getUnknownWordCount() * 100))
-						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getUnknownWordCount() / stats.getTotalCount() * 100))
-						+ CSV.getCsvSeparator());
+						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getUnknownWordCount() / stats.getTotalCount() * 100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
-				statsWriter.write(CSV.format("goodSeg%")
-						+ CSV.format(stats.getGoodSegCount() == 0 ? "0" : df.format(stats.goodSegCorrectCount / stats.getGoodSegCount() * 100))
-						+ CSV.format(stats.getGoodSegCount() == 0 ? "0" : df.format(stats.goodSegErrorCount / stats.getGoodSegCount() * 100))
-						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getGoodSegCount() / stats.getTotalCount() * 100))
-						+ CSV.getCsvSeparator());
-			}
-			statsWriter.write("\n");
-
-			for (String statName : errorMap.keySet()) {
-				ErrorStatistics stats = errorMap.get(statName);
-				statsWriter.write(CSV.format("badSeg%")
-						+ CSV.format(stats.getBadSegCount() == 0 ? "0" : df.format(stats.badSegCorrectCount / stats.getBadSegCount() * 100))
-						+ CSV.format(stats.getBadSegCount() == 0 ? "0" : df.format(stats.badSegErrorCount / stats.getBadSegCount() * 100))
-						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getBadSegCount() / stats.getTotalCount() * 100))
-						+ CSV.getCsvSeparator());
+				statsWriter.write(
+						CSV.format("goodSeg%") + CSV.format(stats.getGoodSegCount() == 0 ? "0" : df.format(stats.goodSegCorrectCount / stats.getGoodSegCount() * 100))
+								+ CSV.format(stats.getGoodSegCount() == 0 ? "0" : df.format(stats.goodSegErrorCount / stats.getGoodSegCount() * 100))
+								+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getGoodSegCount() / stats.getTotalCount() * 100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter
-						.write(CSV.format("inBeam%")
-								+ CSV.format(stats.getTotalCorrectCount() == 0 ? "0"
-										: df.format(stats.answerInBeamCorrectCount / stats.getTotalCorrectCount() * 100))
-								+ CSV.format(stats.getTotalErrorCount() == 0 ? "0" : df.format(stats.answerInBeamErrorCount / stats.getTotalErrorCount() * 100))
-								+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getAnswerInBeamCount() / stats.getTotalCount() * 100))
-								+ CSV.getCsvSeparator());
+						.write(CSV.format("badSeg%") + CSV.format(stats.getBadSegCount() == 0 ? "0" : df.format(stats.badSegCorrectCount / stats.getBadSegCount() * 100))
+								+ CSV.format(stats.getBadSegCount() == 0 ? "0" : df.format(stats.badSegErrorCount / stats.getBadSegCount() * 100))
+								+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getBadSegCount() / stats.getTotalCount() * 100)) + CSV.getCsvSeparator());
+			}
+			statsWriter.write("\n");
+
+			for (String statName : errorMap.keySet()) {
+				ErrorStatistics stats = errorMap.get(statName);
+				statsWriter.write(CSV.format("inBeam%")
+						+ CSV.format(stats.getTotalCorrectCount() == 0 ? "0" : df.format(stats.answerInBeamCorrectCount / stats.getTotalCorrectCount() * 100))
+						+ CSV.format(stats.getTotalErrorCount() == 0 ? "0" : df.format(stats.answerInBeamErrorCount / stats.getTotalErrorCount() * 100))
+						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(stats.getAnswerInBeamCount() / stats.getTotalCount() * 100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSV.format("total%")
-						+ CSV.format(stats.getTotalCount() == 0 ? "0"
-								: df.format((stats.knownWordCorrectCount + stats.unknownWordCorrectCount) / stats.getTotalCount() * 100))
-						+ CSV.format(stats.getTotalCount() == 0 ? "0"
-								: df.format((stats.knownWordErrorCount + stats.unknownWordErrorCount) / stats.getTotalCount() * 100))
+						+ CSV.format(
+								stats.getTotalCount() == 0 ? "0" : df.format((stats.knownWordCorrectCount + stats.unknownWordCorrectCount) / stats.getTotalCount() * 100))
+						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format((stats.knownWordErrorCount + stats.unknownWordErrorCount) / stats.getTotalCount() * 100))
 						+ CSV.format(stats.getTotalCount() == 0 ? "0" : df.format(100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
@@ -523,8 +513,9 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSV.format("totalLetters") + CSV.format(stats.knownWordCorrectLetterCount + stats.unknownWordCorrectLetterCount)
-						+ CSV.format(stats.knownWordErrorLetterCount + stats.unknownWordErrorLetterCount) + CSV.format(stats.knownWordCorrectLetterCount
-								+ stats.knownWordErrorLetterCount + stats.unknownWordCorrectLetterCount + stats.unknownWordErrorLetterCount)
+						+ CSV.format(stats.knownWordErrorLetterCount + stats.unknownWordErrorLetterCount)
+						+ CSV.format(
+								stats.knownWordCorrectLetterCount + stats.knownWordErrorLetterCount + stats.unknownWordCorrectLetterCount + stats.unknownWordErrorLetterCount)
 						+ CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
@@ -532,10 +523,8 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSV.format("knownLetter%")
-						+ CSV.format(stats.getKnownWordLetterCount() == 0 ? "0"
-								: df.format(stats.knownWordCorrectLetterCount / stats.getKnownWordLetterCount() * 100))
-						+ CSV.format(
-								stats.getKnownWordLetterCount() == 0 ? "0" : df.format(stats.knownWordErrorLetterCount / stats.getKnownWordLetterCount() * 100))
+						+ CSV.format(stats.getKnownWordLetterCount() == 0 ? "0" : df.format(stats.knownWordCorrectLetterCount / stats.getKnownWordLetterCount() * 100))
+						+ CSV.format(stats.getKnownWordLetterCount() == 0 ? "0" : df.format(stats.knownWordErrorLetterCount / stats.getKnownWordLetterCount() * 100))
 						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0" : df.format(stats.getKnownWordLetterCount() / stats.getTotalLetterCount() * 100))
 						+ CSV.getCsvSeparator());
 			}
@@ -544,10 +533,9 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSV.format("unknownLetter%")
-						+ CSV.format(stats.getUnknownWordLetterCount() == 0 ? "0"
-								: df.format(stats.unknownWordCorrectLetterCount / stats.getUnknownWordLetterCount() * 100))
-						+ CSV.format(stats.getUnknownWordLetterCount() == 0 ? "0"
-								: df.format(stats.unknownWordErrorLetterCount / stats.getUnknownWordLetterCount() * 100))
+						+ CSV
+								.format(stats.getUnknownWordLetterCount() == 0 ? "0" : df.format(stats.unknownWordCorrectLetterCount / stats.getUnknownWordLetterCount() * 100))
+						+ CSV.format(stats.getUnknownWordLetterCount() == 0 ? "0" : df.format(stats.unknownWordErrorLetterCount / stats.getUnknownWordLetterCount() * 100))
 						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0" : df.format(stats.getUnknownWordLetterCount() / stats.getTotalLetterCount() * 100))
 						+ CSV.getCsvSeparator());
 			}
@@ -556,8 +544,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
 				statsWriter.write(CSV.format("goodSegLetter%")
-						+ CSV.format(
-								stats.getGoodSegLetterCount() == 0 ? "0" : df.format(stats.goodSegCorrectLetterCount / stats.getGoodSegLetterCount() * 100))
+						+ CSV.format(stats.getGoodSegLetterCount() == 0 ? "0" : df.format(stats.goodSegCorrectLetterCount / stats.getGoodSegLetterCount() * 100))
 						+ CSV.format(stats.getGoodSegLetterCount() == 0 ? "0" : df.format(stats.goodSegErrorLetterCount / stats.getGoodSegLetterCount() * 100))
 						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0" : df.format(stats.getGoodSegLetterCount() / stats.getTotalLetterCount() * 100))
 						+ CSV.getCsvSeparator());
@@ -576,14 +563,12 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 
 			for (String statName : errorMap.keySet()) {
 				ErrorStatistics stats = errorMap.get(statName);
-				statsWriter
-						.write(CSV.format("totalLetter%")
-								+ CSV.format(stats.getTotalLetterCount() == 0 ? "0"
-										: df.format(
-												(stats.knownWordCorrectLetterCount + stats.unknownWordCorrectLetterCount) / stats.getTotalLetterCount() * 100))
-								+ CSV.format(stats.getTotalLetterCount() == 0 ? "0"
-										: df.format((stats.knownWordErrorLetterCount + stats.unknownWordErrorLetterCount) / stats.getTotalLetterCount() * 100))
-								+ CSV.format(stats.getTotalLetterCount() == 0 ? "0" : df.format(100)) + CSV.getCsvSeparator());
+				statsWriter.write(CSV.format("totalLetter%")
+						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0"
+								: df.format((stats.knownWordCorrectLetterCount + stats.unknownWordCorrectLetterCount) / stats.getTotalLetterCount() * 100))
+						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0"
+								: df.format((stats.knownWordErrorLetterCount + stats.unknownWordErrorLetterCount) / stats.getTotalLetterCount() * 100))
+						+ CSV.format(stats.getTotalLetterCount() == 0 ? "0" : df.format(100)) + CSV.getCsvSeparator());
 			}
 			statsWriter.write("\n");
 
@@ -865,8 +850,8 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 					DescriptiveStatistics errorStat = statsMap.get(statType + "|error");
 					DescriptiveStatistics totalStat = statsMap.get(statType + "|total");
 
-					statsWriter.write(CSV.format(statType + "%Dev") + CSV.format(correctStat.getStandardDeviation())
-							+ CSV.format(errorStat.getStandardDeviation()) + CSV.format(totalStat.getStandardDeviation()) + CSV.getCsvSeparator());
+					statsWriter.write(CSV.format(statType + "%Dev") + CSV.format(correctStat.getStandardDeviation()) + CSV.format(errorStat.getStandardDeviation())
+							+ CSV.format(totalStat.getStandardDeviation()) + CSV.getCsvSeparator());
 
 				} // next group
 				statsWriter.write("\n");

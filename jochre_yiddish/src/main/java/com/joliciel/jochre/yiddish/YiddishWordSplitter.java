@@ -18,41 +18,47 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.yiddish;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.ArrayList;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lexicon.WordSplitter;
 
 public class YiddishWordSplitter implements WordSplitter {
 	// notice no dash in the punctuation
-    private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„";
+	private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"'«»|/%“„";
+
+	private final JochreSession jochreSession;
+
+	public YiddishWordSplitter(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
 	@Override
 	public List<String> splitText(String wordText) {
 		List<String> results = new ArrayList<String>();
-		
-		if (wordText.length()==0) {
+
+		if (wordText.length() == 0) {
 			results.add("");
 			return results;
 		}
-		
+
 		// all numerals are treated identically
 		wordText = wordText.replaceAll("[0-9]", "0");
-		
+
 		// split letters are joined back together
 		wordText = wordText.replaceAll("\\|(.)\\1\\|", "$1");
 		wordText = wordText.replaceAll("\\|(..)\\1\\|", "$1");
 		wordText = wordText.replaceAll("\\|(...)\\1\\|", "$1");
-		
+
 		// replace multiple underscores by a single underscore
 		wordText = wordText.replaceAll("_++", "_");
-		
+
 		// fix other punctuation
 		wordText = wordText.replaceAll("''", "\"");
 		wordText = wordText.replaceAll(",,", "„");
-		
+
 		StringTokenizer tokenizer = new StringTokenizer(wordText, PUNCTUATION, true);
 
 		String previousWord = "";
@@ -61,15 +67,15 @@ public class YiddishWordSplitter implements WordSplitter {
 		boolean prevWasPunctuation = false;
 		boolean singleQuoteFound = false;
 		boolean doubleQuoteFound = false;
-		
+
 		while (tokenizer.hasMoreTokens()) {
 			String token = tokenizer.nextToken();
 			boolean isPunctuation = (PUNCTUATION.contains(token));
-			if (token.equals("'")&&!prevWasPunctuation&&previousWord!=null) {
+			if (token.equals("'") && !prevWasPunctuation && previousWord != null) {
 				// Yiddish allows a single quote inside a word
 				singleQuoteFound = true;
 				currentWord = previousWord;
-			} else if (token.equals("\"")&&!prevWasPunctuation&&previousWord!=null) {
+			} else if (token.equals("\"") && !prevWasPunctuation && previousWord != null) {
 				// Yiddish marks abbreviations by a double quote
 				doubleQuoteFound = true;
 				currentWord = previousWord;
@@ -111,7 +117,7 @@ public class YiddishWordSplitter implements WordSplitter {
 				this.addResult(results, previousWord);
 				currentWord = token;
 			}
-			
+
 			prevWasPunctuation = isPunctuation;
 			previousWord = currentWord;
 			previousToken = token;
@@ -125,11 +131,10 @@ public class YiddishWordSplitter implements WordSplitter {
 	}
 
 	private void addResult(List<String> results, String word) {
-		if (word!=null && word.length()>0) {
-			word = JochreSession.getInstance().getLinguistics().standardiseWord(word);
+		if (word != null && word.length() > 0) {
+			word = jochreSession.getLinguistics().standardiseWord(word);
 			results.add(word);
 		}
 	}
-	
 
 }

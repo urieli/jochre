@@ -37,13 +37,14 @@ import org.zkoss.zul.Timer;
 import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconService;
@@ -57,6 +58,7 @@ import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
 import com.joliciel.talismane.utils.ProgressMonitor;
+import com.typesafe.config.ConfigFactory;
 
 public class TextController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;
@@ -64,7 +66,7 @@ public class TextController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(TextController.class);
 
 	private JochreServiceLocator locator = null;
-	private GraphicsService graphicsService;
+	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private DocumentService documentService;
 	private LexiconService lexiconService;
 	private OutputService textService;
@@ -120,12 +122,8 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentUser == null)
 				Executions.sendRedirect("login.zul");
 
-			locator = JochreServiceLocator.getInstance();
+			locator = JochreServiceLocator.getInstance(jochreSession);
 
-			String resourcePath = "/jdbc-jochreWeb.properties";
-			LOG.debug("resource path: " + resourcePath);
-			locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-			graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
 			textService = locator.getTextServiceLocator().getTextService();
 			documentService = locator.getDocumentServiceLocator().getDocumentService();
 			lexiconService = locator.getLexiconServiceLocator().getLexiconService();
@@ -133,7 +131,8 @@ public class TextController extends GenericForwardComposer<Window> {
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 			if (request.getParameter("imageId") != null) {
 				int imageId = Integer.parseInt(request.getParameter("imageId"));
-				currentImage = graphicsService.loadJochreImage(imageId);
+				GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+				currentImage = graphicsDao.loadJochreImage(imageId);
 				currentDoc = currentImage.getPage().getDocument();
 				uploadPanel.setVisible(false);
 				progressBox.setVisible(true);
@@ -262,10 +261,10 @@ public class TextController extends GenericForwardComposer<Window> {
 				if (this.currentDoc != null) {
 					this.currentDoc.setFileName(currentFile.getName());
 					this.currentDoc.save();
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(this.currentDoc);
+					this.documentGenerator = this.documentService.getJochreDocumentGenerator(this.currentDoc, jochreSession);
 					this.documentGenerator.requestSave(currentUser);
 				} else {
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", jochreProperties.getLocale());
+					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", jochreSession);
 				}
 
 				File letterModelFile = jochreProperties.getLetterModelFile();

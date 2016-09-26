@@ -20,7 +20,6 @@ package com.joliciel.jochre.yiddish;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -28,18 +27,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.Jochre;
-import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.lexicon.FakeLexicon;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.utils.JochreLogUtils;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 public class JochreYiddish extends Jochre implements LocaleSpecificLexiconService {
-	public JochreYiddish() {
-		super();
-		this.setLocale(new Locale("yi"));
-		JochreSession.getInstance().setLinguistics(new YiddishLinguistics());
+	public JochreYiddish(Config config) {
+		super(config);
+
+		this.getJochreSession().setLinguistics(new YiddishLinguistics());
 	}
 
 	@SuppressWarnings("unused")
@@ -92,7 +92,11 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			fetcher.setForceUpdate(forceUpdate);
 			fetcher.fetchMetaData(inDir);
 		} else {
-			JochreYiddish jochre = new JochreYiddish();
+			Map<String, Object> configValues = new HashMap<>();
+			configValues.put("jochre.locale", "yi");
+			Config config = ConfigFactory.load().withFallback(ConfigFactory.parseMap(configValues));
+
+			JochreYiddish jochre = new JochreYiddish(config);
 			jochre.execute(argMap);
 		}
 	}
@@ -103,7 +107,7 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			if (this.getLexiconPath() != null && this.getLexiconPath().length() > 0) {
 				File lexiconDir = new File(this.getLexiconPath());
 				Lexicon myLexicon = this.readLexicon(lexiconDir);
-				yiddishLexicon = new YiddishWordFrequencyFinder(myLexicon);
+				yiddishLexicon = new YiddishWordFrequencyFinder(myLexicon, this.getJochreSession());
 			} else {
 				yiddishLexicon = new FakeLexicon();
 			}
@@ -114,7 +118,7 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 	@Override
 	public WordSplitter getWordSplitter() {
 		if (yiddishWordSplitter == null) {
-			yiddishWordSplitter = new YiddishWordSplitter();
+			yiddishWordSplitter = new YiddishWordSplitter(this.getJochreSession());
 		}
 		return yiddishWordSplitter;
 	}

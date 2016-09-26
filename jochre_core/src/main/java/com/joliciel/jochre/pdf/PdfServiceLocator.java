@@ -19,21 +19,18 @@
 package com.joliciel.jochre.pdf;
 
 import com.joliciel.jochre.JochreServiceLocator;
-import com.joliciel.jochre.graphics.GraphicsService;
 
 public class PdfServiceLocator {
 	private JochreServiceLocator jochreServiceLocator;
 	private PdfServiceImpl pdfService;
-	
+
 	public PdfServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
 	}
-	
+
 	public PdfService getPdfService() {
-		if (this.pdfService==null) {
+		if (this.pdfService == null) {
 			pdfService = new PdfServiceImpl();
-			GraphicsService graphicsService = this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService();
-			pdfService.setGraphicsService(graphicsService);
 		}
 		return this.pdfService;
 	}
@@ -41,5 +38,5 @@ public class PdfServiceLocator {
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
-	
+
 }

@@ -18,24 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics.features;
 
-import com.joliciel.jochre.graphics.GraphicsService;
-
 class GraphicsFeatureServiceImpl implements GraphicsFeatureServiceInternal {
-	private GraphicsService graphicsService;
 
 	@Override
 	public ShapeFeatureParser getShapeFeatureParser() {
 		ShapeFeatureParserImpl parser = new ShapeFeatureParserImpl();
-		parser.setGraphicsService(this.getGraphicsService());
 		return parser;
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 }

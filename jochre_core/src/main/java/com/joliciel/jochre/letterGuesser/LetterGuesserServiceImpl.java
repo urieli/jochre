@@ -21,31 +21,23 @@ package com.joliciel.jochre.letterGuesser;
 import java.util.List;
 import java.util.Set;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
-import com.joliciel.talismane.utils.ObjectCache;
 
 class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
-	private ObjectCache objectCache;
-	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
 
-	public LetterGuesserServiceImpl() {
-	}
+	private final JochreSession jochreSession;
 
-	public ObjectCache getObjectCache() {
-		return objectCache;
-	}
-
-	public void setObjectCache(ObjectCache objectCache) {
-		this.objectCache = objectCache;
+	public LetterGuesserServiceImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 	}
 
 	@Override
@@ -55,13 +47,9 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		return letterGuesser;
 	}
 
-	private GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
 	@Override
 	public LetterSequence getEmptyLetterSequence(ShapeSequence shapeSequence) {
-		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence);
+		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, jochreSession);
 		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
@@ -84,7 +72,7 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 
 	@Override
 	public LetterSequence getLetterSequence(ShapeSequence shapeSequence, List<String> letters) {
-		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, letters);
+		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, letters, jochreSession);
 		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
@@ -96,10 +84,6 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		return context;
 	}
 
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
-
 	private BoundaryService getBoundaryService() {
 		return boundaryService;
 	}
@@ -107,9 +91,8 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	@Override
 	public ClassificationEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features,
 			BoundaryDetector boundaryDetector, LetterValidator letterValidator) {
-		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator);
+		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator, jochreSession);
 		eventStream.setCriteria(criteria);
-		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setLetterGuesserServiceInternal(this);
 		eventStream.setBoundaryService(this.getBoundaryService());
 

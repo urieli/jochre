@@ -22,17 +22,21 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.Shape;
 
 interface BoundaryDao {
 	List<Split> findSplits(Shape shape);
+
 	Split loadSplit(int splitId);
+
 	void saveSplit(Split split);
+
 	void deleteSplit(Split split);
+
 	public abstract void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal);
+
 	public abstract BoundaryServiceInternal getBoundaryServiceInternal();
-	public abstract void setDataSource(DataSource dataSource);
+
 	public abstract DataSource getDataSource();
 
 }

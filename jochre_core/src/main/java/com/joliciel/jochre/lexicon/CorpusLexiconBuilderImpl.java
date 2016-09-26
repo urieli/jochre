@@ -20,8 +20,8 @@ package com.joliciel.jochre.lexicon;
 
 import java.util.List;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusImageReader;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -30,22 +30,28 @@ import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 
 public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
-	private GraphicsService graphicsService;
 	private LexiconServiceInternal lexiconService;
 	private WordSplitter wordSplitter;
-	
+
 	CorpusSelectionCriteria criteria = null;
+
+	private final JochreSession jochreSession;
+
+	public CorpusLexiconBuilderImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
 	@Override
 	public TextFileLexicon buildLexicon() {
 		TextFileLexicon lexicon = new TextFileLexicon();
-		JochreCorpusImageReader imageReader = this.graphicsService.getJochreCorpusImageReader();
+		JochreCorpusImageReader imageReader = new JochreCorpusImageReader(jochreSession);
 		imageReader.setSelectionCriteria(criteria);
 		String wordText = "";
 		while (imageReader.hasNext()) {
 			JochreImage image = imageReader.next();
 			for (Paragraph paragraph : image.getParagraphs()) {
-				// rows ending in dashes can only be held-over within the same paragraph.
+				// rows ending in dashes can only be held-over within the same
+				// paragraph.
 				// to avoid strange things like a page number getting added to the word,
 				// if the dash is on the last row of the page.
 				String holdoverWord = null;
@@ -53,36 +59,36 @@ public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
 					for (GroupOfShapes group : row.getGroups()) {
 						if (group.isBrokenWord())
 							continue;
-						
+
 						wordText = "";
 						for (Shape shape : group.getShapes()) {
-							if (shape.getLetter()!=null)
+							if (shape.getLetter() != null)
 								wordText += shape.getLetter();
 						}
-						
-						if (wordText.length()==0) {
+
+						if (wordText.length() == 0) {
 							lexicon.incrementEntry("");
 							continue;
 						}
 						List<String> words = this.getWordSplitter().splitText(wordText);
-						
+
 						int i = 0;
 						for (String word : words) {
-							if (i==0) {
+							if (i == 0) {
 								// first word
-								if (holdoverWord!=null && holdoverWord.length()>0) {
+								if (holdoverWord != null && holdoverWord.length() > 0) {
 									word = holdoverWord + word;
 									holdoverWord = null;
 								}
 							}
-							if (i==words.size()-1) {
+							if (i == words.size() - 1) {
 								// last word
-								if (group.getIndex()==row.getGroups().size()-1 && word.endsWith("-")) {
+								if (group.getIndex() == row.getGroups().size() - 1 && word.endsWith("-")) {
 									// a dash at the end of a line
 									if (group.isHardHyphen())
 										holdoverWord = word;
 									else
-										holdoverWord = word.substring(0, word.length()-1);
+										holdoverWord = word.substring(0, word.length() - 1);
 									word = "";
 								}
 							}
@@ -93,23 +99,18 @@ public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
 				}
 			}
 		}
-		
-		//TODO: re-adjust the final probability for numbers
-		// Currently all numbers are represented as a string of zeros, to imply the approximately
+
+		// TODO: re-adjust the final probability for numbers
+		// Currently all numbers are represented as a string of zeros, to imply the
+		// approximately
 		// equiprobable nature of any series of numbers
-		// However, any single string of numbers should divide the total frequency of the string
-		// by the number of possible combinations. Therefore, "0" should divide by 10, "00" by a hundred,
+		// However, any single string of numbers should divide the total frequency
+		// of the string
+		// by the number of possible combinations. Therefore, "0" should divide by
+		// 10, "00" by a hundred,
 		// etc.
-		
+
 		return lexicon;
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public LexiconServiceInternal getLexiconService() {
@@ -120,18 +121,22 @@ public class CorpusLexiconBuilderImpl implements CorpusLexiconBuilder {
 		this.lexiconService = lexiconService;
 	}
 
+	@Override
 	public WordSplitter getWordSplitter() {
 		return wordSplitter;
 	}
 
+	@Override
 	public void setWordSplitter(WordSplitter wordSplitter) {
 		this.wordSplitter = wordSplitter;
 	}
 
+	@Override
 	public CorpusSelectionCriteria getCriteria() {
 		return criteria;
 	}
 
+	@Override
 	public void setCriteria(CorpusSelectionCriteria criteria) {
 		this.criteria = criteria;
 	}

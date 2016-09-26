@@ -18,36 +18,24 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.lexicon;
 
-import com.joliciel.jochre.graphics.GraphicsService;
-import com.joliciel.talismane.utils.ObjectCache;
+import com.joliciel.jochre.JochreSession;
 
 class LexiconServiceImpl implements LexiconServiceInternal {
-	private ObjectCache objectCache;	
 	LexiconServiceLocator lexiconServiceLocator;
-	
-	public LexiconServiceImpl(LexiconServiceLocator locator) {
+
+	private final JochreSession jochreSession;
+
+	public LexiconServiceImpl(LexiconServiceLocator locator, JochreSession jochreSession) {
 		this.lexiconServiceLocator = locator;
+		this.jochreSession = jochreSession;
 	}
-	
+
 	@Override
 	public CorpusLexiconBuilder getCorpusLexiconBuilder(WordSplitter wordSplitter) {
-		CorpusLexiconBuilderImpl lexiconBuilder = new CorpusLexiconBuilderImpl();
+		CorpusLexiconBuilderImpl lexiconBuilder = new CorpusLexiconBuilderImpl(jochreSession);
 		lexiconBuilder.setLexiconService(this);
-		lexiconBuilder.setGraphicsService(this.getGraphicsService());
 		lexiconBuilder.setWordSplitter(wordSplitter);
 		return lexiconBuilder;
-	}
-
-	public ObjectCache getObjectCache() {
-		return objectCache;
-	}
-
-	public void setObjectCache(ObjectCache objectCache) {
-		this.objectCache = objectCache;
-	}
-
-	private GraphicsService getGraphicsService() {
-		return this.getLexiconServiceLocator().getJochreServiceLocator().getGraphicsServiceLocator().getGraphicsService();
 	}
 
 	public LexiconServiceLocator getLexiconServiceLocator() {
@@ -60,7 +48,7 @@ class LexiconServiceImpl implements LexiconServiceInternal {
 
 	@Override
 	public MostLikelyWordChooser getMostLikelyWordChooser(Lexicon lexicon, WordSplitter wordSplitter) {
-		MostLikelyWordChooserImpl wordChooser = new MostLikelyWordChooserImpl();
+		MostLikelyWordChooserImpl wordChooser = new MostLikelyWordChooserImpl(jochreSession);
 		wordChooser.setLexiconServiceInternal(this);
 		wordChooser.setLetterGuesserService(this.getLexiconServiceLocator().getJochreServiceLocator().getLetterGuesserServiceLocator().getLetterGuesserService());
 		wordChooser.setWordSplitter(wordSplitter);

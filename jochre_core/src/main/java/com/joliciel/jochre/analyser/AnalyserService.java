@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
-import com.joliciel.jochre.analyser.ImageAnalyser;
+import com.joliciel.jochre.JochreSession;
 
-public interface AnalyserService {	
-	public ImageAnalyser getBeamSearchImageAnalyser(int beamWidth, double minOutcomeWeight);
+public interface AnalyserService {
+	public ImageAnalyser getBeamSearchImageAnalyser(JochreSession jochreSession);
 }

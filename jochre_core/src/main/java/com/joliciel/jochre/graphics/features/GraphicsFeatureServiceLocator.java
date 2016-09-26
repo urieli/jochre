@@ -31,7 +31,6 @@ public class GraphicsFeatureServiceLocator {
 	public GraphicsFeatureService getGraphicsFeatureService() {
 		if (graphicsFeatureService == null) {
 			graphicsFeatureService = new GraphicsFeatureServiceImpl();
-			graphicsFeatureService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
 		}
 		return graphicsFeatureService;
 	}

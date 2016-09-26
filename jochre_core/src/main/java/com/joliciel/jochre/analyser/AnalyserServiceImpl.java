@@ -18,19 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
-import com.joliciel.jochre.analyser.BeamSearchImageAnalyser;
-import com.joliciel.jochre.analyser.ImageAnalyser;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryService;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class AnalyserServiceImpl implements AnalyserServiceInternal {
-	private ObjectCache objectCache;	
+	private ObjectCache objectCache;
 	private LetterGuesserService letterGuesserService;
-	private GraphicsService graphicsService;
 	private BoundaryService boundaryService;
-	
+
 	public AnalyserServiceImpl() {
 	}
 
@@ -41,25 +38,15 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 	public void setObjectCache(ObjectCache objectCache) {
 		this.objectCache = objectCache;
 	}
-	
+
 	@Override
-	public ImageAnalyser getBeamSearchImageAnalyser(int maxBeamWidth,
-			double minOutcomeWeight) {
-		BeamSearchImageAnalyser evaluator = new BeamSearchImageAnalyser(maxBeamWidth, minOutcomeWeight);
+	public ImageAnalyser getBeamSearchImageAnalyser(JochreSession jochreSession) {
+		BeamSearchImageAnalyser evaluator = new BeamSearchImageAnalyser(jochreSession);
 		evaluator.setAnalyserServiceInternal(this);
-		evaluator.setGraphicsService(this.getGraphicsService());
 		evaluator.setLetterGuesserService(this.getLetterGuesserService());
 		evaluator.setBoundaryService(this.getBoundaryService());
-		
+
 		return evaluator;
-	}
-
-	private GraphicsService getGraphicsService() {
-		return this.graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public LetterGuesserService getLetterGuesserService() {
@@ -77,6 +64,5 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 	public void setBoundaryService(BoundaryService boundaryService) {
 		this.boundaryService = boundaryService;
 	}
-	
-	
+
 }

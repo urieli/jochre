@@ -19,6 +19,8 @@
 package com.joliciel.jochre.utils.dao;
 
 import java.beans.PropertyVetoException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -32,21 +34,50 @@ import com.typesafe.config.Config;
  *
  */
 public class DaoConfig {
+	public static Map<String, DataSource> dataSources = new HashMap<>();
+
+	/**
+	 * Return a unique key defining the datasource in this config.
+	 * 
+	 * @param config
+	 * @return
+	 */
+	public static String getKey(Config config) {
+		Config dataSourceConfig = config.getConfig("jochre.jdbc");
+		if (!dataSourceConfig.hasPath("url"))
+			return null;
+		String driverClass = dataSourceConfig.getString("driver-class-name");
+		String url = dataSourceConfig.getString("url");
+		String user = dataSourceConfig.getString("username");
+		String key = driverClass + "|" + url + "|" + user;
+		return key;
+	}
 
 	/**
 	 * Get a datasource from the jochre.jdbc key in the configuration file.
 	 */
 	public static DataSource getDataSource(Config config) {
+		String key = getKey(config);
+		if (key == null)
+			return null;
+
+		if (dataSources.containsKey(key))
+			return dataSources.get(key);
+
 		Config dataSourceConfig = config.getConfig("jochre.jdbc");
+		String driverClass = dataSourceConfig.getString("driver-class-name");
+		String url = dataSourceConfig.getString("url");
+		String user = dataSourceConfig.getString("username");
+
 		ComboPooledDataSource dataSource = new ComboPooledDataSource();
 		try {
-			dataSource.setDriverClass(dataSourceConfig.getString("driver-class-name"));
+			dataSource.setDriverClass(driverClass);
 		} catch (PropertyVetoException e) {
 			throw new RuntimeException(e);
 		}
 
-		dataSource.setJdbcUrl(dataSourceConfig.getString("url"));
-		dataSource.setUser(dataSourceConfig.getString("username"));
+		dataSource.setJdbcUrl(url);
+		dataSource.setUser(user);
 		dataSource.setPassword(dataSourceConfig.getString("password"));
 		if (dataSourceConfig.hasPath("checkout-timeout")) {
 			dataSource.setCheckoutTimeout(dataSourceConfig.getInt("checkout-timeout"));
@@ -61,8 +92,9 @@ public class DaoConfig {
 			dataSource.setMaxIdleTime(dataSourceConfig.getInt("max-idle-time"));
 		}
 
-		int maxIdleTimeExcessConnections = dataSourceConfig.getInt("max-idle-time-excess-connections");
-		dataSource.setMaxIdleTimeExcessConnections(maxIdleTimeExcessConnections);
+		dataSource.setMaxIdleTimeExcessConnections(dataSourceConfig.getInt("max-idle-time-excess-connections"));
+
+		dataSources.put(key, dataSource);
 		return dataSource;
 	}
 }

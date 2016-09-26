@@ -44,10 +44,11 @@ import com.joliciel.talismane.utils.CountedOutcome;
 public class YiddishWordFrequencyFinder implements Lexicon {
 	private static final Logger LOG = LoggerFactory.getLogger(YiddishWordFrequencyFinder.class);
 	private static final Pattern NUMBER = Pattern.compile("\\d+");
-	Lexicon baseLexicon;
+	private final Lexicon baseLexicon;
+	private final JochreSession jochreSession;
 
-	public YiddishWordFrequencyFinder(Lexicon baseLexicon) {
-		super();
+	public YiddishWordFrequencyFinder(Lexicon baseLexicon, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.baseLexicon = baseLexicon;
 	}
 
@@ -63,7 +64,7 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	@Override
 	public List<CountedOutcome<String>> getFrequencies(String initialWord) {
 		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
-		String word = JochreSession.getInstance().getLinguistics().standardiseWord(initialWord);
+		String word = jochreSession.getLinguistics().standardiseWord(initialWord);
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("getFrequency for: " + initialWord + ", standardised to: " + word);
 		}
@@ -180,10 +181,6 @@ public class YiddishWordFrequencyFinder implements Lexicon {
 	 */
 	public Lexicon getBaseLexicon() {
 		return baseLexicon;
-	}
-
-	public void setBaseLexicon(Lexicon baseLexicon) {
-		this.baseLexicon = baseLexicon;
 	}
 
 	@Override

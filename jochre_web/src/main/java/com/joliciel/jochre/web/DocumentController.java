@@ -6,7 +6,6 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -38,6 +37,7 @@ import org.zkoss.zul.Treeitem;
 import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.Author;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.DocumentService;
@@ -49,6 +49,7 @@ import com.joliciel.jochre.output.OutputServiceLocator;
 import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
+import com.typesafe.config.ConfigFactory;
 
 public class DocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(DocumentController.class);
@@ -56,6 +57,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = -6051038316789525658L;
 
 	public static final String HEBREW_ACCENTS = "\u0591\u0592\u0593\u0594\u0595\u0596\u0597\u0598\u0599\u059A\u059B\u059C\u059D\u059E\u059F\u05A0\u05A1\u05A2\u05A3\u05A4\u05A5\u05A6\u05A7\u05A8\u05A9\u05AA\u05AB\u05AC\u05AD\u05AE\u05AF\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BA\u05BB\u05BC\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7";
+	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private JochreServiceLocator locator = null;
 	private DocumentService documentService;
 	private JochreDocument currentDoc;
@@ -92,7 +94,6 @@ public class DocumentController extends GenericForwardComposer<Window> {
 	int docId = 0;
 	int imageId = 0;
 
-	Locale locale = null;
 	Properties jochreProperties = null;
 
 	public DocumentController() {
@@ -109,11 +110,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		if (currentUser == null)
 			Executions.sendRedirect("login.zul");
 
-		locator = JochreServiceLocator.getInstance();
+		locator = JochreServiceLocator.getInstance(jochreSession);
 
-		String resourcePath = "/jdbc-jochreWeb.properties";
-		LOG.debug("resource path: " + resourcePath);
-		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
 		documentService = locator.getDocumentServiceLocator().getDocumentService();
 
 		HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
@@ -127,8 +125,6 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		String jochrePropertiesPath = "/jochre.properties";
 		jochreProperties = new Properties();
 		jochreProperties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
-
-		locale = JochreProperties.getInstance().getLocale();
 
 		binder = new AnnotateDataBinder(window);
 		binder.loadAll();
@@ -303,8 +299,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 				label = Labels.getLabel("docs.documents.page",
 						new Object[] { image.getPage().getIndex(), Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
 				if (image.getPage().getImages().size() > 1)
-					label = Labels.getLabel("docs.documents.image", new Object[] { image.getPage().getIndex(), image.getIndex() + 1,
-							Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
+					label = Labels.getLabel("docs.documents.image",
+							new Object[] { image.getPage().getIndex(), image.getIndex() + 1, Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
 			} else {
 				label = Labels.getLabel("docs.documents.page", new Object[] { page.getIndex(), "No image" });
 
@@ -513,8 +509,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		LOG.debug("onClick$btnDeleteImage");
 		try {
 			if (currentDoc != null && currentImage != null) {
-				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"),
-						Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
+				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"), Messagebox.OK | Messagebox.CANCEL,
+						Messagebox.QUESTION, new EventListener<Event>() {
 
 							@Override
 							public void onEvent(Event event) throws Exception {
@@ -528,8 +524,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 							}
 						});
 			} else if (currentDoc != null && currentPage != null) {
-				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"),
-						Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
+				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"), Messagebox.OK | Messagebox.CANCEL,
+						Messagebox.QUESTION, new EventListener<Event>() {
 
 							@Override
 							public void onEvent(Event event) throws Exception {
@@ -573,9 +569,9 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		try {
 			LOG.debug("onClick$btnNewDoc");
 			Window winUpdateDoc = (Window) Path.getComponent("//pgDocs/winUpdateDocument");
-			JochreDocument newDoc = documentService.getEmptyJochreDocument();
+			JochreDocument newDoc = documentService.getEmptyJochreDocument(jochreSession);
 
-			newDoc.setLocale(this.locale);
+			newDoc.setLocale(jochreSession.getLocale());
 			newDoc.setOwner(this.currentUser);
 			newDoc.setYear(1900);
 			winUpdateDoc.setAttribute(UpdateDocumentController.ATTR_DOC, newDoc);

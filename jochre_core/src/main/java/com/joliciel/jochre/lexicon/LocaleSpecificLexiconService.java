@@ -22,6 +22,7 @@ import java.util.Locale;
 
 /**
  * A lexicon service for a specific locale.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -30,21 +31,22 @@ public interface LocaleSpecificLexiconService {
 	 * The locale for this lexicon service.
 	 */
 	public Locale getLocale();
-	public void setLocale(Locale locale);
-	
+
 	/**
 	 * A lexicon for use with this locale.
 	 */
 	public Lexicon getLexicon();
-	
+
 	/**
 	 * A word-splitter for use with this locale.
 	 */
 	public WordSplitter getWordSplitter();
-	
+
 	/**
-	 * The path to the lexical resources - if a directory, all lexicons in the directory will be included.
+	 * The path to the lexical resources - if a directory, all lexicons in the
+	 * directory will be included.
 	 */
 	public String getLexiconPath();
+
 	public void setLexiconPath(String lexiconPath);
 }

@@ -28,11 +28,11 @@ import java.util.zip.ZipInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
@@ -41,11 +41,13 @@ import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 
 class BoundaryServiceImpl implements BoundaryServiceInternal {
 	private static final Logger LOG = LoggerFactory.getLogger(BoundaryServiceImpl.class);
-	private GraphicsService graphicsService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private BoundaryDao boundaryDao;
 
-	public BoundaryServiceImpl() {
+	private final JochreSession jochreSession;
+
+	public BoundaryServiceImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 	}
 
 	@Override
@@ -97,17 +99,15 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	}
 
 	@Override
-	public ShapeSplitter getTrainingCorpusShapeSplitter() {
-		TrainingCorpusShapeSplitter shapeSplitter = new TrainingCorpusShapeSplitter();
+	public ShapeSplitter getTrainingCorpusShapeSplitter(JochreSession jochreSession) {
+		TrainingCorpusShapeSplitter shapeSplitter = new TrainingCorpusShapeSplitter(jochreSession);
 		shapeSplitter.setBoundaryServiceInternal(this);
-		shapeSplitter.setGraphicsService(this.getGraphicsService());
 		return shapeSplitter;
 	}
 
 	@Override
 	public ShapeMerger getTrainingCorpusShapeMerger() {
 		TrainingCorpusShapeMerger shapeMerger = new TrainingCorpusShapeMerger();
-		shapeMerger.setGraphicsService(this.getGraphicsService());
 		return shapeMerger;
 	}
 
@@ -127,9 +127,8 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 
 	@Override
 	public SplitInternal getEmptySplitInternal() {
-		SplitImpl split = new SplitImpl();
+		SplitImpl split = new SplitImpl(jochreSession);
 		split.setBoundaryServiceInternal(this);
-		split.setGraphicsService(this.getGraphicsService());
 		return split;
 	}
 
@@ -148,14 +147,6 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 		this.getBoundaryDao().deleteSplit(split);
 	}
 
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
-
 	public BoundaryDao getBoundaryDao() {
 		return boundaryDao;
 	}
@@ -168,9 +159,8 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	@Override
 	public ClassificationEventStream getJochreSplitEventStream(CorpusSelectionCriteria criteria, Set<SplitFeature<?>> splitFeatures, double minWidthRatio,
 			double minHeightRatio) {
-		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures);
+		JochreSplitEventStream eventStream = new JochreSplitEventStream(splitFeatures, jochreSession);
 		eventStream.setBoundaryService(this);
-		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setCriteria(criteria);
 		eventStream.setMinWidthRatio(minWidthRatio);
 		eventStream.setMinHeightRatio(minHeightRatio);
@@ -183,9 +173,8 @@ class BoundaryServiceImpl implements BoundaryServiceInternal {
 	@Override
 	public ClassificationEventStream getJochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, double maxWidthRatio,
 			double maxDistanceRatio) {
-		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures);
+		JochreMergeEventStream eventStream = new JochreMergeEventStream(mergeFeatures, jochreSession);
 		eventStream.setBoundaryService(this);
-		eventStream.setGraphicsService(this.getGraphicsService());
 		eventStream.setCriteria(criteria);
 		eventStream.setMaxWidthRatio(maxWidthRatio);
 		eventStream.setMaxDistanceRatio(maxDistanceRatio);

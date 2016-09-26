@@ -18,40 +18,37 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.output;
 
-import javax.sql.DataSource;
-
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 
 public class OutputServiceLocator {
 	OutputServiceImpl outputService = null;
 
-	private DataSource dataSource;
+	private JochreSession jochreSession;
 	private JochreServiceLocator jochreServiceLocator;
-	
-	public OutputServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
+
+	public OutputServiceLocator(JochreServiceLocator jochreServiceLocator, JochreSession jochreSession) {
 		this.jochreServiceLocator = jochreServiceLocator;
-		this.dataSource = dataSource;
+		this.jochreSession = jochreSession;
 	}
-	
+
 	public OutputService getTextService() {
-		if (outputService==null) {
+		if (outputService == null) {
 			outputService = new OutputServiceImpl();
 		}
 		return outputService;
 	}
 
-
 	public JochreServiceLocator getJochreServiceLocator() {
 		return jochreServiceLocator;
 	}
 
-	public DataSource getDataSource() {
-		return dataSource;
+	public JochreSession getJochreSession() {
+		return jochreSession;
 	}
 
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+	public void setJochreSession(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 	}
-	
-	
+
 }

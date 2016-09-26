@@ -22,7 +22,7 @@ import com.joliciel.jochre.JochreServiceLocator;
 
 public class LetterFeatureServiceLocator {
 	LetterFeatureServiceImpl letterFeatureService = null;
-	private JochreServiceLocator jochreServiceLocator;
+	private final JochreServiceLocator jochreServiceLocator;
 
 	public LetterFeatureServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
@@ -30,8 +30,7 @@ public class LetterFeatureServiceLocator {
 
 	public LetterFeatureService getLetterFeatureService() {
 		if (letterFeatureService == null) {
-			letterFeatureService = new LetterFeatureServiceImpl();
-			letterFeatureService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
+			letterFeatureService = new LetterFeatureServiceImpl(jochreServiceLocator.getJochreSession());
 			letterFeatureService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 			letterFeatureService.setGraphicsFeatureService(this.jochreServiceLocator.getGraphicsFeatureServiceLocator().getGraphicsFeatureService());
 			letterFeatureService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());

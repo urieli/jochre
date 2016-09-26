@@ -3,7 +3,6 @@ package com.joliciel.jochre.graphics.features;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
 import com.joliciel.talismane.machineLearning.features.Feature;
@@ -13,7 +12,6 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> implements ShapeFeatureParser {
 	private FeatureClassContainer container;
-	private GraphicsService graphicsService;
 
 	public ShapeFeatureParserImpl() {
 		super();
@@ -108,19 +106,8 @@ class ShapeFeatureParserImpl extends AbstractFeatureParser<ShapeWrapper> impleme
 		return descriptors;
 	}
 
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
-
 	@Override
 	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
-		if (feature instanceof InnerEmptyChupchikLowerLeftFeature) {
-			((InnerEmptyChupchikLowerLeftFeature) feature).setGraphicsService(this.getGraphicsService());
-		}
 	}
 
 	@Override

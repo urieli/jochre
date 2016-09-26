@@ -20,6 +20,7 @@ package com.joliciel.jochre.letterGuesser;
 
 import java.util.List;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
@@ -28,9 +29,10 @@ import com.joliciel.talismane.machineLearning.ClassificationSolution;
 import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
- * A sequence of letter guesses associated with a given sequence of shapes, and the attached score.
- * There will be exactly one element in this sequence per underlying shape, including possibly
- * empty strings.
+ * A sequence of letter guesses associated with a given sequence of shapes, and
+ * the attached score. There will be exactly one element in this sequence per
+ * underlying shape, including possibly empty strings.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -39,75 +41,82 @@ public interface LetterSequence extends ClassificationSolution {
 	 * The letters in this sequence.
 	 */
 	public List<String> getLetters();
-	
+
 	/**
 	 * Get the sum of logs of the weights.
 	 */
+	@Override
 	public double getScore();
+
 	public void setScore(double score);
-	
+
 	/**
 	 * The index of the shape representing a hyphen at the end of the line,
 	 * possibly a soft-hyphen (visible in word-wrapping only).
 	 */
 	public int getEndOfLineHyphenIndex();
+
 	public void setEndOfLineHyphenIndex(int endOfLineHyphenIndex);
 
 	/**
-	 * The score, after adjustments to account for external factors
-	 * (such as corresponding word frequency in training corpus).
+	 * The score, after adjustments to account for external factors (such as
+	 * corresponding word frequency in training corpus).
 	 */
 	public abstract double getAdjustedScore();
+
 	public abstract void setAdjustedScore(double adjustedScore);
-	
+
 	/**
 	 * The sequence of shapes underlying this letter sequence.
 	 */
 	public ShapeSequence getUnderlyingShapeSequence();
+
 	public void setUnderlyingShapeSequence(ShapeSequence shapeSequence);
-	
+
 	/**
-	 * Get the next shape in the underlying shape sequence
-	 * (beyond what has already been guessed by this letter sequence.
+	 * Get the next shape in the underlying shape sequence (beyond what has
+	 * already been guessed by this letter sequence.
 	 */
 	public ShapeInSequence getNextShape();
-	
+
 	/**
 	 * The frequency of the word represented by this letter sequence.
 	 */
 	public int getFrequency();
+
 	public void setFrequency(int frequency);
-	
+
 	/**
-	 * After breaking this letter sequence up into individual words,
-	 * gives the frequency for each word as found in the lexicon.
+	 * After breaking this letter sequence up into individual words, gives the
+	 * frequency for each word as found in the lexicon.
 	 */
 	public List<CountedOutcome<String>> getWordFrequencies();
+
 	public void setWordFrequencies(List<CountedOutcome<String>> wordFrequencies);
-	
+
 	/**
 	 * The guessed word.
 	 */
 	public String getGuessedWord();
-	
+
 	/**
-	 * The real word behind this letter sequence, in cases where it's
-	 * from the training/test corpus.
+	 * The real word behind this letter sequence, in cases where it's from the
+	 * training/test corpus.
 	 */
 	public String getRealWord();
-	
+
 	/**
 	 * A string representation of the real sequence behind this letter sequence
 	 * (including split letters and inkspots).
 	 */
 	public String getRealSequence();
-	
+
 	/**
 	 * A string representation of the guessed sequence behind this letter sequence
 	 * (including split letters and inkspots).
 	 */
 	public String getGuessedSequence();
-	
+
 	/**
 	 * A list of groups of shapes underlying this letter sequence.
 	 */
@@ -117,46 +126,58 @@ public interface LetterSequence extends ClassificationSolution {
 	 * Whether or not this letter sequence is split across two lines.
 	 */
 	public boolean isSplit();
-	
+
 	/**
-	 * Does this letter sequence contain a soft hyphen (only visible because of word wrapping and end-of-line)?
+	 * Does this letter sequence contain a soft hyphen (only visible because of
+	 * word wrapping and end-of-line)?
 	 */
 	public boolean isSoftHyphen();
+
 	public void setSoftHyphen(boolean softHyphen);
 
 	/**
 	 * If this sequence contains any punctuation, returns individual sequences
-	 * representing letters and punctuation. Otherwise, returns the original sequence.
+	 * representing letters and punctuation. Otherwise, returns the original
+	 * sequence.
 	 */
 	public List<LetterSequence> getSubsequences();
+
 	public void setSubsequences(List<LetterSequence> subsequences);
-	
+
 	/**
-	 * Whether or not this letter sequence represents punctuation (in the case of a subsequence).
+	 * Whether or not this letter sequence represents punctuation (in the case of
+	 * a subsequence).
 	 */
 	public boolean isPunctation();
+
 	public void setPunctation(boolean punctation);
-	
-	
+
 	/**
 	 * Return the rectangle enclosing this letter sequence in a particular group.
 	 */
 	public Rectangle getRectangleInGroup(GroupOfShapes group);
-	
+
 	/**
-	 * For a letter sequence covering two groups, split this letter sequence into one sequence per group.
+	 * For a letter sequence covering two groups, split this letter sequence into
+	 * one sequence per group.
 	 */
 	List<LetterSequence> splitByGroup();
-	
+
 	/**
-	 * A subsequence representing a hyphen at the end-of-line (either soft or hard).
+	 * A subsequence representing a hyphen at the end-of-line (either soft or
+	 * hard).
 	 */
 	LetterSequence getHyphenSubsequence();
+
 	public void setHyphenSubsequence(LetterSequence hyphenSubsequence);
-	
+
 	/**
-	 * The most likely hyphenated string in the case of a hyphenated letter sequence.
+	 * The most likely hyphenated string in the case of a hyphenated letter
+	 * sequence.
 	 */
 	String getHyphenatedString();
+
 	public void setHyphenatedString(String hyphenatedString);
+
+	public JochreSession getJochreSession();
 }

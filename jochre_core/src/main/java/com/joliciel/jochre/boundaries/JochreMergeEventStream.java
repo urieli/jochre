@@ -27,9 +27,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
@@ -42,13 +42,13 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
 class JochreMergeEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
-
-	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 
 	private SplitCandidateFinder splitCandidateFinder;
 
-	private Set<MergeFeature<?>> mergeFeatures = null;
+	private final Set<MergeFeature<?>> mergeFeatures;
+	private final JochreSession jochreSession;
+
 	private double maxWidthRatio = 1.2;
 	private double maxDistanceRatio = 0.15;
 
@@ -72,7 +72,8 @@ class JochreMergeEventStream implements ClassificationEventStream {
 	 * @param mergeFeatures
 	 *          the features to analyse when training
 	 */
-	public JochreMergeEventStream(Set<MergeFeature<?>> mergeFeatures) {
+	public JochreMergeEventStream(Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.mergeFeatures = mergeFeatures;
 	}
 
@@ -182,19 +183,11 @@ class JochreMergeEventStream implements ClassificationEventStream {
 
 	void initialiseStream() {
 		if (groupReader == null) {
-			groupReader = this.graphicsService.getJochreCorpusGroupReader();
+			groupReader = new JochreCorpusGroupReader(jochreSession);
 			groupReader.setSelectionCriteria(criteria);
 			if (groupReader.hasNext())
 				group = groupReader.next();
 		}
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public BoundaryServiceInternal getBoundaryService() {

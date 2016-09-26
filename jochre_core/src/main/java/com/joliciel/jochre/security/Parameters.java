@@ -2,18 +2,20 @@ package com.joliciel.jochre.security;
 
 import java.util.Date;
 
+import com.joliciel.jochre.JochreSession;
+
 public class Parameters {
 	private int id;
 	private Date lastFailedLoginAttempt;
 	private int captachaIntervalSeconds;
 
-	public static Parameters loadParameters() {
-		SecurityDao securityDao = SecurityDao.getInstance();
-		return securityDao.loadParameters();
+	private final SecurityDao securityDao;
+
+	public Parameters(JochreSession jochreSession) {
+		this.securityDao = SecurityDao.getInstance(jochreSession);
 	}
 
 	void save() {
-		SecurityDao securityDao = SecurityDao.getInstance();
 		securityDao.saveParametersInternal(this);
 	}
 

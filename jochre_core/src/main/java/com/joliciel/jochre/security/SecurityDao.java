@@ -20,7 +20,9 @@ package com.joliciel.jochre.security;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -34,31 +36,31 @@ import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.joliciel.jochre.EntityNotFoundException;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.utils.dao.DaoConfig;
 import com.joliciel.talismane.utils.DaoUtils;
-import com.joliciel.talismane.utils.ObjectCache;
-import com.joliciel.talismane.utils.SimpleObjectCache;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
-class SecurityDao {
+public class SecurityDao {
 	private static final Logger LOG = LoggerFactory.getLogger(SecurityDao.class);
-	private DataSource dataSource;
+	private final DataSource dataSource;
 
-	private final ObjectCache objectCache;
-	private static SecurityDao instance;
+	private final JochreSession jochreSession;
 
-	private SecurityDao(Config config) {
-		objectCache = new SimpleObjectCache();
-		this.dataSource = DaoConfig.getDataSource(config);
-	}
+	public static Map<String, SecurityDao> instances = new HashMap<>();
 
-	public static SecurityDao getInstance() {
+	public static SecurityDao getInstance(JochreSession jochreSession) {
+		String key = DaoConfig.getKey(jochreSession.getConfig());
+		SecurityDao instance = instances.get(key);
 		if (instance == null) {
-			Config config = ConfigFactory.load();
-			instance = new SecurityDao(config);
+			instance = new SecurityDao(jochreSession);
+			instances.put(key, instance);
 		}
 		return instance;
+	}
+
+	private SecurityDao(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
 	}
 
 	private static final String SELECT_USER = "user_id, user_username, user_password"
@@ -66,7 +68,7 @@ class SecurityDao {
 	private static final String SELECT_PARAM = "param_id, param_last_failed_login" + ", param_captcha_interval";
 
 	public User loadUser(int userId) {
-		User user = this.objectCache.getEntity(User.class, userId);
+		User user = this.jochreSession.getObjectCache().getEntity(User.class, userId);
 		if (user == null) {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 			String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_id=:user_id";
@@ -75,24 +77,20 @@ class SecurityDao {
 
 			LOG.info(sql);
 			logParameters(paramSource);
-			user = null;
 			try {
 				user = jt.queryForObject(sql, paramSource, new UserMapper());
 			} catch (EmptyResultDataAccessException ex) {
-				ex.hashCode();
-			}
-
-			if (user == null) {
 				throw new EntityNotFoundException("No User found for user id " + userId);
 			}
-			this.objectCache.putEntity(User.class, userId, user);
+
+			this.jochreSession.getObjectCache().putEntity(User.class, userId, user);
 		}
 		return user;
 
 	}
 
 	public User findUser(String username) {
-		User user = this.objectCache.getEntity(User.class, username);
+		User user = this.jochreSession.getObjectCache().getEntity(User.class, username);
 		if (user == null) {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 			String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_username=:user_username";
@@ -101,17 +99,14 @@ class SecurityDao {
 
 			LOG.info(sql);
 			logParameters(paramSource);
-			user = null;
+
 			try {
 				user = jt.queryForObject(sql, paramSource, new UserMapper());
 			} catch (EmptyResultDataAccessException ex) {
-				ex.hashCode();
-			}
-
-			if (user == null) {
 				throw new EntityNotFoundException("No User found for username " + username);
 			}
-			this.objectCache.putEntity(User.class, username, user);
+
+			this.jochreSession.getObjectCache().putEntity(User.class, username, user);
 		}
 		return user;
 	}
@@ -130,7 +125,7 @@ class SecurityDao {
 		return users;
 	}
 
-	protected static final class UserMapper implements RowMapper<User> {
+	private final class UserMapper implements RowMapper<User> {
 		UserMapper() {
 		}
 
@@ -140,7 +135,7 @@ class SecurityDao {
 		}
 
 		public User mapRow(SqlRowSet rs) {
-			User user = new User();
+			User user = new User(jochreSession);
 			user.setId(rs.getInt("user_id"));
 			user.setUsername(rs.getString("user_username"));
 			user.setPassword(rs.getString("user_password"));
@@ -153,7 +148,7 @@ class SecurityDao {
 		}
 	}
 
-	public void saveUserInternal(User user) {
+	void saveUserInternal(User user) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
@@ -196,7 +191,7 @@ class SecurityDao {
 
 	public Parameters loadParameters() {
 		int parametersId = 1;
-		Parameters parameters = this.objectCache.getEntity(Parameters.class, parametersId);
+		Parameters parameters = this.jochreSession.getObjectCache().getEntity(Parameters.class, parametersId);
 		if (parameters == null) {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 			String sql = "SELECT " + SELECT_PARAM + " FROM ocr_param WHERE param_id=:param_id";
@@ -205,24 +200,20 @@ class SecurityDao {
 
 			LOG.info(sql);
 			logParameters(paramSource);
-			parameters = null;
+
 			try {
 				parameters = jt.queryForObject(sql, paramSource, new ParametersMapper());
 			} catch (EmptyResultDataAccessException ex) {
-				ex.hashCode();
-			}
-
-			if (parameters == null) {
 				throw new EntityNotFoundException("No Parameters found for parameters id " + parametersId);
 			}
-			this.objectCache.putEntity(Parameters.class, parametersId, parameters);
+
+			this.jochreSession.getObjectCache().putEntity(Parameters.class, parametersId, parameters);
 		}
 		return parameters;
 
 	}
 
-	protected static final class ParametersMapper implements RowMapper<Parameters> {
-
+	private final class ParametersMapper implements RowMapper<Parameters> {
 		protected ParametersMapper() {
 		}
 
@@ -232,7 +223,7 @@ class SecurityDao {
 		}
 
 		public Parameters mapRow(SqlRowSet rs) {
-			Parameters parameters = new Parameters();
+			Parameters parameters = new Parameters(jochreSession);
 			parameters.setId(rs.getInt("param_id"));
 			parameters.setLastFailedLoginAttempt(rs.getDate("param_last_failed_login"));
 			parameters.setCaptachaIntervalSeconds(rs.getInt("param_captcha_interval"));
@@ -240,7 +231,7 @@ class SecurityDao {
 		}
 	}
 
-	public void saveParametersInternal(Parameters parameters) {
+	void saveParametersInternal(Parameters parameters) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
@@ -259,15 +250,11 @@ class SecurityDao {
 
 	}
 
-	public DataSource getDataSource() {
+	private DataSource getDataSource() {
 		return dataSource;
 	}
 
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
-	}
-
-	public static void logParameters(MapSqlParameterSource paramSource) {
+	private static void logParameters(MapSqlParameterSource paramSource) {
 		DaoUtils.LogParameters(paramSource.getValues());
 	}
 }

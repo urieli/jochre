@@ -44,9 +44,11 @@ import com.joliciel.talismane.utils.CountedOutcome;
  *
  */
 final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, LetterSequence {
-	// notice no dash in punctation, as these are always considered to be attached to the letters
-//    private static final Pattern PUNCTUATION = Pattern.compile("[\\p{Punct}&&[^\\-]]+", Pattern.UNICODE_CHARACTER_CLASS);
-    private static final Pattern PUNCTUATION = Pattern.compile("[\\p{Punct}]+", Pattern.UNICODE_CHARACTER_CLASS);
+	// notice no dash in punctation, as these are always considered to be attached
+	// to the letters
+	// private static final Pattern PUNCTUATION =
+	// Pattern.compile("[\\p{Punct}&&[^\\-]]+", Pattern.UNICODE_CHARACTER_CLASS);
+	private static final Pattern PUNCTUATION = Pattern.compile("[\\p{Punct}]+", Pattern.UNICODE_CHARACTER_CLASS);
 
 	private double score = 0;
 	private double adjustedScore = 0;
@@ -57,17 +59,17 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	private String realSequence = null;
 	private String guessedSequence = null;
 	private boolean split = false;
-	
+
 	private int endOfLineHyphenIndex = -1;
 	private ShapeSequence underlyingShapeSequence;
 	private int frequency = 0;
 	private List<CountedOutcome<String>> wordFrequencies = new ArrayList<CountedOutcome<String>>();
-	
+
 	private List<Decision> decisions = new ArrayList<Decision>();
 	private List<Solution> underlyingSolutions = new ArrayList<Solution>();
 	@SuppressWarnings("rawtypes")
 	private ScoringStrategy scoringStrategy = new GeometricMeanScoringStrategy();
-	
+
 	private List<LetterSequence> subsequences;
 	private List<LetterSequence> groupSequences;
 	private LetterSequence hyphenSubsequence = null;
@@ -75,47 +77,51 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	private boolean punctation = false;
 	private boolean softHyphen = false;
 	private String hyphenatedString = null;
-	
+
 	private BoundaryService boundaryService;
 	private LetterGuesserServiceInternal letterGuesserService;
-	
-	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence) {
-		super();
+
+	private final JochreSession jochreSession;
+
+	public LetterSequenceImpl(ShapeSequence underlyingShapeSequence, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.setUnderlyingShapeSequence(underlyingShapeSequence);
 	}
-	
+
 	/**
-	 * Create a letter sequence with space to one additional letter at the end
-	 * of an existing history.
+	 * Create a letter sequence with space to one additional letter at the end of
+	 * an existing history.
 	 */
 	public LetterSequenceImpl(LetterSequence history) {
+		this.jochreSession = history.getJochreSession();
 		this.letters.addAll(history.getLetters());
 		this.decisions.addAll(history.getDecisions());
 		this.setUnderlyingShapeSequence(history.getUnderlyingShapeSequence());
 	}
-	
+
 	/**
 	 * Combine two sequences into one.
 	 */
 	public LetterSequenceImpl(LetterSequence sequence1, LetterSequence sequence2, BoundaryService boundaryService) {
-		if (sequence1!=null) {
+		jochreSession = sequence1 != null ? sequence1.getJochreSession() : sequence2.getJochreSession();
+		if (sequence1 != null) {
 			this.letters.addAll(sequence1.getLetters());
 			this.decisions.addAll(sequence1.getDecisions());
-			if (sequence1.getEndOfLineHyphenIndex()>=0)
+			if (sequence1.getEndOfLineHyphenIndex() >= 0)
 				this.setEndOfLineHyphenIndex(sequence1.getEndOfLineHyphenIndex());
 		}
-		if (sequence2!=null) {
+		if (sequence2 != null) {
 			this.letters.addAll(sequence2.getLetters());
 			this.decisions.addAll(sequence2.getDecisions());
-			if (sequence2.getEndOfLineHyphenIndex()>=0) {
-				if (sequence1!=null)
+			if (sequence2.getEndOfLineHyphenIndex() >= 0) {
+				if (sequence1 != null)
 					this.setEndOfLineHyphenIndex(sequence1.getLetters().size() + sequence2.getEndOfLineHyphenIndex());
 				else
 					this.setEndOfLineHyphenIndex(sequence2.getEndOfLineHyphenIndex());
 			}
 		}
-		
-		if (sequence1!=null && sequence2!=null) {
+
+		if (sequence1 != null && sequence2 != null) {
 			GroupOfShapes group1 = sequence1.getUnderlyingShapeSequence().get(0).getShape().getGroup();
 			GroupOfShapes group2 = sequence2.getUnderlyingShapeSequence().get(0).getShape().getGroup();
 			if (!group1.equals(group2)) {
@@ -125,19 +131,23 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 				groupSequences.add(sequence2);
 			}
 		}
-		
+
 		this.boundaryService = boundaryService;
-		
-		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1==null ? null : sequence1.getUnderlyingShapeSequence(), sequence2==null ? null : sequence2.getUnderlyingShapeSequence());
+
+		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1 == null ? null : sequence1.getUnderlyingShapeSequence(),
+				sequence2 == null ? null : sequence2.getUnderlyingShapeSequence());
 		this.setUnderlyingShapeSequence(shapeSequence);
 	}
-	
-	public LetterSequenceImpl(ShapeSequence shapeSequence, List<String> letters) {
+
+	public LetterSequenceImpl(ShapeSequence shapeSequence, List<String> letters, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.setUnderlyingShapeSequence(shapeSequence);
 		this.letters = letters;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.joliciel.jochre.training.LetterSequence#getScore()
 	 */
 	@SuppressWarnings("unchecked")
@@ -149,7 +159,8 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		}
 		return score;
 	}
-	
+
+	@Override
 	public void setScore(double score) {
 		this.score = score;
 		scoreCalculated = true;
@@ -159,9 +170,9 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	public int compareTo(LetterSequenceImpl o) {
 		if (this.equals(o))
 			return 0;
-		if (this.getScore()<o.getScore()) {
+		if (this.getScore() < o.getScore()) {
 			return 1;
-		} else if (this.getScore()>o.getScore()) {
+		} else if (this.getScore() > o.getScore()) {
 			return -1;
 		} else {
 			return 1;
@@ -170,63 +181,61 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 
 	@Override
 	public synchronized String toString() {
-		if (string==null) {
+		if (string == null) {
 			string = "Sequence: " + this.getGuessedSequence();
 		}
 		return string;
 	}
-	
 
 	@Override
 	public String getRealWord() {
-		if (realWord==null) {
+		if (realWord == null) {
 			realWord = this.getRealSequence();
-			
+
 			realWord = realWord.replace("[", "");
 			realWord = realWord.replace("]", "");
-			
+
 			// split letters are joined back together
 			realWord = realWord.replaceAll("\\|(.)\\1\\|", "$1");
 			realWord = realWord.replaceAll("\\|(..)\\1\\|", "$1");
 			realWord = realWord.replaceAll("\\|(...)\\1\\|", "$1");
-			
-			realWord = JochreSession.getInstance().getLinguistics().standardiseWord(realWord);
+
+			realWord = jochreSession.getLinguistics().standardiseWord(realWord);
 		}
 		return realWord;
 	}
-	
 
 	@Override
 	public String getGuessedWord() {
-		if (guessedWord==null) {
+		if (guessedWord == null) {
 			guessedWord = this.getGuessedSequence();
-			
+
 			guessedWord = guessedWord.replace("[", "");
 			guessedWord = guessedWord.replace("]", "");
-			
+
 			// split letters are joined back together
 			guessedWord = guessedWord.replaceAll("\\|(.)\\1\\|", "$1");
 			guessedWord = guessedWord.replaceAll("\\|(..)\\1\\|", "$1");
 			guessedWord = guessedWord.replaceAll("\\|(...)\\1\\|", "$1");
 
-			guessedWord = JochreSession.getInstance().getLinguistics().standardiseWord(guessedWord);
+			guessedWord = jochreSession.getLinguistics().standardiseWord(guessedWord);
 		}
 		return guessedWord;
 	}
 
 	@Override
 	public String getRealSequence() {
-		if (realSequence==null) {
-			Linguistics linguistics = JochreSession.getInstance().getLinguistics();
+		if (realSequence == null) {
+			Linguistics linguistics = jochreSession.getLinguistics();
 			StringBuilder realWordBuilder = new StringBuilder();
 			Shape lastShape = null;
 			for (ShapeInSequence shapeInSequence : this.getUnderlyingShapeSequence()) {
 				for (Shape originalShape : shapeInSequence.getOriginalShapes()) {
 					if (!originalShape.equals(lastShape)) {
 						String letter = originalShape.getLetter();
-						if (letter.length()==0)
+						if (letter.length() == 0)
 							realWordBuilder.append("[]");
-						else if (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter))
+						else if (letter.length() > 1 && !linguistics.getDualCharacterLetters().contains(letter))
 							realWordBuilder.append("[" + letter + "]");
 						else
 							realWordBuilder.append(letter);
@@ -241,20 +250,20 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 
 	@Override
 	public String getGuessedSequence() {
-		if (guessedSequence==null) {
-			Linguistics linguistics = JochreSession.getInstance().getLinguistics();
+		if (guessedSequence == null) {
+			Linguistics linguistics = jochreSession.getLinguistics();
 			StringBuilder builder = new StringBuilder();
-			for (int i=0; i<letters.size(); i++) {
+			for (int i = 0; i < letters.size(); i++) {
 				String letter = letters.get(i);
-				if (i==this.endOfLineHyphenIndex) {
+				if (i == this.endOfLineHyphenIndex) {
 					if (this.softHyphen) {
 						continue;
 					}
 				}
-				
-				if (letter.length()==0)
+
+				if (letter.length() == 0)
 					builder.append("[]");
-				else if (letter.length()>1 && !linguistics.getDualCharacterLetters().contains(letter))
+				else if (letter.length() > 1 && !linguistics.getDualCharacterLetters().contains(letter))
 					builder.append("[" + letter + "]");
 				else
 					builder.append(letter);
@@ -264,10 +273,12 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		return guessedSequence;
 	}
 
+	@Override
 	public int getEndOfLineHyphenIndex() {
 		return endOfLineHyphenIndex;
 	}
 
+	@Override
 	public void setEndOfLineHyphenIndex(int dashToSkip) {
 		this.endOfLineHyphenIndex = dashToSkip;
 	}
@@ -276,16 +287,18 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	public double getAdjustedScore() {
 		return adjustedScore;
 	}
-	
+
 	@Override
 	public void setAdjustedScore(double adjustedScore) {
 		this.adjustedScore = adjustedScore;
 	}
 
+	@Override
 	public ShapeSequence getUnderlyingShapeSequence() {
 		return underlyingShapeSequence;
 	}
 
+	@Override
 	public void setUnderlyingShapeSequence(ShapeSequence underlyingShapeSequence) {
 		this.underlyingShapeSequence = underlyingShapeSequence;
 		this.underlyingSolutions.add(underlyingShapeSequence);
@@ -293,7 +306,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 
 	@Override
 	public ShapeInSequence getNextShape() {
-		if (this.underlyingShapeSequence.size()<=this.letters.size())
+		if (this.underlyingShapeSequence.size() <= this.letters.size())
 			return null;
 		else
 			return this.underlyingShapeSequence.get(this.letters.size());
@@ -307,10 +320,12 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		this.boundaryService = boundaryService;
 	}
 
+	@Override
 	public int getFrequency() {
 		return frequency;
 	}
 
+	@Override
 	public void setFrequency(int frequency) {
 		this.frequency = frequency;
 	}
@@ -330,19 +345,23 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		this.decisions.add(decision);
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public ScoringStrategy getScoringStrategy() {
 		return scoringStrategy;
 	}
 
+	@Override
 	public void setScoringStrategy(@SuppressWarnings("rawtypes") ScoringStrategy scoringStrategy) {
 		this.scoringStrategy = scoringStrategy;
 	}
 
+	@Override
 	public List<CountedOutcome<String>> getWordFrequencies() {
 		return wordFrequencies;
 	}
-	
+
+	@Override
 	public void setWordFrequencies(List<CountedOutcome<String>> wordFrequencies) {
 		this.wordFrequencies = wordFrequencies;
 	}
@@ -373,22 +392,22 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 
 	@Override
 	public List<LetterSequence> getSubsequences() {
-		if (subsequences==null) {
+		if (subsequences == null) {
 			subsequences = new ArrayList<LetterSequence>();
 			List<String> currentLetters = new ArrayList<String>();
 			ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
 			boolean inPunctuation = false;
 			boolean expectEndOfLineHyphen = false;
-			
-			for (int i=0; i<this.letters.size(); i++) {
+
+			for (int i = 0; i < this.letters.size(); i++) {
 				String letter = this.letters.get(i);
 				ShapeInSequence shape = this.underlyingShapeSequence.get(i);
-				
-				if (i==this.getEndOfLineHyphenIndex())
+
+				if (i == this.getEndOfLineHyphenIndex())
 					expectEndOfLineHyphen = true;
-				
+
 				if (PUNCTUATION.matcher(letter).matches()) {
-					if (!inPunctuation && currentLetters.size()>0) {
+					if (!inPunctuation && currentLetters.size() > 0) {
 						LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
 						subsequences.add(subsequence);
 						currentLetters = new ArrayList<String>();
@@ -396,13 +415,13 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					}
 					inPunctuation = true;
 				} else {
-					if (inPunctuation && currentLetters.size()>0) {
+					if (inPunctuation && currentLetters.size() > 0) {
 						LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
 						subsequence.setPunctation(true);
 						if (expectEndOfLineHyphen) {
 							this.setHyphenSubsequence(subsequence);
 						}
-						
+
 						subsequences.add(subsequence);
 						currentLetters = new ArrayList<String>();
 						currentShapes = this.boundaryService.getEmptyShapeSequence();
@@ -412,7 +431,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 				currentLetters.add(letter);
 				currentShapes.addShape(shape.getShape());
 			}
-			if (currentLetters.size()>0) {
+			if (currentLetters.size() > 0) {
 				LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
 				subsequence.setPunctation(inPunctuation);
 				if (inPunctuation && expectEndOfLineHyphen)
@@ -422,9 +441,8 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		}
 		return subsequences;
 	}
-	
-	
-	
+
+	@Override
 	public void setSubsequences(List<LetterSequence> subsequences) {
 		this.subsequences = subsequences;
 	}
@@ -438,19 +456,21 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		return letterGuesserService;
 	}
 
-	public void setLetterGuesserService(
-			LetterGuesserServiceInternal letterGuesserService) {
+	public void setLetterGuesserService(LetterGuesserServiceInternal letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
 	}
 
+	@Override
 	public boolean isPunctation() {
 		return punctation;
 	}
 
+	@Override
 	public void setPunctation(boolean punctation) {
 		this.punctation = punctation;
 	}
 
+	@Override
 	public List<String> getLetters() {
 		return letters;
 	}
@@ -464,10 +484,10 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	public List<LetterSequence> splitByGroup() {
 		List<LetterSequence> letterSequences = new ArrayList<LetterSequence>();
 		if (this.isSplit()) {
-			
-			Map<GroupOfShapes,LetterSequence> groupToLetterSequenceMap = new HashMap<GroupOfShapes,LetterSequence>();
-			
-			if (groupSequences!=null) {
+
+			Map<GroupOfShapes, LetterSequence> groupToLetterSequenceMap = new HashMap<GroupOfShapes, LetterSequence>();
+
+			if (groupSequences != null) {
 				letterSequences = groupSequences;
 				for (LetterSequence letterSequence : letterSequences) {
 					groupToLetterSequenceMap.put(letterSequence.getGroups().get(0), letterSequence);
@@ -476,8 +496,8 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 				List<String> currentLetters = new ArrayList<String>();
 				ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
 				GroupOfShapes currentGroup = this.getGroups().get(0);
-	
-				for (int i=0; i<this.letters.size(); i++) {
+
+				for (int i = 0; i < this.letters.size(); i++) {
 					String letter = this.letters.get(i);
 					Shape shape = this.underlyingShapeSequence.get(i).getShape();
 					if (!currentGroup.equals(shape.getGroup())) {
@@ -493,7 +513,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					currentShapes.addShape(shape);
 					currentLetters.add(letter);
 				}
-				if (currentLetters.size()>0) {
+				if (currentLetters.size() > 0) {
 					LetterSequence letterSequence = this.letterGuesserService.getLetterSequence(currentShapes, currentLetters);
 					letterSequence.setScore(this.getScore());
 					letterSequence.setAdjustedScore(this.getAdjustedScore());
@@ -501,12 +521,12 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					letterSequences.add(letterSequence);
 				}
 			}
-			
+
 			GroupOfShapes currentGroup = this.getGroups().get(0);
-			
+
 			List<LetterSequence> newSubsequences = new ArrayList<LetterSequence>();
 			for (LetterSequence subsequence : this.getSubsequences()) {
-				if (subsequence.getHyphenSubsequence()!=null) {
+				if (subsequence.getHyphenSubsequence() != null) {
 					// subsequence contains end-of-line hyphen
 					// break it up into several subsequences
 					List<LetterSequence> subsequencesByGroup = subsequence.getSubsequences();
@@ -520,7 +540,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					newSubsequences.add(subsequence);
 				}
 			}
-			
+
 			// assign my subsequences to the correct group
 			List<LetterSequence> currentSubsequences = new ArrayList<LetterSequence>();
 			for (LetterSequence subsequence : newSubsequences) {
@@ -528,7 +548,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 					LetterSequence currentSequence = groupToLetterSequenceMap.get(currentGroup);
 					currentSequence.setSubsequences(currentSubsequences);
 					for (LetterSequence oneSubsequence : currentSubsequences) {
-						if (oneSubsequence.getWordFrequencies().size()>0) {
+						if (oneSubsequence.getWordFrequencies().size() > 0) {
 							currentSequence.getWordFrequencies().add(oneSubsequence.getWordFrequencies().get(0));
 						}
 					}
@@ -537,19 +557,19 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 				}
 				currentSubsequences.add(subsequence);
 			}
-			if (currentSubsequences.size()>0) {
+			if (currentSubsequences.size() > 0) {
 				LetterSequence currentSequence = groupToLetterSequenceMap.get(currentGroup);
 				currentSequence.setSubsequences(currentSubsequences);
 				for (LetterSequence oneSubsequence : currentSubsequences) {
-					if (oneSubsequence.getWordFrequencies().size()>0) {
+					if (oneSubsequence.getWordFrequencies().size() > 0) {
 						currentSequence.getWordFrequencies().add(oneSubsequence.getWordFrequencies().get(0));
 					}
 				}
 			}
-			
-			if (this.getHyphenSubsequence()!=null)
+
+			if (this.getHyphenSubsequence() != null)
 				letterSequences.get(0).setHyphenSubsequence(this.getHyphenSubsequence());
-			
+
 			for (LetterSequence letterSequence : letterSequences) {
 				letterSequence.setScore(this.getScore());
 				letterSequence.setAdjustedScore(this.getAdjustedScore());
@@ -560,32 +580,42 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		return letterSequences;
 	}
 
+	@Override
 	public LetterSequence getHyphenSubsequence() {
 		return hyphenSubsequence;
 	}
 
+	@Override
 	public void setHyphenSubsequence(LetterSequence hyphenSubsequence) {
 		this.hyphenSubsequence = hyphenSubsequence;
 		hyphenSubsequence.setEndOfLineHyphenIndex(0);
 	}
 
+	@Override
 	public boolean isSoftHyphen() {
 		return softHyphen;
 	}
 
+	@Override
 	public void setSoftHyphen(boolean softHyphen) {
 		this.guessedSequence = null;
 		this.guessedWord = null;
 		this.softHyphen = softHyphen;
 	}
 
+	@Override
 	public String getHyphenatedString() {
 		return hyphenatedString;
 	}
 
+	@Override
 	public void setHyphenatedString(String hyphenatedString) {
 		this.hyphenatedString = hyphenatedString;
 	}
-	
-	
+
+	@Override
+	public JochreSession getJochreSession() {
+		return jochreSession;
+	}
+
 }

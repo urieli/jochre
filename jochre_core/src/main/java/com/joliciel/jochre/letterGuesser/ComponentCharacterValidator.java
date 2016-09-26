@@ -18,43 +18,37 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
-import java.util.Locale;
-
 import com.joliciel.jochre.JochreSession;
 
 /**
- * Returns true if all component characters of this letter are valid
- * (allows for merged letters). Empty strings are allowed.
+ * Returns true if all component characters of this letter are valid (allows for
+ * merged letters). Empty strings are allowed.
+ * 
  * @author Assaf Urieli
  *
  */
 public class ComponentCharacterValidator implements LetterValidator {
-	private Locale locale;
-	
-	public ComponentCharacterValidator(Locale locale) {
-		super();
-		this.locale = locale;
+	private final JochreSession jochreSession;
+
+	public ComponentCharacterValidator(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 	}
 
 	@Override
 	public boolean validate(String letter) {
-		if (letter.length()==0)
+		if (letter.length() == 0)
 			return true;
-		if (locale.getLanguage().equals("yi")||locale.getLanguage().equals("ji")) {
-			for (int i=0; i<letter.length(); i++) {
+		if (jochreSession.getLocale().getLanguage().equals("yi") || jochreSession.getLocale().getLanguage().equals("ji")) {
+			for (int i = 0; i < letter.length(); i++) {
 				char c = letter.charAt(i);
-				if (c=='|')
+				if (c == '|')
 					continue;
-				if (!JochreSession.getInstance().getLinguistics().getValidCharacters().contains(c)) {
+				if (!jochreSession.getLinguistics().getValidCharacters().contains(c)) {
 					return false;
 				}
 			}
 		}
 		return true;
-	}
-
-	public Locale getLocale() {
-		return locale;
 	}
 
 }

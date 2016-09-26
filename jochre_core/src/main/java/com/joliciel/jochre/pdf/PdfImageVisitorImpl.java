@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.doc.SourceFileProcessor;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
@@ -19,7 +18,6 @@ import com.joliciel.talismane.utils.ProgressMonitor;
 class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(PdfImageVisitorImpl.class);
 
-	GraphicsService graphicsService;
 	SourceFileProcessor documentProcessor;
 	int firstPage;
 	int lastPage;
@@ -27,12 +25,12 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 
 	/**
 	 * @param firstPage
-	 *            a value of -1 means no first page
+	 *          a value of -1 means no first page
 	 * @param lastPage
-	 *            a value of -1 means no last page
+	 *          a value of -1 means no last page
 	 * @param documentProcessor
-	 *            a processor for the document being created (to allow
-	 *            processing as we go).
+	 *          a processor for the document being created (to allow processing as
+	 *          we go).
 	 */
 	public PdfImageVisitorImpl(File pdfFile, int firstPage, int lastPage, SourceFileProcessor documentProcessor) {
 		super(pdfFile);
@@ -114,14 +112,6 @@ class PdfImageVisitorImpl extends AbstractPdfImageVisitor implements PdfImageVis
 
 		if (this.currentMonitor != null)
 			currentMonitor.setCurrentAction("imageMonitor.extractingNextImage");
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	@Override

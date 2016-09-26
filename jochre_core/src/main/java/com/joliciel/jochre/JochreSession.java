@@ -22,37 +22,35 @@ import java.util.Locale;
 
 import com.joliciel.jochre.lang.DefaultLinguistics;
 import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.talismane.utils.ObjectCache;
+import com.joliciel.talismane.utils.SimpleObjectCache;
+import com.typesafe.config.Config;
 
 /**
  * A class storing session-wide reference data.
+ * 
  * @author Assaf Urieli
  *
  */
 public class JochreSession {
-	private Locale locale;
+	private final Locale locale;
 	private Linguistics linguistics;
 	private double junkConfidenceThreshold = 0.75;
-	
-	private static JochreSession instance;
-	
-	public static JochreSession getInstance() {
-		if (instance==null)
-			instance = new JochreSession();
-		return instance;
+	private final Config config;
+	private final ObjectCache objectCache;
+
+	public JochreSession(Config config) {
+		this.config = config;
+		this.locale = Locale.forLanguageTag(config.getString("jochre.locale"));
+		this.objectCache = new SimpleObjectCache();
 	}
-	
-	private JochreSession() { }
-	
+
 	public Locale getLocale() {
 		return locale;
 	}
-	
-	public void setLocale(Locale locale) {
-		this.locale = locale;
-	}
-	
+
 	public Linguistics getLinguistics() {
-		if (this.linguistics==null) {
+		if (this.linguistics == null) {
 			this.linguistics = DefaultLinguistics.getInstance(this.locale);
 		}
 		return linguistics;
@@ -69,8 +67,16 @@ public class JochreSession {
 	public double getJunkConfidenceThreshold() {
 		return junkConfidenceThreshold;
 	}
-	
+
 	public void setJunkConfidenceThreshold(double junkConfidenceThreshold) {
 		this.junkConfidenceThreshold = junkConfidenceThreshold;
+	}
+
+	public Config getConfig() {
+		return config;
+	}
+
+	public ObjectCache getObjectCache() {
+		return objectCache;
 	}
 }

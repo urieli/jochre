@@ -18,51 +18,53 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.junit.Test;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
-import static org.junit.Assert.*;
+import mockit.Mocked;
 
 public class SegmenterImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(SegmenterImplTest.class);
- 
+
 	@Test
 	public void testGetShape(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
-		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
-		graphicsService.setLetterGuesserService(letterGuesserService);
-		
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
+
 		final int startX = 3;
 		final int startY = 2;
-    	int[] pixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-		  0, 1, 0, 0, 0, 0, 0, 0, // row 1
-		  0, 0, 0, 1, 0, 0, 1, 1, // row 2
-		  0, 0, 1, 1, 1, 0, 0, 1, // row 3
-		  0, 0, 0, 1, 1, 1, 1, 1, // row 4
-		  0, 1, 0, 0, 0, 0, 0, 0, // row 5
-		  0, 1, 1, 0, 0, 0, 0, 0, // row 6
-		  0, 0, 1, 1, 0, 0, 0, 0, // row 7
+		int[] pixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+				0, 1, 0, 0, 0, 0, 0, 0, // row 1
+				0, 0, 0, 1, 0, 0, 1, 1, // row 2
+				0, 0, 1, 1, 1, 0, 0, 1, // row 3
+				0, 0, 0, 1, 1, 1, 1, 1, // row 4
+				0, 1, 0, 0, 0, 0, 0, 0, // row 5
+				0, 1, 1, 0, 0, 0, 0, 0, // row 6
+				0, 0, 1, 1, 0, 0, 0, 0, // row 7
 		};
 
-		SourceImage sourceImage = new SourceImageMock(pixels, 8, 8);
-        
-		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
-		segmenter.setGraphicsService(graphicsService);
+		SourceImage sourceImage = new SourceImageMock(pixels, 8, 8, jochreSession);
 
-		final WritableImageGrid imageMirror = graphicsService.getEmptyMirror(sourceImage);
+		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
+
+		final WritableImageGrid imageMirror = new ImageMirror(sourceImage);
 
 		Shape shape = segmenter.getShape(sourceImage, imageMirror, startX, startY);
-		
+
 		assertEquals(2, shape.getTop());
 		assertEquals(2, shape.getLeft());
 		assertEquals(4, shape.getBottom());
@@ -70,10 +72,11 @@ public class SegmenterImplTest {
 	}
 
 	@Test
-	public void testSplitShape(@Mocked final LetterGuesserService letterGuesserService,
-			@Mocked final SourceImage sourceImage) throws Exception {
-		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
-		graphicsService.setLetterGuesserService(letterGuesserService);
+	public void testSplitShape(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 
 		final int threshold = 100;
 		final int width = 12;
@@ -83,38 +86,33 @@ public class SegmenterImplTest {
 		final int maxOverlap = 2;
 		final int left = 10;
 		final int top = 10;
-		
-       	int[] pixels =
-		{ 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
-		  0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, // row 1
-		  0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, // row 2
-		  0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, // row 3
-		  0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, // row 4
-		  0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, // row 5
-		  0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, // row 6
-		  1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, // row 7
-		  0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, // row 8
+
+		int[] pixels = { 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
+				0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, // row 1
+				0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, // row 2
+				0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, // row 3
+				0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, // row 4
+				0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, // row 5
+				0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, // row 6
+				1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, // row 7
+				0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, // row 8
 		};
-       	
-		ShapeInternal shape = new ShapeMock(pixels, left, top, width, height);
-		shape.setGraphicsService(graphicsService);
+
+		SourceImage sourceImage = new SourceImageMock(pixels, 9, 12, jochreSession);
+		sourceImage.setSeparationThreshold(threshold);
+
+		Shape shape = new ShapeMock(pixels, left, top, width, height, jochreSession);
 		shape.setJochreImage(sourceImage);
-		
-		new NonStrictExpectations() {
-			{
-        	sourceImage.getSeparationThreshold(); returns(threshold);
-        }};
-        
-		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
-		segmenter.setGraphicsService(graphicsService);
+
+		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 
 		List<Shape> shapes = segmenter.splitShape(shape, sourceImage, maxBridgeWidth, minLetterWeight, maxOverlap);
-		
+
 		for (Shape splitShape : shapes) {
 			LOG.debug("Split shape:  " + splitShape);
 		}
 		assertEquals(2, shapes.size());
-		
+
 		Shape leftShape = shapes.get(0);
 		assertEquals(left, leftShape.getLeft());
 		assertEquals(left + 5, leftShape.getRight());
@@ -126,33 +124,34 @@ public class SegmenterImplTest {
 		assertEquals(top, rightShape.getTop());
 		assertEquals(top + 8, rightShape.getBottom());
 	}
-	
+
 	@Test
 	public void testSegment(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
-		GraphicsServiceImpl graphicsService = new GraphicsServiceImpl();
-		graphicsService.setLetterGuesserService(letterGuesserService);
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 
 		final int width = 12;
 		final int height = 10;
 		final List<Rectangle> whiteAreas = new ArrayList<Rectangle>();
 
-       	int[] pixels =
-    		//0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
-    		{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
-    		  0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, // row 1
-    		  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, // row 2
-    		  0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, // row 3
-    		  0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, // row 4
-    		  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 5
-    		  0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, // row 6
-    		  0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, // row 7
-    		  0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, // row 8
-    		  0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, // row 9
-    		};
-		SourceImage sourceImage = new SourceImageMock(pixels, height, width);
-        
-		SegmenterImpl segmenter = new SegmenterImpl(sourceImage);
-		segmenter.setGraphicsService(graphicsService);
+		int[] pixels =
+				// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
+				{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+						0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, // row 1
+						0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, // row 2
+						0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, // row 3
+						0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, // row 4
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 5
+						0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, // row 6
+						0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, // row 7
+						0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, // row 8
+						0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, // row 9
+				};
+		SourceImage sourceImage = new SourceImageMock(pixels, height, width, jochreSession);
+
+		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 
 		LOG.debug("findContiguousShapes");
 		Set<Shape> shapes = segmenter.findContiguousShapes(sourceImage);
@@ -160,7 +159,7 @@ public class SegmenterImplTest {
 		int i = 0;
 		int j = 0;
 		for (Shape shape : shapes) {
-			if (i==0) {
+			if (i == 0) {
 				assertEquals(0, shape.getTop());
 				assertEquals(1, shape.getLeft());
 				assertEquals(4, shape.getBottom());
@@ -168,7 +167,7 @@ public class SegmenterImplTest {
 			}
 			i++;
 		}
-		
+
 		i = 0;
 		for (Shape shape : shapes) {
 			LOG.debug("============= Shape (" + i + ") ================");
@@ -185,13 +184,13 @@ public class SegmenterImplTest {
 			}
 			i++;
 		}
-		
-        LOG.debug("arrangeShapesInRows");
+
+		LOG.debug("arrangeShapesInRows");
 		List<RowOfShapes> rows = segmenter.groupShapesIntoRows(sourceImage, shapes, whiteAreas, false);
 		assertEquals(2, rows.size());
-		
+
 		i = 0;
-		for (RowOfShapes row: rows) {
+		for (RowOfShapes row : rows) {
 			j = 0;
 			for (Shape shape : row.getShapes()) {
 				LOG.debug("============= Shape (" + i + "," + j + ") ================");

@@ -18,7 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.security;
 
-import java.util.List;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * A User of the Jochre application.
@@ -36,24 +36,10 @@ public class User {
 	private int loginCount = 0;
 	private UserRole role = UserRole.GUEST;
 
-	public static User loadUser(int userId) {
-		SecurityDao securityDao = SecurityDao.getInstance();
-		User user = securityDao.loadUser(userId);
-		return user;
-	}
+	private final SecurityDao securityDao;
 
-	public static User findUser(String username) {
-		SecurityDao securityDao = SecurityDao.getInstance();
-		User user = securityDao.findUser(username);
-		return user;
-	}
-
-	/**
-	 * Return all users in the system.
-	 */
-	public static List<User> findUsers() {
-		SecurityDao securityDao = SecurityDao.getInstance();
-		return securityDao.findUsers();
+	public User(JochreSession jochreSession) {
+		this.securityDao = SecurityDao.getInstance(jochreSession);
 	}
 
 	/**
@@ -70,7 +56,7 @@ public class User {
 			this.setFailedLoginCount(this.failedLoginCount + 1);
 			this.save();
 
-			Parameters parameters = Parameters.loadParameters();
+			Parameters parameters = securityDao.loadParameters();
 			parameters.loginFailed();
 			parameters.save();
 			return false;
@@ -78,7 +64,6 @@ public class User {
 	}
 
 	public void save() {
-		SecurityDao securityDao = SecurityDao.getInstance();
 		securityDao.saveUserInternal(this);
 	}
 

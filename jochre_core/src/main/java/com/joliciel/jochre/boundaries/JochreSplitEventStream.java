@@ -27,9 +27,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreCorpusShapeReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationEvent;
@@ -42,11 +42,12 @@ class JochreSplitEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreSplitEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
-	private GraphicsService graphicsService;
 	private BoundaryServiceInternal boundaryService;
 	private SplitCandidateFinder splitCandidateFinder;
 
-	private Set<SplitFeature<?>> splitFeatures = null;
+	private final Set<SplitFeature<?>> splitFeatures;
+	private final JochreSession jochreSession;
+
 	private double minWidthRatio = 1.1;
 	private double minHeightRatio = 1.0;
 
@@ -68,12 +69,11 @@ class JochreSplitEventStream implements ClassificationEventStream {
 	/**
 	 * Constructor.
 	 * 
-	 * @param features
-	 *          the ShapeFeatures to analyse when training
 	 * @param splitFeatures
 	 *          the SplitFeatures to analyse when training
 	 */
-	public JochreSplitEventStream(Set<SplitFeature<?>> splitFeatures) {
+	public JochreSplitEventStream(Set<SplitFeature<?>> splitFeatures, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.splitFeatures = splitFeatures;
 	}
 
@@ -193,18 +193,10 @@ class JochreSplitEventStream implements ClassificationEventStream {
 
 	void initialiseStream() {
 		if (shapeReader == null) {
-			shapeReader = this.graphicsService.getJochreCorpusShapeReader();
+			shapeReader = new JochreCorpusShapeReader(jochreSession);
 			shapeReader.setSelectionCriteria(criteria);
 			this.getNextShape();
 		}
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public BoundaryServiceInternal getBoundaryService() {

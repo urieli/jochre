@@ -25,9 +25,9 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.features.GraphicsFeatureService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
@@ -35,24 +35,23 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureServiceImpl.class);
-	private GraphicsService graphicsService;
 	private BoundaryFeatureService boundaryFeatureService;
 	private GraphicsFeatureService graphicsFeatureService;
 	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;
+	private final JochreSession jochreSession;
+
+	public LetterFeatureServiceImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
 	@Override
 	public LetterFeatureTester getFeatureTester() {
-		LetterFeatureTesterImpl featureTester = new LetterFeatureTesterImpl();
-		featureTester.setGraphicsService(this.getGraphicsService());
+		LetterFeatureTesterImpl featureTester = new LetterFeatureTesterImpl(jochreSession);
 		featureTester.setBoundaryService(this.getBoundaryService());
 		featureTester.setLetterGuesserService(this.getLetterGuesserService());
 
 		return featureTester;
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
 	}
 
 	@Override
@@ -79,10 +78,6 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 		parser.setShapeInSequenceFeatureParser(this.getBoundaryFeatureService().getShapeInSequenceFeatureParser());
 
 		return parser;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public BoundaryFeatureService getBoundaryFeatureService() {

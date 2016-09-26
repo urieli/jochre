@@ -21,14 +21,14 @@ package com.joliciel.jochre.boundaries;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 
 class SplitImpl implements SplitInternal {
 	private BoundaryServiceInternal boundaryServiceInternal;
-	private GraphicsService graphicsService;
 
 	private int shapeId;
 	private Shape shape;
@@ -37,6 +37,12 @@ class SplitImpl implements SplitInternal {
 	private int id;
 
 	private Map<String, FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
+
+	private final JochreSession jochreSession;
+
+	public SplitImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
 	@Override
 	public int getShapeId() {
@@ -67,7 +73,8 @@ class SplitImpl implements SplitInternal {
 	@Override
 	public Shape getShape() {
 		if (shape == null && shapeId != 0) {
-			shape = graphicsService.loadShape(shapeId);
+			GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+			shape = graphicsDao.loadShape(shapeId);
 		}
 		return shape;
 	}
@@ -109,14 +116,6 @@ class SplitImpl implements SplitInternal {
 	@Override
 	public void setDirty(boolean dirty) {
 		this.dirty = dirty;
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	@Override

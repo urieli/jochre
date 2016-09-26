@@ -27,15 +27,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
-import com.joliciel.jochre.graphics.JochreCorpusReader;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.talismane.machineLearning.ClassificationEvent;
@@ -48,13 +47,12 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
-	private GraphicsService graphicsService;
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
 	private BoundaryService boundaryService;
 
 	private BoundaryDetector boundaryDetector;
 
-	private Set<LetterFeature<?>> features = null;
+	private final Set<LetterFeature<?>> features;
 	private int shapeIndex = 0;
 
 	private ShapeInSequence shapeInSequence = null;
@@ -62,13 +60,13 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	private LetterSequence history = null;
 
 	private JochreCorpusGroupReader groupReader;
-	ShapeSequence shapeSequence = null;
-	LetterValidator letterValidator = null;
+	private ShapeSequence shapeSequence = null;
+	private final LetterValidator letterValidator;
 
 	private int invalidLetterCount = 0;
 
-	JochreCorpusReader corpusReader = null;
-	CorpusSelectionCriteria criteria = null;
+	private CorpusSelectionCriteria criteria = null;
+	private final JochreSession jochreSession;
 
 	/**
 	 * Constructor.
@@ -80,7 +78,8 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	 *          doesn't require previous analysis & database storage space. If
 	 *          false, features will be loaded from the data store.
 	 */
-	public JochreLetterEventStream(Set<LetterFeature<?>> features, LetterValidator letterValidator) {
+	public JochreLetterEventStream(Set<LetterFeature<?>> features, LetterValidator letterValidator, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.features = features;
 		this.letterValidator = letterValidator;
 	}
@@ -192,19 +191,11 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	void initialiseStream() {
 		if (groupReader == null) {
-			groupReader = this.graphicsService.getJochreCorpusGroupReader();
+			groupReader = new JochreCorpusGroupReader(jochreSession);
 			groupReader.setSelectionCriteria(criteria);
 			this.getNextGroup();
 		}
 
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	public LetterGuesserServiceInternal getLetterGuesserServiceInternal() {

@@ -18,26 +18,23 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
-import javax.sql.DataSource;
-
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 
 public class BoundaryServiceLocator {
 	BoundaryServiceImpl boundaryService = null;
 	BoundaryDao boundaryDao = null;
 	private JochreServiceLocator jochreServiceLocator;
+	private final JochreSession jochreSession;
 
-	private DataSource dataSource;
-
-	public BoundaryServiceLocator(JochreServiceLocator jochreServiceLocator, DataSource dataSource) {
+	public BoundaryServiceLocator(JochreServiceLocator jochreServiceLocator, JochreSession jochreSession) {
 		this.jochreServiceLocator = jochreServiceLocator;
-		this.dataSource = dataSource;
+		this.jochreSession = jochreSession;
 	}
 
 	public BoundaryService getBoundaryService() {
 		if (boundaryService == null) {
-			boundaryService = new BoundaryServiceImpl();
-			boundaryService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
+			boundaryService = new BoundaryServiceImpl(jochreSession);
 			boundaryService.setBoundaryDao(this.getBoundaryDao());
 			boundaryService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 		}
@@ -46,8 +43,7 @@ public class BoundaryServiceLocator {
 
 	BoundaryDao getBoundaryDao() {
 		if (this.boundaryDao == null) {
-			this.boundaryDao = new BoundaryDaoJdbc();
-			this.boundaryDao.setDataSource(dataSource);
+			this.boundaryDao = BoundaryDaoJdbc.getInstance(jochreSession);
 		}
 		return boundaryDao;
 	}

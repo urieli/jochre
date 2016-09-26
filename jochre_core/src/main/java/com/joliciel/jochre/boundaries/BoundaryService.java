@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
@@ -42,13 +43,13 @@ public interface BoundaryService {
 	 * original boundaries.
 	 * 
 	 * @param minProbabilityForDecision
-	 *            minimum probability for applying a split or merge
+	 *          minimum probability for applying a split or merge
 	 */
 	public BoundaryDetector getDeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, double minProbabilityForDecision);
 
 	/**
-	 * Returns shapes each representing a single letter (after
-	 * splitting/merging), regardless of the original boundaries.
+	 * Returns shapes each representing a single letter (after splitting/merging),
+	 * regardless of the original boundaries.
 	 */
 	public BoundaryDetector getLetterByLetterBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, int beamWidth);
 
@@ -74,7 +75,7 @@ public interface BoundaryService {
 	 */
 	public ShapeSequence getShapeSequence(ShapeSequence sequence1, ShapeSequence sequence2);
 
-	public ShapeSplitter getTrainingCorpusShapeSplitter();
+	public ShapeSplitter getTrainingCorpusShapeSplitter(JochreSession jochreSession);
 
 	public ShapeMerger getTrainingCorpusShapeMerger();
 
@@ -84,19 +85,19 @@ public interface BoundaryService {
 	 * A maxent shape splitter.
 	 * 
 	 * @param splitCandidateFinder
-	 *            find split candidates
+	 *          find split candidates
 	 * @param splitFeatures
-	 *            split features to use for split probability analysis
+	 *          split features to use for split probability analysis
 	 * @param decisionMaker
-	 *            the decision maker for the splits
+	 *          the decision maker for the splits
 	 * @param minWidthRatio
-	 *            min ratio of shape width to shape x-height to even consider a
-	 *            split
+	 *          min ratio of shape width to shape x-height to even consider a
+	 *          split
 	 * @param beamWidth
-	 *            max number of split possibilities to return
+	 *          max number of split possibilities to return
 	 * @param maxDepth
-	 *            max depth to go looking for splits - the number of possible
-	 *            splits is 2^maxDepth
+	 *          max depth to go looking for splits - the number of possible splits
+	 *          is 2^maxDepth
 	 */
 	public ShapeSplitter getShapeSplitter(SplitCandidateFinder splitCandidateFinder, Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker,
 			double minWidthRatio, int beamWidth, int maxDepth);
@@ -105,11 +106,11 @@ public interface BoundaryService {
 	 * A splitter evaluator.
 	 * 
 	 * @param tolerance
-	 *            the max distance between a split guess and a real split to
-	 *            consider we got it right.
+	 *          the max distance between a split guess and a real split to
+	 *          consider we got it right.
 	 * @param minWidthRatio
-	 *            min ratio of shape width to shape x-height to even consider a
-	 *            split
+	 *          min ratio of shape width to shape x-height to even consider a
+	 *          split
 	 */
 	public SplitEvaluator getSplitEvaluator(int tolerance, double minWidthRatio, double minHeightRatio);
 

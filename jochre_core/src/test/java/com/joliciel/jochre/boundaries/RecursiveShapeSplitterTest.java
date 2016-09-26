@@ -13,13 +13,15 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -37,8 +39,10 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final JochreImage jochreImage, @Mocked final DataSource dataSource, @Mocked final Split split, @Mocked final Shape shape1,
 			@Mocked final Shape shape2, @Mocked final Split split1, @Mocked final Split split2, @Mocked final Shape shape11, @Mocked final Shape shape12,
 			@Mocked final Shape shape21, @Mocked final Shape shape22, @Mocked final Decision yesDecision, @Mocked final Decision noDecision) {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance();
-		locator.setDataSource(dataSource);
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 
 		new NonStrictExpectations() {
 			{
@@ -224,7 +228,7 @@ public class RecursiveShapeSplitterTest {
 		};
 
 		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
-		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl();
+		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl(jochreSession);
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
@@ -246,8 +250,10 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape, @Mocked final JochreImage jochreImage, @Mocked final DataSource dataSource, @Mocked final Split split,
 			@Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Split split1, @Mocked final Split split2, @Mocked final Shape shape11,
 			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22) {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance();
-		locator.setDataSource(dataSource);
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 
 		new NonStrictExpectations() {
 			{
@@ -427,7 +433,7 @@ public class RecursiveShapeSplitterTest {
 		};
 
 		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
-		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl();
+		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl(jochreSession);
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);
@@ -483,8 +489,10 @@ public class RecursiveShapeSplitterTest {
 			@Mocked final Shape shape, @Mocked final JochreImage jochreImage, @Mocked final DataSource dataSource, @Mocked final Split split,
 			@Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Split split1, @Mocked final Split split2, @Mocked final Shape shape11,
 			@Mocked final Shape shape12, @Mocked final Shape shape21, @Mocked final Shape shape22) {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance();
-		locator.setDataSource(dataSource);
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 
 		new NonStrictExpectations() {
 			{
@@ -660,7 +668,7 @@ public class RecursiveShapeSplitterTest {
 		};
 
 		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
-		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl();
+		BoundaryServiceInternal boundaryServiceInternal = new BoundaryServiceImpl(jochreSession);
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker);
 		splitter.setBoundaryServiceInternal(boundaryServiceInternal);

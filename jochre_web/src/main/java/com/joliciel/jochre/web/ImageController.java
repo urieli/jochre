@@ -43,16 +43,18 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Tree;
 import org.zkoss.zul.Window;
 
-import com.joliciel.jochre.JochreServiceLocator;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.security.SecurityDao;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
+import com.typesafe.config.ConfigFactory;
 
 public class ImageController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;
@@ -60,8 +62,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(ImageController.class);
 
 	public static final String HEBREW_ACCENTS = "\u0591\u0592\u0593\u0594\u0595\u0596\u0597\u0598\u0599\u059A\u059B\u059C\u059D\u059E\u059F\u05A0\u05A1\u05A2\u05A3\u05A4\u05A5\u05A6\u05A7\u05A8\u05A9\u05AA\u05AB\u05AC\u05AD\u05AE\u05AF\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BA\u05BB\u05BC\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7";
-	private JochreServiceLocator locator = null;
-	private GraphicsService graphicsService;
+
+	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private JochreImage currentImage;
 	private int imageId;
 	private int docId;
@@ -96,13 +98,6 @@ public class ImageController extends GenericForwardComposer<Window> {
 		if (currentUser == null)
 			Executions.sendRedirect("login.zul");
 
-		locator = JochreServiceLocator.getInstance();
-
-		String resourcePath = "/jdbc-jochreWeb.properties";
-		LOG.debug("resource path: " + resourcePath);
-		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-		graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-
 		// comp.setVariable(comp.getId() + "Ctrl", this, true);
 
 		hebrewAccentsSpan.setContent("var hebrewAccents=\"" + HEBREW_ACCENTS + "\";");
@@ -110,7 +105,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 
 		HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 		imageId = Integer.parseInt(request.getParameter("imageId"));
-		currentImage = graphicsService.loadJochreImage(imageId);
+		GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+		currentImage = graphicsDao.loadJochreImage(imageId);
 		docId = currentImage.getPage().getDocumentId();
 
 		currentImageOwner = (currentUser.getRole().equals(UserRole.ADMIN) || currentImage.getOwner().equals(currentUser));
@@ -134,7 +130,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 		if (currentUser.getRole().equals(UserRole.ADMIN)) {
 			cmbOwner.setVisible(true);
 			lblOwner.setVisible(false);
-			List<User> users = User.findUsers();
+			SecurityDao securityDao = SecurityDao.getInstance(jochreSession);
+			List<User> users = securityDao.findUsers();
 
 			List<Comboitem> cmbOwnerItems = cmbOwner.getItems();
 			Comboitem selectedUser = null;
@@ -596,7 +593,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 				User owner = (User) cmbOwner.getSelectedItem().getValue();
 				currentImage.setOwner(owner);
 			}
-			graphicsService.saveJochreImage(currentImage);
+			GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+			graphicsDao.saveJochreImage(currentImage);
 			for (Paragraph paragraph : currentImage.getParagraphs()) {
 				LOG.trace("Paragraph " + paragraph.getIndex() + ", " + paragraph.getRows().size() + " rows");
 				for (RowOfShapes row : paragraph.getRows()) {

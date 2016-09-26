@@ -22,10 +22,12 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.Author;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.security.User;
+import com.typesafe.config.ConfigFactory;
 
 public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateDocumentController.class);
@@ -35,6 +37,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	static final String ATTR_DOC_CONTROLLER = "DocController";
 
 	private JochreServiceLocator locator = null;
+	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private DocumentService documentService;
 	private JochreDocument currentDoc;
 	private Author currentAuthor;
@@ -72,11 +75,8 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		if (user == null)
 			Executions.sendRedirect("login.zul");
 
-		locator = JochreServiceLocator.getInstance();
+		locator = JochreServiceLocator.getInstance(jochreSession);
 
-		String resourcePath = "/jdbc-jochreWeb.properties";
-		LOG.debug("resource path: " + resourcePath);
-		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
 		documentService = locator.getDocumentServiceLocator().getDocumentService();
 
 		List<Author> authors = documentService.findAuthors();
@@ -255,7 +255,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			currentDoc = (JochreDocument) event.getData();
 			LOG.debug("currentDoc: " + currentDoc);
 			if (currentDoc == null)
-				currentDoc = documentService.getEmptyJochreDocument();
+				currentDoc = documentService.getEmptyJochreDocument(jochreSession);
 			txtDocName.setValue(currentDoc.getName());
 			txtDocNameLocal.setValue(currentDoc.getNameLocal());
 			txtPublisher.setValue(currentDoc.getPublisher());

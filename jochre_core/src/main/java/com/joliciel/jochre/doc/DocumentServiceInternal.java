@@ -20,28 +20,25 @@ package com.joliciel.jochre.doc;
 
 import java.util.List;
 
-import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.jochre.doc.JochreDocumentInternal;
-import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.doc.JochrePageInternal;
+import com.joliciel.jochre.JochreSession;
 
 interface DocumentServiceInternal extends DocumentService {
-	public JochrePageInternal getEmptyJochrePageInternal();
+	public JochrePage getEmptyJochrePageInternal(JochreSession jochreSession);
 
-	public JochreDocumentInternal getEmptyJochreDocumentInternal();
+	public JochreDocument getEmptyJochreDocumentInternal(JochreSession jochreSession);
 
 	public void saveJochrePage(JochrePage page);
-
 
 	public List<JochrePage> findPages(JochreDocument document);
 
 	public void saveJochreDocument(JochreDocument jochreDocument);
 
-	public AuthorInternal getEmptyAuthorInternal();
-	
+	public Author getEmptyAuthorInternal();
+
 	public List<? extends Author> findAuthors(JochreDocument doc);
+
 	public void saveAuthor(Author author);
-	
+
 	public void replaceAuthors(JochreDocument doc);
 
 	public void deleteJochrePage(JochrePage page);

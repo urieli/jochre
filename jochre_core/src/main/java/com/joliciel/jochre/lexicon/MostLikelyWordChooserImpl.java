@@ -43,14 +43,20 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 	private double frequencyLogBase = 100.0;
 	private boolean frequencyAdjusted = false;
 
-	Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
-	LexiconServiceInternal lexiconServiceInternal = null;
-	LetterGuesserService letterGuesserService = null;
-	WordSplitter wordSplitter;
-	Lexicon lexicon;
-	Set<String> midWordPunctuation = new HashSet<String>();
-	Set<String> startWordPunctuation = new HashSet<String>();
-	Set<String> endWordPunctuation = new HashSet<String>(Arrays.asList("'"));
+	private Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
+	private LexiconServiceInternal lexiconServiceInternal = null;
+	private LetterGuesserService letterGuesserService = null;
+	private WordSplitter wordSplitter;
+	private Lexicon lexicon;
+	private Set<String> midWordPunctuation = new HashSet<String>();
+	private Set<String> startWordPunctuation = new HashSet<String>();
+	private Set<String> endWordPunctuation = new HashSet<String>(Arrays.asList("'"));
+
+	private final JochreSession jochreSession;
+
+	public MostLikelyWordChooserImpl(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
 	@Override
 	public LetterSequence chooseMostLikelyWord(List<LetterSequence> heap, List<LetterSequence> holdoverHeap, int n) {
@@ -132,8 +138,8 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 			double separateAdjustedScore = separateSequence.getScore() * freqLog;
 			separateSequence.setAdjustedScore(separateAdjustedScore);
 			if (LOG.isDebugEnabled())
-				LOG.debug("Best separate: " + separateSequence.toString() + ". Score: " + separateSequence.getScore() + ". Freq: " + minFrequency
-						+ ". Adjusted: " + freqLog + ". Adjusted score: " + separateSequence.getAdjustedScore());
+				LOG.debug("Best separate: " + separateSequence.toString() + ". Score: " + separateSequence.getScore() + ". Freq: " + minFrequency + ". Adjusted: "
+						+ freqLog + ". Adjusted score: " + separateSequence.getAdjustedScore());
 
 			if (bestCombinedSequence.getAdjustedScore() > separateAdjustedScore) {
 				if (LOG.isDebugEnabled())
@@ -383,7 +389,7 @@ class MostLikelyWordChooserImpl implements MostLikelyWordChooser {
 
 				if (frequencies.size() == 0) {
 					// check whether word is impossible
-					if (!JochreSession.getInstance().getLinguistics().isWordPossible(word)) {
+					if (!jochreSession.getLinguistics().isWordPossible(word)) {
 						frequencies.add(new CountedOutcome<String>(word, -1));
 					}
 				}

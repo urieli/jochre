@@ -20,12 +20,12 @@ package com.joliciel.jochre.doc;
 
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 
-import com.joliciel.jochre.doc.JochreDocument;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * Image manipulation service, including segmentation into rows and letters.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -33,13 +33,13 @@ public interface DocumentService {
 	/**
 	 * Create a new empty JochreDocument.
 	 */
-	public JochreDocument getEmptyJochreDocument();
-	
+	public JochreDocument getEmptyJochreDocument(JochreSession jochreSession);
+
 	/**
 	 * Load a JochreDocument from the persistent store.
 	 */
 	public JochreDocument loadJochreDocument(int documentId);
-	
+
 	/**
 	 * Load a JochreDocument by name.
 	 */
@@ -49,28 +49,24 @@ public interface DocumentService {
 	 * Find all existing documents in the database.
 	 */
 	public List<JochreDocument> findDocuments();
-	
+
 	/**
 	 * Find all existing authors in the database.
 	 */
 	public List<Author> findAuthors();
-	
+
 	public Author loadAuthor(int authorId);
 
 	public Author getEmptyAuthor();
-
-	
 
 	/**
 	 * Load a JochrePage from the persistent store.
 	 */
 	public JochrePage loadJochrePage(int pageId);
-	
-	public ImageDocumentExtractor getImageDocumentExtractor(File imageFile,
-			SourceFileProcessor documentProcessor);
 
-	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument);
-		
-	public JochreDocumentGenerator getJochreDocumentGenerator(String filename,
-			String userFriendlyName, Locale locale);
+	public ImageDocumentExtractor getImageDocumentExtractor(File imageFile, SourceFileProcessor documentProcessor);
+
+	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession);
+
+	public JochreDocumentGenerator getJochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession);
 }

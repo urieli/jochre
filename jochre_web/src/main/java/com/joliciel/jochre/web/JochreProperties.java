@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -61,12 +60,6 @@ public class JochreProperties {
 				Constructor constructor = lexiconServiceClass.getConstructor(new Class[] {});
 				lexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
 
-				if (this.properties.containsKey("locale")) {
-					String languageCode = this.getProperties().getProperty("locale");
-					Locale locale = new Locale(languageCode);
-					lexiconService.setLocale(locale);
-				}
-
 				LOG.debug("locale: " + lexiconService.getLocale());
 
 				String lexiconDirPath = this.properties.getProperty("lexiconDirPath");
@@ -95,10 +88,6 @@ public class JochreProperties {
 			LOG.error("Failure in JochreProperties$getLexiconService", e);
 			throw new RuntimeException(e);
 		}
-	}
-
-	public Locale getLocale() {
-		return this.getLexiconService().getLocale();
 	}
 
 	public File getLetterModelFile() {

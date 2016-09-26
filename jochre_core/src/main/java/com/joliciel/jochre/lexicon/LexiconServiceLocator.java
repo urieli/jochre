@@ -23,15 +23,14 @@ import com.joliciel.jochre.JochreServiceLocator;
 public class LexiconServiceLocator {
 	LexiconServiceImpl lexiconService = null;
 	private JochreServiceLocator jochreServiceLocator;
-	
+
 	public LexiconServiceLocator(JochreServiceLocator jochreServiceLocator) {
 		this.jochreServiceLocator = jochreServiceLocator;
 	}
-	
+
 	public LexiconService getLexiconService() {
-		if (lexiconService==null) {
-			lexiconService = new LexiconServiceImpl(this);
-			lexiconService.setObjectCache(this.jochreServiceLocator.getObjectCache());
+		if (lexiconService == null) {
+			lexiconService = new LexiconServiceImpl(this, jochreServiceLocator.getJochreSession());
 		}
 		return lexiconService;
 	}

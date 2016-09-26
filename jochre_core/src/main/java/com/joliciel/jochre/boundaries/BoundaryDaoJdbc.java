@@ -20,7 +20,9 @@ package com.joliciel.jochre.boundaries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -31,15 +33,37 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.utils.dao.DaoConfig;
 import com.joliciel.talismane.utils.DaoUtils;
 
 final class BoundaryDaoJdbc implements BoundaryDao {
 	private static final Logger LOG = LoggerFactory.getLogger(BoundaryDaoJdbc.class);
 	BoundaryServiceInternal boundaryServiceInternal;
-	private DataSource dataSource;
-
 	private static final String SELECT_SPLIT = "split_id, split_shape_id, split_position";
+
+	private final DataSource dataSource;
+
+	@SuppressWarnings("unused")
+	private final JochreSession jochreSession;
+
+	public static Map<String, BoundaryDaoJdbc> instances = new HashMap<>();
+
+	public static BoundaryDaoJdbc getInstance(JochreSession jochreSession) {
+		String key = DaoConfig.getKey(jochreSession.getConfig());
+		BoundaryDaoJdbc instance = instances.get(key);
+		if (instance == null) {
+			instance = new BoundaryDaoJdbc(jochreSession);
+			instances.put(key, instance);
+		}
+		return instance;
+	}
+
+	private BoundaryDaoJdbc(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
+	}
 
 	@Override
 	public BoundaryServiceInternal getBoundaryServiceInternal() {
@@ -54,11 +78,6 @@ final class BoundaryDaoJdbc implements BoundaryDao {
 	@Override
 	public DataSource getDataSource() {
 		return dataSource;
-	}
-
-	@Override
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
 	}
 
 	@Override

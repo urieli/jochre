@@ -19,20 +19,22 @@
 package com.joliciel.jochre.letterGuesser;
 
 import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 
 public class LetterGuesserServiceLocator {
 	LetterGuesserServiceImpl letterGuesserService = null;
-	private JochreServiceLocator jochreServiceLocator;
+	private final JochreServiceLocator jochreServiceLocator;
 
-	public LetterGuesserServiceLocator(JochreServiceLocator jochreServiceLocator) {
+	private final JochreSession jochreSession;
+
+	public LetterGuesserServiceLocator(JochreServiceLocator jochreServiceLocator, JochreSession jochreSession) {
 		this.jochreServiceLocator = jochreServiceLocator;
+		this.jochreSession = jochreSession;
 	}
 
 	public LetterGuesserService getLetterGuesserService() {
 		if (letterGuesserService == null) {
-			letterGuesserService = new LetterGuesserServiceImpl();
-			letterGuesserService.setObjectCache(this.jochreServiceLocator.getObjectCache());
-			letterGuesserService.setGraphicsService(this.jochreServiceLocator.getGraphicsServiceLocator().getGraphicsService());
+			letterGuesserService = new LetterGuesserServiceImpl(jochreSession);
 			letterGuesserService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 		}
 		return letterGuesserService;
