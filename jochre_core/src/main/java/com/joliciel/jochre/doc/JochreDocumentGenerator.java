@@ -38,8 +38,8 @@ import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.analyser.LetterAssigner;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
+import com.joliciel.jochre.boundaries.DeterministicBoundaryDetector;
+import com.joliciel.jochre.boundaries.OriginalBoundaryDetector;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Segmenter;
@@ -72,9 +72,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	private DocumentService documentService;
 	private LetterGuesserService letterGuesserService;
 	private AnalyserService analyserService;
-	private BoundaryService boundaryService;
 	private LetterFeatureService letterFeatureService;
-	private BoundaryFeatureService boundaryFeatureService;
 
 	private File outputDirectory = null;
 	private String filename = "";
@@ -303,28 +301,12 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		return currentMonitor;
 	}
 
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
-	}
-
 	public LetterFeatureService getLetterFeatureService() {
 		return letterFeatureService;
 	}
 
 	public void setLetterFeatureService(LetterFeatureService letterFeatureService) {
 		this.letterFeatureService = letterFeatureService;
-	}
-
-	public BoundaryFeatureService getBoundaryFeatureService() {
-		return boundaryFeatureService;
-	}
-
-	public void setBoundaryFeatureService(BoundaryFeatureService boundaryFeatureService) {
-		this.boundaryFeatureService = boundaryFeatureService;
 	}
 
 	public void addDocumentObserver(DocumentObserver observer) {
@@ -430,7 +412,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			BoundaryDetector boundaryDetector = null;
 
 			if (splitModelFile != null && mergeModelFile != null) {
-				boundaryDetector = boundaryService.getBoundaryDetector(splitModelFile, mergeModelFile);
+				boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
 				analyser.setBoundaryDetector(boundaryDetector);
 
 				OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
@@ -440,7 +422,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 				analyser.addObserver(shapeLetterAssigner);
 			} else {
-				boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+				boundaryDetector = new OriginalBoundaryDetector();
 				analyser.setBoundaryDetector(boundaryDetector);
 
 				LetterAssigner letterAssigner = new LetterAssigner();

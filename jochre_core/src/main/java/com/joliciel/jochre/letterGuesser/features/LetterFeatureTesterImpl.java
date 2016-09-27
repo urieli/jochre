@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GraphicsDao;
@@ -43,7 +42,6 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 class LetterFeatureTesterImpl implements LetterFeatureTester {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureTesterImpl.class);
-	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;
 
 	private final JochreSession jochreSession;
@@ -67,9 +65,9 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 	void testFeatures(JochreImage jochreImage, Set<LetterFeature<?>> features, Set<String> letters, int minShapeId) {
 		for (Paragraph paragraph : jochreImage.getParagraphs()) {
 			for (RowOfShapes row : paragraph.getRows()) {
-				for (GroupOfShapes group : row.getGroups()) {// simply add this group's
-																											// shapes
-					ShapeSequence shapeSequence = boundaryService.getEmptyShapeSequence();
+				for (GroupOfShapes group : row.getGroups()) {
+					// simply add this group's shapes
+					ShapeSequence shapeSequence = new ShapeSequence();
 					for (Shape shape : group.getShapes())
 						shapeSequence.addShape(shape);
 					for (ShapeInSequence shapeInSequence : shapeSequence) {
@@ -89,14 +87,6 @@ class LetterFeatureTesterImpl implements LetterFeatureTester {
 			RuntimeEnvironment env = new RuntimeEnvironment();
 			feature.check(context, env);
 		}
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public LetterGuesserService getLetterGuesserService() {

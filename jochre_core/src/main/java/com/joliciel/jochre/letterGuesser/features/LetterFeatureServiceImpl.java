@@ -26,8 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.boundaries.BoundaryService;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
+import com.joliciel.jochre.boundaries.features.ShapeInSequenceFeatureParser;
 import com.joliciel.jochre.graphics.features.GraphicsFeatureService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
@@ -35,9 +34,7 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 
 class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureServiceImpl.class);
-	private BoundaryFeatureService boundaryFeatureService;
 	private GraphicsFeatureService graphicsFeatureService;
-	private BoundaryService boundaryService;
 	private LetterGuesserService letterGuesserService;
 	private final JochreSession jochreSession;
 
@@ -48,7 +45,6 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 	@Override
 	public LetterFeatureTester getFeatureTester() {
 		LetterFeatureTesterImpl featureTester = new LetterFeatureTesterImpl(jochreSession);
-		featureTester.setBoundaryService(this.getBoundaryService());
 		featureTester.setLetterGuesserService(this.getLetterGuesserService());
 
 		return featureTester;
@@ -75,17 +71,10 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 	private LetterFeatureParser getLetterFeatureParser() {
 		LetterFeatureParser parser = new LetterFeatureParser();
 		parser.setShapeFeatureParser(this.getGraphicsFeatureService().getShapeFeatureParser());
-		parser.setShapeInSequenceFeatureParser(this.getBoundaryFeatureService().getShapeInSequenceFeatureParser());
+		ShapeInSequenceFeatureParser shapeInSequenceFeatureParser = new ShapeInSequenceFeatureParser();
+		parser.setShapeInSequenceFeatureParser(shapeInSequenceFeatureParser);
 
 		return parser;
-	}
-
-	public BoundaryFeatureService getBoundaryFeatureService() {
-		return boundaryFeatureService;
-	}
-
-	public void setBoundaryFeatureService(BoundaryFeatureService boundaryFeatureService) {
-		this.boundaryFeatureService = boundaryFeatureService;
 	}
 
 	public GraphicsFeatureService getGraphicsFeatureService() {
@@ -94,14 +83,6 @@ class LetterFeatureServiceImpl implements LetterFeatureServiceInternal {
 
 	public void setGraphicsFeatureService(GraphicsFeatureService graphicsFeatureService) {
 		this.graphicsFeatureService = graphicsFeatureService;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public LetterGuesserService getLetterGuesserService() {

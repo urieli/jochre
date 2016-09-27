@@ -20,6 +20,11 @@ package com.joliciel.jochre.boundaries.features;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.ShapePair;
 import com.joliciel.talismane.machineLearning.features.AbstractFeature;
@@ -31,16 +36,34 @@ import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
-class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
+public class MergeFeatureParser extends AbstractFeatureParser<ShapePair> {
+	private static final Logger LOG = LoggerFactory.getLogger(MergeFeatureParser.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(MergeFeatureParser.class);
 
 	public MergeFeatureParser() {
 		super();
+	}
+
+	public Set<MergeFeature<?>> getMergeFeatureSet(List<String> featureDescriptors) {
+		Set<MergeFeature<?>> features = new TreeSet<MergeFeature<?>>();
+		FunctionDescriptorParser descriptorParser = new FunctionDescriptorParser();
+
+		for (String featureDescriptor : featureDescriptors) {
+			LOG.trace(featureDescriptor);
+			if (featureDescriptor.length() > 0 && !featureDescriptor.startsWith("#")) {
+				FunctionDescriptor functionDescriptor = descriptorParser.parseDescriptor(featureDescriptor);
+				List<MergeFeature<?>> myFeatures = this.parseDescriptor(functionDescriptor);
+				features.addAll(myFeatures);
+
+			}
+		}
+		return features;
 	}
 
 	@Override

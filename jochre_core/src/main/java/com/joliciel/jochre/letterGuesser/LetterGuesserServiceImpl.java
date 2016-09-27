@@ -23,7 +23,6 @@ import java.util.Set;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
@@ -32,8 +31,6 @@ import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 
 class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
-	private BoundaryService boundaryService;
-
 	private final JochreSession jochreSession;
 
 	public LetterGuesserServiceImpl(JochreSession jochreSession) {
@@ -50,7 +47,6 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	@Override
 	public LetterSequence getEmptyLetterSequence(ShapeSequence shapeSequence) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, jochreSession);
-		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
@@ -58,14 +54,13 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	@Override
 	public LetterSequence getLetterSequencePlusOne(LetterSequence history) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(history);
-		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
 
 	@Override
 	public LetterSequence getLetterSequence(LetterSequence sequence1, LetterSequence sequence2) {
-		LetterSequenceImpl letterSequence = new LetterSequenceImpl(sequence1, sequence2, this.getBoundaryService());
+		LetterSequenceImpl letterSequence = new LetterSequenceImpl(sequence1, sequence2);
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
@@ -73,7 +68,6 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 	@Override
 	public LetterSequence getLetterSequence(ShapeSequence shapeSequence, List<String> letters) {
 		LetterSequenceImpl letterSequence = new LetterSequenceImpl(shapeSequence, letters, jochreSession);
-		letterSequence.setBoundaryService(this.getBoundaryService());
 		letterSequence.setLetterGuesserService(this);
 		return letterSequence;
 	}
@@ -84,24 +78,15 @@ class LetterGuesserServiceImpl implements LetterGuesserServiceInternal {
 		return context;
 	}
 
-	private BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
 	@Override
 	public ClassificationEventStream getJochreLetterEventStream(CorpusSelectionCriteria criteria, Set<LetterFeature<?>> features,
 			BoundaryDetector boundaryDetector, LetterValidator letterValidator) {
 		JochreLetterEventStream eventStream = new JochreLetterEventStream(features, letterValidator, jochreSession);
 		eventStream.setCriteria(criteria);
 		eventStream.setLetterGuesserServiceInternal(this);
-		eventStream.setBoundaryService(this.getBoundaryService());
 
 		eventStream.setBoundaryDetector(boundaryDetector);
 		return eventStream;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 }

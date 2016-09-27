@@ -8,20 +8,20 @@ import com.joliciel.jochre.graphics.Shape;
 
 /**
  * Returns the original group's shapes exactly as is.
+ * 
  * @author Assaf Urieli
  *
  */
-class OriginalBoundaryDetector implements BoundaryDetector {	
+public class OriginalBoundaryDetector implements BoundaryDetector {
 	private double minWidthRatioForSplit = 1.1;
 	private double minHeightRatioForSplit = 1.0;
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
-	private BoundaryService boundaryService;
-	
+
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
 		List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
-		ShapeSequence emptySequence = boundaryService.getEmptyShapeSequence();
+		ShapeSequence emptySequence = new ShapeSequence();
 		for (Shape shape : group.getShapes()) {
 			emptySequence.addShape(shape);
 		}
@@ -29,10 +29,12 @@ class OriginalBoundaryDetector implements BoundaryDetector {
 		return shapeSequences;
 	}
 
+	@Override
 	public double getMinWidthRatioForSplit() {
 		return minWidthRatioForSplit;
 	}
 
+	@Override
 	public void setMinWidthRatioForSplit(double minWidthRatioForSplit) {
 		this.minWidthRatioForSplit = minWidthRatioForSplit;
 	}
@@ -45,28 +47,24 @@ class OriginalBoundaryDetector implements BoundaryDetector {
 		this.minHeightRatioForSplit = minHeightRatioForSplit;
 	}
 
+	@Override
 	public double getMaxWidthRatioForMerge() {
 		return maxWidthRatioForMerge;
 	}
 
+	@Override
 	public void setMaxWidthRatioForMerge(double maxWidthRatioForMerge) {
 		this.maxWidthRatioForMerge = maxWidthRatioForMerge;
 	}
 
+	@Override
 	public double getMaxDistanceRatioForMerge() {
 		return maxDistanceRatioForMerge;
 	}
 
+	@Override
 	public void setMaxDistanceRatioForMerge(double maxDistanceRatioForMerge) {
 		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 }

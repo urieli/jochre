@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
@@ -51,10 +50,6 @@ public class SplitCandidateFinderImplTest {
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
 		JochreSession jochreSession = new JochreSession(config);
-
-		JochreServiceLocator locator = JochreServiceLocator.getInstance(jochreSession);
-
-		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();
 		InputStream imageFileStream = getClass().getResourceAsStream("shape_370454.png");
 		assertNotNull(imageFileStream);
 		BufferedImage image = ImageIO.read(imageFileStream);
@@ -62,8 +57,7 @@ public class SplitCandidateFinderImplTest {
 		JochreImage jochreImage = new SourceImage(page, "name", image, jochreSession);
 		Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth() - 1, jochreImage.getHeight() - 1);
 
-		SplitCandidateFinderImpl splitCandidateFinder = new SplitCandidateFinderImpl();
-		splitCandidateFinder.setBoundaryServiceInternal(boundaryService);
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		List<Split> splits = splitCandidateFinder.findSplitCandidates(shape);
 
 		int[] trueSplitPositions = new int[] { 38, 59, 82 };

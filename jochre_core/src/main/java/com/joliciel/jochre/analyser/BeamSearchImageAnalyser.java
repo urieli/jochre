@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.doc.JochreDocument;
@@ -63,7 +62,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	private AnalyserServiceInternal analyserServiceInternal;
 	private LetterGuesserService letterGuesserService;
-	private BoundaryService boundaryService;
 
 	private MostLikelyWordChooser mostLikelyWordChooser;
 	private BoundaryDetector boundaryDetector;
@@ -134,7 +132,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					} else {
 						// simply add this groups shape's
 						shapeSequences = new ArrayList<ShapeSequence>();
-						ShapeSequence shapeSequence = boundaryService.getEmptyShapeSequence();
+						ShapeSequence shapeSequence = new ShapeSequence();
 						for (Shape shape : group.getShapes())
 							shapeSequence.addShape(shape);
 						shapeSequences.add(shapeSequence);
@@ -346,14 +344,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	@Override

@@ -38,11 +38,11 @@ import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.typesafe.config.Config;
 
-class JochreMergeEventStream implements ClassificationEventStream {
+public class JochreMergeEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
-	private BoundaryServiceInternal boundaryService;
 
 	private SplitCandidateFinder splitCandidateFinder;
 
@@ -62,9 +62,9 @@ class JochreMergeEventStream implements ClassificationEventStream {
 	private ShapePair mergeCandidate;
 
 	private JochreCorpusGroupReader groupReader;
-	GroupOfShapes group = null;
+	private GroupOfShapes group = null;
 
-	CorpusSelectionCriteria criteria;
+	private final CorpusSelectionCriteria criteria;
 
 	/**
 	 * Constructor.
@@ -72,9 +72,14 @@ class JochreMergeEventStream implements ClassificationEventStream {
 	 * @param mergeFeatures
 	 *          the features to analyse when training
 	 */
-	public JochreMergeEventStream(Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
+	public JochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
+		this.criteria = criteria;
 		this.mergeFeatures = mergeFeatures;
+
+		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+		maxWidthRatio = mergerConfig.getDouble("max-width-ratio");
+		maxDistanceRatio = mergerConfig.getDouble("max-distance-ratio");
 	}
 
 	@Override
@@ -148,7 +153,7 @@ class JochreMergeEventStream implements ClassificationEventStream {
 					Shape shape1 = group.getShapes().get(shapeIndex);
 					Shape shape2 = group.getShapes().get(shapeIndex + 1);
 
-					ShapePair shapePair = this.boundaryService.getShapePair(shape1, shape2);
+					ShapePair shapePair = new ShapePair(shape1, shape2);
 					double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
 					double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
 					if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
@@ -188,14 +193,6 @@ class JochreMergeEventStream implements ClassificationEventStream {
 			if (groupReader.hasNext())
 				group = groupReader.next();
 		}
-	}
-
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public SplitCandidateFinder getSplitCandidateFinder() {
@@ -243,10 +240,6 @@ class JochreMergeEventStream implements ClassificationEventStream {
 
 	public CorpusSelectionCriteria getCriteria() {
 		return criteria;
-	}
-
-	public void setCriteria(CorpusSelectionCriteria criteria) {
-		this.criteria = criteria;
 	}
 
 }

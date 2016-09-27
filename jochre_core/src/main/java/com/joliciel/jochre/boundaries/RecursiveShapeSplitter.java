@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
@@ -34,6 +35,7 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.talismane.utils.WeightedOutcome;
+import com.typesafe.config.Config;
 
 /**
  * Splits a shape using a DecisionMaker. Makes it possible to split a shape
@@ -63,25 +65,32 @@ import com.joliciel.talismane.utils.WeightedOutcome;
  * @author Assaf Urieli
  *
  */
-class RecursiveShapeSplitter implements ShapeSplitter {
+public class RecursiveShapeSplitter implements ShapeSplitter {
 	private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitter.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
-	private SplitCandidateFinder splitCandidateFinder;
-	private BoundaryServiceInternal boundaryServiceInternal;
+	private final SplitCandidateFinder splitCandidateFinder;
 
-	private Set<SplitFeature<?>> splitFeatures = null;
-	private DecisionMaker decisionMaker;
+	private final Set<SplitFeature<?>> splitFeatures;
+	private final DecisionMaker decisionMaker;
 
-	double minWidthRatio = 1.1;
-	int beamWidth = 5;
-	int maxDepth = 3;
+	double minWidthRatio;
+	int beamWidth;
+	int maxDepth;
 
-	public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder, Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker) {
-		super();
+	private final JochreSession jochreSession;
+
+	public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder, Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker,
+			JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.splitCandidateFinder = splitCandidateFinder;
 		this.splitFeatures = splitFeatures;
 		this.decisionMaker = decisionMaker;
+
+		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+		minWidthRatio = splitterConfig.getDouble("min-width-ratio");
+		beamWidth = splitterConfig.getInt("beam-width");
+		maxDepth = splitterConfig.getInt("max-depth");
 	}
 
 	@Override
@@ -119,7 +128,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 		if (widthRatio < minWidthRatio || depth >= maxDepth) {
 			if (LOG.isTraceEnabled())
 				LOG.trace(padding + "too narrow or too deep");
-			ShapeSequence shapeSequence = this.boundaryServiceInternal.getEmptyShapeSequence();
+			ShapeSequence shapeSequence = new ShapeSequence();
 			shapeSequence.addShape(shape, originalShape);
 			shapeSequences.add(shapeSequence);
 		} else {
@@ -141,7 +150,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 			if (noSplitProb > maxSplitProb)
 				maxSplitProb = noSplitProb;
 
-			Split noSplit = boundaryServiceInternal.getEmptySplit(shape);
+			Split noSplit = new Split(shape, jochreSession);
 			noSplit.setPosition(-1);
 			WeightedOutcome<Split> weightedNoSplit = new WeightedOutcome<Split>(noSplit, noSplitProb);
 			weightedSplits.add(weightedNoSplit);
@@ -166,7 +175,7 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 					if (topCandidate)
 						topCandidateWeight = 1.0;
 
-					ShapeSequence shapeSequence = boundaryServiceInternal.getEmptyShapeSequence();
+					ShapeSequence shapeSequence = new ShapeSequence();
 					shapeSequence.addShape(shape, originalShape);
 					double prob = (splitProb / maxSplitProb) * topCandidateWeight;
 					if (LOG.isTraceEnabled())
@@ -216,9 +225,9 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 						for (ShapeSequence rightShapeSequence : rightShapeSequences) {
 							ShapeSequence newSequence = null;
 							if (leftToRight)
-								newSequence = boundaryServiceInternal.getShapeSequence(leftShapeSequence, rightShapeSequence);
+								newSequence = new ShapeSequence(leftShapeSequence, rightShapeSequence);
 							else
-								newSequence = boundaryServiceInternal.getShapeSequence(rightShapeSequence, leftShapeSequence);
+								newSequence = new ShapeSequence(rightShapeSequence, leftShapeSequence);
 							if (LOG.isTraceEnabled()) {
 								StringBuilder sb = new StringBuilder();
 								for (ShapeInSequence splitShape : newSequence) {
@@ -322,18 +331,6 @@ class RecursiveShapeSplitter implements ShapeSplitter {
 
 	public SplitCandidateFinder getSplitCandidateFinder() {
 		return splitCandidateFinder;
-	}
-
-	public void setSplitCandidateFinder(SplitCandidateFinder splitCandidateFinder) {
-		this.splitCandidateFinder = splitCandidateFinder;
-	}
-
-	public BoundaryServiceInternal getBoundaryServiceInternal() {
-		return boundaryServiceInternal;
-	}
-
-	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
-		this.boundaryServiceInternal = boundaryServiceInternal;
 	}
 
 	/**

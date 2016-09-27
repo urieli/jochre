@@ -22,9 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.Decision;
+import com.typesafe.config.Config;
 
 /**
  * Returns shapes each representing a single letter (after splitting/merging),
@@ -33,20 +35,33 @@ import com.joliciel.talismane.machineLearning.Decision;
  * @author Assaf Urieli
  *
  */
-class LetterByLetterBoundaryDetector implements BoundaryDetector {
-	private BoundaryServiceInternal boundaryService;
-	private ShapeSplitter shapeSplitter;
-	private ShapeMerger shapeMerger;
+public class LetterByLetterBoundaryDetector implements BoundaryDetector {
+	private final ShapeSplitter shapeSplitter;
+	private final ShapeMerger shapeMerger;
 	private int beamWidth = 10;
 	private double minWidthRatioForSplit = 1.1;
 	private double minHeightRatioForSplit = 1.0;
 	private double maxWidthRatioForMerge = 1.2;
 	private double maxDistanceRatioForMerge = 0.15;
 
+	public LetterByLetterBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
+		this.shapeSplitter = shapeSplitter;
+		this.shapeMerger = shapeMerger;
+
+		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+		minWidthRatioForSplit = splitterConfig.getDouble("min-width-ratio");
+		minHeightRatioForSplit = splitterConfig.getDouble("min-height-ratio");
+		beamWidth = splitterConfig.getInt("beam-width");
+
+		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+		maxWidthRatioForMerge = mergerConfig.getDouble("max-width-ratio");
+		maxDistanceRatioForMerge = mergerConfig.getDouble("max-distance-ratio");
+	}
+
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
 		// find the possible shape sequences that make up this group
-		ShapeSequence emptySequence = boundaryService.getEmptyShapeSequence();
+		ShapeSequence emptySequence = new ShapeSequence();
 		PriorityQueue<ShapeSequence> heap = new PriorityQueue<ShapeSequence>();
 		heap.add(emptySequence);
 		for (Shape shape : group.getShapes()) {
@@ -64,7 +79,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 				splitSequences = shapeSplitter.split(shape);
 			} else {
 				// create a sequence containing only this shape
-				ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
+				ShapeSequence singleShapeSequence = new ShapeSequence();
 				singleShapeSequence.addShape(shape);
 
 				splitSequences = new ArrayList<ShapeSequence>();
@@ -89,7 +104,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 
 					double mergeProb = 0;
 					if (this.shapeMerger != null && previousShape != null) {
-						ShapePair mergeCandidate = boundaryService.getShapePair(previousShape, shape);
+						ShapePair mergeCandidate = new ShapePair(previousShape, shape);
 						double mergeCandidateWidthRatio = 0;
 						double mergeCandidateDistanceRatio = 0;
 
@@ -102,7 +117,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 					}
 					if (mergeProb > 0) {
 						Shape mergedShape = shapeMerger.merge(previousShape, firstShape);
-						ShapeSequence mergedSequence = boundaryService.getShapeSequencePlusOne(history);
+						ShapeSequence mergedSequence = new ShapeSequence(history);
 						mergedSequence.remove(mergedSequence.size() - 1);
 
 						List<Shape> originalShapesForMerge = new ArrayList<Shape>();
@@ -124,7 +139,7 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 					}
 
 					if (mergeProb < 1) {
-						ShapeSequence totalSequence = boundaryService.getShapeSequencePlusOne(history);
+						ShapeSequence totalSequence = new ShapeSequence(history);
 						if (mergeProb > 0) {
 							Decision mergeDecision = new Decision(MergeOutcome.DO_NOT_MERGE.name(), 1 - mergeProb);
 							totalSequence.addDecision(mergeDecision);
@@ -152,28 +167,12 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 		return result;
 	}
 
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
-	}
-
 	public ShapeSplitter getShapeSplitter() {
 		return shapeSplitter;
 	}
 
-	public void setShapeSplitter(ShapeSplitter shapeSplitter) {
-		this.shapeSplitter = shapeSplitter;
-	}
-
 	public ShapeMerger getShapeMerger() {
 		return shapeMerger;
-	}
-
-	public void setShapeMerger(ShapeMerger shapeMerger) {
-		this.shapeMerger = shapeMerger;
 	}
 
 	public int getBeamWidth() {
@@ -212,16 +211,6 @@ class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	@Override
 	public void setMaxDistanceRatioForMerge(double maxDistanceRatioForMerge) {
 		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
-	}
-
-	@Override
-	public double getMinHeightRatioForSplit() {
-		return minHeightRatioForSplit;
-	}
-
-	@Override
-	public void setMinHeightRatioForSplit(double minHeightRatioForSplit) {
-		this.minHeightRatioForSplit = minHeightRatioForSplit;
 	}
 
 }

@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
@@ -62,14 +61,10 @@ public class TrainingCorpusShapeSplitterTest {
 		Config config = ConfigFactory.load();
 		final JochreSession jochreSession = new JochreSession(config);
 
-		JochreServiceLocator locator = JochreServiceLocator.getInstance(jochreSession);
-
 		DefaultLinguistics linguistics = (DefaultLinguistics) DefaultLinguistics.getInstance(jochreSession.getLocale());
 		Set<String> dualCharacterLetters = new HashSet<>(Arrays.asList(new String[] { "אָ", "בּ" }));
 		linguistics.setDualCharacterLetters(dualCharacterLetters);
 		jochreSession.setLinguistics(linguistics);
-
-		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();
 
 		new NonStrictExpectations() {
 			{
@@ -134,7 +129,6 @@ public class TrainingCorpusShapeSplitterTest {
 		LOG.debug(shape.getLetter());
 		LOG.debug("Split into: ");
 		TrainingCorpusShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
-		splitter.setBoundaryServiceInternal(boundaryService);
 		List<ShapeSequence> result = splitter.split(shape);
 		ShapeSequence shapeSequence = result.get(0);
 		assertEquals(4, shapeSequence.size());

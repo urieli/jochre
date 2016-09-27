@@ -34,11 +34,9 @@ public class DocumentServiceLocator {
 	public DocumentService getDocumentService() {
 		if (documentService == null) {
 			documentService = new DocumentServiceImpl(jochreSession);
-			documentService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 			documentService.setLetterFeatureService(this.jochreServiceLocator.getLetterFeatureServiceLocator().getLetterFeatureService());
 			documentService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
 			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
-			documentService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 		}
 		return documentService;
 	}

@@ -138,9 +138,9 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	}
 
 	/**
-	 * A black brightness threshold, used for analysing the contents of a shape as
-	 * black-or-white bits in order to recognise the letter. Anything &lt;= the
-	 * black threshold should be considered black when analysing a letter.
+	 * A black brightness threshold, used for analysing the contents of a shape
+	 * as black-or-white bits in order to recognise the letter. Anything &lt;=
+	 * the black threshold should be considered black when analysing a letter.
 	 */
 	public int getBlackThreshold() {
 		return blackThreshold;
@@ -317,8 +317,8 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 
 	/**
 	 * Fill factor for gaps that were mistakenly left empty when converting a
-	 * grayscale image to black and white. Defaults to 0, but should be set higher
-	 * if many white gaps appear in image.
+	 * grayscale image to black and white. Defaults to 0, but should be set
+	 * higher if many white gaps appear in image.
 	 */
 	public int getWhiteGapFillFactor() {
 		return whiteGapFillFactor;
@@ -481,7 +481,9 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	 * (ignoring top-to-bottom for now!)
 	 */
 	public boolean isLeftToRight() {
-		return this.getPage().getDocument().isLeftToRight();
+		if (this.getPage() != null && this.getPage().getDocument() != null)
+			return this.getPage().getDocument().isLeftToRight();
+		return jochreSession.getLinguistics().isLeftToRight();
 	}
 
 	@Override

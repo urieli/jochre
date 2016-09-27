@@ -19,8 +19,6 @@
 package com.joliciel.jochre;
 
 import com.joliciel.jochre.analyser.AnalyserServiceLocator;
-import com.joliciel.jochre.boundaries.BoundaryServiceLocator;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureServiceLocator;
 import com.joliciel.jochre.doc.DocumentServiceLocator;
 import com.joliciel.jochre.graphics.features.GraphicsFeatureServiceLocator;
 import com.joliciel.jochre.letterGuesser.LetterGuesserServiceLocator;
@@ -42,11 +40,9 @@ public class JochreServiceLocator {
 	private DocumentServiceLocator documentServiceLocator;
 	private LetterGuesserServiceLocator letterGuesserServiceLocator;
 	private AnalyserServiceLocator analyserServiceLocator;
-	private BoundaryServiceLocator boundaryServiceLocator;
 	private LexiconServiceLocator lexiconServiceLocator;
 	private OutputServiceLocator textServiceLocator;
 	private PdfServiceLocator pdfServiceLocator;
-	private BoundaryFeatureServiceLocator boundaryFeatureServiceLocator;
 	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
 	private LetterFeatureServiceLocator letterFeatureServiceLocator;
 
@@ -88,13 +84,6 @@ public class JochreServiceLocator {
 		return analyserServiceLocator;
 	}
 
-	public BoundaryServiceLocator getBoundaryServiceLocator() {
-		if (boundaryServiceLocator == null) {
-			boundaryServiceLocator = new BoundaryServiceLocator(this, jochreSession);
-		}
-		return boundaryServiceLocator;
-	}
-
 	public LexiconServiceLocator getLexiconServiceLocator() {
 		if (this.lexiconServiceLocator == null) {
 			this.lexiconServiceLocator = new LexiconServiceLocator(this);
@@ -114,13 +103,6 @@ public class JochreServiceLocator {
 			this.pdfServiceLocator = new PdfServiceLocator(this);
 		}
 		return pdfServiceLocator;
-	}
-
-	public BoundaryFeatureServiceLocator getBoundaryFeatureServiceLocator() {
-		if (this.boundaryFeatureServiceLocator == null) {
-			this.boundaryFeatureServiceLocator = new BoundaryFeatureServiceLocator(this);
-		}
-		return boundaryFeatureServiceLocator;
 	}
 
 	public GraphicsFeatureServiceLocator getGraphicsFeatureServiceLocator() {

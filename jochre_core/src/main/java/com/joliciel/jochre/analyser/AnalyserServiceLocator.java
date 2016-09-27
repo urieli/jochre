@@ -33,7 +33,6 @@ public class AnalyserServiceLocator {
 			analyserService = new AnalyserServiceImpl();
 			analyserService.setObjectCache(this.jochreServiceLocator.getObjectCache());
 			analyserService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
-			analyserService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 		}
 		return analyserService;
 	}

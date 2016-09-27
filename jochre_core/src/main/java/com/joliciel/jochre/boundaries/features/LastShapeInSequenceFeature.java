@@ -18,20 +18,22 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
+import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**
  * Is this shape the last one in the sequence?
+ * 
  * @author Assaf Urieli
  *
  */
-public final class LastShapeInSequenceFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequence> {
+public final class LastShapeInSequenceFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequenceWrapper> {
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
-		boolean result = (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex()+1));
+	public FeatureResult<Boolean> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
+		boolean result = (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex() + 1));
 		FeatureResult<Boolean> outcome = this.generateResult(result);
 
 		return outcome;

@@ -23,8 +23,6 @@ import java.util.List;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.analyser.AnalyserService;
-import com.joliciel.jochre.boundaries.BoundaryService;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 
@@ -33,8 +31,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	private AnalyserService analyserService;
 	private LetterGuesserService letterGuesserService;
 	private LetterFeatureService letterFeatureService;
-	private BoundaryFeatureService boundaryFeatureService;
-	private BoundaryService boundaryService;
 
 	@SuppressWarnings("unused")
 	private final JochreSession jochreSession;
@@ -163,20 +159,10 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		this.letterFeatureService = letterFeatureService;
 	}
 
-	public BoundaryFeatureService getBoundaryFeatureService() {
-		return boundaryFeatureService;
-	}
-
-	public void setBoundaryFeatureService(BoundaryFeatureService boundaryFeatureService) {
-		this.boundaryFeatureService = boundaryFeatureService;
-	}
-
 	@Override
 	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(jochreDocument, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
-		generator.setBoundaryFeatureService(this.getBoundaryFeatureService());
-		generator.setBoundaryService(this.getBoundaryService());
 		generator.setDocumentService(this);
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
@@ -187,8 +173,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	public JochreDocumentGenerator getJochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(filename, userFriendlyName, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
-		generator.setBoundaryFeatureService(this.getBoundaryFeatureService());
-		generator.setBoundaryService(this.getBoundaryService());
 		generator.setDocumentService(this);
 		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
@@ -201,14 +185,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	public void setAnalyserService(AnalyserService analyserService) {
 		this.analyserService = analyserService;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 }

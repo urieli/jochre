@@ -18,16 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
-import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.Feature;
 
 /**
- * A feature defining a shape within a ShapeSequence.
- * Typically only required if the shape's position in the sequence or the other shapes in the
- * sequence are concerned by the feature.
+ * A feature defining a shape within a ShapeSequence. Typically only required if
+ * the shape's position in the sequence or the other shapes in the sequence are
+ * concerned by the feature.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface ShapeInSequenceFeature<Y> extends Feature<ShapeInSequence,Y> {
+public interface ShapeInSequenceFeature<Y> extends Feature<ShapeInSequenceWrapper, Y> {
 
 }

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.GroupOfShapes;
@@ -78,7 +77,6 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	private boolean softHyphen = false;
 	private String hyphenatedString = null;
 
-	private BoundaryService boundaryService;
 	private LetterGuesserServiceInternal letterGuesserService;
 
 	private final JochreSession jochreSession;
@@ -102,7 +100,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 	/**
 	 * Combine two sequences into one.
 	 */
-	public LetterSequenceImpl(LetterSequence sequence1, LetterSequence sequence2, BoundaryService boundaryService) {
+	public LetterSequenceImpl(LetterSequence sequence1, LetterSequence sequence2) {
 		jochreSession = sequence1 != null ? sequence1.getJochreSession() : sequence2.getJochreSession();
 		if (sequence1 != null) {
 			this.letters.addAll(sequence1.getLetters());
@@ -132,9 +130,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 			}
 		}
 
-		this.boundaryService = boundaryService;
-
-		ShapeSequence shapeSequence = this.boundaryService.getShapeSequence(sequence1 == null ? null : sequence1.getUnderlyingShapeSequence(),
+		ShapeSequence shapeSequence = new ShapeSequence(sequence1 == null ? null : sequence1.getUnderlyingShapeSequence(),
 				sequence2 == null ? null : sequence2.getUnderlyingShapeSequence());
 		this.setUnderlyingShapeSequence(shapeSequence);
 	}
@@ -312,14 +308,6 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 			return this.underlyingShapeSequence.get(this.letters.size());
 	}
 
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
-	}
-
 	@Override
 	public int getFrequency() {
 		return frequency;
@@ -395,7 +383,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 		if (subsequences == null) {
 			subsequences = new ArrayList<LetterSequence>();
 			List<String> currentLetters = new ArrayList<String>();
-			ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
+			ShapeSequence currentShapes = new ShapeSequence();
 			boolean inPunctuation = false;
 			boolean expectEndOfLineHyphen = false;
 
@@ -411,7 +399,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 						LetterSequence subsequence = this.getSubsequence(currentShapes, currentLetters);
 						subsequences.add(subsequence);
 						currentLetters = new ArrayList<String>();
-						currentShapes = this.boundaryService.getEmptyShapeSequence();
+						currentShapes = new ShapeSequence();
 					}
 					inPunctuation = true;
 				} else {
@@ -424,7 +412,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 
 						subsequences.add(subsequence);
 						currentLetters = new ArrayList<String>();
-						currentShapes = this.boundaryService.getEmptyShapeSequence();
+						currentShapes = new ShapeSequence();
 					}
 					inPunctuation = false;
 				}
@@ -494,7 +482,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 				}
 			} else {
 				List<String> currentLetters = new ArrayList<String>();
-				ShapeSequence currentShapes = this.boundaryService.getEmptyShapeSequence();
+				ShapeSequence currentShapes = new ShapeSequence();
 				GroupOfShapes currentGroup = this.getGroups().get(0);
 
 				for (int i = 0; i < this.letters.size(); i++) {
@@ -507,7 +495,7 @@ final class LetterSequenceImpl implements Comparable<LetterSequenceImpl>, Letter
 						groupToLetterSequenceMap.put(currentGroup, letterSequence);
 						letterSequences.add(letterSequence);
 						currentLetters = new ArrayList<String>();
-						currentShapes = this.boundaryService.getEmptyShapeSequence();
+						currentShapes = new ShapeSequence();
 						currentGroup = shape.getGroup();
 					}
 					currentShapes.addShape(shape);

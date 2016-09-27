@@ -60,15 +60,23 @@ import com.joliciel.jochre.analyser.LetterAssigner;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.analyser.SimpleLetterFScoreObserver;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
+import com.joliciel.jochre.boundaries.DeterministicBoundaryDetector;
+import com.joliciel.jochre.boundaries.JochreMergeEventStream;
+import com.joliciel.jochre.boundaries.JochreSplitEventStream;
+import com.joliciel.jochre.boundaries.LetterByLetterBoundaryDetector;
 import com.joliciel.jochre.boundaries.MergeEvaluator;
+import com.joliciel.jochre.boundaries.OriginalBoundaryDetector;
+import com.joliciel.jochre.boundaries.RecursiveShapeSplitter;
 import com.joliciel.jochre.boundaries.ShapeMerger;
 import com.joliciel.jochre.boundaries.ShapeSplitter;
 import com.joliciel.jochre.boundaries.SplitCandidateFinder;
 import com.joliciel.jochre.boundaries.SplitEvaluator;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
+import com.joliciel.jochre.boundaries.TrainingCorpusShapeMerger;
+import com.joliciel.jochre.boundaries.TrainingCorpusShapeSplitter;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
+import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
@@ -166,10 +174,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 	AnalyserService analyserService;
 	LexiconService lexiconService;
 	LetterGuesserService letterGuesserService;
-	BoundaryService boundaryService;
 	PdfService pdfService;
 	LetterFeatureService letterFeatureService;
-	BoundaryFeatureService boundaryFeatureService;
 
 	int userId = -1;
 	String dataSourcePropertiesPath;
@@ -180,8 +186,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	Lexicon lexicon = null;
 	Map<String, Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
 	String csvEncoding = null;
-
-	private int beamWidth = 5;
 
 	private final JochreSession jochreSession;
 
@@ -201,10 +205,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
 		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
-		boundaryService = locator.getBoundaryServiceLocator().getBoundaryService();
 		pdfService = locator.getPdfServiceLocator().getPdfService();
 		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
-		boundaryFeatureService = locator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -326,8 +328,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				userId = Integer.parseInt(argValue);
 			else if (argName.equals("imageCount"))
 				imageCount = Integer.parseInt(argValue);
-			else if (argName.equals("beamWidth"))
-				beamWidth = Integer.parseInt(argValue);
 			else if (argName.equals("multiplier"))
 				multiplier = Integer.parseInt(argValue);
 			else if (argName.equals("letterModel"))
@@ -780,10 +780,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 		File mergeModelFile = new File(mergeModelPath);
 		mergeModelFile.getParentFile().mkdirs();
 
-		Set<MergeFeature<?>> mergeFeatures = this.boundaryFeatureService.getMergeFeatureSet(featureDescriptors);
-		double maxWidthRatio = 1.2;
-		double maxDistanceRatio = 0.15;
-		ClassificationEventStream corpusEventStream = boundaryService.getJochreMergeEventStream(criteria, mergeFeatures, maxWidthRatio, maxDistanceRatio);
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(featureDescriptors);
+		ClassificationEventStream corpusEventStream = new JochreMergeEventStream(criteria, mergeFeatures, jochreSession);
 		if (multiplier > 0) {
 			corpusEventStream = new OutcomeEqualiserEventStream(corpusEventStream, multiplier);
 		}
@@ -820,16 +819,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
 
 		JochreCorpusGroupReader groupReader = new JochreCorpusGroupReader(jochreSession);
 		groupReader.setSelectionCriteria(criteria);
 
-		double maxWidthRatio = 1.2;
-		double maxDistanceRatio = 0.15;
-
-		ShapeMerger merger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
-		MergeEvaluator evaluator = boundaryService.getMergeEvaluator(maxWidthRatio, maxDistanceRatio);
+		ShapeMerger merger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+		MergeEvaluator evaluator = new MergeEvaluator(jochreSession);
 		if (minProbForDecision >= 0)
 			evaluator.setMinProbabilityForDecision(minProbForDecision);
 		FScoreCalculator<String> fScoreCalculator = evaluator.evaluate(groupReader, merger);
@@ -857,11 +855,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 		File splitModelFile = new File(splitModelPath);
 		splitModelFile.getParentFile().mkdirs();
 
-		Set<SplitFeature<?>> splitFeatures = this.boundaryFeatureService.getSplitFeatureSet(featureDescriptors);
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(featureDescriptors);
 
-		double minWidthRatio = 1.1;
-		double minHeightRatio = 1.0;
-		ClassificationEventStream corpusEventStream = boundaryService.getJochreSplitEventStream(criteria, splitFeatures, minWidthRatio, minHeightRatio);
+		ClassificationEventStream corpusEventStream = new JochreSplitEventStream(criteria, splitFeatures, jochreSession);
 
 		Config config = ConfigFactory.load();
 		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
@@ -895,22 +892,18 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
 
-		double minWidthRatio = 1.1;
-		double minHeightRatio = 1.0;
-		int maxDepth = 2;
-
-		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatio, beamWidth,
-				maxDepth);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
 		JochreCorpusShapeReader shapeReader = new JochreCorpusShapeReader(jochreSession);
 		shapeReader.setSelectionCriteria(criteria);
 
-		SplitEvaluator splitEvaluator = boundaryService.getSplitEvaluator(5, minWidthRatio, minHeightRatio);
+		SplitEvaluator splitEvaluator = new SplitEvaluator(jochreSession);
 		if (minProbForDecision >= 0)
 			splitEvaluator.setMinProbabilityForDecision(minProbForDecision);
 
@@ -943,11 +936,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
-			ShapeSplitter splitter = boundaryService.getTrainingCorpusShapeSplitter(jochreSession);
-			ShapeMerger merger = boundaryService.getTrainingCorpusShapeMerger();
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(splitter, merger, 1);
+			ShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
+			ShapeMerger merger = new TrainingCorpusShapeMerger();
+			boundaryDetector = new LetterByLetterBoundaryDetector(splitter, merger, jochreSession);
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			boundaryDetector = new OriginalBoundaryDetector();
 		}
 
 		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
@@ -1004,15 +997,14 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
-			ShapeSplitter splitter = boundaryService.getTrainingCorpusShapeSplitter(jochreSession);
-			ShapeMerger merger = boundaryService.getTrainingCorpusShapeMerger();
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(splitter, merger, 1);
+			ShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
+			ShapeMerger merger = new TrainingCorpusShapeMerger();
+			boundaryDetector = new LetterByLetterBoundaryDetector(splitter, merger, jochreSession);
 			boundaryDetector.setMinWidthRatioForSplit(0.0);
-			boundaryDetector.setMinHeightRatioForSplit(0.0);
 			boundaryDetector.setMaxWidthRatioForMerge(100.0);
 			boundaryDetector.setMaxDistanceRatioForMerge(100.0);
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			boundaryDetector = new OriginalBoundaryDetector();
 		}
 
 		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(jochreSession);
@@ -1168,7 +1160,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		BoundaryDetector boundaryDetector = null;
 
 		if (splitModelFile != null && mergeModelFile != null) {
-			boundaryDetector = boundaryService.getBoundaryDetector(splitModelFile, mergeModelFile);
+			boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
 			analyser.setBoundaryDetector(boundaryDetector);
 
 			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
@@ -1177,7 +1169,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 			analyser.addObserver(shapeLetterAssigner);
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			boundaryDetector = new OriginalBoundaryDetector();
 			analyser.setBoundaryDetector(boundaryDetector);
 
 			LetterAssigner letterAssigner = new LetterAssigner();
@@ -1261,17 +1253,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
 
-		double minWidthRatioForSplit = 1.1;
-		double minHeightRatioForSplit = 1.0;
-		int maxSplitDepth = 2;
-
-		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatioForSplit,
-				beamWidth, maxSplitDepth);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
 		if (mergeModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: mergeModel");
@@ -1284,25 +1272,20 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
-		double maxWidthRatioForMerge = 1.2;
-		double maxDistanceRatioForMerge = 0.15;
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
 
-		ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
 		BoundaryDetector boundaryDetector = null;
 		switch (boundaryDetectorType) {
 		case LetterByLetter:
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, 5);
+			boundaryDetector = new LetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, jochreSession);
 			break;
 		case Deterministic:
-			boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
+			boundaryDetector = new DeterministicBoundaryDetector(shapeSplitter, shapeMerger, jochreSession);
 			break;
 		}
-		boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
-		boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
-		boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
-		boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
 
 		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(jochreSession);
 		evaluator.setLetterGuesser(letterGuesser);

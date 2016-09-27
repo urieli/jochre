@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.boundaries.BoundaryService;
+import com.joliciel.jochre.boundaries.BoundaryDao;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
@@ -113,7 +113,6 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	private String originalGuess = "";
 
 	private LetterGuesserService letterGuesserService;
-	private BoundaryService boundaryService;
 
 	private Map<String, Map<SectionBrightnessMeasurementMethod, double[][]>> brightnessBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod, double[][]>>();
 	private Map<String, Map<SectionBrightnessMeasurementMethod, Double>> brightnessMeanBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod, Double>>();
@@ -145,7 +144,6 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	PersistentList<Split> splits = null;
 	Double confidence = null;
 
-	@SuppressWarnings("unused")
 	private final JochreSession jochreSession;
 	private final GraphicsDao graphicsDao;
 
@@ -154,7 +152,7 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 		this.graphicsDao = GraphicsDao.getInstance(jochreSession);
 	}
 
-	public Shape(JochreImage container, JochreSession jochreSession) {
+	Shape(JochreImage container, JochreSession jochreSession) {
 		this(jochreSession);
 		this.jochreImage = container;
 	}
@@ -170,6 +168,19 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 		this.setBottom(y);
 
 		this.setStartingPoint(new int[] { x, y });
+	}
+
+	/**
+	 * Get a shape which is a rectangle inside a given SourceImage.
+	 */
+	public Shape(JochreImage sourceImage, int left, int top, int right, int bottom, JochreSession jochreSession) {
+		this(sourceImage, jochreSession);
+		this.setLeft(left);
+		this.setRight(right);
+		this.setTop(top);
+		this.setBottom(bottom);
+
+		this.setStartingPoint(new int[] { left, top });
 	}
 
 	@Override
@@ -1888,7 +1899,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	public List<Split> getSplits() {
 		if (splits == null) {
 			splits = new PersistentListImpl<Split>();
-			splits.addAll(this.boundaryService.findSplits(this));
+			BoundaryDao boundaryDao = BoundaryDao.getInstance(jochreSession);
+			splits.addAll(boundaryDao.findSplits(this));
 		}
 		return splits;
 	}
@@ -1898,7 +1910,7 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 */
 	public Split addSplit(int position) {
 		List<Split> splits = this.getSplits();
-		Split split = this.boundaryService.getEmptySplit(this);
+		Split split = new Split(this, jochreSession);
 		split.setPosition(position);
 		splits.add(split);
 		return split;
@@ -1945,14 +1957,6 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			}
 		}
 		return verticalContour;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	@Override

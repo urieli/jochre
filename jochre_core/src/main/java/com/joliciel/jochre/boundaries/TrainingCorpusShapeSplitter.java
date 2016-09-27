@@ -36,9 +36,7 @@ import com.joliciel.jochre.utils.JochreException;
  * @author Assaf Urieli
  *
  */
-class TrainingCorpusShapeSplitter implements ShapeSplitter {
-	private BoundaryServiceInternal boundaryServiceInternal;
-
+public class TrainingCorpusShapeSplitter implements ShapeSplitter {
 	private final JochreSession jochreSession;
 
 	public TrainingCorpusShapeSplitter(JochreSession jochreSession) {
@@ -48,7 +46,7 @@ class TrainingCorpusShapeSplitter implements ShapeSplitter {
 	@Override
 	public List<ShapeSequence> split(Shape shape) {
 		List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
-		ShapeSequence shapeSequence = boundaryServiceInternal.getEmptyShapeSequence();
+		ShapeSequence shapeSequence = new ShapeSequence();
 		shapeSequences.add(shapeSequence);
 
 		Set<String> nonSplittableLetters = jochreSession.getLinguistics().getDualCharacterLetters();
@@ -172,13 +170,5 @@ class TrainingCorpusShapeSplitter implements ShapeSplitter {
 			}
 		}
 		return shapeSequences;
-	}
-
-	public BoundaryServiceInternal getBoundaryServiceInternal() {
-		return boundaryServiceInternal;
-	}
-
-	public void setBoundaryServiceInternal(BoundaryServiceInternal boundaryServiceInternal) {
-		this.boundaryServiceInternal = boundaryServiceInternal;
 	}
 }

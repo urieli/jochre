@@ -18,22 +18,19 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
-import com.joliciel.jochre.boundaries.ShapeInSequence;
+import com.joliciel.jochre.boundaries.features.ShapeInSequenceWrapper;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 
 /**
- * The current context 
+ * The current context
+ * 
  * @author Assaf Urieli
  *
  */
-public interface LetterGuesserContext extends ShapeWrapper, ShapeInSequence {
+public interface LetterGuesserContext extends ShapeWrapper, ShapeInSequenceWrapper {
 	/**
-	 * The shape to be checked
-	 */
-	public ShapeInSequence getShapeInSequence();
-	
-	/**
-	 * The letter sequence assigned during the current analysis to shapes preceding the current shape within the same word.
+	 * The letter sequence assigned during the current analysis to shapes
+	 * preceding the current shape within the same word.
 	 */
 	public LetterSequence getHistory();
 }

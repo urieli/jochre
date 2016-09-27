@@ -31,9 +31,7 @@ public class LetterFeatureServiceLocator {
 	public LetterFeatureService getLetterFeatureService() {
 		if (letterFeatureService == null) {
 			letterFeatureService = new LetterFeatureServiceImpl(jochreServiceLocator.getJochreSession());
-			letterFeatureService.setBoundaryFeatureService(this.jochreServiceLocator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService());
 			letterFeatureService.setGraphicsFeatureService(this.jochreServiceLocator.getGraphicsFeatureServiceLocator().getGraphicsFeatureService());
-			letterFeatureService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 			letterFeatureService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
 		}
 		return letterFeatureService;

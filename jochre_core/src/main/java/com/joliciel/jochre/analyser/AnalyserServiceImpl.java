@@ -19,14 +19,12 @@
 package com.joliciel.jochre.analyser;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class AnalyserServiceImpl implements AnalyserServiceInternal {
 	private ObjectCache objectCache;
 	private LetterGuesserService letterGuesserService;
-	private BoundaryService boundaryService;
 
 	public AnalyserServiceImpl() {
 	}
@@ -44,7 +42,6 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 		BeamSearchImageAnalyser evaluator = new BeamSearchImageAnalyser(jochreSession);
 		evaluator.setAnalyserServiceInternal(this);
 		evaluator.setLetterGuesserService(this.getLetterGuesserService());
-		evaluator.setBoundaryService(this.getBoundaryService());
 
 		return evaluator;
 	}
@@ -55,14 +52,6 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 
 	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
 		this.letterGuesserService = letterGuesserService;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 }

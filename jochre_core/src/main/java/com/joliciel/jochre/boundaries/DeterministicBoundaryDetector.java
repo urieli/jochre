@@ -18,12 +18,25 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.zip.ZipInputStream;
 
+import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.boundaries.features.MergeFeature;
+import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
+import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.Decision;
+import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
+import com.typesafe.config.Config;
 
 /**
  * Returns a single "most likely" shape boundary guess, regardless of the
@@ -32,21 +45,69 @@ import com.joliciel.talismane.machineLearning.Decision;
  * @author Assaf Urieli
  *
  */
-class DeterministicBoundaryDetector implements BoundaryDetector {
-	private BoundaryServiceInternal boundaryService;
+public class DeterministicBoundaryDetector implements BoundaryDetector {
+	private final ShapeSplitter shapeSplitter;
+	private final ShapeMerger shapeMerger;
+	private double minWidthRatioForSplit;
+	private double minHeightRatioForSplit;
+	private double maxWidthRatioForMerge;
+	private double maxDistanceRatioForMerge;
+	private double minProbabilityForDecision;
 
-	private ShapeSplitter shapeSplitter;
-	private ShapeMerger shapeMerger;
-	private double minWidthRatioForSplit = 1.1;
-	private double minHeightRatioForSplit = 1.0;
-	private double maxWidthRatioForMerge = 1.2;
-	private double maxDistanceRatioForMerge = 0.15;
-	private double minProbabilityForDecision = 0.5;
+	private void configure(JochreSession jochreSession) {
+		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+		minWidthRatioForSplit = splitterConfig.getDouble("min-width-ratio");
+		minHeightRatioForSplit = splitterConfig.getDouble("min-height-ratio");
+
+		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+		maxWidthRatioForMerge = mergerConfig.getDouble("max-width-ratio");
+		maxDistanceRatioForMerge = mergerConfig.getDouble("max-distance-ratio");
+
+		Config boundaryConfig = jochreSession.getConfig().getConfig("jochre.boundaries");
+		minProbabilityForDecision = boundaryConfig.getDouble("min-prob-for-decision");
+	}
+
+	public DeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
+		this.shapeSplitter = shapeSplitter;
+		this.shapeMerger = shapeMerger;
+		this.configure(jochreSession);
+	}
+
+	public DeterministicBoundaryDetector(File splitModelFile, File mergeModelFile, JochreSession jochreSession) throws IOException {
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
+
+		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
+
+		ClassificationModel splitModel = null;
+		try (ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile))) {
+			splitModel = modelFactory.getClassificationModel(splitZis);
+		}
+		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
+
+		ClassificationModel mergeModel = null;
+		try (ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelFile))) {
+			mergeModel = modelFactory.getClassificationModel(mergeZis);
+		}
+
+		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
+
+		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+
+		this.shapeSplitter = shapeSplitter;
+		this.shapeMerger = shapeMerger;
+
+		this.configure(jochreSession);
+	}
 
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
 		// find the possible shape sequences that make up this group
-		ShapeSequence bestSequence = boundaryService.getEmptyShapeSequence();
+		ShapeSequence bestSequence = new ShapeSequence();
 		for (Shape shape : group.getShapes()) {
 			// check if shape is wide enough to bother with
 			double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
@@ -65,13 +126,13 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 				}
 				if (bestProb < minProbabilityForDecision) {
 					// create a sequence containing only this shape
-					ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
+					ShapeSequence singleShapeSequence = new ShapeSequence();
 					singleShapeSequence.addShape(shape);
 					bestSplitSequence = singleShapeSequence;
 				}
 			} else {
 				// create a sequence containing only this shape
-				ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
+				ShapeSequence singleShapeSequence = new ShapeSequence();
 				singleShapeSequence.addShape(shape);
 				bestSplitSequence = singleShapeSequence;
 			}
@@ -88,7 +149,7 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 
 			double mergeProb = 0;
 			if (this.shapeMerger != null && previousShape != null) {
-				ShapePair mergeCandidate = boundaryService.getShapePair(previousShape, shape);
+				ShapePair mergeCandidate = new ShapePair(previousShape, shape);
 				double mergeCandidateWidthRatio = 0;
 				double mergeCandidateDistanceRatio = 0;
 
@@ -138,28 +199,12 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 		return result;
 	}
 
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
-	}
-
 	public ShapeSplitter getShapeSplitter() {
 		return shapeSplitter;
 	}
 
-	public void setShapeSplitter(ShapeSplitter shapeSplitter) {
-		this.shapeSplitter = shapeSplitter;
-	}
-
 	public ShapeMerger getShapeMerger() {
 		return shapeMerger;
-	}
-
-	public void setShapeMerger(ShapeMerger shapeMerger) {
-		this.shapeMerger = shapeMerger;
 	}
 
 	@Override
@@ -192,22 +237,8 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
 	}
 
-	@Override
-	public double getMinHeightRatioForSplit() {
-		return minHeightRatioForSplit;
-	}
-
-	@Override
-	public void setMinHeightRatioForSplit(double minHeightRatioForSplit) {
-		this.minHeightRatioForSplit = minHeightRatioForSplit;
-	}
-
 	public double getMinProbabilityForDecision() {
 		return minProbabilityForDecision;
-	}
-
-	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
-		this.minProbabilityForDecision = minProbabilityForDecision;
 	}
 
 }

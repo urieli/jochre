@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
@@ -48,7 +47,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
 	private LetterGuesserServiceInternal letterGuesserServiceInternal;
-	private BoundaryService boundaryService;
 
 	private BoundaryDetector boundaryDetector;
 
@@ -179,7 +177,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 				shapeSequence = boundaryDetector.findBoundaries(group).get(0);
 			} else {
 				// simply add this group's shapes
-				shapeSequence = boundaryService.getEmptyShapeSequence();
+				shapeSequence = new ShapeSequence();
 				for (Shape shape : group.getShapes())
 					shapeSequence.addShape(shape);
 			}
@@ -204,14 +202,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	public void setLetterGuesserServiceInternal(LetterGuesserServiceInternal letterGuesserServiceInternal) {
 		this.letterGuesserServiceInternal = letterGuesserServiceInternal;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public BoundaryDetector getBoundaryDetector() {

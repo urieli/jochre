@@ -18,19 +18,21 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
+import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**
  * Returns shape index starting at the start of the group containing it.
+ * 
  * @author Assaf Urieli
  *
  */
-public final class ShapeIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequence> {
+public final class ShapeIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequenceWrapper> {
 	@Override
-	public FeatureResult<Integer> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
+	public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
 		FeatureResult<Integer> outcome = this.generateResult(shapeInSequence.getIndex());
 		return outcome;
 	}

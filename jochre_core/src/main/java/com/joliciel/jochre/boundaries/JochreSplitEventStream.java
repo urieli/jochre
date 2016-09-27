@@ -37,19 +37,18 @@ import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.typesafe.config.Config;
 
-class JochreSplitEventStream implements ClassificationEventStream {
+public class JochreSplitEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreSplitEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
-
-	private BoundaryServiceInternal boundaryService;
 	private SplitCandidateFinder splitCandidateFinder;
 
 	private final Set<SplitFeature<?>> splitFeatures;
 	private final JochreSession jochreSession;
 
-	private double minWidthRatio = 1.1;
-	private double minHeightRatio = 1.0;
+	private double minWidthRatio;
+	private double minHeightRatio;
 
 	private int splitCandidateIndex = 0;
 
@@ -64,7 +63,7 @@ class JochreSplitEventStream implements ClassificationEventStream {
 	private JochreCorpusShapeReader shapeReader;
 	private Shape shape;
 
-	private CorpusSelectionCriteria criteria;
+	private final CorpusSelectionCriteria criteria;
 
 	/**
 	 * Constructor.
@@ -72,9 +71,14 @@ class JochreSplitEventStream implements ClassificationEventStream {
 	 * @param splitFeatures
 	 *          the SplitFeatures to analyse when training
 	 */
-	public JochreSplitEventStream(Set<SplitFeature<?>> splitFeatures, JochreSession jochreSession) {
+	public JochreSplitEventStream(CorpusSelectionCriteria criteria, Set<SplitFeature<?>> splitFeatures, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
+		this.criteria = criteria;
 		this.splitFeatures = splitFeatures;
+
+		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+		minWidthRatio = splitterConfig.getDouble("min-width-ratio");
+		minHeightRatio = splitterConfig.getDouble("min-height-ratio");
 	}
 
 	@Override
@@ -199,14 +203,6 @@ class JochreSplitEventStream implements ClassificationEventStream {
 		}
 	}
 
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
-	}
-
 	public SplitCandidateFinder getSplitCandidateFinder() {
 		return splitCandidateFinder;
 	}
@@ -248,10 +244,6 @@ class JochreSplitEventStream implements ClassificationEventStream {
 
 	public CorpusSelectionCriteria getCriteria() {
 		return criteria;
-	}
-
-	public void setCriteria(CorpusSelectionCriteria criteria) {
-		this.criteria = criteria;
 	}
 
 }

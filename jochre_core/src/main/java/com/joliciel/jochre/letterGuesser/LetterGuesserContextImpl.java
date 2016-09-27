@@ -27,16 +27,18 @@ import com.joliciel.jochre.graphics.Shape;
 class LetterGuesserContextImpl implements LetterGuesserContext {
 	private ShapeInSequence shapeInSequence;
 	private LetterSequence history;
+
 	public LetterGuesserContextImpl(ShapeInSequence shapeInSequence, LetterSequence history) {
-		super();
 		this.shapeInSequence = shapeInSequence;
 		this.history = history;
 	}
 
+	@Override
 	public ShapeInSequence getShapeInSequence() {
 		return shapeInSequence;
 	}
 
+	@Override
 	public LetterSequence getHistory() {
 		return history;
 	}
@@ -46,25 +48,16 @@ class LetterGuesserContextImpl implements LetterGuesserContext {
 		return this.shapeInSequence.getShape();
 	}
 
-	@Override
 	public int getIndex() {
 		return this.shapeInSequence.getIndex();
 	}
 
-	@Override
-	public void setIndex(int index) {
-		this.shapeInSequence.setIndex(index);
-	}
-
-	@Override
 	public ShapeSequence getShapeSequence() {
 		return this.shapeInSequence.getShapeSequence();
 	}
 
-	@Override
 	public List<Shape> getOriginalShapes() {
 		return this.shapeInSequence.getOriginalShapes();
 	}
-	
 
 }

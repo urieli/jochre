@@ -2,7 +2,10 @@ package com.joliciel.jochre.boundaries;
 
 import com.joliciel.jochre.graphics.Shape;
 
-class TrainingCorpusShapeMerger implements ShapeMerger {
+public class TrainingCorpusShapeMerger extends ShapeMerger {
+	public TrainingCorpusShapeMerger() {
+		super(null, null);
+	}
 
 	@Override
 	public double checkMerge(Shape shape1, Shape shape2) {

@@ -16,17 +16,17 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.boundaries;
+package com.joliciel.jochre.boundaries.features;
 
-import com.joliciel.jochre.EntityInternal;
-import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.boundaries.ShapeInSequence;
 
-interface SplitInternal extends EntityInternal, Split {
-	public abstract void setShape(Shape shape);
-	public abstract void setShapeId(int shapeId);
-
-	public abstract void setDirty(boolean dirty);
-
-	public abstract boolean isDirty();
-
+/**
+ * A simple wrapper for a shapeInSequence, useful to allow multiple shape
+ * contexts to act all as a ShapeInSequenceWrapper for Shape features.
+ * 
+ * @author Assaf Urieli
+ *
+ */
+public interface ShapeInSequenceWrapper {
+	public ShapeInSequence getShapeInSequence();
 }

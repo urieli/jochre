@@ -35,7 +35,6 @@ public class LetterGuesserServiceLocator {
 	public LetterGuesserService getLetterGuesserService() {
 		if (letterGuesserService == null) {
 			letterGuesserService = new LetterGuesserServiceImpl(jochreSession);
-			letterGuesserService.setBoundaryService(this.jochreServiceLocator.getBoundaryServiceLocator().getBoundaryService());
 		}
 		return letterGuesserService;
 	}

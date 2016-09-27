@@ -18,36 +18,70 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.joliciel.jochre.boundaries.features.ShapeInSequenceWrapper;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 
 /**
- * Represents a Shape forming part of a ShapeSequence.
- * Allows us to include the same Shape in multiple Sequences, which is useful to avoid having to
- * recalculate various shape parameters several times.
- * Also allows us to gather information about the shape's position in the sequence and the other shapes
+ * Represents a Shape forming part of a ShapeSequence. Allows us to include the
+ * same Shape in multiple Sequences, which is useful to avoid having to
+ * recalculate various shape parameters several times. Also allows us to gather
+ * information about the shape's position in the sequence and the other shapes
  * in the sequence.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface ShapeInSequence extends ShapeWrapper {	
+public class ShapeInSequence implements ShapeWrapper, ShapeInSequenceWrapper {
+	private final Shape shape;
+	private int index;
+	private final ShapeSequence shapeSequence;
+	private final List<Shape> originalShapes = new ArrayList<Shape>();
+
+	public ShapeInSequence(Shape shape, ShapeSequence shapeSequence, int index) {
+		super();
+		this.shape = shape;
+		this.index = index;
+		this.shapeSequence = shapeSequence;
+	}
+
+	@Override
+	public Shape getShape() {
+		return shape;
+	}
+
 	/**
 	 * The index within this sequence.
 	 */
-	public int getIndex();
-	public void setIndex(int index);
-	
+	public int getIndex() {
+		return index;
+	}
+
+	void setIndex(int index) {
+		this.index = index;
+	}
+
 	/**
 	 * The sequence containing this shape.
 	 */
-	public ShapeSequence getShapeSequence();
-	
+	public ShapeSequence getShapeSequence() {
+		return shapeSequence;
+	}
+
 	/**
 	 * Get the shape or shapes from which this shape was formed by splitting,
 	 * merging, or simply placing it in the sequence.
 	 */
-	public List<Shape> getOriginalShapes();
-	
+	public List<Shape> getOriginalShapes() {
+		return originalShapes;
+	}
+
+	@Override
+	public ShapeInSequence getShapeInSequence() {
+		return this;
+	}
+
 }
