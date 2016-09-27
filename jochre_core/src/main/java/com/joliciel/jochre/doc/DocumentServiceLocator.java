@@ -34,7 +34,6 @@ public class DocumentServiceLocator {
 	public DocumentService getDocumentService() {
 		if (documentService == null) {
 			documentService = new DocumentServiceImpl(jochreSession);
-			documentService.setLetterFeatureService(this.jochreServiceLocator.getLetterFeatureServiceLocator().getLetterFeatureService());
 			documentService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
 			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
 		}

@@ -20,9 +20,7 @@ package com.joliciel.jochre;
 
 import com.joliciel.jochre.analyser.AnalyserServiceLocator;
 import com.joliciel.jochre.doc.DocumentServiceLocator;
-import com.joliciel.jochre.graphics.features.GraphicsFeatureServiceLocator;
 import com.joliciel.jochre.letterGuesser.LetterGuesserServiceLocator;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureServiceLocator;
 import com.joliciel.jochre.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.output.OutputServiceLocator;
 import com.joliciel.talismane.utils.ObjectCache;
@@ -41,8 +39,6 @@ public class JochreServiceLocator {
 	private AnalyserServiceLocator analyserServiceLocator;
 	private LexiconServiceLocator lexiconServiceLocator;
 	private OutputServiceLocator textServiceLocator;
-	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
-	private LetterFeatureServiceLocator letterFeatureServiceLocator;
 
 	private String dataSourcePropertiesFile;
 	private ObjectCache objectCache;
@@ -94,20 +90,6 @@ public class JochreServiceLocator {
 			this.textServiceLocator = new OutputServiceLocator(this, jochreSession);
 		}
 		return textServiceLocator;
-	}
-
-	public GraphicsFeatureServiceLocator getGraphicsFeatureServiceLocator() {
-		if (this.graphicsFeatureServiceLocator == null) {
-			this.graphicsFeatureServiceLocator = new GraphicsFeatureServiceLocator(this);
-		}
-		return graphicsFeatureServiceLocator;
-	}
-
-	public LetterFeatureServiceLocator getLetterFeatureServiceLocator() {
-		if (this.letterFeatureServiceLocator == null) {
-			this.letterFeatureServiceLocator = new LetterFeatureServiceLocator(this);
-		}
-		return letterFeatureServiceLocator;
 	}
 
 	public ObjectCache getObjectCache() {

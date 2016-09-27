@@ -20,6 +20,11 @@ package com.joliciel.jochre.letterGuesser.features;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.boundaries.features.ShapeInSequenceFeatureParser;
 import com.joliciel.jochre.graphics.features.ShapeFeatureParser;
@@ -33,19 +38,39 @@ import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.FeatureWrapper;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
+import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
-class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
+public class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
+	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureParser.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterFeatureParser.class);
 
-	private ShapeFeatureParser shapeFeatureParser;
-	private ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
+	private final ShapeFeatureParser shapeFeatureParser;
+	private final ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
 
 	public LetterFeatureParser() {
 		super();
+		this.shapeFeatureParser = new ShapeFeatureParser();
+		this.shapeInSequenceFeatureParser = new ShapeInSequenceFeatureParser();
+	}
+
+	public Set<LetterFeature<?>> getLetterFeatureSet(List<String> featureDescriptors) {
+		Set<LetterFeature<?>> features = new TreeSet<LetterFeature<?>>();
+		FunctionDescriptorParser descriptorParser = new FunctionDescriptorParser();
+
+		for (String featureDescriptor : featureDescriptors) {
+			LOG.trace(featureDescriptor);
+			if (featureDescriptor.length() > 0 && !featureDescriptor.startsWith("#")) {
+				FunctionDescriptor functionDescriptor = descriptorParser.parseDescriptor(featureDescriptor);
+				List<LetterFeature<?>> myFeatures = this.parseDescriptor(functionDescriptor);
+				features.addAll(myFeatures);
+
+			}
+		}
+		return features;
 	}
 
 	@Override
@@ -91,22 +116,6 @@ class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 		if (modifiedDescriptors == null || modifiedDescriptors.size() == 0)
 			modifiedDescriptors = this.shapeInSequenceFeatureParser.getModifiedDescriptors(functionDescriptor);
 		return modifiedDescriptors;
-	}
-
-	public ShapeFeatureParser getShapeFeatureParser() {
-		return shapeFeatureParser;
-	}
-
-	public void setShapeFeatureParser(ShapeFeatureParser shapeFeatureParser) {
-		this.shapeFeatureParser = shapeFeatureParser;
-	}
-
-	public ShapeInSequenceFeatureParser getShapeInSequenceFeatureParser() {
-		return shapeInSequenceFeatureParser;
-	}
-
-	public void setShapeInSequenceFeatureParser(ShapeInSequenceFeatureParser shapeInSequenceFeatureParser) {
-		this.shapeInSequenceFeatureParser = shapeInSequenceFeatureParser;
 	}
 
 	private static class LetterFeatureWrapper<T> extends AbstractFeature<LetterGuesserContext, T>

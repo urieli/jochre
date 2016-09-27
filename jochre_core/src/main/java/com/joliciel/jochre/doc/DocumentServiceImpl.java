@@ -24,13 +24,11 @@ import java.util.List;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.analyser.AnalyserService;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	private AnalyserService analyserService;
 	private LetterGuesserService letterGuesserService;
-	private LetterFeatureService letterFeatureService;
 
 	@SuppressWarnings("unused")
 	private final JochreSession jochreSession;
@@ -151,20 +149,11 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		this.letterGuesserService = letterGuesserService;
 	}
 
-	public LetterFeatureService getLetterFeatureService() {
-		return letterFeatureService;
-	}
-
-	public void setLetterFeatureService(LetterFeatureService letterFeatureService) {
-		this.letterFeatureService = letterFeatureService;
-	}
-
 	@Override
 	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(jochreDocument, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
-		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
 		return generator;
 	}
@@ -174,7 +163,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(filename, userFriendlyName, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
-		generator.setLetterFeatureService(this.getLetterFeatureService());
 		generator.setLetterGuesserService(this.getLetterGuesserService());
 		return generator;
 	}

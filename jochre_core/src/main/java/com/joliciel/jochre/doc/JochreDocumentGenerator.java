@@ -47,7 +47,7 @@ import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
+import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.utils.JochreException;
@@ -72,7 +72,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	private DocumentService documentService;
 	private LetterGuesserService letterGuesserService;
 	private AnalyserService analyserService;
-	private LetterFeatureService letterFeatureService;
 
 	private File outputDirectory = null;
 	private String filename = "";
@@ -97,7 +96,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	 * Constructor for existing documents.
 	 * 
 	 * @param jochreDocument
-	 *          existing document to which we want to add stuff
+	 *            existing document to which we want to add stuff
 	 */
 	public JochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
@@ -108,11 +107,11 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	 * Constructor
 	 * 
 	 * @param filename
-	 *          name of the document (required if saving)
+	 *            name of the document (required if saving)
 	 * @param userFriendlyName
-	 *          user-friendly name for the document (required if saving)
+	 *            user-friendly name for the document (required if saving)
 	 * @param locale
-	 *          document's locale
+	 *            document's locale
 	 */
 	public JochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
@@ -301,14 +300,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		return currentMonitor;
 	}
 
-	public LetterFeatureService getLetterFeatureService() {
-		return letterFeatureService;
-	}
-
-	public void setLetterFeatureService(LetterFeatureService letterFeatureService) {
-		this.letterFeatureService = letterFeatureService;
-	}
-
 	public void addDocumentObserver(DocumentObserver observer) {
 		this.documentObservers.add(observer);
 	}
@@ -403,7 +394,8 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			}
 
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-			Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+			LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+			Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 			LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 			ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
 			analyser.setLetterGuesser(letterGuesser);

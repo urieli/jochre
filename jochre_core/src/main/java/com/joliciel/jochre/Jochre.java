@@ -100,7 +100,7 @@ import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
+import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureTester;
 import com.joliciel.jochre.lexicon.CorpusLexiconBuilder;
 import com.joliciel.jochre.lexicon.DefaultLexiconWrapper;
@@ -173,7 +173,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	AnalyserService analyserService;
 	LexiconService lexiconService;
 	LetterGuesserService letterGuesserService;
-	LetterFeatureService letterFeatureService;
 
 	int userId = -1;
 	String dataSourcePropertiesPath;
@@ -203,7 +202,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
 		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
-		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -929,7 +927,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(featureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> features = letterFeatureParser.getLetterFeatureSet(featureDescriptors);
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
@@ -983,7 +982,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
@@ -1118,7 +1118,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
@@ -1149,7 +1150,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
 		analyser.setLetterGuesser(letterGuesser);
@@ -1235,7 +1237,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
 		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
@@ -1331,9 +1334,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Apply a set of features to a given image or a given shape.
 	 */
 	public void doCommandApplyFeatures(int imageId, int shapeId, List<String> featureDescriptors) {
-		LetterFeatureTester featureTester = letterFeatureService.getFeatureTester();
+		LetterFeatureTester featureTester = new LetterFeatureTester(jochreSession);
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(featureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> features = letterFeatureParser.getLetterFeatureSet(featureDescriptors);
 		Set<String> letters = new HashSet<String>();
 
 		featureTester.applyFeatures(features, letters, imageId, shapeId);
