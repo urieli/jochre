@@ -25,7 +25,6 @@ import com.joliciel.jochre.letterGuesser.LetterGuesserServiceLocator;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureServiceLocator;
 import com.joliciel.jochre.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.output.OutputServiceLocator;
-import com.joliciel.jochre.pdf.PdfServiceLocator;
 import com.joliciel.talismane.utils.ObjectCache;
 import com.joliciel.talismane.utils.SimpleObjectCache;
 
@@ -42,7 +41,6 @@ public class JochreServiceLocator {
 	private AnalyserServiceLocator analyserServiceLocator;
 	private LexiconServiceLocator lexiconServiceLocator;
 	private OutputServiceLocator textServiceLocator;
-	private PdfServiceLocator pdfServiceLocator;
 	private GraphicsFeatureServiceLocator graphicsFeatureServiceLocator;
 	private LetterFeatureServiceLocator letterFeatureServiceLocator;
 
@@ -96,13 +94,6 @@ public class JochreServiceLocator {
 			this.textServiceLocator = new OutputServiceLocator(this, jochreSession);
 		}
 		return textServiceLocator;
-	}
-
-	public PdfServiceLocator getPdfServiceLocator() {
-		if (this.pdfServiceLocator == null) {
-			this.pdfServiceLocator = new PdfServiceLocator(this);
-		}
-		return pdfServiceLocator;
 	}
 
 	public GraphicsFeatureServiceLocator getGraphicsFeatureServiceLocator() {

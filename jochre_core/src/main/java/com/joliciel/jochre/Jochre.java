@@ -122,7 +122,6 @@ import com.joliciel.jochre.output.OutputService.ExportFormat;
 import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageSaver;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
-import com.joliciel.jochre.pdf.PdfService;
 import com.joliciel.jochre.security.SecurityDao;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
@@ -174,7 +173,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	AnalyserService analyserService;
 	LexiconService lexiconService;
 	LetterGuesserService letterGuesserService;
-	PdfService pdfService;
 	LetterFeatureService letterFeatureService;
 
 	int userId = -1;
@@ -205,7 +203,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
 		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
-		pdfService = locator.getPdfServiceLocator().getPdfService();
 		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
 	}
 
@@ -760,13 +757,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train the letter merging model.
 	 * 
 	 * @param mergeModelPath
-	 *          the path where the model should be saved
+	 *            the path where the model should be saved
 	 * @param featureDescriptors
-	 *          feature descriptors for training
+	 *            feature descriptors for training
 	 * @param multiplier
-	 *          if &gt; 0, will be used to equalize the outcomes
+	 *            if &gt; 0, will be used to equalize the outcomes
 	 * @param criteria
-	 *          the criteria used to select the training corpus
+	 *            the criteria used to select the training corpus
 	 */
 	public void doCommandTrainMerge(String mergeModelPath, List<String> featureDescriptors, int multiplier, CorpusSelectionCriteria criteria) {
 		if (mergeModelPath.length() == 0)
@@ -799,12 +796,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate the letter merging model on its own.
 	 * 
 	 * @param mergeModelPath
-	 *          the path of the model to be evaluated.
+	 *            the path of the model to be evaluated.
 	 * @param criteria
-	 *          for selecting the portion of the corpus to evaluate
+	 *            for selecting the portion of the corpus to evaluate
 	 * @param minProbForDecision
-	 *          at which probability should a merge be made. If &lt; 0, 0.5 is
-	 *          assumed.
+	 *            at which probability should a merge be made. If &lt; 0, 0.5 is
+	 *            assumed.
 	 */
 	public void doCommandEvaluateMerge(String mergeModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
 		if (mergeModelPath.length() == 0)
@@ -838,11 +835,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train the letter splitting model.
 	 * 
 	 * @param splitModelPath
-	 *          the path where the model should be saved
+	 *            the path where the model should be saved
 	 * @param featureDescriptors
-	 *          the feature descriptors for training this model
+	 *            the feature descriptors for training this model
 	 * @param criteria
-	 *          the criteria used to select the training corpus
+	 *            the criteria used to select the training corpus
 	 */
 	public void doCommandTrainSplits(String splitModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria) {
 		if (splitModelPath.length() == 0)
@@ -872,12 +869,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate the letter splitting model on its own.
 	 * 
 	 * @param splitModelPath
-	 *          the path of the model to be evaluated.
+	 *            the path of the model to be evaluated.
 	 * @param criteria
-	 *          the criteria used to select the evaluation corpus
+	 *            the criteria used to select the evaluation corpus
 	 * @param minProbForDecision
-	 *          at which probability should a split be made. If &lt; 0, 0.5 is
-	 *          assumed.
+	 *            at which probability should a split be made. If &lt; 0, 0.5 is
+	 *            assumed.
 	 */
 	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
 		if (splitModelPath.length() == 0)
@@ -915,14 +912,14 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Train a letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *          the path where the model should be saved
+	 *            the path where the model should be saved
 	 * @param featureDescriptors
-	 *          the feature descriptors for training
+	 *            the feature descriptors for training
 	 * @param criteria
-	 *          criteria for selecting images to include when training
+	 *            criteria for selecting images to include when training
 	 * @param reconstructLetters
-	 *          whether or not complete letters should be reconstructed for
-	 *          training, from merged/split letters
+	 *            whether or not complete letters should be reconstructed for
+	 *            training, from merged/split letters
 	 */
 	public void doCommandTrain(String letterModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
 		if (letterModelPath.length() == 0)
@@ -961,11 +958,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate a given letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *          the path to the model
+	 *            the path to the model
 	 * @param criteria
-	 *          the criteria used to select the evaluation corpus
+	 *            the criteria used to select the evaluation corpus
 	 * @param outputDirPath
-	 *          the directory to which we write the evaluation files
+	 *            the directory to which we write the evaluation files
 	 */
 	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser,
 			boolean reconstructLetters, boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
@@ -1099,13 +1096,13 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Analyse a set of images based on a given letter-guessing model.
 	 * 
 	 * @param letterModelPath
-	 *          the path to the letter-guessing model.
+	 *            the path to the letter-guessing model.
 	 * @param criteria
-	 *          the criteria used to select the documents to be analysed
+	 *            the criteria used to select the documents to be analysed
 	 * @param wordChooser
-	 *          the word chooser to use
+	 *            the word chooser to use
 	 * @param observers
-	 *          the observers, used to create analysis output
+	 *            the observers, used to create analysis output
 	 */
 	public void doCommandAnalyse(String letterModelPath, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers)
 			throws IOException {
@@ -1186,7 +1183,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new JochreException("The file " + sourceFile.getPath() + " does not exist");
 
 		if (sourceFile.getName().toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(sourceFile, firstPage, lastPage, documentGenerator);
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(sourceFile, firstPage, lastPage, documentGenerator);
 
 			pdfImageVisitor.visitImages();
 		} else if (sourceFile.getName().toLowerCase().endsWith(".png") || sourceFile.getName().toLowerCase().endsWith(".jpg")
@@ -1205,17 +1202,17 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Evaluate a suite of split/merge models and letter guessing model.
 	 * 
 	 * @param letterModelPath
-	 *          the path to the letter-guessing model
+	 *            the path to the letter-guessing model
 	 * @param splitModelPath
-	 *          the path to the splitting model
+	 *            the path to the splitting model
 	 * @param mergeModelPath
-	 *          the path to the merging model
+	 *            the path to the merging model
 	 * @param criteria
-	 *          for selecting the evaluation corpus
+	 *            for selecting the evaluation corpus
 	 * @param save
-	 *          whether or not the letter guesses should be saved
+	 *            whether or not the letter guesses should be saved
 	 * @param outputDirPath
-	 *          the output directory where we write the evaluation results
+	 *            the output directory where we write the evaluation results
 	 */
 	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, boolean save,
 			String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix,
@@ -1346,15 +1343,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Update the images in an existing Jochre document.
 	 * 
 	 * @param filename
-	 *          the PDF file containing the images
+	 *            the PDF file containing the images
 	 * @param docId
-	 *          the id of the document to update
+	 *            the id of the document to update
 	 * @param firstPage
-	 *          the first page to segment, if &lt;=0 will start with first
-	 *          document page
+	 *            the first page to segment, if &lt;=0 will start with first
+	 *            document page
 	 * @param lastPage
-	 *          the last page to segment, if &lt;=0 will segment until last
-	 *          document page
+	 *            the last page to segment, if &lt;=0 will segment until last
+	 *            document page
 	 */
 	public void doCommandUpdateImages(String filename, int docId, int firstPage, int lastPage) {
 		if (filename.length() == 0)
@@ -1365,7 +1362,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		JochreDocument doc = documentService.loadJochreDocument(docId);
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(pdfFile, firstPage, lastPage, new PdfImageUpdater(doc));
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(pdfFile, firstPage, lastPage, new PdfImageUpdater(doc));
 			pdfImageVisitor.visitImages();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1376,15 +1373,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Extract the images from a PDF file.
 	 * 
 	 * @param filename
-	 *          the path to the PDF file
+	 *            the path to the PDF file
 	 * @param outputDirPath
-	 *          the directory where to store the images extracted.
+	 *            the directory where to store the images extracted.
 	 * @param firstPage
-	 *          the first page to segment, if &lt;=0 will start with first
-	 *          document page
+	 *            the first page to segment, if &lt;=0 will start with first
+	 *            document page
 	 * @param lastPage
-	 *          the last page to segment, if &lt;=0 will segment until last
-	 *          document page
+	 *            the last page to segment, if &lt;=0 will segment until last
+	 *            document page
 	 */
 	public void doCommandExtractImages(String filename, String outputDirPath, int firstPage, int lastPage) {
 		if (filename.length() == 0)
@@ -1394,7 +1391,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageSaver pdfImageSaver = pdfService.getPdfImageSaver(pdfFile);
+			PdfImageSaver pdfImageSaver = new PdfImageSaver(pdfFile);
 			pdfImageSaver.saveImages(outputDirPath, firstPage, lastPage);
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1405,24 +1402,24 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * Segment a file, without analysing it.
 	 * 
 	 * @param filename
-	 *          the path of the file to load
+	 *            the path of the file to load
 	 * @param userFriendlyName
-	 *          a name to store against this file in the database
+	 *            a name to store against this file in the database
 	 * @param showSegmentation
-	 *          whether or not to output the graphical segmentation files
+	 *            whether or not to output the graphical segmentation files
 	 * @param outputDirPath
-	 *          an output directory for the graphical segmentation files
+	 *            an output directory for the graphical segmentation files
 	 * @param save
-	 *          should we save this file to the database?
+	 *            should we save this file to the database?
 	 * @param firstPage
-	 *          the first page to segment, if &lt;=0 will start with first
-	 *          document page
+	 *            the first page to segment, if &lt;=0 will start with first
+	 *            document page
 	 * @param lastPage
-	 *          the last page to segment, if &lt;=0 will segment until last
-	 *          document page
+	 *            the last page to segment, if &lt;=0 will segment until last
+	 *            document page
 	 */
-	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath, boolean save,
-			int firstPage, int lastPage) {
+	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath,
+			boolean save, int firstPage, int lastPage) {
 
 		if (filename.length() == 0)
 			throw new RuntimeException("Missing argument: file");
@@ -1450,7 +1447,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(file, firstPage, lastPage, sourceFileProcessor);
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(file, firstPage, lastPage, sourceFileProcessor);
 			pdfImageVisitor.visitImages();
 		} else if (filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")
 				|| filename.toLowerCase().endsWith(".gif")) {

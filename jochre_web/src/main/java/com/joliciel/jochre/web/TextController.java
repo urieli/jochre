@@ -53,7 +53,6 @@ import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.OutputService;
 import com.joliciel.jochre.output.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
-import com.joliciel.jochre.pdf.PdfService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
@@ -283,8 +282,7 @@ public class TextController extends GenericForwardComposer<Window> {
 				String lowerCaseFileName = currentFile.getName().toLowerCase();
 				Thread thread = null;
 				if (lowerCaseFileName.endsWith(".pdf")) {
-					PdfService pdfService = locator.getPdfServiceLocator().getPdfService();
-					PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(currentFile, startPage, endPage, documentGenerator);
+					PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(currentFile, startPage, endPage, documentGenerator);
 					this.progressMonitor = pdfImageVisitor.monitorTask();
 					this.currentHtmlIndex = 0;
 					thread = new Thread(pdfImageVisitor);
