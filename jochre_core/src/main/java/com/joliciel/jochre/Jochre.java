@@ -109,7 +109,6 @@ import com.joliciel.jochre.lexicon.FakeLexicon;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconErrorWriter;
 import com.joliciel.jochre.lexicon.LexiconMerger;
-import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
@@ -171,7 +170,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 	DocumentService documentService;
 	AnalyserService analyserService;
-	LexiconService lexiconService;
 	LetterGuesserService letterGuesserService;
 
 	int userId = -1;
@@ -200,7 +198,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		documentService = locator.getDocumentServiceLocator().getDocumentService();
 		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
-		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
 	}
 
@@ -275,9 +272,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		int includeIndex = -1;
 		int excludeIndex = -1;
 		Set<Integer> documentSet = null;
-		boolean frequencyAdjusted = false;
-		double smoothing = -1;
-		double frequencyLogBase = 10.0;
 		String suffix = "";
 		String dataSourcePath = null;
 		String docGroupPath = null;
@@ -363,11 +357,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
 			else if (argName.equals("lexicon"))
 				lexiconPath = argValue;
-			else if (argName.equals("freqLogBase")) {
-				frequencyLogBase = Double.parseDouble(argValue);
-				frequencyAdjusted = true;
-			} else if (argName.equals("smoothing"))
-				smoothing = Double.parseDouble(argValue);
 			else if (argName.equals("excludeImageId"))
 				excludeImageId = Integer.parseInt(argValue);
 			else if (argName.equals("crossValidationSize"))
@@ -387,8 +376,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				docSelectionPath = argValue;
 			} else if (argName.equals("docGroupFile"))
 				docGroupPath = argValue;
-			else if (argName.equals("frequencyAdjusted"))
-				frequencyAdjusted = argValue.equalsIgnoreCase("true");
 			else if (argName.equals("suffix"))
 				suffix = argValue;
 			else if (argName.equals("dataSource"))
@@ -484,15 +471,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			}
 
 			OutputService outputService = locator.getTextServiceLocator().getTextService();
-			MostLikelyWordChooser wordChooser = null;
-
-			LexiconService lexiconService = locator.getLexiconServiceLocator().getLexiconService();
-
-			wordChooser = lexiconService.getMostLikelyWordChooser(this.getLexicon(), this.getWordSplitter());
-			if (smoothing > 0)
-				wordChooser.setAdditiveSmoothing(smoothing);
-			wordChooser.setFrequencyLogBase(frequencyLogBase);
-			wordChooser.setFrequencyAdjusted(frequencyAdjusted);
+			MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(this.getLexicon(), this.getWordSplitter(), jochreSession);
 
 			jochreSession.setJunkConfidenceThreshold(junkThreshold);
 
@@ -713,8 +692,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 */
 	public void doCommandBuildLexicon(String outputDirPath, WordSplitter wordSplitter, CorpusSelectionCriteria criteria) {
 		try {
-			CorpusLexiconBuilder builder = lexiconService.getCorpusLexiconBuilder(wordSplitter);
-			builder.setCriteria(criteria);
+			CorpusLexiconBuilder builder = new CorpusLexiconBuilder(wordSplitter, criteria, jochreSession);
 			TextFileLexicon lexicon = builder.buildLexicon();
 
 			File outputDir = new File(outputDirPath);

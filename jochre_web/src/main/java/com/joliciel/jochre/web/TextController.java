@@ -47,7 +47,6 @@ import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.OutputService;
@@ -67,7 +66,6 @@ public class TextController extends GenericForwardComposer<Window> {
 	private JochreServiceLocator locator = null;
 	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private DocumentService documentService;
-	private LexiconService lexiconService;
 	private OutputService textService;
 
 	private JochreDocument currentDoc;
@@ -125,7 +123,6 @@ public class TextController extends GenericForwardComposer<Window> {
 
 			textService = locator.getTextServiceLocator().getTextService();
 			documentService = locator.getDocumentServiceLocator().getDocumentService();
-			lexiconService = locator.getLexiconServiceLocator().getLexiconService();
 
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 			if (request.getParameter("imageId") != null) {
@@ -272,7 +269,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					Lexicon lexicon = jochreProperties.getLexiconService().getLexicon();
 					WordSplitter wordSplitter = jochreProperties.getLexiconService().getWordSplitter();
 
-					MostLikelyWordChooser wordChooser = lexiconService.getMostLikelyWordChooser(lexicon, wordSplitter);
+					MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(lexicon, wordSplitter, jochreSession);
 					documentGenerator.requestAnalysis(jochreProperties.getSplitModelFile(), jochreProperties.getMergeModelFile(), letterModelFile, wordChooser);
 				}
 				this.documentHtmlGenerator = new DocumentHtmlGenerator();
