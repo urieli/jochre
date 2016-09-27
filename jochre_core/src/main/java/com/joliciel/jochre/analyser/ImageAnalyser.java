@@ -18,11 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
-import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 
 /**
  * Analyse images using a given model. Can be used for both evaluation of
@@ -38,18 +35,6 @@ public interface ImageAnalyser extends DocumentObserver {
 	public abstract void analyse(JochreImage image);
 
 	public abstract void addObserver(LetterGuessObserver letterGuessObserver);
-
-	public abstract void setLetterGuesser(LetterGuesser letterGuesser);
-
-	public abstract LetterGuesser getLetterGuesser();
-
-	public abstract void setBoundaryDetector(BoundaryDetector boundaryDetector);
-
-	public abstract BoundaryDetector getBoundaryDetector();
-
-	public abstract void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser);
-
-	public abstract MostLikelyWordChooser getMostLikelyWordChooser();
 
 	public abstract double getMinOutcomeWeight();
 

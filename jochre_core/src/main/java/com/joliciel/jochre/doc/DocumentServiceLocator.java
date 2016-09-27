@@ -34,7 +34,6 @@ public class DocumentServiceLocator {
 	public DocumentService getDocumentService() {
 		if (documentService == null) {
 			documentService = new DocumentServiceImpl(jochreSession);
-			documentService.setAnalyserService(this.jochreServiceLocator.getAnalyserServiceLocator().getAnalyserService());
 		}
 		return documentService;
 	}

@@ -33,9 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.analyser.AnalyserService;
+import com.joliciel.jochre.analyser.BeamSearchImageAnalyser;
 import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.analyser.LetterAssigner;
+import com.joliciel.jochre.analyser.LetterGuessObserver;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.DeterministicBoundaryDetector;
@@ -69,7 +70,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 	private static String SUFFIX = "png";
 	private DocumentService documentService;
-	private AnalyserService analyserService;
 
 	private File outputDirectory = null;
 	private String filename = "";
@@ -276,14 +276,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		this.documentService = documentService;
 	}
 
-	public AnalyserService getAnalyserService() {
-		return analyserService;
-	}
-
-	public void setAnalyserService(AnalyserService analyserService) {
-		this.analyserService = analyserService;
-	}
-
 	@Override
 	public ProgressMonitor monitorTask() {
 		currentMonitor = new MultiTaskProgressMonitor();
@@ -387,30 +379,28 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 			LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-			ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
-			analyser.setLetterGuesser(letterGuesser);
-			analyser.setMostLikelyWordChooser(wordChooser);
 
 			BoundaryDetector boundaryDetector = null;
-
+			LetterGuessObserver observer = null;
 			if (splitModelFile != null && mergeModelFile != null) {
 				boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
-				analyser.setBoundaryDetector(boundaryDetector);
 
 				OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 				shapeLetterAssigner.setEvaluate(false);
 				shapeLetterAssigner.setSave(save);
 				shapeLetterAssigner.setSingleLetterMethod(false);
 
-				analyser.addObserver(shapeLetterAssigner);
+				observer = shapeLetterAssigner;
 			} else {
 				boundaryDetector = new OriginalBoundaryDetector();
-				analyser.setBoundaryDetector(boundaryDetector);
 
 				LetterAssigner letterAssigner = new LetterAssigner();
 				letterAssigner.setSave(save);
-				analyser.addObserver(letterAssigner);
+				observer = letterAssigner;
 			}
+
+			ImageAnalyser analyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
+			analyser.addObserver(observer);
 
 			this.documentObservers.add(0, analyser);
 		} catch (Exception e) {

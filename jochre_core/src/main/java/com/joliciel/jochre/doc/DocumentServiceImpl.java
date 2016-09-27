@@ -22,11 +22,8 @@ import java.io.File;
 import java.util.List;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.analyser.AnalyserService;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
-
-	private AnalyserService analyserService;
 
 	@SuppressWarnings("unused")
 	private final JochreSession jochreSession;
@@ -142,7 +139,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	@Override
 	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(jochreDocument, jochreSession);
-		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
 		return generator;
 	}
@@ -150,17 +146,7 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 	@Override
 	public JochreDocumentGenerator getJochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(filename, userFriendlyName, jochreSession);
-		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
 		return generator;
 	}
-
-	public AnalyserService getAnalyserService() {
-		return analyserService;
-	}
-
-	public void setAnalyserService(AnalyserService analyserService) {
-		this.analyserService = analyserService;
-	}
-
 }

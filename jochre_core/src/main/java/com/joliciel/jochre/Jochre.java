@@ -52,11 +52,12 @@ import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.analyser.AnalyserService;
+import com.joliciel.jochre.analyser.BeamSearchImageAnalyser;
 import com.joliciel.jochre.analyser.ErrorLogger;
 import com.joliciel.jochre.analyser.FScoreObserver;
 import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.analyser.LetterAssigner;
+import com.joliciel.jochre.analyser.LetterGuessObserver;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.analyser.SimpleLetterFScoreObserver;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
@@ -173,7 +174,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	}
 
 	DocumentService documentService;
-	AnalyserService analyserService;
 
 	int userId = -1;
 	String dataSourcePropertiesPath;
@@ -200,7 +200,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		JochreServiceLocator locator = JochreServiceLocator.getInstance(jochreSession);
 
 		documentService = locator.getDocumentServiceLocator().getDocumentService();
-		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -983,10 +982,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			boundaryDetector = new OriginalBoundaryDetector();
 		}
 
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(jochreSession);
-		evaluator.setBoundaryDetector(boundaryDetector);
-		evaluator.setLetterGuesser(letterGuesser);
-		evaluator.setMostLikelyWordChooser(wordChooser);
+		ImageAnalyser evaluator = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
 
 		FScoreObserver fScoreObserver = null;
 		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
@@ -1102,9 +1098,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
-		analyser.setLetterGuesser(letterGuesser);
-		analyser.setMostLikelyWordChooser(wordChooser);
+		ImageAnalyser analyser = new BeamSearchImageAnalyser(null, letterGuesser, wordChooser, jochreSession);
 		LetterAssigner letterAssigner = new LetterAssigner();
 		analyser.addObserver(letterAssigner);
 
@@ -1132,27 +1126,26 @@ public class Jochre implements LocaleSpecificLexiconService {
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
-		analyser.setLetterGuesser(letterGuesser);
-		analyser.setMostLikelyWordChooser(wordChooser);
 		BoundaryDetector boundaryDetector = null;
+		LetterGuessObserver letterGuessObserver = null;
 
 		if (splitModelFile != null && mergeModelFile != null) {
 			boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
-			analyser.setBoundaryDetector(boundaryDetector);
 
 			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 			shapeLetterAssigner.setEvaluate(false);
 			shapeLetterAssigner.setSingleLetterMethod(false);
 
-			analyser.addObserver(shapeLetterAssigner);
+			letterGuessObserver = shapeLetterAssigner;
 		} else {
 			boundaryDetector = new OriginalBoundaryDetector();
-			analyser.setBoundaryDetector(boundaryDetector);
 
 			LetterAssigner letterAssigner = new LetterAssigner();
-			analyser.addObserver(letterAssigner);
+			letterGuessObserver = letterAssigner;
 		}
+
+		ImageAnalyser analyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
+		analyser.addObserver(letterGuessObserver);
 
 		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(sourceFile.getName(), "", jochreSession);
 		documentGenerator.addDocumentObserver(analyser);
@@ -1266,10 +1259,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			break;
 		}
 
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(jochreSession);
-		evaluator.setLetterGuesser(letterGuesser);
-		evaluator.setMostLikelyWordChooser(wordChooser);
-		evaluator.setBoundaryDetector(boundaryDetector);
+		ImageAnalyser imageAnalyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
 
 		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
 
@@ -1278,7 +1268,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		shapeLetterAssigner.setSave(save);
 		shapeLetterAssigner.setLetterValidator(letterValidator);
 		shapeLetterAssigner.setSingleLetterMethod(false);
-		evaluator.addObserver(shapeLetterAssigner);
+		imageAnalyser.addObserver(shapeLetterAssigner);
 
 		ErrorLogger errorLogger = new ErrorLogger();
 		if (wordChooser != null) {
@@ -1292,10 +1282,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 		errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(errorFile, true), "UTF8"));
 
 		errorLogger.setErrorWriter(errorWriter);
-		evaluator.addObserver(errorLogger);
+		imageAnalyser.addObserver(errorLogger);
 
 		JochreCorpusImageProcessor imageProcessor = new JochreCorpusImageProcessor(criteria, jochreSession);
-		imageProcessor.addObserver(evaluator);
+		imageProcessor.addObserver(imageAnalyser);
 		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
 		imageProcessor.process();

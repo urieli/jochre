@@ -55,15 +55,13 @@ import com.typesafe.config.Config;
  * @author Assaf Urieli
  *
  */
-class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
+public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	private static final Logger LOG = LoggerFactory.getLogger(BeamSearchImageAnalyser.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
 
-	private AnalyserServiceInternal analyserServiceInternal;
-
-	private MostLikelyWordChooser mostLikelyWordChooser;
-	private BoundaryDetector boundaryDetector;
-	private LetterGuesser letterGuesser;
+	private final MostLikelyWordChooser mostLikelyWordChooser;
+	private final BoundaryDetector boundaryDetector;
+	private final LetterGuesser letterGuesser;
 
 	private final int beamWidth;
 	private final double minOutcomeWeight;
@@ -77,8 +75,22 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	private final JochreSession jochreSession;
 
-	public BeamSearchImageAnalyser(JochreSession jochreSession) {
+	/**
+	 * 
+	 * @param boundaryDetector
+	 *            if null, boundaries are not changed from the original shapes
+	 * @param letterGuesser
+	 *            cannot be null - used to guess letters
+	 * @param mostLikelyWordChooser
+	 *            if not null, adjusts the probabilities of the variou guesses
+	 * @param jochreSession
+	 */
+	public BeamSearchImageAnalyser(BoundaryDetector boundaryDetector, LetterGuesser letterGuesser, MostLikelyWordChooser mostLikelyWordChooser,
+			JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
+		this.letterGuesser = letterGuesser;
+		this.boundaryDetector = boundaryDetector;
+		this.mostLikelyWordChooser = mostLikelyWordChooser;
 		Config imageAnalyserConfig = jochreSession.getConfig().getConfig("jochre.image-analyser");
 		this.beamWidth = imageAnalyserConfig.getInt("beam-width");
 		this.minOutcomeWeight = imageAnalyserConfig.getDouble("min-outcome-weight");
@@ -221,7 +233,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							finalSequences.add(finalHeap.poll());
 						}
 
-						if (this.getMostLikelyWordChooser() == null) {
+						if (this.mostLikelyWordChooser == null) {
 							// most likely sequence is on top of the last heap
 							bestSequence = finalSequences.get(0);
 						} else {
@@ -229,7 +241,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							if (holdoverSequences != null) {
 								// we have a holdover from the previous row
 								// ending with a dash
-								bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
+								bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
 							} else {
 								// check if this is the last group on the row
 								// and could end with
@@ -249,7 +261,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									isHoldover = true;
 								} else {
 									// simplest case: no holdover
-									bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, this.beamWidth);
+									bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, this.beamWidth);
 								}
 							} // have we holdover sequences?
 						} // have we a most likely word chooser?
@@ -322,24 +334,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	}
 
-	public AnalyserServiceInternal getAnalyserServiceInternal() {
-		return analyserServiceInternal;
-	}
-
-	public void setAnalyserServiceInternal(AnalyserServiceInternal analyserServiceInternal) {
-		this.analyserServiceInternal = analyserServiceInternal;
-	}
-
-	@Override
-	public MostLikelyWordChooser getMostLikelyWordChooser() {
-		return mostLikelyWordChooser;
-	}
-
-	@Override
-	public void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser) {
-		this.mostLikelyWordChooser = mostLikelyWordChooser;
-	}
-
 	@Override
 	public ProgressMonitor monitorTask() {
 		currentMonitor = new SimpleProgressMonitor();
@@ -349,26 +343,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	@Override
 	public void addObserver(LetterGuessObserver letterGuessObserver) {
 		this.observers.add(letterGuessObserver);
-	}
-
-	@Override
-	public BoundaryDetector getBoundaryDetector() {
-		return boundaryDetector;
-	}
-
-	@Override
-	public void setBoundaryDetector(BoundaryDetector boundaryDetector) {
-		this.boundaryDetector = boundaryDetector;
-	}
-
-	@Override
-	public LetterGuesser getLetterGuesser() {
-		return letterGuesser;
-	}
-
-	@Override
-	public void setLetterGuesser(LetterGuesser letterGuesser) {
-		this.letterGuesser = letterGuesser;
 	}
 
 	@Override
