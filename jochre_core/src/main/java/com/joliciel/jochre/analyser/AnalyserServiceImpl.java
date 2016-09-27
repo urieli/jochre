@@ -19,12 +19,10 @@
 package com.joliciel.jochre.analyser;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.utils.ObjectCache;
 
 class AnalyserServiceImpl implements AnalyserServiceInternal {
 	private ObjectCache objectCache;
-	private LetterGuesserService letterGuesserService;
 
 	public AnalyserServiceImpl() {
 	}
@@ -41,17 +39,7 @@ class AnalyserServiceImpl implements AnalyserServiceInternal {
 	public ImageAnalyser getBeamSearchImageAnalyser(JochreSession jochreSession) {
 		BeamSearchImageAnalyser evaluator = new BeamSearchImageAnalyser(jochreSession);
 		evaluator.setAnalyserServiceInternal(this);
-		evaluator.setLetterGuesserService(this.getLetterGuesserService());
 
 		return evaluator;
 	}
-
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
-	}
-
 }

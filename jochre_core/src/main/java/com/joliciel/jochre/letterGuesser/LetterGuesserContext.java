@@ -18,7 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
+import java.util.List;
+
+import com.joliciel.jochre.boundaries.ShapeInSequence;
+import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.boundaries.features.ShapeInSequenceWrapper;
+import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.ShapeWrapper;
 
 /**
@@ -27,10 +32,43 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  * @author Assaf Urieli
  *
  */
-public interface LetterGuesserContext extends ShapeWrapper, ShapeInSequenceWrapper {
+public class LetterGuesserContext implements ShapeWrapper, ShapeInSequenceWrapper {
+	private final ShapeInSequence shapeInSequence;
+	private final LetterSequence history;
+
+	public LetterGuesserContext(ShapeInSequence shapeInSequence, LetterSequence history) {
+		this.shapeInSequence = shapeInSequence;
+		this.history = history;
+	}
+
+	@Override
+	public ShapeInSequence getShapeInSequence() {
+		return shapeInSequence;
+	}
+
 	/**
 	 * The letter sequence assigned during the current analysis to shapes
 	 * preceding the current shape within the same word.
 	 */
-	public LetterSequence getHistory();
+	public LetterSequence getHistory() {
+		return history;
+	}
+
+	@Override
+	public Shape getShape() {
+		return this.shapeInSequence.getShape();
+	}
+
+	public int getIndex() {
+		return this.shapeInSequence.getIndex();
+	}
+
+	public ShapeSequence getShapeSequence() {
+		return this.shapeInSequence.getShapeSequence();
+	}
+
+	public List<Shape> getOriginalShapes() {
+		return this.shapeInSequence.getOriginalShapes();
+	}
+
 }

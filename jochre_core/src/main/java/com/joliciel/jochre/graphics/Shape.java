@@ -43,7 +43,6 @@ import com.joliciel.jochre.boundaries.BoundaryDao;
 import com.joliciel.jochre.boundaries.Split;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
@@ -60,8 +59,8 @@ import com.joliciel.talismane.utils.PersistentListImpl;
 public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFeatureCache {
 	/**
 	 * Different methods for measuring the brightness of various sections of the
-	 * shape, where a section is a rectangle within a grid that has been overlaid
-	 * onto the shape.
+	 * shape, where a section is a rectangle within a grid that has been
+	 * overlaid onto the shape.
 	 */
 	public enum SectionBrightnessMeasurementMethod {
 		/**
@@ -71,21 +70,22 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 		RAW,
 
 		/**
-		 * The sum provided by RAW, divided by the number of pixels in the section.
-		 * Since sections can have different sizes, it's critical to normalise.
+		 * The sum provided by RAW, divided by the number of pixels in the
+		 * section. Since sections can have different sizes, it's critical to
+		 * normalise.
 		 */
 		SIZE_NORMALISED,
 
 		/**
-		 * The section with the maximum normalised brightness is taken to be 1. All
-		 * other sections are given a value from 0 to 1, based on their normalised
-		 * brightness relative to the max.
+		 * The section with the maximum normalised brightness is taken to be 1.
+		 * All other sections are given a value from 0 to 1, based on their
+		 * normalised brightness relative to the max.
 		 */
 		RELATIVE_TO_MAX_SECTION,
 
 		/**
-		 * For each section, gives a value from 0 to 1, showing which portion of the
-		 * total brightness it contains.
+		 * For each section, gives a value from 0 to 1, showing which portion of
+		 * the total brightness it contains.
 		 */
 		PORTION_OF_TOTAL_BRIGHTNESS,
 	}
@@ -111,8 +111,6 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 
 	private String letter = "";
 	private String originalGuess = "";
-
-	private LetterGuesserService letterGuesserService;
 
 	private Map<String, Map<SectionBrightnessMeasurementMethod, double[][]>> brightnessBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod, double[][]>>();
 	private Map<String, Map<SectionBrightnessMeasurementMethod, Double>> brightnessMeanBySectorMap = new HashMap<String, Map<SectionBrightnessMeasurementMethod, Double>>();
@@ -329,7 +327,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	}
 
 	/**
-	 * The relative y-index of the line at the top of standard lowercase letters.
+	 * The relative y-index of the line at the top of standard lowercase
+	 * letters.
 	 */
 
 	public int getMeanLine() {
@@ -344,7 +343,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	}
 
 	/**
-	 * The relative y-index of the line at the top of standard uppercase letters.
+	 * The relative y-index of the line at the top of standard uppercase
+	 * letters.
 	 */
 
 	public int getCapLine() {
@@ -434,8 +434,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 * meanline and baseline, there will be horizontalSectionCount rows by
 	 * verticalSectionCount columns Below the baseline, there will be
 	 * marginSectionCount rows by verticalSectionCount columns For example, if
-	 * verticalSectionCount = 5, horizontalSectionCount = 5 and marginSectionCount
-	 * = 1:<br/>
+	 * verticalSectionCount = 5, horizontalSectionCount = 5 and
+	 * marginSectionCount = 1:<br/>
 	 * <code>
 	 * 0,0 1,0 2,0 3,0 4,0 (everything above the mean-line)<br/>
 	 * mean-line<br/>
@@ -459,27 +459,27 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 
 	/**
 	 * The starting rectangle is taken based on the shape's xHeight (baseline -
-	 * meanline). Basically, we take a square with the following boundaries: top =
-	 * meanline, bottom = baseline, right = right, left = right - xHeight. To
+	 * meanline). Basically, we take a square with the following boundaries: top
+	 * = meanline, bottom = baseline, right = right, left = right - xHeight. To
 	 * this, we add at the top and the bottom a margin, each with a height of
 	 * xHeight * topBottomMarginWidth. We add on the right (or on the left, if
 	 * lang is right-to-left) a margin with a width of xHeight *
 	 * horizontalMarginWidth. Any pixels outside the shape's original boundaries
-	 * are assumed to be white. Any pixels inside the shape's original boundaries,
-	 * but outside the rectangle's boundaries are ignored (in the case where the
-	 * shape is wider than xHeight * (1+horizontalMarginWidth), or taller than
-	 * xHeight * (1+2*topBottomMarginWidth)). The resulting rectangle is divided
-	 * into verticalSectionCount equally spaced vertical sections, and
-	 * horizontalSectionCount equally spaced horizontal sections. If a section
-	 * break occurs inside a pixel, the pixel's brightness count is divided
-	 * proportionally between the two sections.
+	 * are assumed to be white. Any pixels inside the shape's original
+	 * boundaries, but outside the rectangle's boundaries are ignored (in the
+	 * case where the shape is wider than xHeight * (1+horizontalMarginWidth),
+	 * or taller than xHeight * (1+2*topBottomMarginWidth)). The resulting
+	 * rectangle is divided into verticalSectionCount equally spaced vertical
+	 * sections, and horizontalSectionCount equally spaced horizontal sections.
+	 * If a section break occurs inside a pixel, the pixel's brightness count is
+	 * divided proportionally between the two sections.
 	 * 
 	 * @param verticalSectionCount
-	 *          the number of vertical sections
+	 *            the number of vertical sections
 	 * @param horizontalSectionCount
-	 *          the number of horizontal sections
+	 *            the number of horizontal sections
 	 * @param topBottomMarginWidth
-	 *          the width of the top magin
+	 *            the width of the top magin
 	 * @return double[verticalSectionCount][horizontalSectionCount]
 	 */
 	public double[][] getBrightnessBySection(int verticalSectionCount, int horizontalSectionCount, double topBottomMarginWidth, double horizontalMarginWidth,
@@ -637,10 +637,10 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 * Similar to the other getBrightnessTotalsBySector methods, except that the
 	 * base rectangle is taken to be exactly the shape's rectangle, with no
 	 * special treatment of the areas above the meanline or below the baseline.
-	 * The rectangle is simply divided into verticalSectionCount vertical sections
-	 * and horizontalSectionCount horizontal sections. If a section break occurs
-	 * inside a pixel, the pixel's brightness count is divided proportionally
-	 * between the two sections.
+	 * The rectangle is simply divided into verticalSectionCount vertical
+	 * sections and horizontalSectionCount horizontal sections. If a section
+	 * break occurs inside a pixel, the pixel's brightness count is divided
+	 * proportionally between the two sections.
 	 * 
 	 * @return double[verticalSectionCount][horizontalSectionCount]
 	 */
@@ -979,8 +979,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 					if (!black)
 						outline.set(counter++, false);
 					else {
-						boolean innerPixel = this.isPixelBlack(x - 1, y, threshold) && this.isPixelBlack(x + 1, y, threshold) && this.isPixelBlack(x, y - 1, threshold)
-								&& this.isPixelBlack(x, y + 1, threshold);
+						boolean innerPixel = this.isPixelBlack(x - 1, y, threshold) && this.isPixelBlack(x + 1, y, threshold)
+								&& this.isPixelBlack(x, y - 1, threshold) && this.isPixelBlack(x, y + 1, threshold);
 						outline.set(counter++, !innerPixel);
 					} // is it black?
 				} // next x
@@ -1046,8 +1046,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	}
 
 	/**
-	 * Recalculate the various statistical measurements for this shape. Should be
-	 * called after the shape coordinates have changed.
+	 * Recalculate the various statistical measurements for this shape. Should
+	 * be called after the shape coordinates have changed.
 	 */
 	public void recalculate() {
 		image = null;
@@ -1148,14 +1148,6 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 		}
 	}
 
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
-	}
-
 	/**
 	 * The original guess for this shape, when it was automatically analysed by
 	 * Jochre.
@@ -1236,10 +1228,12 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			// x x x 0 0 x
 			// 0 0 x x x x
 
-			// as we build the shape, we keep track in memory of all of the vertical
+			// as we build the shape, we keep track in memory of all of the
+			// vertical
 			// line segments that we find
 			// and which vertical line segments touch them to the right and left
-			// a segment can have more than one left segment (if they're broken by a
+			// a segment can have more than one left segment (if they're broken
+			// by a
 			// white space)
 			Stack<VerticalLineSegment> lineStack = new Stack<VerticalLineSegment>();
 			lines = new TreeSet<VerticalLineSegment>();
@@ -1249,7 +1243,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 
 			while (!lineStack.isEmpty()) {
 				VerticalLineSegment line = lineStack.pop();
-				// Add this line's pixels to the mirror so that we don't touch it again.
+				// Add this line's pixels to the mirror so that we don't touch
+				// it again.
 				for (int rely = line.yTop; rely <= line.yBottom; rely++)
 					mirror.setPixel(line.x, rely, 1);
 
@@ -1288,7 +1283,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 					} else {
 						if (leftLine != null) {
 							if (mirror.getPixel(relx, leftLine.yTop) > 0) {
-								// if we already found this line before - let's find it again.
+								// if we already found this line before - let's
+								// find it again.
 								for (VerticalLineSegment lineSegment : lines) {
 									if (lineSegment.x == relx) {
 										if (lineSegment.yTop <= leftLine.yTop && leftLine.yTop <= lineSegment.yBottom) {
@@ -1311,7 +1307,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				// add the last line
 				if (leftLine != null) {
 					if (mirror.getPixel(relx, leftLine.yTop) > 0) {
-						// if we already found this line before - let's find it again.
+						// if we already found this line before - let's find it
+						// again.
 						for (VerticalLineSegment lineSegment : lines) {
 							if (lineSegment.x == relx) {
 								if (lineSegment.yTop <= leftLine.yTop && leftLine.yTop <= lineSegment.yBottom) {
@@ -1341,7 +1338,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 					} else {
 						if (rightLine != null) {
 							if (mirror.getPixel(relx, rightLine.yTop) > 0) {
-								// if we already found this line before - let's find it again.
+								// if we already found this line before - let's
+								// find it again.
 								for (VerticalLineSegment lineSegment : lines) {
 									if (lineSegment.x == relx) {
 										if (lineSegment.yTop <= rightLine.yTop && rightLine.yTop <= lineSegment.yBottom) {
@@ -1364,7 +1362,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				// add the last line
 				if (rightLine != null) {
 					if (mirror.getPixel(relx, rightLine.yTop) > 0) {
-						// if we already found this line before - let's find it again.
+						// if we already found this line before - let's find it
+						// again.
 						for (VerticalLineSegment lineSegment : lines) {
 							if (lineSegment.x == relx) {
 								if (lineSegment.yTop <= rightLine.yTop && rightLine.yTop <= lineSegment.yBottom) {
@@ -1394,17 +1393,20 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 		if (this.bridgeCandidates == null) {
 			TreeSet<VerticalLineSegment> lines = this.getVerticalLineSegments();
 
-			// Now, detect "bridges" which could indicate that the shape should be
+			// Now, detect "bridges" which could indicate that the shape should
+			// be
 			// split
 
-			// First, detect which spaces are "enclosed" and which touch the outer
+			// First, detect which spaces are "enclosed" and which touch the
+			// outer
 			// walls
 			// To do this, build up a set of all inverse (white) lines
 			TreeSet<VerticalLineSegment> inverseLines = new TreeSet<VerticalLineSegment>();
 			int currentX = -1;
 			VerticalLineSegment previousLine = null;
 			for (VerticalLineSegment line : lines) {
-				// LOG.debug("Checking line x = " + line.x + ", top = " + line.yTop + ",
+				// LOG.debug("Checking line x = " + line.x + ", top = " +
+				// line.yTop + ",
 				// bottom = " + line.yBottom);
 				if (line.x != currentX) {
 					// new x-coordinate
@@ -1412,22 +1414,27 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 						VerticalLineSegment inverseLine = new VerticalLineSegment(previousLine.x, previousLine.yBottom + 1);
 						inverseLine.yBottom = this.getHeight() - 1;
 						inverseLines.add(inverseLine);
-						// LOG.debug("Adding inverse line x = " + inverseLine.x + ", top = "
-						// + inverseLine.yTop + ", bottom = " + inverseLine.yBottom);
+						// LOG.debug("Adding inverse line x = " + inverseLine.x
+						// + ", top = "
+						// + inverseLine.yTop + ", bottom = " +
+						// inverseLine.yBottom);
 					}
 					if (line.yTop > 0) {
 						VerticalLineSegment inverseLine = new VerticalLineSegment(line.x, line.yTop - 1);
 						inverseLine.yTop = 0;
 						inverseLines.add(inverseLine);
-						// LOG.debug("Adding inverse line x = " + inverseLine.x + ", top = "
-						// + inverseLine.yTop + ", bottom = " + inverseLine.yBottom);
+						// LOG.debug("Adding inverse line x = " + inverseLine.x
+						// + ", top = "
+						// + inverseLine.yTop + ", bottom = " +
+						// inverseLine.yBottom);
 					}
 					currentX = line.x;
 				} else if (previousLine != null) {
 					VerticalLineSegment inverseLine = new VerticalLineSegment(previousLine.x, previousLine.yBottom + 1);
 					inverseLine.yBottom = line.yTop - 1;
 					inverseLines.add(inverseLine);
-					// LOG.debug("Adding inverse line x = " + inverseLine.x + ", top = " +
+					// LOG.debug("Adding inverse line x = " + inverseLine.x + ",
+					// top = " +
 					// inverseLine.yTop + ", bottom = " + inverseLine.yBottom);
 				}
 				previousLine = line;
@@ -1436,7 +1443,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				VerticalLineSegment inverseLine = new VerticalLineSegment(previousLine.x, previousLine.yBottom + 1);
 				inverseLine.yBottom = this.getHeight() - 1;
 				inverseLines.add(inverseLine);
-				// LOG.debug("Adding inverse line x = " + inverseLine.x + ", top = " +
+				// LOG.debug("Adding inverse line x = " + inverseLine.x + ", top
+				// = " +
 				// inverseLine.yTop + ", bottom = " + inverseLine.yBottom);
 			}
 			LOG.debug("inverseLines size: " + inverseLines.size());
@@ -1471,7 +1479,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				if (!inverseLine.touched) {
 					inverseLine.touched = true;
 					outerInverseLines.add(inverseLine);
-					// LOG.debug("Outer inverse line x = " + inverseLine.x + ", top = " +
+					// LOG.debug("Outer inverse line x = " + inverseLine.x + ",
+					// top = " +
 					// inverseLine.yTop + ", bottom = " + inverseLine.yBottom);
 
 					for (VerticalLineSegment rightLine : inverseLine.rightSegments)
@@ -1492,13 +1501,15 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			}
 
 			// Add bridge candidates
-			// based on maximum line length and having exactly one neighbour on each
+			// based on maximum line length and having exactly one neighbour on
+			// each
 			// side
 			LOG.debug("Adding bridge candidates");
 			List<BridgeCandidate> candidateList = new ArrayList<BridgeCandidate>();
 			for (VerticalLineSegment line : lines) {
 				if (line.rightSegments.size() == 1 && line.leftSegments.size() == 1 && line.length() <= maxBridgeWidth) {
-					// also the bridge width should be considered where two vertical lines
+					// also the bridge width should be considered where two
+					// vertical lines
 					// touch each other
 					// rather than for the full length of the line
 					BridgeCandidate candidate = null;
@@ -1532,7 +1543,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			LOG.debug("Eliminating candidates with shorter neighbor");
 			Set<BridgeCandidate> candidatesToEliminate = null;
 			if (candidateList.size() > 0) {
-				// eliminate any bridge candidates that touch a shorter bridge candidate
+				// eliminate any bridge candidates that touch a shorter bridge
+				// candidate
 				candidatesToEliminate = new HashSet<BridgeCandidate>();
 				for (int i = 0; i < candidateList.size() - 1; i++) {
 					BridgeCandidate candidate = candidateList.get(i);
@@ -1540,7 +1552,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 						BridgeCandidate otherCandidate = candidateList.get(j);
 						if (otherCandidate.x == candidate.x + 1 && candidate.rightSegments.contains(otherCandidate)) {
 							if ((candidate.bridgeWidth()) <= (otherCandidate.bridgeWidth())) {
-								LOG.debug("Eliminating candidate x = " + otherCandidate.x + ", top = " + otherCandidate.yTop + ", bottom = " + otherCandidate.yBottom);
+								LOG.debug("Eliminating candidate x = " + otherCandidate.x + ", top = " + otherCandidate.yTop + ", bottom = "
+										+ otherCandidate.yBottom);
 								candidatesToEliminate.add(otherCandidate);
 							} else {
 								LOG.debug("Eliminating candidate x = " + candidate.x + ", top = " + candidate.yTop + ", bottom = " + candidate.yBottom);
@@ -1557,13 +1570,15 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				// (A) intersection between right & left shape = null
 				// (B) weight of right shape & weight of left shape > a certain
 				// threshold
-				// (C) little overlap right boundary of left shape, left boundary of
+				// (C) little overlap right boundary of left shape, left
+				// boundary of
 				// right shape
 
 				LOG.debug("Eliminating candidates touching enclosed space");
 				// (A) intersection between right & left shape = null
 				// Intersection between right and left shape is non-null
-				// if the line segment X touches an enclosed space immediately above or
+				// if the line segment X touches an enclosed space immediately
+				// above or
 				// below
 				candidatesToEliminate = new HashSet<BridgeCandidate>();
 				for (BridgeCandidate candidate : candidateList) {
@@ -1584,14 +1599,16 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 				candidateList.removeAll(candidatesToEliminate);
 				LOG.debug("Remaining bridge candidate size: " + candidateList.size());
 
-				// another criterion for avoiding "false splits" is that on both side of
+				// another criterion for avoiding "false splits" is that on both
+				// side of
 				// the bridge
 				// the shapes pretty rapidly expand in width both up and down
 				LOG.debug("Eliminating candidates without vertical expansion on both sides");
 				candidatesToEliminate = new HashSet<BridgeCandidate>();
 				int expansionLimit = (int) Math.ceil((this.getWidth()) / 6.0);
 				for (BridgeCandidate candidate : candidateList) {
-					// take into account the portion touching on the right or left
+					// take into account the portion touching on the right or
+					// left
 					boolean isCandidate = true;
 					Stack<VerticalLineSegment> leftLines = new Stack<VerticalLineSegment>();
 					Stack<Integer> leftDepths = new Stack<Integer>();
@@ -1657,17 +1674,21 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			if (candidateList.size() > 0) {
 				// (B) weight of right shape & weight of left shape > a certain
 				// threshold
-				// (C) little overlap right boundary of left shape, left boundary of
+				// (C) little overlap right boundary of left shape, left
+				// boundary of
 				// right shape
 				//
-				// We can now divide the shape into n groups, each separated by a
+				// We can now divide the shape into n groups, each separated by
+				// a
 				// candidate
 				// We recursively build a group until we reach a candidate
-				// and indicate whether it's the right or left border of the candidate.
+				// and indicate whether it's the right or left border of the
+				// candidate.
 				// We then keep going from the candidate on to the next one
 				// We keep tab of the size of each group and of its right & left
 				// boundaries
-				// at the end we can easily determine the right and left boundaries of
+				// at the end we can easily determine the right and left
+				// boundaries of
 				// each,
 				// as well as the right & left pixel weight
 				List<VerticalLineGroup> groups = new ArrayList<VerticalLineGroup>();
@@ -1770,8 +1791,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 					LOG.debug("Found " + groups.size() + " groups");
 					int i = 1;
 					for (VerticalLineGroup aGroup : groups) {
-						LOG.debug(
-								"Group " + i++ + ", pixelCount: " + aGroup.pixelCount + ", leftBoundary: " + aGroup.leftBoundary + ", rightBoundary: " + aGroup.rightBoundary);
+						LOG.debug("Group " + i++ + ", pixelCount: " + aGroup.pixelCount + ", leftBoundary: " + aGroup.leftBoundary + ", rightBoundary: "
+								+ aGroup.rightBoundary);
 						LOG.debug("Candidates on left: ");
 						for (BridgeCandidate candidate : aGroup.leftCandidates)
 							LOG.debug("Candidate x = " + candidate.x + ", top = " + candidate.yTop + ", bottom = " + candidate.yBottom);
@@ -1857,8 +1878,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 * candidate. Criteria include: bridge width, pixel weight to either side of
 	 * the bridge, and overlap between right and left shapes.
 	 * 
-	 * @maxBridgeWidth the maximum width in pixels of the bridge - used to reduce
-	 *                 the search space
+	 * @maxBridgeWidth the maximum width in pixels of the bridge - used to
+	 *                 reduce the search space
 	 */
 	BridgeCandidate getBestBridgeCandidate(double maxBridgeWidth) {
 		Collection<BridgeCandidate> bridgeCandidates = this.getBridgeCandidates(maxBridgeWidth);
@@ -1869,7 +1890,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 			bestCandidate = bridgeCandidates.iterator().next();
 		} else {
 			// TODO: rank the candidates
-			// we could do machine learning here, but we'll need a proper dataset for
+			// we could do machine learning here, but we'll need a proper
+			// dataset for
 			// that
 			double bestScore = 0;
 			for (BridgeCandidate candidate : bridgeCandidates) {
@@ -1935,8 +1957,8 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 * The distance to the shape's edges, as seen from the top and bottom.
 	 * 
 	 * @return int[width][2], giving, for each x-coordinate in the shape, the
-	 *         distance to the shape's first black pixel, as seen from the top (0)
-	 *         and bottom (1).
+	 *         distance to the shape's first black pixel, as seen from the top
+	 *         (0) and bottom (1).
 	 */
 	public int[][] getVerticalContour() {
 		if (verticalContour == null) {

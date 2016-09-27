@@ -23,12 +23,10 @@ import java.util.List;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.analyser.AnalyserService;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 
 final class DocumentServiceImpl implements DocumentServiceInternal {
 
 	private AnalyserService analyserService;
-	private LetterGuesserService letterGuesserService;
 
 	@SuppressWarnings("unused")
 	private final JochreSession jochreSession;
@@ -141,20 +139,11 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		this.documentDao.deleteJochrePage(page);
 	}
 
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
-	}
-
 	@Override
 	public JochreDocumentGenerator getJochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(jochreDocument, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
-		generator.setLetterGuesserService(this.getLetterGuesserService());
 		return generator;
 	}
 
@@ -163,7 +152,6 @@ final class DocumentServiceImpl implements DocumentServiceInternal {
 		JochreDocumentGenerator generator = new JochreDocumentGenerator(filename, userFriendlyName, jochreSession);
 		generator.setAnalyserService(this.getAnalyserService());
 		generator.setDocumentService(this);
-		generator.setLetterGuesserService(this.getLetterGuesserService());
 		return generator;
 	}
 

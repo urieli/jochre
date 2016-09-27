@@ -35,7 +35,6 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterGuesserContext;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 
@@ -48,7 +47,6 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 public class LetterFeatureTester {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureTester.class);
-	private LetterGuesserService letterGuesserService;
 
 	private final JochreSession jochreSession;
 
@@ -94,18 +92,10 @@ public class LetterFeatureTester {
 
 	void testFeatures(ShapeInSequence shapeInSequence, Set<LetterFeature<?>> features) {
 		LetterSequence history = null;
-		LetterGuesserContext context = this.letterGuesserService.getContext(shapeInSequence, history);
+		LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
 		for (LetterFeature<?> feature : features) {
 			RuntimeEnvironment env = new RuntimeEnvironment();
 			feature.check(context, env);
 		}
-	}
-
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
 	}
 }

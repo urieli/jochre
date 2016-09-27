@@ -32,7 +32,6 @@ public class AnalyserServiceLocator {
 		if (analyserService == null) {
 			analyserService = new AnalyserServiceImpl();
 			analyserService.setObjectCache(this.jochreServiceLocator.getObjectCache());
-			analyserService.setLetterGuesserService(this.jochreServiceLocator.getLetterGuesserServiceLocator().getLetterGuesserService());
 		}
 		return analyserService;
 	}

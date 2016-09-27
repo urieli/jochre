@@ -20,7 +20,6 @@ package com.joliciel.jochre;
 
 import com.joliciel.jochre.analyser.AnalyserServiceLocator;
 import com.joliciel.jochre.doc.DocumentServiceLocator;
-import com.joliciel.jochre.letterGuesser.LetterGuesserServiceLocator;
 import com.joliciel.talismane.utils.ObjectCache;
 import com.joliciel.talismane.utils.SimpleObjectCache;
 
@@ -33,7 +32,6 @@ import com.joliciel.talismane.utils.SimpleObjectCache;
 public class JochreServiceLocator {
 
 	private DocumentServiceLocator documentServiceLocator;
-	private LetterGuesserServiceLocator letterGuesserServiceLocator;
 	private AnalyserServiceLocator analyserServiceLocator;
 
 	private String dataSourcePropertiesFile;
@@ -58,13 +56,6 @@ public class JochreServiceLocator {
 			this.documentServiceLocator = new DocumentServiceLocator(this, jochreSession);
 		}
 		return documentServiceLocator;
-	}
-
-	public LetterGuesserServiceLocator getLetterGuesserServiceLocator() {
-		if (this.letterGuesserServiceLocator == null) {
-			this.letterGuesserServiceLocator = new LetterGuesserServiceLocator(this, jochreSession);
-		}
-		return letterGuesserServiceLocator;
 	}
 
 	public AnalyserServiceLocator getAnalyserServiceLocator() {

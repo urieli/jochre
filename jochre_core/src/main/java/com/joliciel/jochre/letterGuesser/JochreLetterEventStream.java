@@ -42,13 +42,11 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 
-class JochreLetterEventStream implements ClassificationEventStream {
+public class JochreLetterEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
-	private LetterGuesserServiceInternal letterGuesserServiceInternal;
-
-	private BoundaryDetector boundaryDetector;
+	private final BoundaryDetector boundaryDetector;
 
 	private final Set<LetterFeature<?>> features;
 	private int shapeIndex = 0;
@@ -63,23 +61,26 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	private int invalidLetterCount = 0;
 
-	private CorpusSelectionCriteria criteria = null;
+	private final CorpusSelectionCriteria criteria;
 	private final JochreSession jochreSession;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param features
-	 *          the features to analyse when training
+	 *            the features to analyse when training
 	 * @param recalculateFeatures
-	 *          if true, features will be recalculated from scratch (slower, but
-	 *          doesn't require previous analysis & database storage space. If
-	 *          false, features will be loaded from the data store.
+	 *            if true, features will be recalculated from scratch (slower,
+	 *            but doesn't require previous analysis & database storage
+	 *            space. If false, features will be loaded from the data store.
 	 */
-	public JochreLetterEventStream(Set<LetterFeature<?>> features, LetterValidator letterValidator, JochreSession jochreSession) {
+	public JochreLetterEventStream(Set<LetterFeature<?>> features, BoundaryDetector boundaryDetector, LetterValidator letterValidator,
+			CorpusSelectionCriteria criteria, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
 		this.features = features;
+		this.boundaryDetector = boundaryDetector;
 		this.letterValidator = letterValidator;
+		this.criteria = criteria;
 	}
 
 	@Override
@@ -90,7 +91,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 			if (this.hasNext()) {
 				Shape shape = shapeInSequence.getShape();
 				LOG.debug("next event, shape: " + shape);
-				LetterGuesserContext context = this.letterGuesserServiceInternal.getContext(shapeInSequence, history);
+				LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
 
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 				MONITOR.startTask("analyse features");
@@ -142,8 +143,10 @@ class JochreLetterEventStream implements ClassificationEventStream {
 					Shape shape = shapeInSequence.getShape();
 					String letter = shape.getLetter();
 					if (!letterValidator.validate(letter)) {
-						// if there's an invalid letter, skip the rest of this group
-						// note we allow empty letters (which is how we indicate ink smudges
+						// if there's an invalid letter, skip the rest of this
+						// group
+						// note we allow empty letters (which is how we indicate
+						// ink smudges
 						// in the text)
 						LOG.debug("Invalid letter for shape " + shapeInSequence.getOriginalShapes().get(0).getId() + ": " + letter);
 						invalidLetterCount++;
@@ -172,7 +175,8 @@ class JochreLetterEventStream implements ClassificationEventStream {
 		if (groupReader.hasNext()) {
 			GroupOfShapes group = groupReader.next();
 			if (boundaryDetector != null) {
-				// in this case the boundary detector is supposed to give us the correct
+				// in this case the boundary detector is supposed to give us the
+				// correct
 				// splits and merges
 				shapeSequence = boundaryDetector.findBoundaries(group).get(0);
 			} else {
@@ -182,7 +186,7 @@ class JochreLetterEventStream implements ClassificationEventStream {
 					shapeSequence.addShape(shape);
 			}
 
-			history = this.letterGuesserServiceInternal.getEmptyLetterSequence(shapeSequence);
+			history = new LetterSequence(shapeSequence, jochreSession);
 
 		}
 	}
@@ -193,23 +197,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 			groupReader.setSelectionCriteria(criteria);
 			this.getNextGroup();
 		}
-
-	}
-
-	public LetterGuesserServiceInternal getLetterGuesserServiceInternal() {
-		return letterGuesserServiceInternal;
-	}
-
-	public void setLetterGuesserServiceInternal(LetterGuesserServiceInternal letterGuesserServiceInternal) {
-		this.letterGuesserServiceInternal = letterGuesserServiceInternal;
-	}
-
-	public BoundaryDetector getBoundaryDetector() {
-		return boundaryDetector;
-	}
-
-	public void setBoundaryDetector(BoundaryDetector boundaryDetector) {
-		this.boundaryDetector = boundaryDetector;
 	}
 
 	@Override
@@ -223,10 +210,6 @@ class JochreLetterEventStream implements ClassificationEventStream {
 
 	public CorpusSelectionCriteria getCriteria() {
 		return criteria;
-	}
-
-	public void setCriteria(CorpusSelectionCriteria criteria) {
-		this.criteria = criteria;
 	}
 
 }

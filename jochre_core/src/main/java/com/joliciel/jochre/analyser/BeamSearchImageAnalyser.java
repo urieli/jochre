@@ -39,7 +39,6 @@ import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.talismane.machineLearning.Decision;
@@ -61,7 +60,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
 
 	private AnalyserServiceInternal analyserServiceInternal;
-	private LetterGuesserService letterGuesserService;
 
 	private MostLikelyWordChooser mostLikelyWordChooser;
 	private BoundaryDetector boundaryDetector;
@@ -138,15 +136,17 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 						shapeSequences.add(shapeSequence);
 					}
 
-					// Perform a beam search to guess the most likely sequence for this
+					// Perform a beam search to guess the most likely sequence
+					// for this
 					// word
 					TreeMap<Integer, PriorityQueue<LetterSequence>> heaps = new TreeMap<Integer, PriorityQueue<LetterSequence>>();
 
-					// prime a starter heap with the n best shape boundary analyses for
+					// prime a starter heap with the n best shape boundary
+					// analyses for
 					// this group
 					PriorityQueue<LetterSequence> starterHeap = new PriorityQueue<LetterSequence>(1);
 					for (ShapeSequence shapeSequence : shapeSequences) {
-						LetterSequence emptySequence = this.getLetterGuesserService().getEmptyLetterSequence(shapeSequence);
+						LetterSequence emptySequence = new LetterSequence(shapeSequence, jochreSession);
 						starterHeap.add(emptySequence);
 					}
 					heaps.put(0, starterHeap);
@@ -198,7 +198,7 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								for (Decision letterGuess : shape.getLetterGuesses()) {
 									// leave out very low probability outcomes
 									if (letterGuess.getProbability() > this.minOutcomeWeight) {
-										LetterSequence sequence = this.getLetterGuesserService().getLetterSequencePlusOne(history);
+										LetterSequence sequence = new LetterSequence(history);
 										sequence.getLetters().add(letterGuess.getOutcome());
 										sequence.addDecision(letterGuess);
 										heap.add(sequence);
@@ -227,10 +227,12 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 						} else {
 							// get most likely sequence using lexicon
 							if (holdoverSequences != null) {
-								// we have a holdover from the previous row ending with a dash
+								// we have a holdover from the previous row
+								// ending with a dash
 								bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
 							} else {
-								// check if this is the last group on the row and could end with
+								// check if this is the last group on the row
+								// and could end with
 								// a dash
 								boolean shouldBeHeldOver = false;
 								if (group.getIndex() == row.getGroups().size() - 1 && row.getIndex() < paragraph.getRows().size() - 1) {
@@ -336,14 +338,6 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	@Override
 	public void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser) {
 		this.mostLikelyWordChooser = mostLikelyWordChooser;
-	}
-
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
 	}
 
 	@Override

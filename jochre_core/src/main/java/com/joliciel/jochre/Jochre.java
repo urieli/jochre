@@ -96,8 +96,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.features.VerticalElongationFeature;
 import com.joliciel.jochre.letterGuesser.ComponentCharacterValidator;
+import com.joliciel.jochre.letterGuesser.JochreLetterEventStream;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
@@ -174,7 +174,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 	DocumentService documentService;
 	AnalyserService analyserService;
-	LetterGuesserService letterGuesserService;
 
 	int userId = -1;
 	String dataSourcePropertiesPath;
@@ -202,7 +201,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		documentService = locator.getDocumentServiceLocator().getDocumentService();
 		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
-		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -922,7 +920,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
 
-		ClassificationEventStream corpusEventStream = letterGuesserService.getJochreLetterEventStream(criteria, features, boundaryDetector, letterValidator);
+		ClassificationEventStream corpusEventStream = new JochreLetterEventStream(features, boundaryDetector, letterValidator, criteria, jochreSession);
 
 		File letterModelFile = new File(letterModelPath);
 		letterModelFile.getParentFile().mkdirs();
@@ -966,7 +964,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
 		String baseName = letterModelPath.substring(0, letterModelPath.indexOf("."));
 		if (baseName.lastIndexOf("/") > 0)
@@ -1102,7 +1100,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
 		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
 		analyser.setLetterGuesser(letterGuesser);
@@ -1133,7 +1131,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
 		analyser.setLetterGuesser(letterGuesser);
 		analyser.setMostLikelyWordChooser(wordChooser);
@@ -1221,7 +1219,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
 		if (splitModelPath.length() == 0)
 			throw new RuntimeException("Missing argument: splitModel");

@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.utils.CountedOutcome;
 import com.typesafe.config.Config;
@@ -52,7 +51,6 @@ public class MostLikelyWordChooser {
 	private boolean frequencyAdjusted = false;
 
 	private final Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
-	private LetterGuesserService letterGuesserService = null;
 	private final WordSplitter wordSplitter;
 	private final Lexicon lexicon;
 	private Set<String> midWordPunctuation = new HashSet<String>();
@@ -115,7 +113,7 @@ public class MostLikelyWordChooser {
 				}
 			}
 			for (LetterSequence letterSequence : heap) {
-				LetterSequence combinedSequence = this.getLetterGuesserService().getLetterSequence(sequenceWithDash, letterSequence);
+				LetterSequence combinedSequence = new LetterSequence(sequenceWithDash, letterSequence);
 				combinedHeap.add(combinedSequence);
 			}
 		}
@@ -159,7 +157,7 @@ public class MostLikelyWordChooser {
 			// we need to get a geometric mean of the shapes
 			// in the best separate ones, and adjust for the lowest frequency
 			// word
-			LetterSequence separateSequence = this.letterGuesserService.getLetterSequence(bestHoldoverSequence, bestNextRowSequence);
+			LetterSequence separateSequence = new LetterSequence(bestHoldoverSequence, bestNextRowSequence);
 			int minFrequency = bestHoldoverSequence.getFrequency() < bestNextRowSequence.getFrequency() ? bestHoldoverSequence.getFrequency()
 					: bestNextRowSequence.getFrequency();
 			double freqLog = this.getFrequencyAdjustment(minFrequency);
@@ -176,7 +174,7 @@ public class MostLikelyWordChooser {
 			} else {
 				if (LOG.isDebugEnabled())
 					LOG.debug("Using separate sequences");
-				bestSequence = this.getLetterGuesserService().getLetterSequence(bestHoldoverSequence, bestNextRowSequence);
+				bestSequence = new LetterSequence(bestHoldoverSequence, bestNextRowSequence);
 			}
 			if (LOG.isDebugEnabled())
 				LOG.debug("Best with holdover: " + bestSequence.toString());
@@ -308,9 +306,9 @@ public class MostLikelyWordChooser {
 					if (word.equals("-") || midWordPunctuation.contains(word) || startWordPunctuation.contains(word) || endWordPunctuation.contains(word)) {
 						LetterSequence prevSequence = possibility.size() == 0 ? null : possibility.get(possibility.size() - 1);
 						LetterSequence nextSequence = i == subsequences.size() - 1 ? null : subsequences.get(i + 1);
-						LetterSequence prevCurrentSequence = letterGuesserService.getLetterSequence(prevSequence, subsequence);
-						LetterSequence currentNextSequence = letterGuesserService.getLetterSequence(subsequence, nextSequence);
-						LetterSequence prevCurrentNextSequence = letterGuesserService.getLetterSequence(prevCurrentSequence, nextSequence);
+						LetterSequence prevCurrentSequence = new LetterSequence(prevSequence, subsequence);
+						LetterSequence currentNextSequence = new LetterSequence(subsequence, nextSequence);
+						LetterSequence prevCurrentNextSequence = new LetterSequence(prevCurrentSequence, nextSequence);
 
 						if (word.equals("-")) {
 							if (prevSequence == null && nextSequence == null) {
@@ -356,7 +354,7 @@ public class MostLikelyWordChooser {
 									prevCurrentSequence.setHyphenSubsequence(subsequence);
 									currentNextSequence.setHyphenSubsequence(subsequence);
 
-									LetterSequence prevNextSequence = letterGuesserService.getLetterSequence(prevCurrentSequence, nextSequence);
+									LetterSequence prevNextSequence = new LetterSequence(prevCurrentSequence, nextSequence);
 									prevNextSequence.setHyphenSubsequence(subsequence);
 									prevNextSequence.setSoftHyphen(true);
 
@@ -524,14 +522,6 @@ public class MostLikelyWordChooser {
 
 	public WordSplitter getWordSplitter() {
 		return wordSplitter;
-	}
-
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
 	}
 
 	/**

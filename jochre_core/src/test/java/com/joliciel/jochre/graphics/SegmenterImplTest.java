@@ -29,17 +29,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import mockit.Mocked;
 
 public class SegmenterImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(SegmenterImplTest.class);
 
 	@Test
-	public void testGetShape(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
+	public void testGetShape() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -72,7 +69,7 @@ public class SegmenterImplTest {
 	}
 
 	@Test
-	public void testSplitShape(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
+	public void testSplitShape() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -126,7 +123,7 @@ public class SegmenterImplTest {
 	}
 
 	@Test
-	public void testSegment(@Mocked final LetterGuesserService letterGuesserService) throws Exception {
+	public void testSegment() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();

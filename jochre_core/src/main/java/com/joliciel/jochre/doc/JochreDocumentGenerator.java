@@ -45,7 +45,6 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Segmenter;
 import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
@@ -70,7 +69,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 	private static String SUFFIX = "png";
 	private DocumentService documentService;
-	private LetterGuesserService letterGuesserService;
 	private AnalyserService analyserService;
 
 	private File outputDirectory = null;
@@ -278,14 +276,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		this.documentService = documentService;
 	}
 
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
-	}
-
 	public AnalyserService getAnalyserService() {
 		return analyserService;
 	}
@@ -396,7 +386,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 			Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
-			LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+			LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 			ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(jochreSession);
 			analyser.setLetterGuesser(letterGuesser);
 			analyser.setMostLikelyWordChooser(wordChooser);
