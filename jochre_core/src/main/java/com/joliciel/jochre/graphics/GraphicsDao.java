@@ -52,7 +52,7 @@ public final class GraphicsDao {
 
 	private final JochreSession jochreSession;
 
-	public static Map<String, GraphicsDao> instances = new HashMap<>();
+	private static Map<String, GraphicsDao> instances = new HashMap<>();
 
 	public static GraphicsDao getInstance(JochreSession jochreSession) {
 		String key = DaoConfig.getKey(jochreSession.getConfig());
@@ -101,7 +101,7 @@ public final class GraphicsDao {
 		return shape;
 	}
 
-	public List<Shape> findShapes(GroupOfShapes group) {
+	List<Shape> findShapes(GroupOfShapes group) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_SHAPE + " FROM ocr_shape WHERE shape_group_id=:shape_group_id" + " ORDER BY shape_index";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -115,7 +115,7 @@ public final class GraphicsDao {
 		return shapes;
 	}
 
-	public List<Shape> findShapes(RowOfShapes row) {
+	List<Shape> findShapes(RowOfShapes row) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_SHAPE + " FROM ocr_shape" + " INNER JOIN ocr_group ON shape_group_id = group_id" + " WHERE group_row_id = :group_row_id"
 				+ " ORDER BY group_index, shape_index";
@@ -212,7 +212,7 @@ public final class GraphicsDao {
 		return image;
 	}
 
-	public void loadOriginalImage(JochreImage jochreImage) {
+	void loadOriginalImage(JochreImage jochreImage) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT image_image FROM ocr_image WHERE image_id=:image_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -225,7 +225,7 @@ public final class GraphicsDao {
 		jochreImage.setOriginalImageDB(image);
 	}
 
-	public void saveOriginalImage(JochreImage jochreImage) {
+	void saveOriginalImage(JochreImage jochreImage) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("image_id", jochreImage.getId());
@@ -278,9 +278,10 @@ public final class GraphicsDao {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public JochreImage mapRow(SqlRowSet rs) {
+		JochreImage mapRow(SqlRowSet rs) {
 			JochreImage image = new JochreImage(jochreSession);
-			// image_id, image_name, image_width, image_height, image_black_threshold
+			// image_id, image_name, image_width, image_height,
+			// image_black_threshold
 			image.setId(rs.getInt("image_id"));
 			image.setName(rs.getString("image_name"));
 			image.setWidth(rs.getInt("image_width"));
@@ -302,7 +303,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public RowOfShapes loadRowOfShapes(int rowId) {
+	RowOfShapes loadRowOfShapes(int rowId) {
 		RowOfShapes row = this.jochreSession.getObjectCache().getEntity(RowOfShapes.class, rowId);
 		if (row == null) {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -325,7 +326,7 @@ public final class GraphicsDao {
 		return row;
 	}
 
-	public List<RowOfShapes> findRows(Paragraph paragraph) {
+	List<RowOfShapes> findRows(Paragraph paragraph) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_ROW + " FROM ocr_row WHERE row_paragraph_id=:row_paragraph_id" + " ORDER BY row_index";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -358,7 +359,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public GroupOfShapes loadGroupOfShapes(int groupId) {
+	GroupOfShapes loadGroupOfShapes(int groupId) {
 		GroupOfShapes group = this.jochreSession.getObjectCache().getEntity(GroupOfShapes.class, groupId);
 		if (group == null) {
 			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
@@ -380,7 +381,7 @@ public final class GraphicsDao {
 		return group;
 	}
 
-	public List<GroupOfShapes> findGroups(RowOfShapes row) {
+	List<GroupOfShapes> findGroups(RowOfShapes row) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_GROUP + " FROM ocr_group WHERE group_row_id=:group_row_id" + " ORDER BY group_index";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -397,7 +398,7 @@ public final class GraphicsDao {
 	/**
 	 * Returns a list of any groups containing shapes that need to be merged.
 	 */
-	public List<GroupOfShapes> findGroupsForMerge() {
+	List<GroupOfShapes> findGroupsForMerge() {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_GROUP + " FROM ocr_group WHERE group_id IN" + " (SELECT shape_group_id FROM ocr_shape WHERE shape_letter LIKE '%|%')"
 				+ " ORDER BY group_id";
@@ -418,7 +419,7 @@ public final class GraphicsDao {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public GroupOfShapes mapRow(SqlRowSet rs) {
+		GroupOfShapes mapRow(SqlRowSet rs) {
 			GroupOfShapes group = new GroupOfShapes(jochreSession);
 			// group_id, group_row_id, group_index
 			group.setId(rs.getInt("group_id"));
@@ -433,7 +434,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public void saveShape(Shape shape) {
+	void saveShape(Shape shape) {
 		// note: update will not update the pixels (not strictly required).
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -463,7 +464,8 @@ public final class GraphicsDao {
 			sql = "INSERT INTO ocr_shape (shape_id, shape_top, shape_left, shape_bottom, shape_right"
 					+ ", shape_cap_line, shape_mean_line, shape_base_line, shape_pixels, shape_letter, shape_group_id" + ", shape_index, shape_original_guess) "
 					+ "VALUES (:shape_id, :shape_top, :shape_left, :shape_bottom, :shape_right"
-					+ ", :shape_cap_line, :shape_mean_line, :shape_base_line, :shape_pixels, :shape_letter, :shape_group_id" + ", :shape_index, :shape_original_guess)";
+					+ ", :shape_cap_line, :shape_mean_line, :shape_base_line, :shape_pixels, :shape_letter, :shape_group_id"
+					+ ", :shape_index, :shape_original_guess)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -475,8 +477,8 @@ public final class GraphicsDao {
 
 			sql = "UPDATE ocr_shape" + " SET shape_top = :shape_top" + ", shape_left = :shape_left" + ", shape_bottom = :shape_bottom"
 					+ ", shape_right = :shape_right" + ", shape_cap_line = :shape_cap_line" + ", shape_mean_line = :shape_mean_line"
-					+ ", shape_base_line = :shape_base_line" + ", shape_letter = :shape_letter" + ", shape_group_id = :shape_group_id" + ", shape_index = :shape_index "
-					+ ", shape_original_guess = :shape_original_guess " + " WHERE shape_id = :shape_id";
+					+ ", shape_base_line = :shape_base_line" + ", shape_letter = :shape_letter" + ", shape_group_id = :shape_group_id"
+					+ ", shape_index = :shape_index " + ", shape_original_guess = :shape_original_guess " + " WHERE shape_id = :shape_id";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -537,10 +539,10 @@ public final class GraphicsDao {
 			paramSource.addValue("image_id", image.getId());
 
 			sql = "UPDATE ocr_image" + " SET image_name = :image_name" + ", image_width = :image_width" + ", image_height = :image_height"
-					+ ", image_black_threshold = :image_black_threshold" + ", image_sep_threshold = :image_sep_threshold" + ", image_black_limit = :image_black_limit"
-					+ ", image_white_limit = :image_white_limit" + ", image_white_gap_fill_factor = :image_white_gap_fill_factor" + ", image_page_id = :image_page_id"
-					+ ", image_index = :image_index" + ", image_imgstatus_id = :image_imgstatus_id" + ", image_owner_id = :image_owner_id"
-					+ " WHERE image_id = :image_id";
+					+ ", image_black_threshold = :image_black_threshold" + ", image_sep_threshold = :image_sep_threshold"
+					+ ", image_black_limit = :image_black_limit" + ", image_white_limit = :image_white_limit"
+					+ ", image_white_gap_fill_factor = :image_white_gap_fill_factor" + ", image_page_id = :image_page_id" + ", image_index = :image_index"
+					+ ", image_imgstatus_id = :image_imgstatus_id" + ", image_owner_id = :image_owner_id" + " WHERE image_id = :image_id";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -596,7 +598,7 @@ public final class GraphicsDao {
 
 	}
 
-	public void saveRowOfShapes(RowOfShapes row) {
+	void saveRowOfShapes(RowOfShapes row) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		RowOfShapes iRow = row;
@@ -635,7 +637,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public void saveGroupOfShapes(GroupOfShapes group) {
+	void saveGroupOfShapes(GroupOfShapes group) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		GroupOfShapes iGroup = group;
@@ -675,7 +677,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public Paragraph loadParagraph(int paragraphId) {
+	Paragraph loadParagraph(int paragraphId) {
 		Paragraph paragraph = this.jochreSession.getObjectCache().getEntity(Paragraph.class, paragraphId);
 		if (paragraph == null) {
 
@@ -696,7 +698,7 @@ public final class GraphicsDao {
 		return paragraph;
 	}
 
-	public List<Paragraph> findParagraphs(JochreImage jochreImage) {
+	List<Paragraph> findParagraphs(JochreImage jochreImage) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT " + SELECT_PARAGRAPH + " FROM ocr_paragraph WHERE paragraph_image_id=:paragraph_image_id" + " ORDER BY paragraph_index";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -721,7 +723,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public void saveParagraph(Paragraph paragraph) {
+	void saveParagraph(Paragraph paragraph) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		Paragraph iParagraph = paragraph;
@@ -736,7 +738,8 @@ public final class GraphicsDao {
 			int paragraphId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("paragraph_id", paragraphId);
 
-			sql = "INSERT INTO ocr_paragraph (paragraph_id, paragraph_image_id, paragraph_index) " + "VALUES (:paragraph_id, :paragraph_image_id, :paragraph_index)";
+			sql = "INSERT INTO ocr_paragraph (paragraph_id, paragraph_image_id, paragraph_index) "
+					+ "VALUES (:paragraph_id, :paragraph_image_id, :paragraph_index)";
 
 			LOG.debug(sql);
 			logParameters(paramSource);
@@ -755,7 +758,7 @@ public final class GraphicsDao {
 		}
 	}
 
-	public int getShapeCount(JochreImage jochreImage) {
+	int getShapeCount(JochreImage jochreImage) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		String sql = "SELECT count(*) FROM ocr_shape" + " INNER JOIN ocr_group ON shape_group_id = group_id" + " INNER JOIN ocr_row ON group_row_id = row_id"
 				+ " INNER JOIN ocr_paragraph ON row_paragraph_id = paragraph_id" + " INNER JOIN ocr_image ON paragraph_image_id = image_id"
@@ -793,7 +796,7 @@ public final class GraphicsDao {
 		return dataSource;
 	}
 
-	public static void logParameters(MapSqlParameterSource paramSource) {
+	static void logParameters(MapSqlParameterSource paramSource) {
 		DaoUtils.LogParameters(paramSource.getValues());
 	}
 }

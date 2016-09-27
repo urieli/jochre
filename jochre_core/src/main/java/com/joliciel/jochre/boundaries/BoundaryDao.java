@@ -115,7 +115,7 @@ public final class BoundaryDao {
 		}
 	}
 
-	public void saveSplit(Split split) {
+	void saveSplit(Split split) {
 		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
