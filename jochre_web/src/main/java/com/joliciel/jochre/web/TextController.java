@@ -49,8 +49,8 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.WordSplitter;
-import com.joliciel.jochre.output.OutputService;
-import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextGetter;
+import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
@@ -66,7 +66,6 @@ public class TextController extends GenericForwardComposer<Window> {
 	private JochreServiceLocator locator = null;
 	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
 	private DocumentService documentService;
-	private OutputService textService;
 
 	private JochreDocument currentDoc;
 	private JochreImage currentImage;
@@ -121,7 +120,6 @@ public class TextController extends GenericForwardComposer<Window> {
 
 			locator = JochreServiceLocator.getInstance(jochreSession);
 
-			textService = locator.getTextServiceLocator().getTextService();
 			documentService = locator.getDocumentServiceLocator().getDocumentService();
 
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
@@ -174,7 +172,7 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentImage != null) {
 				Html html = new Html();
 				StringWriter out = new StringWriter();
-				DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+				DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 				textGetter.onImageComplete(currentImage);
 				html.setContent(out.toString());
 				htmlContent.appendChild(html);
@@ -186,7 +184,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					for (JochreImage image : page.getImages()) {
 						Html html = new Html();
 						StringWriter out = new StringWriter();
-						DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+						DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 						textGetter.onImageComplete(image);
 						out.append("<HR/>");
 						html.setContent(out.toString());
@@ -409,7 +407,7 @@ public class TextController extends GenericForwardComposer<Window> {
 		public void onImageComplete(JochreImage jochreImage) {
 			Html html = new Html();
 			StringWriter out = new StringWriter();
-			DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+			DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 			textGetter.onImageComplete(jochreImage);
 			out.append("<HR/>");
 			html.setContent(out.toString());

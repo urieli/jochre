@@ -27,7 +27,7 @@ import freemarker.template.Version;
 /**
  * Outputs plain text based on guesses.
  **/
-class TextExporter extends AbstractExporter implements DocumentObserver {
+public class TextExporter extends AbstractExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(TextExporter.class);
 	private Template template;
 

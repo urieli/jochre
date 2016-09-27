@@ -27,7 +27,7 @@ import freemarker.template.Version;
 /**
  * Outputs to Jochre's lossless XML format.
  **/
-class JochreXMLExporter extends AbstractExporter implements DocumentObserver {
+public class JochreXMLExporter extends AbstractExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreXMLExporter.class);
 	private Writer writer;
 	private Template template;

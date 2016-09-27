@@ -27,7 +27,7 @@ import freemarker.template.Version;
 /**
  * Outputs to Alto 3.0 XML format, see http://www.loc.gov/standards/alto/
  **/
-class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
+public class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(AltoXMLExporter.class);
 	private Template template;
 

@@ -27,7 +27,7 @@ import freemarker.template.Version;
 /**
  * Outputs to the XML spec indicated by http://finereader.abbyy.com/
  **/
-class AbbyyFineReader8Exporter extends AbstractExporter implements DocumentObserver {
+public class AbbyyFineReader8Exporter extends AbstractExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(AbbyyFineReader8Exporter.class);
 	private Template template;
 	private boolean firstPage = true;

@@ -48,24 +48,29 @@ import com.joliciel.jochre.lexicon.Lexicon;
  * @author Assaf Urieli
  *
  */
-class TextGetterImpl extends AbstractExporter implements DocumentObserver {
-	private static final Logger LOG = LoggerFactory.getLogger(TextGetterImpl.class);
+public class TextGetter extends AbstractExporter implements DocumentObserver {
+	public enum TextFormat {
+		PLAIN,
+		XHTML;
+	}
+
+	private static final Logger LOG = LoggerFactory.getLogger(TextGetter.class);
 
 	private TextFormat textFormat = TextFormat.PLAIN;
 	private Lexicon lexicon;
 
-	public TextGetterImpl(Writer writer, TextFormat textFormat) {
+	public TextGetter(Writer writer, TextFormat textFormat) {
 		this(writer, textFormat, null);
 	}
 
-	public TextGetterImpl(Writer writer, TextFormat textFormat, Lexicon lexicon) {
+	public TextGetter(Writer writer, TextFormat textFormat, Lexicon lexicon) {
 		super(writer);
 		this.writer = writer;
 		this.textFormat = textFormat;
 		this.lexicon = lexicon;
 	}
 
-	public TextGetterImpl(File outputDir, TextFormat textFormat, Lexicon lexicon) {
+	public TextGetter(File outputDir, TextFormat textFormat, Lexicon lexicon) {
 		super(outputDir, textFormat == TextFormat.PLAIN ? ".txt" : ".htm");
 		this.textFormat = textFormat;
 		this.lexicon = lexicon;

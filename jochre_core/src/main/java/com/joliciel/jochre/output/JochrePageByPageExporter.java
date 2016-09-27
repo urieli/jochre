@@ -33,7 +33,7 @@ import freemarker.template.Version;
  * Outputs to Jochre's lossless XML format on a page-by-page basis, along with
  * the image.
  **/
-class JochrePageByPageExporter implements DocumentObserver {
+public class JochrePageByPageExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(JochrePageByPageExporter.class);
 	private Template template;
 	private String baseName;

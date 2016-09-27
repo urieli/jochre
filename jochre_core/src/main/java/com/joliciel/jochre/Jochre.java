@@ -114,11 +114,15 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.UnknownWordListWriter;
 import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.output.AbbyyFineReader8Exporter;
+import com.joliciel.jochre.output.AltoXMLExporter;
 import com.joliciel.jochre.output.ImageExtractor;
+import com.joliciel.jochre.output.JochrePageByPageExporter;
+import com.joliciel.jochre.output.JochreXMLExporter;
 import com.joliciel.jochre.output.MetaDataExporter;
-import com.joliciel.jochre.output.OutputService;
-import com.joliciel.jochre.output.OutputService.ExportFormat;
-import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextExporter;
+import com.joliciel.jochre.output.TextGetter;
+import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageSaver;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.security.SecurityDao;
@@ -470,7 +474,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				scanner.close();
 			}
 
-			OutputService outputService = locator.getTextServiceLocator().getTextService();
 			MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(this.getLexicon(), this.getWordSplitter(), jochreSession);
 
 			jochreSession.setJunkConfidenceThreshold(junkThreshold);
@@ -499,7 +502,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					baseName = this.getBaseName(inFile);
 				}
 
-				observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
+				observers = this.getObservers(outputFormats, baseName, outputDir);
 			}
 
 			if (userFriendlyName.length() == 0)
@@ -586,7 +589,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 						String baseName = this.getBaseName(pdfFile);
 						File analysisDir = new File(inDir, baseName);
 						analysisDir.mkdirs();
-						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, outputService);
+						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir);
 						File letterModelFile = new File(letterModelPath);
 						File splitModelFile = null;
 						File mergeModelFile = null;
@@ -1562,7 +1565,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		this.lexiconPath = lexiconPath;
 	}
 
-	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir, OutputService outputService) {
+	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir) {
 		try {
 			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 
@@ -1575,7 +1578,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					analysisFile.delete();
 					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Abbyy);
+					DocumentObserver observer = new AbbyyFineReader8Exporter(analysisFileWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1587,10 +1590,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						analysisFile.delete();
 						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Alto);
+						DocumentObserver observer = new AltoXMLExporter(analysisFileWriter);
 						observers.add(observer);
 					} else {
-						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.Alto);
+						DocumentObserver observer = new AltoXMLExporter(outputDir);
 						observers.add(observer);
 					}
 					break;
@@ -1605,7 +1608,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					zos.putNextEntry(zipEntry);
 					Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 
-					DocumentObserver observer = outputService.getExporter(zipWriter, ExportFormat.Alto);
+					DocumentObserver observer = new AltoXMLExporter(zipWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1618,10 +1621,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.XHTML, this.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1635,10 +1638,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1651,10 +1654,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						analysisFile.delete();
 						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.GuessedText);
+						DocumentObserver observer = new TextExporter(analysisFileWriter);
 						observers.add(observer);
 					} else {
-						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.GuessedText);
+						DocumentObserver observer = new TextExporter(outputDir);
 						observers.add(observer);
 					}
 					break;
@@ -1671,7 +1674,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					analysisFile.delete();
 					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Jochre);
+					DocumentObserver observer = new JochreXMLExporter(analysisFileWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1679,7 +1682,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					outputDir.mkdirs();
 					File zipFile = new File(outputDir, baseName + "_jochre.zip");
 
-					DocumentObserver observer = outputService.getJochrePageByPageExporter(zipFile, baseName);
+					DocumentObserver observer = new JochrePageByPageExporter(zipFile, baseName);
 					observers.add(observer);
 					break;
 				}

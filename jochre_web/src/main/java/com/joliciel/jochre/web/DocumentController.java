@@ -44,9 +44,8 @@ import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.output.OutputService;
-import com.joliciel.jochre.output.OutputServiceLocator;
-import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextGetter;
+import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
 import com.typesafe.config.ConfigFactory;
@@ -299,8 +298,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 				label = Labels.getLabel("docs.documents.page",
 						new Object[] { image.getPage().getIndex(), Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
 				if (image.getPage().getImages().size() > 1)
-					label = Labels.getLabel("docs.documents.image",
-							new Object[] { image.getPage().getIndex(), image.getIndex() + 1, Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
+					label = Labels.getLabel("docs.documents.image", new Object[] { image.getPage().getIndex(), image.getIndex() + 1,
+							Labels.getLabel("ImageStatus." + image.getImageStatus().getCode()) });
 			} else {
 				label = Labels.getLabel("docs.documents.page", new Object[] { page.getIndex(), "No image" });
 
@@ -435,9 +434,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 				LOG.debug(file.getName());
 				OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
-				OutputServiceLocator textServiceLocator = locator.getTextServiceLocator();
-				OutputService textService = textServiceLocator.getTextService();
-				DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.PLAIN);
+				DocumentObserver textGetter = new TextGetter(out, TextFormat.PLAIN);
 				textGetter.onImageComplete(currentImage);
 				out.flush();
 				out.close();
@@ -509,8 +506,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		LOG.debug("onClick$btnDeleteImage");
 		try {
 			if (currentDoc != null && currentImage != null) {
-				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"), Messagebox.OK | Messagebox.CANCEL,
-						Messagebox.QUESTION, new EventListener<Event>() {
+				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"),
+						Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
 
 							@Override
 							public void onEvent(Event event) throws Exception {
@@ -524,8 +521,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 							}
 						});
 			} else if (currentDoc != null && currentPage != null) {
-				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"), Messagebox.OK | Messagebox.CANCEL,
-						Messagebox.QUESTION, new EventListener<Event>() {
+				Messagebox.show(Labels.getLabel("docs.imageDetails.deleteConfirm"), Labels.getLabel("button.areYouSureTitle"),
+						Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
 
 							@Override
 							public void onEvent(Event event) throws Exception {
