@@ -19,6 +19,7 @@
 package com.joliciel.jochre.doc;
 
 import com.joliciel.jochre.Entity;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * The author (or co-author) of a document being scanned.
@@ -27,16 +28,22 @@ import com.joliciel.jochre.Entity;
  *
  */
 public class Author implements Entity {
-	private DocumentServiceInternal documentServiceInternal;
 	private String firstName;
 	private String lastName;
 	private String firstNameLocal;
 	private String lastNameLocal;
 	private int id;
 
+	private final JochreSession jochreSession;
+
+	public Author(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
+
 	@Override
 	public void save() {
-		this.documentServiceInternal.saveAuthor(this);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		documentDao.saveAuthor(this);
 	}
 
 	public String getFirstName() {
@@ -69,14 +76,6 @@ public class Author implements Entity {
 
 	public void setLastNameLocal(String lastNameLocal) {
 		this.lastNameLocal = lastNameLocal;
-	}
-
-	public DocumentServiceInternal getDocumentServiceInternal() {
-		return documentServiceInternal;
-	}
-
-	public void setDocumentServiceInternal(DocumentServiceInternal documentServiceInternal) {
-		this.documentServiceInternal = documentServiceInternal;
 	}
 
 	public String getFullName() {

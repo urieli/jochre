@@ -69,7 +69,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	private static final Logger LOG = LoggerFactory.getLogger(JochreDocumentGenerator.class);
 
 	private static String SUFFIX = "png";
-	private DocumentService documentService;
 
 	private File outputDirectory = null;
 	private String filename = "";
@@ -122,7 +121,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		LOG.debug("JochreDocumentGeneratorImpl.onDocumentStart");
 
 		if (this.doc == null) {
-			this.doc = this.documentService.getEmptyJochreDocument(jochreSession);
+			this.doc = new JochreDocument(jochreSession);
 
 			this.doc.setFileName(filename);
 			this.doc.setName(userFriendlyName);
@@ -266,14 +265,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 		} finally {
 			LOG.debug("Exit JochreDocumentGeneratorImpl.onImageFound");
 		}
-	}
-
-	public DocumentService getDocumentService() {
-		return documentService;
-	}
-
-	public void setDocumentService(DocumentService documentService) {
-		this.documentService = documentService;
 	}
 
 	@Override

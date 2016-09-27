@@ -43,7 +43,6 @@ import com.joliciel.talismane.utils.PersistentListImpl;
 public class JochreDocument implements Entity {
 	@SuppressWarnings("unused")
 	private static final Logger LOG = LoggerFactory.getLogger(JochreDocument.class);
-	private DocumentServiceInternal documentServiceInternal;
 
 	private int id;
 
@@ -84,8 +83,10 @@ public class JochreDocument implements Entity {
 		if (this.pages == null) {
 			if (this.id == 0)
 				this.pages = new ArrayList<JochrePage>();
-			else
-				this.pages = this.documentServiceInternal.findPages(this);
+			else {
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+				this.pages = documentDao.findJochrePages(this);
+			}
 		}
 		return pages;
 	}
@@ -106,7 +107,8 @@ public class JochreDocument implements Entity {
 
 	@Override
 	public void save() {
-		this.documentServiceInternal.saveJochreDocument(this);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		documentDao.saveJochreDocument(this);
 		if (this.pages != null) {
 			for (JochrePage page : this.pages) {
 				page.save();
@@ -114,7 +116,7 @@ public class JochreDocument implements Entity {
 		}
 		if (this.authors != null) {
 			if (this.authors.isDirty()) {
-				this.documentServiceInternal.replaceAuthors(this);
+				documentDao.replaceAuthors(this);
 			}
 		}
 	}
@@ -313,18 +315,11 @@ public class JochreDocument implements Entity {
 		if (this.authors == null) {
 			this.authors = new PersistentListImpl<Author>();
 			if (this.id != 0) {
-				this.authors.addAllFromDB(this.getDocumentServiceInternal().findAuthors(this));
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+				this.authors.addAllFromDB(documentDao.findAuthors(this));
 			}
 		}
 		return authors;
-	}
-
-	public DocumentServiceInternal getDocumentServiceInternal() {
-		return documentServiceInternal;
-	}
-
-	public void setDocumentServiceInternal(DocumentServiceInternal documentServiceInternal) {
-		this.documentServiceInternal = documentServiceInternal;
 	}
 
 	@Override
@@ -358,8 +353,10 @@ public class JochreDocument implements Entity {
 		JochrePage page = image.getPage();
 		boolean lastImageOnPage = (page.getImages().size() == 1);
 		this.graphicsDao.deleteJochreImage(image);
-		if (lastImageOnPage)
-			this.getDocumentServiceInternal().deleteJochrePage(page);
+		if (lastImageOnPage) {
+			DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+			documentDao.deleteJochrePage(page);
+		}
 		this.getPages().remove(page);
 	}
 
@@ -372,7 +369,9 @@ public class JochreDocument implements Entity {
 			this.graphicsDao.deleteJochreImage(image);
 		}
 
-		this.getDocumentServiceInternal().deleteJochrePage(page);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+
+		documentDao.deleteJochrePage(page);
 		this.getPages().remove(page);
 	}
 

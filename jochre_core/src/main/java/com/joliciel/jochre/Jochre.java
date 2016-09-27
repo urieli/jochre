@@ -78,8 +78,8 @@ import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
@@ -173,8 +173,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		GuessText
 	}
 
-	DocumentService documentService;
-
 	int userId = -1;
 	String dataSourcePropertiesPath;
 
@@ -197,9 +195,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	}
 
 	private void initialise() {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance(jochreSession);
-
-		documentService = locator.getDocumentServiceLocator().getDocumentService();
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -274,7 +269,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		int excludeIndex = -1;
 		Set<Integer> documentSet = null;
 		String suffix = "";
-		String dataSourcePath = null;
 		String docGroupPath = null;
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
@@ -379,8 +373,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				docGroupPath = argValue;
 			else if (argName.equals("suffix"))
 				suffix = argValue;
-			else if (argName.equals("dataSource"))
-				dataSourcePath = argValue;
 			else if (argName.equals("encoding"))
 				encoding = argValue;
 			else if (argName.equals("performanceConfigFile"))
@@ -426,10 +418,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 			CSVFormatter.setGlobalCsvSeparator(csvSeparator);
 			if (csvLocale != null)
 				CSVFormatter.setGlobalLocale(Locale.forLanguageTag(csvLocale));
-
-			JochreServiceLocator locator = JochreServiceLocator.getInstance(jochreSession);
-			if (dataSourcePath != null)
-				locator.setDataSourcePropertiesFile(dataSourcePath);
 
 			this.initialise();
 
@@ -1147,7 +1135,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		ImageAnalyser analyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
 		analyser.addObserver(letterGuessObserver);
 
-		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(sourceFile.getName(), "", jochreSession);
+		JochreDocumentGenerator documentGenerator = new JochreDocumentGenerator(sourceFile.getName(), "", jochreSession);
 		documentGenerator.addDocumentObserver(analyser);
 
 		for (DocumentObserver observer : observers)
@@ -1162,10 +1150,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 			pdfImageVisitor.visitImages();
 		} else if (sourceFile.getName().toLowerCase().endsWith(".png") || sourceFile.getName().toLowerCase().endsWith(".jpg")
 				|| sourceFile.getName().toLowerCase().endsWith(".jpeg") || sourceFile.getName().toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
 			extractor.extractDocument();
 		} else if (sourceFile.isDirectory()) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1332,7 +1320,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (docId < 0)
 			throw new RuntimeException("Missing argument: docId");
 
-		JochreDocument doc = documentService.loadJochreDocument(docId);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		JochreDocument doc = documentDao.loadJochreDocument(docId);
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
 			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(pdfFile, firstPage, lastPage, new PdfImageUpdater(doc));
@@ -1407,7 +1396,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		File file = new File(filename);
-		JochreDocumentGenerator sourceFileProcessor = this.documentService.getJochreDocumentGenerator(file.getName(), userFriendlyName, jochreSession);
+		JochreDocumentGenerator sourceFileProcessor = new JochreDocumentGenerator(file.getName(), userFriendlyName, jochreSession);
 		sourceFileProcessor.setDrawPixelSpread(drawPixelSpread);
 		if (save)
 			sourceFileProcessor.requestSave(user);
@@ -1424,7 +1413,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			pdfImageVisitor.visitImages();
 		} else if (filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")
 				|| filename.toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(file, sourceFileProcessor);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(file, sourceFileProcessor);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");

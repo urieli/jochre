@@ -36,10 +36,9 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timer;
 import org.zkoss.zul.Window;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
@@ -62,10 +61,7 @@ public class TextController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 5620794383603025597L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TextController.class);
-
-	private JochreServiceLocator locator = null;
 	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
-	private DocumentService documentService;
 
 	private JochreDocument currentDoc;
 	private JochreImage currentImage;
@@ -118,10 +114,6 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentUser == null)
 				Executions.sendRedirect("login.zul");
 
-			locator = JochreServiceLocator.getInstance(jochreSession);
-
-			documentService = locator.getDocumentServiceLocator().getDocumentService();
-
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 			if (request.getParameter("imageId") != null) {
 				int imageId = Integer.parseInt(request.getParameter("imageId"));
@@ -133,7 +125,8 @@ public class TextController extends GenericForwardComposer<Window> {
 				startRenderTimer.setRunning(true);
 			} else if (request.getParameter("docId") != null) {
 				int docId = Integer.parseInt(request.getParameter("docId"));
-				currentDoc = documentService.loadJochreDocument(docId);
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+				currentDoc = documentDao.loadJochreDocument(docId);
 				if (request.getParameter("addPages") != null) {
 					uploadPanel.setVisible(true);
 					// progressBox.setVisible(false);
@@ -255,10 +248,10 @@ public class TextController extends GenericForwardComposer<Window> {
 				if (this.currentDoc != null) {
 					this.currentDoc.setFileName(currentFile.getName());
 					this.currentDoc.save();
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(this.currentDoc, jochreSession);
+					this.documentGenerator = new JochreDocumentGenerator(this.currentDoc, jochreSession);
 					this.documentGenerator.requestSave(currentUser);
 				} else {
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", jochreSession);
+					this.documentGenerator = new JochreDocumentGenerator(currentFile.getName(), "", jochreSession);
 				}
 
 				File letterModelFile = jochreProperties.getLetterModelFile();
@@ -285,7 +278,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					progressTimer.setRunning(true);
 				} else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")
 						|| lowerCaseFileName.endsWith(".gif")) {
-					ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(currentFile, documentGenerator);
+					ImageDocumentExtractor extractor = new ImageDocumentExtractor(currentFile, documentGenerator);
 					if (startPage >= 0)
 						extractor.setPageNumber(startPage);
 					this.progressMonitor = extractor.monitorTask();

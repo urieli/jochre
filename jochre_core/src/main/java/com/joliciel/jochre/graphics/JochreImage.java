@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.doc.DocumentService;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
 import com.joliciel.jochre.graphics.util.ImagePixelGrabberImpl;
@@ -74,9 +74,6 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	private ImagePixelGrabber pixelGrabber;
 
 	private double confidence = -1;
-
-	DocumentService documentService;
-
 	ImageStatus imageStatus;
 
 	private Map<String, Shape> shapeMap = null;
@@ -237,8 +234,10 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	 * The page containing this image (in multi-page documents).
 	 */
 	public JochrePage getPage() {
-		if (this.page == null && this.pageId != 0)
-			this.page = this.documentService.loadJochrePage(this.pageId);
+		if (this.page == null && this.pageId != 0) {
+			DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+			this.page = documentDao.loadJochrePage(this.pageId);
+		}
 		return page;
 	}
 
@@ -389,14 +388,6 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 
 	void setOriginalImageDB(BufferedImage originalImage) {
 		this.originalImage = originalImage;
-	}
-
-	public DocumentService getDocumentService() {
-		return documentService;
-	}
-
-	public void setDocumentService(DocumentService documentService) {
-		this.documentService = documentService;
 	}
 
 	/**

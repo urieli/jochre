@@ -23,13 +23,11 @@ import java.util.List;
 import java.util.Set;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.doc.DocumentService;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 
 public abstract class JochreCorpusReader {
-	private DocumentService documentService;
-
 	private List<JochreImage> images = null;
 
 	private CorpusSelectionCriteria selectionCriteria = null;
@@ -50,7 +48,8 @@ public abstract class JochreCorpusReader {
 				images.add(jochreImage);
 			} else if (selectionCriteria.getDocumentSelections() != null) {
 				for (String docName : selectionCriteria.getDocumentSelections().keySet()) {
-					JochreDocument doc = this.documentService.loadJochreDocument(docName);
+					DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+					JochreDocument doc = documentDao.loadJochreDocument(docName);
 					Set<Integer> pageIds = selectionCriteria.getDocumentSelections().get(docName);
 					for (JochrePage page : doc.getPages()) {
 						if (pageIds.size() == 0 || pageIds.contains(page.getIndex())) {
@@ -103,14 +102,6 @@ public abstract class JochreCorpusReader {
 
 	public void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria) {
 		this.selectionCriteria = selectionCriteria;
-	}
-
-	public DocumentService getDocumentService() {
-		return documentService;
-	}
-
-	public void setDocumentService(DocumentService documentService) {
-		this.documentService = documentService;
 	}
 
 }

@@ -27,7 +27,6 @@ import com.joliciel.jochre.utils.JochreException;
  */
 public class JochrePage implements Entity {
 	private static final Logger LOG = LoggerFactory.getLogger(JochrePage.class);
-	private DocumentServiceInternal documentService;
 
 	private int index;
 	private int documentId;
@@ -37,11 +36,9 @@ public class JochrePage implements Entity {
 	private int id;
 
 	private final JochreSession jochreSession;
-	private final GraphicsDao graphicsDao;
 
 	public JochrePage(JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.graphicsDao = GraphicsDao.getInstance(jochreSession);
 	}
 
 	/**
@@ -49,8 +46,10 @@ public class JochrePage implements Entity {
 	 */
 
 	public JochreDocument getDocument() {
-		if (this.document == null && this.documentId != 0)
-			this.document = this.documentService.loadJochreDocument(this.documentId);
+		if (this.document == null && this.documentId != 0) {
+			DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+			this.document = documentDao.loadJochreDocument(this.documentId);
+		}
 		return this.document;
 	}
 
@@ -58,8 +57,10 @@ public class JochrePage implements Entity {
 		if (this.jochreImages == null) {
 			if (this.id == 0)
 				this.jochreImages = new ArrayList<JochreImage>();
-			else
-				this.jochreImages = this.graphicsDao.findImages(this);
+			else {
+				GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+				this.jochreImages = graphicsDao.findImages(this);
+			}
 		}
 		return this.jochreImages;
 	}
@@ -75,7 +76,9 @@ public class JochrePage implements Entity {
 	public void save() {
 		if (this.document != null && this.documentId == 0)
 			this.documentId = this.document.getId();
-		this.documentService.saveJochrePage(this);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+
+		documentDao.saveJochrePage(this);
 		if (this.jochreImages != null) {
 			for (JochreImage jochreImage : this.jochreImages) {
 				jochreImage.save();
@@ -97,14 +100,6 @@ public class JochrePage implements Entity {
 
 	void setDocumentId(int documentId) {
 		this.documentId = documentId;
-	}
-
-	public DocumentServiceInternal getGraphicsService() {
-		return documentService;
-	}
-
-	public void setGraphicsService(DocumentServiceInternal graphicsService) {
-		this.documentService = graphicsService;
 	}
 
 	void setDocument(JochreDocument jochreDocument) {
@@ -161,14 +156,6 @@ public class JochrePage implements Entity {
 	public void clearMemory() {
 		this.jochreImages = null;
 		System.gc();
-	}
-
-	public DocumentServiceInternal getDocumentService() {
-		return documentService;
-	}
-
-	public void setDocumentService(DocumentServiceInternal documentService) {
-		this.documentService = documentService;
 	}
 
 	@Override

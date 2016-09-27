@@ -21,10 +21,9 @@ import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.Author;
-import com.joliciel.jochre.doc.DocumentService;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.security.User;
 import com.typesafe.config.ConfigFactory;
@@ -36,9 +35,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	static final String ATTR_DOC = "JochreDoc";
 	static final String ATTR_DOC_CONTROLLER = "DocController";
 
-	private JochreServiceLocator locator = null;
 	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
-	private DocumentService documentService;
 	private JochreDocument currentDoc;
 	private Author currentAuthor;
 
@@ -75,11 +72,8 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		if (user == null)
 			Executions.sendRedirect("login.zul");
 
-		locator = JochreServiceLocator.getInstance(jochreSession);
-
-		documentService = locator.getDocumentServiceLocator().getDocumentService();
-
-		List<Author> authors = documentService.findAuthors();
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		List<Author> authors = documentDao.findAuthors();
 
 		List<Comboitem> authorItems = cmbAuthors.getItems();
 		for (Author author : authors) {
@@ -103,7 +97,9 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 				authorId = (Integer) selectedItem.getValue();
 			if (authorId != 0) {
 				LOG.debug("authorId: " + authorId);
-				Author author = documentService.loadAuthor(authorId);
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+
+				Author author = documentDao.loadAuthor(authorId);
 				if (!this.currentDoc.getAuthors().contains(author)) {
 					this.currentDoc.getAuthors().add(author);
 
@@ -176,7 +172,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			Author author = currentAuthor;
 			boolean isNew = false;
 			if (author == null) {
-				author = documentService.getEmptyAuthor();
+				author = new Author(jochreSession);
 				isNew = true;
 			}
 			author.setFirstName(txtAuthorFirstName.getValue());
@@ -193,7 +189,8 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			btnAddNewAuthor.setLabel(Labels.getLabel("docs.documentDetails.addAuthor"));
 
 			if (isNew) {
-				List<Author> authors = documentService.findAuthors();
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+				List<Author> authors = documentDao.findAuthors();
 
 				List<Comboitem> authorItems = cmbAuthors.getItems();
 				authorItems.clear();
@@ -255,7 +252,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			currentDoc = (JochreDocument) event.getData();
 			LOG.debug("currentDoc: " + currentDoc);
 			if (currentDoc == null)
-				currentDoc = documentService.getEmptyJochreDocument(jochreSession);
+				currentDoc = new JochreDocument(jochreSession);
 			txtDocName.setValue(currentDoc.getName());
 			txtDocNameLocal.setValue(currentDoc.getNameLocal());
 			txtPublisher.setValue(currentDoc.getPublisher());
