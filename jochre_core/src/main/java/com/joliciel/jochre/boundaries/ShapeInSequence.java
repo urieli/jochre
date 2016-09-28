@@ -84,4 +84,9 @@ public class ShapeInSequence implements ShapeWrapper, ShapeInSequenceWrapper {
 		return this;
 	}
 
+	@Override
+	public String toString() {
+		return "ShapeInSequence [shape=" + shape + ", index=" + index + "]";
+	}
+
 }

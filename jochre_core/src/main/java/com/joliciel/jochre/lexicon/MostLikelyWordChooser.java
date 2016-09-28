@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.lang.Linguistics;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.utils.CountedOutcome;
 import com.typesafe.config.Config;
@@ -46,23 +47,18 @@ import com.typesafe.config.Config;
  */
 public class MostLikelyWordChooser {
 	private static final Logger LOG = LoggerFactory.getLogger(MostLikelyWordChooser.class);
-	private double unknownWordFactor = 0.75;
-	private double frequencyLogBase = 100.0;
-	private boolean frequencyAdjusted = false;
+	private double unknownWordFactor;
+	private double frequencyLogBase;
+	private boolean frequencyAdjusted;
 
 	private final Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
-	private final WordSplitter wordSplitter;
-	private final Lexicon lexicon;
+	private final Linguistics linguistics;
 	private Set<String> midWordPunctuation = new HashSet<String>();
 	private Set<String> startWordPunctuation = new HashSet<String>();
 	private Set<String> endWordPunctuation = new HashSet<String>(Arrays.asList("'"));
 
-	private final JochreSession jochreSession;
-
-	public MostLikelyWordChooser(Lexicon lexicon, WordSplitter wordSplitter, JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.lexicon = lexicon;
-		this.wordSplitter = wordSplitter;
+	public MostLikelyWordChooser(JochreSession jochreSession) {
+		this.linguistics = jochreSession.getLinguistics();
 
 		Config wordChooserConfig = jochreSession.getConfig().getConfig("jochre.word-chooser");
 		unknownWordFactor = wordChooserConfig.getDouble("unknown-word-factor");
@@ -426,11 +422,11 @@ public class MostLikelyWordChooser {
 			for (LetterSequence subsequence : possibility) {
 				String word = subsequence.getGuessedWord();
 				int freq = 0;
-				List<CountedOutcome<String>> frequencies = lexicon.getFrequencies(word);
+				List<CountedOutcome<String>> frequencies = this.linguistics.getFrequencies(word);
 
 				if (frequencies.size() == 0) {
 					// check whether word is impossible
-					if (!jochreSession.getLinguistics().isWordPossible(word)) {
+					if (!this.linguistics.isWordPossible(word)) {
 						frequencies.add(new CountedOutcome<String>(word, -1));
 					}
 				}
@@ -520,10 +516,6 @@ public class MostLikelyWordChooser {
 		return frequency;
 	}
 
-	public WordSplitter getWordSplitter() {
-		return wordSplitter;
-	}
-
 	/**
 	 * The log base indicating how much more weight to give to a common word
 	 * than a rare word, if {@link #isFrequencyAdjusted()} is true. The score =
@@ -555,13 +547,6 @@ public class MostLikelyWordChooser {
 
 	public void setUnknownWordFactor(double unknownWordFactor) {
 		this.unknownWordFactor = unknownWordFactor;
-	}
-
-	/**
-	 * The lexicon based on which the choices are made.
-	 */
-	public Lexicon getLexicon() {
-		return lexicon;
 	}
 
 	/**

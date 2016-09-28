@@ -23,30 +23,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.joliciel.jochre.Jochre;
-import com.joliciel.jochre.lexicon.FakeLexicon;
-import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
-import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.utils.JochreLogUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreYiddish extends Jochre implements LocaleSpecificLexiconService {
+public class JochreYiddish extends Jochre {
 	public JochreYiddish(Config config) {
 		super(config);
-
-		this.getJochreSession().setLinguistics(new YiddishLinguistics());
 	}
-
-	@SuppressWarnings("unused")
-	private static final Logger LOG = LoggerFactory.getLogger(JochreYiddish.class);
-
-	WordSplitter yiddishWordSplitter = null;
-	Lexicon yiddishLexicon = null;
 
 	public static void main(String[] args) throws Exception {
 		Map<String, String> argMap = new HashMap<String, String>();
@@ -92,35 +77,9 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			fetcher.setForceUpdate(forceUpdate);
 			fetcher.fetchMetaData(inDir);
 		} else {
-			Map<String, Object> configValues = new HashMap<>();
-			configValues.put("jochre.locale", "yi");
-			Config config = ConfigFactory.load().withFallback(ConfigFactory.parseMap(configValues));
-
+			Config config = ConfigFactory.load();
 			JochreYiddish jochre = new JochreYiddish(config);
 			jochre.execute(argMap);
 		}
 	}
-
-	@Override
-	public Lexicon getLexicon() {
-		if (yiddishLexicon == null) {
-			if (this.getLexiconPath() != null && this.getLexiconPath().length() > 0) {
-				File lexiconDir = new File(this.getLexiconPath());
-				Lexicon myLexicon = this.readLexicon(lexiconDir);
-				yiddishLexicon = new YiddishWordFrequencyFinder(myLexicon, this.getJochreSession());
-			} else {
-				yiddishLexicon = new FakeLexicon();
-			}
-		}
-		return yiddishLexicon;
-	}
-
-	@Override
-	public WordSplitter getWordSplitter() {
-		if (yiddishWordSplitter == null) {
-			yiddishWordSplitter = new YiddishWordSplitter(this.getJochreSession());
-		}
-		return yiddishWordSplitter;
-	}
-
 }

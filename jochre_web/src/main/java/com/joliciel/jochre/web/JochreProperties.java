@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -16,13 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
 
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
-
 public class JochreProperties {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreProperties.class);
 	private static JochreProperties instance;
 	private Properties properties;
-	private LocaleSpecificLexiconService lexiconService;
 
 	public static JochreProperties getInstance() {
 		if (instance == null) {
@@ -45,49 +40,6 @@ public class JochreProperties {
 
 	public Properties getProperties() {
 		return properties;
-	}
-
-	public LocaleSpecificLexiconService getLexiconService() {
-		try {
-			if (lexiconService == null) {
-				ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-
-				String lexiconServiceClassName = this.properties.getProperty("lexiconService");
-				LOG.debug("lexiconServiceClassName: " + lexiconServiceClassName);
-				@SuppressWarnings("rawtypes")
-				Class lexiconServiceClass = Class.forName(lexiconServiceClassName);
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				Constructor constructor = lexiconServiceClass.getConstructor(new Class[] {});
-				lexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
-
-				LOG.debug("locale: " + lexiconService.getLocale());
-
-				String lexiconDirPath = this.properties.getProperty("lexiconDirPath");
-				LOG.debug("lexiconDirPath: " + lexiconDirPath);
-				String lexiconDirRealPath = servletContext.getRealPath(lexiconDirPath);
-
-				lexiconService.setLexiconPath(lexiconDirRealPath);
-			}
-			return lexiconService;
-		} catch (ClassNotFoundException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (SecurityException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (NoSuchMethodException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (InstantiationException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		}
 	}
 
 	public File getLetterModelFile() {

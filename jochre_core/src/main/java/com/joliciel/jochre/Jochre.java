@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -104,17 +102,10 @@ import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureTester;
 import com.joliciel.jochre.lexicon.CorpusLexiconBuilder;
-import com.joliciel.jochre.lexicon.DefaultLexiconWrapper;
-import com.joliciel.jochre.lexicon.DefaultWordSplitter;
-import com.joliciel.jochre.lexicon.FakeLexicon;
-import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconErrorWriter;
-import com.joliciel.jochre.lexicon.LexiconMerger;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.UnknownWordListWriter;
-import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.AbbyyFineReader8Exporter;
 import com.joliciel.jochre.output.AltoXMLExporter;
 import com.joliciel.jochre.output.ImageExtractor;
@@ -139,7 +130,6 @@ import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -151,7 +141,7 @@ import com.typesafe.config.ConfigFactory;
  * @author Assaf Urieli
  *
  */
-public class Jochre implements LocaleSpecificLexiconService {
+public class Jochre {
 	private static final Logger LOG = LoggerFactory.getLogger(Jochre.class);
 
 	public enum BoundaryDetectorType {
@@ -173,28 +163,19 @@ public class Jochre implements LocaleSpecificLexiconService {
 		GuessText
 	}
 
-	int userId = -1;
-	String dataSourcePropertiesPath;
+	private int userId = -1;
 
-	String encoding = null;
-	String lexiconPath = null;
-	WordSplitter wordSplitter = null;
-	Lexicon lexicon = null;
-	Map<String, Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
-	String csvEncoding = null;
+	private final Map<String, Set<Integer>> documentGroups = new LinkedHashMap<>();
 
 	private final JochreSession jochreSession;
 
-	public Jochre() {
+	public Jochre() throws ReflectiveOperationException {
 		Config config = ConfigFactory.load();
 		this.jochreSession = new JochreSession(config);
 	}
 
 	public Jochre(Config config) {
 		this.jochreSession = new JochreSession(config);
-	}
-
-	private void initialise() {
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -261,7 +242,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
 		boolean reconstructLetters = false;
 		double minProbForDecision = 0.5;
-		double junkThreshold = 0.0;
 		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
 		int excludeImageId = 0;
 		int crossValidationSize = -1;
@@ -272,8 +252,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String docGroupPath = null;
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
-		String csvSeparator = "\t";
-		String csvLocale = null;
 		String docSelectionPath = null;
 		List<String> featureDescriptors = null;
 
@@ -344,14 +322,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				}
 			} else if (argName.equals("reconstructLetters"))
 				reconstructLetters = (argValue.equals("true"));
-			else if (argName.equals("minProbForDecision"))
-				minProbForDecision = Double.parseDouble(argValue);
-			else if (argName.equals("junkThreshold"))
-				junkThreshold = Double.parseDouble(argValue);
 			else if (argName.equals("boundaryDetector"))
 				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
-			else if (argName.equals("lexicon"))
-				lexiconPath = argValue;
 			else if (argName.equals("excludeImageId"))
 				excludeImageId = Integer.parseInt(argValue);
 			else if (argName.equals("crossValidationSize"))
@@ -373,8 +345,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				docGroupPath = argValue;
 			else if (argName.equals("suffix"))
 				suffix = argValue;
-			else if (argName.equals("encoding"))
-				encoding = argValue;
 			else if (argName.equals("performanceConfigFile"))
 				performanceConfigFile = new File(argValue);
 			else if (argName.equals("includeBeam"))
@@ -387,46 +357,31 @@ public class Jochre implements LocaleSpecificLexiconService {
 				}
 				if (outputFormats.size() == 0)
 					throw new JochreException("At least one outputFormat required.");
-			} else if (argName.equals("csvSeparator"))
-				csvSeparator = argValue;
-			else if (argName.equals("csvEncoding"))
-				csvEncoding = argValue;
-			else if (argName.equals("csvLocale"))
-				csvLocale = argValue;
-			else if (argName.equals("features")) {
-				featureDescriptors = new ArrayList<>();
-				InputStream featureFile = new FileInputStream(new File(argValue));
-				try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
-					while (scanner.hasNextLine()) {
-						String descriptor = scanner.nextLine();
-						featureDescriptors.add(descriptor);
-						LOG.debug(descriptor);
+				else if (argName.equals("features")) {
+					featureDescriptors = new ArrayList<>();
+					InputStream featureFile = new FileInputStream(new File(argValue));
+					try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
+						while (scanner.hasNextLine()) {
+							String descriptor = scanner.nextLine();
+							featureDescriptors.add(descriptor);
+							LOG.debug(descriptor);
+						}
 					}
-				}
-			} else
-				throw new RuntimeException("Unknown argument: " + argName);
+				} else
+					throw new RuntimeException("Unknown argument: " + argName);
+			}
 		}
 
 		long startTime = System.currentTimeMillis();
 		PerformanceMonitor.start(performanceConfigFile);
 		try {
-			if (encoding == null)
-				encoding = Charset.defaultCharset().name();
-			if (csvEncoding == null)
-				csvEncoding = encoding;
-
-			CSVFormatter.setGlobalCsvSeparator(csvSeparator);
-			if (csvLocale != null)
-				CSVFormatter.setGlobalLocale(Locale.forLanguageTag(csvLocale));
-
-			this.initialise();
 
 			this.setUserId(userId);
 
 			CorpusSelectionCriteria criteria = new CorpusSelectionCriteria();
 			if (docSelectionPath != null) {
 				File docSelectionFile = new File(docSelectionPath);
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docSelectionFile), encoding)));
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docSelectionFile), jochreSession.getEncoding())));
 				criteria.loadSelection(scanner);
 				scanner.close();
 			} else {
@@ -443,7 +398,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 			if (docGroupPath != null) {
 				File docGroupFile = new File(docGroupPath);
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docGroupFile), encoding)));
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docGroupFile), jochreSession.getEncoding())));
 
 				while (scanner.hasNextLine()) {
 					String line = scanner.nextLine();
@@ -459,9 +414,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				scanner.close();
 			}
 
-			MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(this.getLexicon(), this.getWordSplitter(), jochreSession);
-
-			jochreSession.setJunkConfidenceThreshold(junkThreshold);
+			MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
 
 			File outputDir = null;
 			File outputFile = null;
@@ -533,7 +486,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					for (File oneLexFile : lexiconFiles) {
 						LOG.debug(oneLexFile.getName() + ": " + ", size: " + oneLexFile.length());
 
-						TextFileLexicon lexicon = new TextFileLexicon(oneLexFile, encoding);
+						TextFileLexicon lexicon = new TextFileLexicon(oneLexFile, jochreSession.getEncoding());
 
 						String baseName = oneLexFile.getName().substring(0, oneLexFile.getName().indexOf("."));
 						if (baseName.lastIndexOf("/") > 0)
@@ -545,7 +498,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				} else {
 					LOG.debug(inFilePath + ": " + inputFile.exists() + ", size: " + inputFile.length());
 
-					TextFileLexicon lexicon = new TextFileLexicon(inputFile, encoding);
+					TextFileLexicon lexicon = new TextFileLexicon(inputFile, jochreSession.getEncoding());
 
 					String baseName = inFilePath.substring(0, inFilePath.indexOf("."));
 					if (baseName.lastIndexOf("/") > 0)
@@ -678,9 +631,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 	/**
 	 * Rebuild the training corpus lexicon.
 	 */
-	public void doCommandBuildLexicon(String outputDirPath, WordSplitter wordSplitter, CorpusSelectionCriteria criteria) {
+	public void doCommandBuildLexicon(String outputDirPath, CorpusSelectionCriteria criteria) {
 		try {
-			CorpusLexiconBuilder builder = new CorpusLexiconBuilder(wordSplitter, criteria, jochreSession);
+			CorpusLexiconBuilder builder = new CorpusLexiconBuilder(criteria, jochreSession);
 			TextFileLexicon lexicon = builder.buildLexicon();
 
 			File outputDir = new File(outputDirPath);
@@ -991,11 +944,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		evaluator.addObserver(fScoreObserver);
 
-		ErrorLogger errorLogger = new ErrorLogger();
-		if (wordChooser != null) {
-			errorLogger.setLexicon(wordChooser.getLexicon());
-			errorLogger.setWordSplitter(wordChooser.getWordSplitter());
-		}
+		ErrorLogger errorLogger = new ErrorLogger(jochreSession);
 		Writer errorWriter = null;
 
 		File errorFile = new File(outputDir, baseName + "_errors.txt");
@@ -1005,7 +954,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		errorLogger.setErrorWriter(errorWriter);
 		evaluator.addObserver(errorLogger);
 
-		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser, csvEncoding, jochreSession);
+		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser, jochreSession);
 		if (documentGroups != null)
 			lexiconErrorWriter.setDocumentGroups(documentGroups);
 		lexiconErrorWriter.setIncludeBeam(includeBeam);
@@ -1050,7 +999,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 			modelFileName += "_Reconstruct";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), csvEncoding));
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), jochreSession.getCsvEncoding()));
 		fScoreObserver.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 
 	}
@@ -1258,11 +1207,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		shapeLetterAssigner.setSingleLetterMethod(false);
 		imageAnalyser.addObserver(shapeLetterAssigner);
 
-		ErrorLogger errorLogger = new ErrorLogger();
-		if (wordChooser != null) {
-			errorLogger.setLexicon(wordChooser.getLexicon());
-			errorLogger.setWordSplitter(wordChooser.getWordSplitter());
-		}
+		ErrorLogger errorLogger = new ErrorLogger(jochreSession);
 		Writer errorWriter = null;
 
 		File errorFile = new File(outputDir, baseName + suffix + "errors.txt");
@@ -1283,7 +1228,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		String modelFileName = baseName + suffix + "_full";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), csvEncoding));
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), jochreSession.getCsvEncoding()));
 		shapeLetterAssigner.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 	}
 
@@ -1477,71 +1422,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 		this.userId = userId;
 	}
 
-	@Override
-	public Locale getLocale() {
-		return jochreSession.getLocale();
-	}
-
-	protected Lexicon readLexicon(File lexiconDir) {
-		Lexicon myLexicon = null;
-
-		if (lexiconDir.isDirectory()) {
-			LexiconMerger lexiconMerger = new LexiconMerger();
-			File[] lexiconFiles = lexiconDir.listFiles();
-			for (File lexiconFile : lexiconFiles) {
-				if (lexiconFile.getName().endsWith(".txt")) {
-					TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, encoding);
-					lexiconMerger.addLexicon(textFileLexicon);
-				} else {
-					TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
-					lexiconMerger.addLexicon(textFileLexicon);
-				}
-			}
-
-			myLexicon = lexiconMerger;
-		} else {
-			if (lexiconDir.getName().endsWith(".txt")) {
-				TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, encoding);
-				myLexicon = textFileLexicon;
-			} else {
-				TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
-				myLexicon = textFileLexicon;
-			}
-		}
-		return myLexicon;
-	}
-
-	@Override
-	public Lexicon getLexicon() {
-		if (lexicon == null) {
-			if (lexiconPath != null && lexiconPath.length() > 0) {
-				File lexiconDir = new File(lexiconPath);
-				Lexicon myLexicon = this.readLexicon(lexiconDir);
-				this.lexicon = new DefaultLexiconWrapper(myLexicon, jochreSession);
-			} else {
-				this.lexicon = new FakeLexicon();
-			}
-		}
-		return this.lexicon;
-	}
-
-	@Override
-	public WordSplitter getWordSplitter() {
-		if (wordSplitter == null)
-			wordSplitter = new DefaultWordSplitter();
-		return wordSplitter;
-	}
-
-	@Override
-	public String getLexiconPath() {
-		return lexiconPath;
-	}
-
-	@Override
-	public void setLexiconPath(String lexiconPath) {
-		this.lexiconPath = lexiconPath;
-	}
-
 	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir) {
 		try {
 			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
@@ -1598,10 +1478,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.XHTML, jochreSession.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.XHTML, jochreSession.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1615,10 +1495,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.PLAIN, jochreSession.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.PLAIN, jochreSession.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1669,14 +1549,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 					break;
 				}
 				case UnknownWords: {
-					if (this.getLexicon() != null) {
-						File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
-						unknownWordFile.delete();
-						Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true), "UTF8"));
+					File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
+					unknownWordFile.delete();
+					Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true), "UTF8"));
 
-						UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
-						observers.add(unknownWordListWriter);
-					}
+					UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
+					observers.add(unknownWordListWriter);
 					break;
 				}
 				}

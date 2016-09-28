@@ -36,15 +36,12 @@ import com.joliciel.jochre.graphics.Shape;
  *
  */
 public class CorpusLexiconBuilder {
-	private final WordSplitter wordSplitter;
-
 	private final CorpusSelectionCriteria criteria;
 
 	private final JochreSession jochreSession;
 
-	public CorpusLexiconBuilder(WordSplitter wordSplitter, CorpusSelectionCriteria criteria, JochreSession jochreSession) {
+	public CorpusLexiconBuilder(CorpusSelectionCriteria criteria, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.wordSplitter = wordSplitter;
 		this.criteria = criteria;
 	}
 
@@ -80,7 +77,7 @@ public class CorpusLexiconBuilder {
 							lexicon.incrementEntry("");
 							continue;
 						}
-						List<String> words = this.getWordSplitter().splitText(wordText);
+						List<String> words = jochreSession.getLinguistics().splitText(wordText);
 
 						int i = 0;
 						for (String word : words) {
@@ -124,13 +121,6 @@ public class CorpusLexiconBuilder {
 		// etc.
 
 		return lexicon;
-	}
-
-	/**
-	 * The word splitter to be used by this lexicon.
-	 */
-	public WordSplitter getWordSplitter() {
-		return wordSplitter;
 	}
 
 	/**

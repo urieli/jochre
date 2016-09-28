@@ -45,9 +45,7 @@ import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
-import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.output.TextGetter;
 import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
@@ -256,11 +254,7 @@ public class TextController extends GenericForwardComposer<Window> {
 
 				File letterModelFile = jochreProperties.getLetterModelFile();
 				if (letterModelFile != null) {
-
-					Lexicon lexicon = jochreProperties.getLexiconService().getLexicon();
-					WordSplitter wordSplitter = jochreProperties.getLexiconService().getWordSplitter();
-
-					MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(lexicon, wordSplitter, jochreSession);
+					MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
 					documentGenerator.requestAnalysis(jochreProperties.getSplitModelFile(), jochreProperties.getMergeModelFile(), letterModelFile, wordChooser);
 				}
 				this.documentHtmlGenerator = new DocumentHtmlGenerator();

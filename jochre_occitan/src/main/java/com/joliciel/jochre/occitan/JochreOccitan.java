@@ -3,15 +3,12 @@ package com.joliciel.jochre.occitan;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.joliciel.jochre.Jochre;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreOccitan extends Jochre implements LocaleSpecificLexiconService {
+public class JochreOccitan extends Jochre {
+
 	public JochreOccitan(Config config) {
 		super(config);
 	}
@@ -26,15 +23,9 @@ public class JochreOccitan extends Jochre implements LocaleSpecificLexiconServic
 			argMap.put(argName, argValue);
 		}
 
-		Map<String, Object> configValues = new HashMap<>();
-		configValues.put("jochre.locale", "oc");
-		Config config = ConfigFactory.load().withFallback(ConfigFactory.parseMap(configValues));
+		Config config = ConfigFactory.load();
 
 		JochreOccitan jochre = new JochreOccitan(config);
 		jochre.execute(argMap);
 	}
-
-	@SuppressWarnings("unused")
-	private static final Logger LOG = LoggerFactory.getLogger(JochreOccitan.class);
-
 }

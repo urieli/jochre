@@ -18,10 +18,21 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre;
 
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 import java.util.Locale;
 
-import com.joliciel.jochre.lang.DefaultLinguistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.joliciel.jochre.lang.Linguistics;
+import com.joliciel.jochre.lexicon.DefaultLexiconWrapper;
+import com.joliciel.jochre.lexicon.FakeLexicon;
+import com.joliciel.jochre.lexicon.Lexicon;
+import com.joliciel.jochre.lexicon.LexiconMerger;
+import com.joliciel.jochre.lexicon.TextFileLexicon;
+import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.ObjectCache;
 import com.joliciel.talismane.utils.SimpleObjectCache;
 import com.typesafe.config.Config;
@@ -33,16 +44,71 @@ import com.typesafe.config.Config;
  *
  */
 public class JochreSession {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreSession.class);
 	private final Locale locale;
-	private Linguistics linguistics;
-	private double junkConfidenceThreshold = 0.75;
+	private final Linguistics linguistics;
+	private final double junkConfidenceThreshold;
 	private final Config config;
 	private final ObjectCache objectCache;
+	private final Charset encoding;
+	private final Charset csvEncoding;
+	private Lexicon lexicon;
 
+	/**
+	 * 
+	 * @param config
+	 *            the configuration for this session
+	 */
 	public JochreSession(Config config) {
 		this.config = config;
-		this.locale = Locale.forLanguageTag(config.getString("jochre.locale"));
+		Config jochreConfig = config.getConfig("jochre");
+
+		this.locale = Locale.forLanguageTag(jochreConfig.getString("locale"));
 		this.objectCache = new SimpleObjectCache();
+
+		if (jochreConfig.hasPath("encoding"))
+			encoding = Charset.forName(jochreConfig.getString("encoding"));
+		else
+			encoding = Charset.defaultCharset();
+
+		String csvSeparator = jochreConfig.getString("csv.separator");
+		CSVFormatter.setGlobalCsvSeparator(csvSeparator);
+
+		if (jochreConfig.hasPath("csv.encoding"))
+			csvEncoding = Charset.forName(jochreConfig.getString("csv.encoding"));
+		else
+			csvEncoding = Charset.defaultCharset();
+
+		if (jochreConfig.hasPath("csv.locale")) {
+			String csvLocaleString = jochreConfig.getString("csv.locale");
+			Locale csvLocale = Locale.forLanguageTag(csvLocaleString);
+			CSVFormatter.setGlobalLocale(csvLocale);
+		}
+
+		if (jochreConfig.hasPath("lexicon")) {
+			String lexiconPath = jochreConfig.getString("lexicon");
+			File lexiconDir = new File(lexiconPath);
+			Lexicon myLexicon = this.readLexicon(lexiconDir);
+			this.lexicon = new DefaultLexiconWrapper(myLexicon, this.locale);
+		} else {
+			this.lexicon = new FakeLexicon();
+		}
+
+		String linguisticsClassName = jochreConfig.getString("linguistics.class");
+		LOG.debug("linguisticsClassName: " + linguisticsClassName);
+		try {
+			@SuppressWarnings("rawtypes")
+			Class linguisticsClass = Class.forName(linguisticsClassName);
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			Constructor constructor = linguisticsClass.getConstructor(new Class[] {});
+			this.linguistics = (Linguistics) constructor.newInstance();
+		} catch (ReflectiveOperationException e) {
+			LOG.error("Unable to load class " + linguisticsClassName);
+			throw new RuntimeException("Unable to load class " + linguisticsClassName, e);
+		}
+		this.linguistics.setJochreSession(this);
+
+		this.junkConfidenceThreshold = jochreConfig.getDouble("image-analyser.junk-threshold");
 	}
 
 	public Locale getLocale() {
@@ -50,14 +116,7 @@ public class JochreSession {
 	}
 
 	public Linguistics getLinguistics() {
-		if (this.linguistics == null) {
-			this.linguistics = DefaultLinguistics.getInstance(this.locale);
-		}
 		return linguistics;
-	}
-
-	public void setLinguistics(Linguistics linguistics) {
-		this.linguistics = linguistics;
 	}
 
 	/**
@@ -68,10 +127,6 @@ public class JochreSession {
 		return junkConfidenceThreshold;
 	}
 
-	public void setJunkConfidenceThreshold(double junkConfidenceThreshold) {
-		this.junkConfidenceThreshold = junkConfidenceThreshold;
-	}
-
 	public Config getConfig() {
 		return config;
 	}
@@ -79,4 +134,50 @@ public class JochreSession {
 	public ObjectCache getObjectCache() {
 		return objectCache;
 	}
+
+	public Charset getEncoding() {
+		return encoding;
+	}
+
+	public Charset getCsvEncoding() {
+		return csvEncoding;
+	}
+
+	protected Lexicon readLexicon(File lexiconDir) {
+		Lexicon myLexicon = null;
+
+		if (lexiconDir.isDirectory()) {
+			LexiconMerger lexiconMerger = new LexiconMerger();
+			File[] lexiconFiles = lexiconDir.listFiles();
+			for (File lexiconFile : lexiconFiles) {
+				if (lexiconFile.getName().endsWith(".txt")) {
+					TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, this.encoding);
+					lexiconMerger.addLexicon(textFileLexicon);
+				} else {
+					TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
+					lexiconMerger.addLexicon(textFileLexicon);
+				}
+			}
+
+			myLexicon = lexiconMerger;
+		} else {
+			if (lexiconDir.getName().endsWith(".txt")) {
+				TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, this.encoding);
+				myLexicon = textFileLexicon;
+			} else {
+				TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
+				myLexicon = textFileLexicon;
+			}
+		}
+		return myLexicon;
+	}
+
+	public Lexicon getLexicon() {
+		return this.lexicon;
+	}
+
+	public void setLexicon(Lexicon lexicon) {
+		this.lexicon = lexicon;
+	}
+
 }

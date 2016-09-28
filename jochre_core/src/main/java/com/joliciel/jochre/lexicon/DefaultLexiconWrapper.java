@@ -20,17 +20,13 @@ package com.joliciel.jochre.lexicon;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.joliciel.jochre.JochreSession;
-import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * For each word in the lexicon, adds variants with an initial uppercase and all
@@ -44,10 +40,10 @@ public class DefaultLexiconWrapper implements Lexicon {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultLexiconWrapper.class);
 	private final Lexicon baseLexicon;
 	private final Set<String> upperCaseLexicon = new HashSet<String>();
-	private final JochreSession jochreSession;
+	private final Locale locale;
 
-	public DefaultLexiconWrapper(Lexicon baseLexicon, JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
+	public DefaultLexiconWrapper(Lexicon baseLexicon, Locale locale) {
+		this.locale = locale;
 		this.baseLexicon = baseLexicon;
 		Iterator<String> words = baseLexicon.getWords();
 		while (words.hasNext()) {
@@ -63,16 +59,6 @@ public class DefaultLexiconWrapper implements Lexicon {
 				upperCaseLexicon.add(this.toUpperCaseNoAccents(word));
 			}
 		}
-	}
-
-	@Override
-	public List<CountedOutcome<String>> getFrequencies(String word) {
-		int frequency = this.getFrequency(word);
-		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
-		if (frequency > 0) {
-			results.add(new CountedOutcome<String>(word, frequency));
-		}
-		return results;
 	}
 
 	@Override
@@ -93,7 +79,7 @@ public class DefaultLexiconWrapper implements Lexicon {
 		// removing diacritics
 		String removed = decomposed.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
 
-		String uppercase = removed.toUpperCase(jochreSession.getLocale());
+		String uppercase = removed.toUpperCase(locale);
 		return uppercase;
 	}
 
