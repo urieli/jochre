@@ -843,7 +843,15 @@ public class Shape implements ImageGrid, Entity, Rectangle, ShapeWrapper, HasFea
 	 */
 	public double getBrightnessMeanBySection(int verticalSectionCount, int horizontalSectionCount, int marginSectionCount,
 			SectionBrightnessMeasurementMethod measurementMethod) {
-		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + marginSectionCount;
+		return this.getBrightnessMeanBySection(verticalSectionCount, horizontalSectionCount, marginSectionCount, false, measurementMethod);
+	}
+
+	/**
+	 * Mean brightness for the sections defined above.
+	 */
+	public double getBrightnessMeanBySection(int verticalSectionCount, int horizontalSectionCount, int marginSectionCount, boolean includeHorizontalMargin,
+			SectionBrightnessMeasurementMethod measurementMethod) {
+		String key = verticalSectionCount + "|" + horizontalSectionCount + "|" + marginSectionCount + "|" + includeHorizontalMargin;
 		return this.getBrightnessMeanBySector(key, measurementMethod);
 	}
 

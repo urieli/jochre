@@ -264,7 +264,8 @@ public class Segmenter implements Monitorable {
 				// + the delta we left at the start in case the line slopes
 				// upwards to the right
 				int topIndex = (shape.getTop() - row.getTop()) + (row.getTop() - yDeltaAtLeft) + yDelta;
-				LOG.trace("topIndex: (" + shape.getTop() + " - " + row.getTop() + ") + (" + row.getTop() + " - " + yDeltaAtLeft + ") + " + yDelta + " = " + topIndex);
+				LOG.trace("topIndex: (" + shape.getTop() + " - " + row.getTop() + ") + (" + row.getTop() + " - " + yDeltaAtLeft + ") + " + yDelta + " = "
+						+ topIndex);
 				for (int x = 0; x < shape.getWidth(); x++) {
 					for (int y = 0; y < shape.getHeight(); y++) {
 						if (shape.isPixelBlack(x, y, sourceImage.getBlackThreshold())) {
@@ -415,7 +416,8 @@ public class Segmenter implements Monitorable {
 		shapeWidthMean = new Mean();
 		StandardDeviation shapeHeightStdDev = new StandardDeviation();
 		for (Shape shape : shapes) {
-			if (shape.getHeight() > heightMean && shape.getHeight() < (heightMean * 2.0) && shape.getWidth() > widthMean && shape.getWidth() < (widthMean * 2.0)) {
+			if (shape.getHeight() > heightMean && shape.getHeight() < (heightMean * 2.0) && shape.getWidth() > widthMean
+					&& shape.getWidth() < (widthMean * 2.0)) {
 				shapeHeightMean.increment(shape.getHeight());
 				shapeHeightStdDev.increment(shape.getHeight());
 				shapeWidthMean.increment(shape.getWidth());
@@ -591,8 +593,8 @@ public class Segmenter implements Monitorable {
 	}
 
 	/**
-	 * If any two shapes in the same line are only separated by a thin line, join
-	 * them together
+	 * If any two shapes in the same line are only separated by a thin line,
+	 * join them together
 	 */
 	void joinShapesHorizontally(SourceImage sourceImage) {
 		LOG.debug("########## joinShapesHorizontally #########");
@@ -970,7 +972,8 @@ public class Segmenter implements Monitorable {
 						int overlap2 = otherShape.getBottom() - shape.getTop() + 1;
 						int overlap = overlap1 < overlap2 ? overlap1 : overlap2;
 						boolean addShapeToRow = false;
-						if ((((double) overlap / (double) shape.getHeight()) > minOverlap) || (((double) overlap / (double) otherShape.getHeight()) > minOverlap)) {
+						if ((((double) overlap / (double) shape.getHeight()) > minOverlap)
+								|| (((double) overlap / (double) otherShape.getHeight()) > minOverlap)) {
 							addShapeToRow = true;
 						}
 
@@ -1016,8 +1019,8 @@ public class Segmenter implements Monitorable {
 	}
 
 	/**
-	 * We attempt to remove specks, where a speck is defined as a relatively small
-	 * shape at a relatively large distance from other shapes.
+	 * We attempt to remove specks, where a speck is defined as a relatively
+	 * small shape at a relatively large distance from other shapes.
 	 */
 	void removeSpecks(SourceImage sourceImage, Set<Shape> shapes) {
 		LOG.debug("########## removeSpecks #########");
@@ -1120,10 +1123,13 @@ public class Segmenter implements Monitorable {
 						: (speckWidth > maxSpeckWidthCeiling ? 1.0 : ((double) speckWidth - maxSpeckWidthFloor) / (maxSpeckWidthCeiling - maxSpeckWidthFloor));
 			else
 				scale = speckHeight < maxSpeckHeightFloor ? 0.0
-						: (speckHeight > maxSpeckHeightCeiling ? 1.0 : ((double) speckHeight - maxSpeckHeightFloor) / (maxSpeckHeightCeiling - maxSpeckHeightFloor));
+						: (speckHeight > maxSpeckHeightCeiling ? 1.0
+								: ((double) speckHeight - maxSpeckHeightFloor) / (maxSpeckHeightCeiling - maxSpeckHeightFloor));
 
-			int speckXDistanceThreshold = (int) Math.ceil(speckXDistanceThresholdFloor + scale * (speckXDistanceThresholdCeiling - speckXDistanceThresholdFloor));
-			int speckYDistanceThreshold = (int) Math.ceil(speckYDistanceThresholdFloor + scale * (speckYDistanceThresholdCeiling - speckYDistanceThresholdFloor));
+			int speckXDistanceThreshold = (int) Math
+					.ceil(speckXDistanceThresholdFloor + scale * (speckXDistanceThresholdCeiling - speckXDistanceThresholdFloor));
+			int speckYDistanceThreshold = (int) Math
+					.ceil(speckYDistanceThresholdFloor + scale * (speckYDistanceThresholdCeiling - speckYDistanceThresholdFloor));
 
 			LOG.debug("speckHeight=" + speckHeight);
 			LOG.debug("speckWidth=" + speckWidth);
@@ -1170,8 +1176,8 @@ public class Segmenter implements Monitorable {
 					} else {
 						int nearestTop = (otherShape.getTop() > otherShape.getTop() + otherShape.getMeanLine()) ? otherShape.getTop() + otherShape.getMeanLine()
 								: otherShape.getTop();
-						int nearestBot = (otherShape.getBottom() < otherShape.getTop() + otherShape.getBaseLine()) ? otherShape.getTop() + otherShape.getBaseLine()
-								: otherShape.getBottom();
+						int nearestBot = (otherShape.getBottom() < otherShape.getTop() + otherShape.getBaseLine())
+								? otherShape.getTop() + otherShape.getBaseLine() : otherShape.getBottom();
 						topDiff = Math.abs(clusterTop - nearestBot);
 						botDiff = Math.abs(clusterBottom - nearestTop);
 						yDiff = (topDiff < botDiff) ? topDiff : botDiff;
@@ -1191,8 +1197,8 @@ public class Segmenter implements Monitorable {
 			} // loop shapes around the reference shape
 
 			if (nearestShape != null) {
-				LOG.trace("Nearest shape, top(" + nearestShape.getTop() + ") " + "left(" + nearestShape.getLeft() + ") " + "bot(" + nearestShape.getBottom() + ") "
-						+ "right(" + nearestShape.getRight() + ")");
+				LOG.trace("Nearest shape, top(" + nearestShape.getTop() + ") " + "left(" + nearestShape.getLeft() + ") " + "bot(" + nearestShape.getBottom()
+						+ ") " + "right(" + nearestShape.getRight() + ")");
 				LOG.trace("Distance=" + minDistance + ", xDiff=" + nearestShapeXDiff + ", yDiff=" + nearestShapeYDiff);
 			}
 			boolean removeSpecks = false;
@@ -1220,8 +1226,8 @@ public class Segmenter implements Monitorable {
 					if (nearestShape.getTop() <= speck.getBottom() && nearestShape.getBottom() >= speck.getTop()) {
 						yDiff = 0;
 					} else {
-						int nearestTop = (nearestShape.getTop() > nearestShape.getTop() + nearestShape.getMeanLine()) ? nearestShape.getTop() + nearestShape.getMeanLine()
-								: nearestShape.getTop();
+						int nearestTop = (nearestShape.getTop() > nearestShape.getTop() + nearestShape.getMeanLine())
+								? nearestShape.getTop() + nearestShape.getMeanLine() : nearestShape.getTop();
 						int nearestBot = (nearestShape.getBottom() < nearestShape.getTop() + nearestShape.getBaseLine())
 								? nearestShape.getTop() + nearestShape.getBaseLine() : nearestShape.getBottom();
 						topDiff = Math.abs(speck.getTop() - nearestBot);
@@ -1501,8 +1507,8 @@ public class Segmenter implements Monitorable {
 	/**
 	 * Find the baseline, meanline and capline for each shape, based on other
 	 * shapes on the same row this is likely to depend on the alphabet, e.g. the
-	 * hebrew alphabet has no capline as such. Returns a List of SimpleRegression
-	 * representing the centerline for each of the rows.
+	 * hebrew alphabet has no capline as such. Returns a List of
+	 * SimpleRegression representing the centerline for each of the rows.
 	 */
 	void findGuideLines(SourceImage sourceImage) {
 		LOG.debug("########## findGuideLines #########");
@@ -1524,8 +1530,8 @@ public class Segmenter implements Monitorable {
 	}
 
 	/**
-	 * Combine rows that represent thin lines directly above or below another row
-	 * (e.g. diacritics)
+	 * Combine rows that represent thin lines directly above or below another
+	 * row (e.g. diacritics)
 	 */
 	void combineRowsVertically(SourceImage sourceImage) {
 		LOG.debug("########## combineRows #########");
@@ -1598,8 +1604,8 @@ public class Segmenter implements Monitorable {
 							double distance = 0;
 							if (currentRow.getBaseLineMiddlePoint() < otherRow.getBaseLineMiddlePoint()) {
 								distance = (otherRow.getBaseLineMiddlePoint() - otherRow.getXHeightMax()) - currentRow.getBaseLineMiddlePoint();
-								LOG.trace("(otherRow.baseLineMiddlePoint() " + otherRow.getBaseLineMiddlePoint() + " - otherRow.getXHeightMax() " + otherRow.getXHeightMax()
-										+ ") - currentRow.baseLineMiddlePoint() " + currentRow.getBaseLineMiddlePoint());
+								LOG.trace("(otherRow.baseLineMiddlePoint() " + otherRow.getBaseLineMiddlePoint() + " - otherRow.getXHeightMax() "
+										+ otherRow.getXHeightMax() + ") - currentRow.baseLineMiddlePoint() " + currentRow.getBaseLineMiddlePoint());
 							} else {
 								distance = (currentRow.getBaseLineMiddlePoint() - currentRow.getXHeightMax()) - otherRow.getBaseLineMiddlePoint();
 								LOG.trace("(currentRow.baseLineMiddlePoint() " + currentRow.getBaseLineMiddlePoint() + " - currentRow.getXHeightMax() "
@@ -2148,7 +2154,8 @@ public class Segmenter implements Monitorable {
 						for (Column otherPrevColumn : columnsInPrevArea) {
 							if (otherPrevColumn.equals(prevColumn))
 								continue;
-							if (overlappingColumn.adjustedRight >= otherPrevColumn.adjustedLeft && overlappingColumn.adjustedLeft <= otherPrevColumn.adjustedRight) {
+							if (overlappingColumn.adjustedRight >= otherPrevColumn.adjustedLeft
+									&& overlappingColumn.adjustedLeft <= otherPrevColumn.adjustedRight) {
 								LOG.debug("But it overlaps also with " + otherPrevColumn);
 								overlappingColumn = null;
 								break;
@@ -2187,8 +2194,8 @@ public class Segmenter implements Monitorable {
 	}
 
 	/**
-	 * When looking for columns, we sometimes add a false column, in pages where a
-	 * long vertical white line happens to break a row into columns. We try to
+	 * When looking for columns, we sometimes add a false column, in pages where
+	 * a long vertical white line happens to break a row into columns. We try to
 	 * recognise this phenomenon and restore the original row.
 	 */
 	void removeFalseColumns(SourceImage sourceImage, List<Rectangle> columnSeparators) {
@@ -2276,7 +2283,8 @@ public class Segmenter implements Monitorable {
 								LOG.debug("row.getBaseLineMiddlePoint() " + row.getBaseLineMiddlePoint());
 								if (Math.abs(row.getBaseLineMiddlePoint() - otherRow.getBaseLineMiddlePoint()) < sourceImage.getAverageShapeHeight() / 4.0
 										&& ((sourceImage.isLeftToRight() && otherRow.getLeft() - row.getRight() < sourceImage.getAverageShapeWidth() * 2.0)
-												|| (!sourceImage.isLeftToRight() && row.getLeft() - otherRow.getRight() < sourceImage.getAverageShapeWidth() * 2.0))) {
+												|| (!sourceImage.isLeftToRight()
+														&& row.getLeft() - otherRow.getRight() < sourceImage.getAverageShapeWidth() * 2.0))) {
 									LOG.debug("Found match : " + row + " AND " + otherRow);
 									matches.add(new RowOfShapes[] { row, otherRow });
 									break;
@@ -2454,7 +2462,8 @@ public class Segmenter implements Monitorable {
 			} else {
 				List<Rectangle> columnSeparators = sourceImage.findColumnSeparators();
 				for (Rectangle columnSeparator : columnSeparators) {
-					if (columnSeparator.getTop() <= columnGroupTop && columnSeparator.getBottom() >= columnGroupBottom && columnSeparator.getLeft() >= columnGroupRight) {
+					if (columnSeparator.getTop() <= columnGroupTop && columnSeparator.getBottom() >= columnGroupBottom
+							&& columnSeparator.getLeft() >= columnGroupRight) {
 						if (columnSeparator.getLeft() < rightMargin)
 							rightMargin = columnSeparator.getLeft();
 					}
@@ -2540,7 +2549,8 @@ public class Segmenter implements Monitorable {
 			} else {
 				List<Rectangle> columnSeparators = sourceImage.findColumnSeparators();
 				for (Rectangle columnSeparator : columnSeparators) {
-					if (columnSeparator.getTop() <= columnGroupTop && columnSeparator.getBottom() >= columnGroupBottom && columnSeparator.getRight() <= columnGroupLeft) {
+					if (columnSeparator.getTop() <= columnGroupTop && columnSeparator.getBottom() >= columnGroupBottom
+							&& columnSeparator.getRight() <= columnGroupLeft) {
 						if (columnSeparator.getRight() > leftMargin)
 							leftMargin = columnSeparator.getRight();
 					}
@@ -2733,8 +2743,8 @@ public class Segmenter implements Monitorable {
 							if (previousRow.getRight() - previousRow.getXAdjustment() - rightOverlap < column.endMargin - safetyMargin) {
 								LOG.debug("New paragraph (previous EOP)");
 								LOG.debug(previousRow.getRight() + " - " + ((int) previousRow.getXAdjustment()) + " - " + ((int) rightOverlap) + " ("
-										+ (previousRow.getRight() - previousRow.getXAdjustment() - rightOverlap) + ") " + " < " + ((int) column.endMargin) + " - "
-										+ ((int) safetyMargin) + " (" + ((int) column.endMargin - safetyMargin) + ")");
+										+ (previousRow.getRight() - previousRow.getXAdjustment() - rightOverlap) + ") " + " < " + ((int) column.endMargin)
+										+ " - " + ((int) safetyMargin) + " (" + ((int) column.endMargin - safetyMargin) + ")");
 								newParagraph = true;
 							} else if (column.hasTab && isIndented && row.getLeft() - row.getXAdjustment() + leftOverlap > column.startTab - safetyMargin) {
 								LOG.debug("New paragraph (indent)");
@@ -2753,7 +2763,8 @@ public class Segmenter implements Monitorable {
 							} else if (column.hasTab && isIndented && row.getRight() - row.getXAdjustment() - rightOverlap < column.startTab + safetyMargin) {
 								LOG.debug("New paragraph (indent)");
 								newParagraph = true;
-							} else if (column.hasTab && !isIndented && row.getRight() - row.getXAdjustment() - rightOverlap > column.startMargin - safetyMargin) {
+							} else if (column.hasTab && !isIndented
+									&& row.getRight() - row.getXAdjustment() - rightOverlap > column.startMargin - safetyMargin) {
 								LOG.debug("New paragraph (outdent)");
 								newParagraph = true;
 							}
@@ -2811,8 +2822,8 @@ public class Segmenter implements Monitorable {
 			if (whiteArea.getTop() <= row.getBottom() && whiteArea.getBottom() >= row.getTop()) {
 				if (whiteArea.getLeft() - row.getXAdjustment() < leftMargin && whiteArea.getRight() - row.getXAdjustment() > leftMargin) {
 					overlap = (whiteArea.getRight() - row.getXAdjustment()) - leftMargin;
-					LOG.debug("Overlaps large shape (" + whiteArea.getLeft() + "," + whiteArea.getTop() + "," + whiteArea.getRight() + "," + whiteArea.getBottom() + ")"
-							+ " on left by " + overlap);
+					LOG.debug("Overlaps large shape (" + whiteArea.getLeft() + "," + whiteArea.getTop() + "," + whiteArea.getRight() + ","
+							+ whiteArea.getBottom() + ")" + " on left by " + overlap);
 				}
 			}
 		}
@@ -2830,8 +2841,8 @@ public class Segmenter implements Monitorable {
 			if (whiteArea.getTop() <= row.getBottom() && whiteArea.getBottom() >= row.getTop()) {
 				if (whiteArea.getLeft() - row.getXAdjustment() < rightMargin && whiteArea.getRight() - row.getXAdjustment() > rightMargin) {
 					overlap = rightMargin - (whiteArea.getLeft() - row.getXAdjustment());
-					LOG.debug("Overlaps large shape (" + whiteArea.getLeft() + "," + whiteArea.getTop() + "," + whiteArea.getRight() + "," + whiteArea.getBottom() + ")"
-							+ " on right by " + overlap);
+					LOG.debug("Overlaps large shape (" + whiteArea.getLeft() + "," + whiteArea.getTop() + "," + whiteArea.getRight() + ","
+							+ whiteArea.getBottom() + ")" + " on right by " + overlap);
 				}
 			}
 		}
@@ -2897,8 +2908,8 @@ public class Segmenter implements Monitorable {
 
 		@Override
 		public String toString() {
-			return "Column [adjustedLeft=" + (int) Math.round(adjustedLeft) + ", adjustedRight=" + (int) Math.round(adjustedRight) + ", top=" + top + ", bottom="
-					+ bottom + "]";
+			return "Column [adjustedLeft=" + (int) Math.round(adjustedLeft) + ", adjustedRight=" + (int) Math.round(adjustedRight) + ", top=" + top
+					+ ", bottom=" + bottom + "]";
 		}
 
 		@Override
@@ -3187,8 +3198,8 @@ public class Segmenter implements Monitorable {
 					int sampleStep = (int) Math.ceil(height / 8);
 
 					for (LineSegment vector : vectors) {
-						List<Integer> vectorThickness = vector.getLineDefinition().findArrayListThickness(shape, vector.getStartX(), vector.getStartY(), vector.getLength(),
-								sourceImage.getSeparationThreshold(), 0, sampleStep);
+						List<Integer> vectorThickness = vector.getLineDefinition().findArrayListThickness(shape, vector.getStartX(), vector.getStartY(),
+								vector.getLength(), sourceImage.getSeparationThreshold(), 0, sampleStep);
 						thicknesses.addAll(vectorThickness);
 					}
 
@@ -3293,18 +3304,18 @@ public class Segmenter implements Monitorable {
 	 * been mistakenly joined together.
 	 * 
 	 * @param shape
-	 *          the shape to split
+	 *            the shape to split
 	 * @param sourceImage
-	 *          the source image containing this shape
+	 *            the source image containing this shape
 	 * @param maxBridgeWidth
-	 *          maximum width of a bridge between the two letters (measured
-	 *          vertically)
+	 *            maximum width of a bridge between the two letters (measured
+	 *            vertically)
 	 * @param minLetterWeight
-	 *          minimum pixel count for a shape portion to be counted a separate
-	 *          letter
+	 *            minimum pixel count for a shape portion to be counted a
+	 *            separate letter
 	 * @param maxOverlap
-	 *          maximum vertical overlap (in pixels) between a right-hand and
-	 *          left-hand shape to be counted as separate letters
+	 *            maximum vertical overlap (in pixels) between a right-hand and
+	 *            left-hand shape to be counted as separate letters
 	 * @return List of Shape, where the list is empty if no split was performed
 	 */
 	List<Shape> splitShape(Shape shape, SourceImage sourceImage, int maxBridgeWidth, int minLetterWeight, int maxOverlap) {
@@ -3511,7 +3522,8 @@ public class Segmenter implements Monitorable {
 
 			int index = (int) Math.floor(random * row.getShapes().size());
 			Shape shape = row.getShapes().get(index);
-			if (shape.getWidth() > minShapeWidth && shape.getHeight() > minShapeHeight && shape.getWidth() < maxShapeWidth && shape.getHeight() < maxShapeHeight) {
+			if (shape.getWidth() > minShapeWidth && shape.getHeight() > minShapeHeight && shape.getWidth() < maxShapeWidth
+					&& shape.getHeight() < maxShapeHeight) {
 				sample.add(shape);
 				countBad = 0;
 			} else {
