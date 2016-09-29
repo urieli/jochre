@@ -198,6 +198,11 @@ public class Jochre {
 					values.put("jochre.image-analyser.merge-model", argValue);
 				} else if (argName.equals("unknownWordFactor")) {
 					values.put("jochre.word-chooser.unknown-word-factor", Double.parseDouble(argValue));
+				} else if (argName.equals("beamWidth")) {
+					values.put("jochre.image-analyser.beam-width", Integer.parseInt(argValue));
+					values.put("jochre.boundaries.splitter.beam-width", Integer.parseInt(argValue));
+				} else if (argName.equals("lexicon")) {
+					values.put("jochre.lexicon", argValue);
 				} else {
 					handled = false;
 				}
@@ -249,8 +254,10 @@ public class Jochre {
 		}
 
 		String logConfigPath = argMap.get("logConfigFile");
-		argMap.remove("logConfigFile");
-		JochreLogUtils.configureLogging(logConfigPath);
+		if (logConfigPath != null) {
+			argMap.remove("logConfigFile");
+			JochreLogUtils.configureLogging(logConfigPath);
+		}
 
 		File performanceConfigFile = null;
 

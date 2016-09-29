@@ -7,12 +7,7 @@ import com.joliciel.jochre.Jochre;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreOccitan extends Jochre {
-
-	public JochreOccitan(Config config) throws ReflectiveOperationException {
-		super(config);
-	}
-
+public class JochreOccitan {
 	public static void main(String[] args) throws Exception {
 		Map<String, String> argMap = new HashMap<String, String>();
 
@@ -25,7 +20,7 @@ public class JochreOccitan extends Jochre {
 
 		Config config = ConfigFactory.load();
 
-		JochreOccitan jochre = new JochreOccitan(config);
+		Jochre jochre = new Jochre(config, argMap);
 		jochre.execute(argMap);
 	}
 }

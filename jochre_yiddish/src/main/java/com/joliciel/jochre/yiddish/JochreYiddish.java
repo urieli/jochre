@@ -19,33 +19,24 @@
 package com.joliciel.jochre.yiddish;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.joliciel.jochre.Jochre;
 import com.joliciel.jochre.utils.JochreLogUtils;
+import com.joliciel.talismane.utils.StringUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreYiddish extends Jochre {
-	public JochreYiddish(Config config) throws ReflectiveOperationException {
-		super(config);
-	}
-
+public class JochreYiddish {
 	public static void main(String[] args) throws Exception {
-		Map<String, String> argMap = new HashMap<String, String>();
-
-		for (String arg : args) {
-			int equalsPos = arg.indexOf('=');
-			String argName = arg.substring(0, equalsPos);
-			String argValue = arg.substring(equalsPos + 1);
-			argMap.put(argName, argValue);
-		}
+		Map<String, String> argMap = StringUtils.convertArgs(args);
 
 		String logConfigPath = argMap.get("logConfigFile");
-		argMap.remove("logConfigFile");
-		JochreLogUtils.configureLogging(logConfigPath);
+		if (logConfigPath != null) {
+			argMap.remove("logConfigFile");
+			JochreLogUtils.configureLogging(logConfigPath);
+		}
 
 		String command = argMap.get("command");
 		if (command != null && command.equals("metadata")) {
@@ -78,7 +69,7 @@ public class JochreYiddish extends Jochre {
 			fetcher.fetchMetaData(inDir);
 		} else {
 			Config config = ConfigFactory.load();
-			JochreYiddish jochre = new JochreYiddish(config);
+			Jochre jochre = new Jochre(config, argMap);
 			jochre.execute(argMap);
 		}
 	}
