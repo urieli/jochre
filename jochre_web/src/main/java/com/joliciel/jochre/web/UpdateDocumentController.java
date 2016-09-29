@@ -31,11 +31,11 @@ import com.typesafe.config.ConfigFactory;
 public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateDocumentController.class);
 
-	private static final long serialVersionUID = -6051038316789525658L;
+	private static final long serialVersionUID = 1L;
 	static final String ATTR_DOC = "JochreDoc";
 	static final String ATTR_DOC_CONTROLLER = "DocController";
 
-	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
+	private final JochreSession jochreSession;
 	private JochreDocument currentDoc;
 	private Author currentAuthor;
 
@@ -60,7 +60,8 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	Listbox lstAuthors;
 	Combobox cmbAuthors;
 
-	public UpdateDocumentController() {
+	public UpdateDocumentController() throws ReflectiveOperationException {
+		jochreSession = new JochreSession(ConfigFactory.load());
 	}
 
 	@Override

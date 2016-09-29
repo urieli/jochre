@@ -41,7 +41,7 @@ public class ShapeImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(ShapeImplTest.class);
 
 	@Test
-	public void testGetHeight() {
+	public void testGetHeight() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -53,7 +53,7 @@ public class ShapeImplTest {
 	}
 
 	@Test
-	public void testGetWidth() {
+	public void testGetWidth() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -65,7 +65,7 @@ public class ShapeImplTest {
 	}
 
 	@Test
-	public void testGetOutline() {
+	public void testGetOutline() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -112,7 +112,7 @@ public class ShapeImplTest {
 	}
 
 	@Test
-	public void testIsPixelBlackFromContainer() {
+	public void testIsPixelBlackFromContainer() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -156,7 +156,7 @@ public class ShapeImplTest {
 	}
 
 	@Test
-	public void getVerticalCounts() {
+	public void getVerticalCounts() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -217,7 +217,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessTotalsBySector(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -306,8 +306,8 @@ public class ShapeImplTest {
 	}
 
 	@Test
-	public void testGetBrightnessTotalsBySectorMidPixelBreaks(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+	public void testGetBrightnessTotalsBySectorMidPixelBreaks(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
+			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -395,7 +395,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessTotalsBySectorTwoSectorMargins(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -496,7 +496,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessTotalsBySectorWithSquare(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -588,7 +588,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessTotalsBySectorWithSquareBigger(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -682,7 +682,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessTotalsBySectorWithSquareSmaller(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -776,7 +776,7 @@ public class ShapeImplTest {
 
 	@Test
 	public void testGetBrightnessBySectorNoMargins(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) {
+			@Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();

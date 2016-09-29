@@ -57,13 +57,13 @@ import com.joliciel.jochre.security.UserRole;
 import com.typesafe.config.ConfigFactory;
 
 public class ImageController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = 5620794383603025597L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ImageController.class);
 
 	public static final String HEBREW_ACCENTS = "\u0591\u0592\u0593\u0594\u0595\u0596\u0597\u0598\u0599\u059A\u059B\u059C\u059D\u059E\u059F\u05A0\u05A1\u05A2\u05A3\u05A4\u05A5\u05A6\u05A7\u05A8\u05A9\u05AA\u05AB\u05AC\u05AD\u05AE\u05AF\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BA\u05BB\u05BC\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7";
 
-	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
+	private final JochreSession jochreSession;
 	private JochreImage currentImage;
 	private int imageId;
 	private int docId;
@@ -86,7 +86,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 	Combobox cmbOwner;
 	Label lblOwner;
 
-	public ImageController() {
+	public ImageController() throws ReflectiveOperationException {
+		jochreSession = new JochreSession(ConfigFactory.load());
 	}
 
 	@Override
@@ -730,9 +731,9 @@ public class ImageController extends GenericForwardComposer<Window> {
 	}
 
 	/**
-	 * Divide the text in a given row's textbox into separate letter groups, which
-	 * will then be used to populate labels that are aligned with the letters in
-	 * the image.
+	 * Divide the text in a given row's textbox into separate letter groups,
+	 * which will then be used to populate labels that are aligned with the
+	 * letters in the image.
 	 * 
 	 * @param row
 	 * @return
@@ -775,7 +776,8 @@ public class ImageController extends GenericForwardComposer<Window> {
 				}
 				// LOG.debug("Letter: " + letter);
 				if (HEBREW_ACCENTS.indexOf(letter) >= 0 && letters.size() != 0) {
-					if (letter.equals("ַ") && letters.size() > 1 && letters.get(letters.size() - 1).equals("י") && letters.get(letters.size() - 2).equals("י")) {
+					if (letter.equals("ַ") && letters.size() > 1 && letters.get(letters.size() - 1).equals("י")
+							&& letters.get(letters.size() - 2).equals("י")) {
 						letters.remove(letters.size() - 1);
 						letters.remove(letters.size() - 1);
 						letters.add("ײַ");

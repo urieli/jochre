@@ -19,7 +19,7 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.web.ImageController.LetterLabelUpdater;
 
 public class FixTextWindowController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = -8451368652901943731L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(FixTextWindowController.class);
 
@@ -52,7 +52,8 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
 	}
 
 	public void onClick$btnOK(Event event) {
-		// TODO: replacing all occurrences of the same word on the line instead of
+		// TODO: replacing all occurrences of the same word on the line instead
+		// of
 		// just the current one
 		LOG.debug("onClick$btnOK");
 		winFixText.setVisible(false);

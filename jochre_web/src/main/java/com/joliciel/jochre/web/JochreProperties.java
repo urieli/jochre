@@ -42,43 +42,7 @@ public class JochreProperties {
 		return properties;
 	}
 
-	public File getLetterModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String letterModelPath = properties.getProperty("letterModelPath");
-		LOG.debug("letterModelPath: " + letterModelPath);
-		File letterModelFile = null;
-		if (letterModelPath != null) {
-			String letterModelRealPath = servletContext.getRealPath(letterModelPath);
-			letterModelFile = new File(letterModelRealPath);
-		}
-		return letterModelFile;
-	}
-
-	public File getSplitModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String splitModelPath = properties.getProperty("splitModelPath");
-		File splitModelFile = null;
-		LOG.debug("splitModelPath: " + splitModelPath);
-		if (splitModelPath != null) {
-			String splitModelRealPath = servletContext.getRealPath(splitModelPath);
-			splitModelFile = new File(splitModelRealPath);
-		}
-		return splitModelFile;
-	}
-
-	public File getMergeModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String mergeModelPath = properties.getProperty("mergeModelPath");
-		LOG.debug("mergeModelPath: " + mergeModelPath);
-		File mergeModelFile = null;
-		if (mergeModelPath != null) {
-			String mergeModelRealPath = servletContext.getRealPath(mergeModelPath);
-			mergeModelFile = new File(mergeModelRealPath);
-		}
-		return mergeModelFile;
-	}
-
-	public String getWelcomeText() {
+	public static String getWelcomeText() {
 		try {
 			ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
 			String welcomeTextPath = servletContext.getRealPath("/resources/welcome.txt");

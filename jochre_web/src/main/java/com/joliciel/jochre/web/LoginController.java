@@ -27,15 +27,12 @@ import com.joliciel.jochre.security.User;
 import com.typesafe.config.ConfigFactory;
 
 public class LoginController extends GenericForwardComposer<Window> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1664468221173319777L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(LoginController.class);
 	public static String SESSION_JOCHRE_USER = "SESSION_JOCHRE_USER";
 
-	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
+	private final JochreSession jochreSession;
 
 	Window winLogin;
 	Button btnLogin;
@@ -49,7 +46,8 @@ public class LoginController extends GenericForwardComposer<Window> {
 	Label lblError;
 	Button btnCaptcha;
 
-	public LoginController() {
+	public LoginController() throws ReflectiveOperationException {
+		jochreSession = new JochreSession(ConfigFactory.load());
 	}
 
 	@Override

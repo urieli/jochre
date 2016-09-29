@@ -29,7 +29,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class JochreYiddish extends Jochre {
-	public JochreYiddish(Config config) {
+	public JochreYiddish(Config config) throws ReflectiveOperationException {
 		super(config);
 	}
 

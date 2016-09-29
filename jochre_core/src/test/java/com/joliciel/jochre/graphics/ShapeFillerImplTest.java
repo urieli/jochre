@@ -138,7 +138,7 @@ public class ShapeFillerImplTest {
 	}
 
 	@Test
-	public void testFillBitSet() {
+	public void testFillBitSet() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();

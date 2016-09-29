@@ -52,10 +52,10 @@ import com.typesafe.config.ConfigFactory;
 public class DocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(DocumentController.class);
 
-	private static final long serialVersionUID = -6051038316789525658L;
+	private static final long serialVersionUID = 1L;
 
 	public static final String HEBREW_ACCENTS = "\u0591\u0592\u0593\u0594\u0595\u0596\u0597\u0598\u0599\u059A\u059B\u059C\u059D\u059E\u059F\u05A0\u05A1\u05A2\u05A3\u05A4\u05A5\u05A6\u05A7\u05A8\u05A9\u05AA\u05AB\u05AC\u05AD\u05AE\u05AF\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BA\u05BB\u05BC\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7";
-	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
+	private final JochreSession jochreSession;
 	private JochreDocument currentDoc;
 	private JochrePage currentPage;
 	private JochreImage currentImage;
@@ -92,7 +92,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 
 	Properties jochreProperties = null;
 
-	public DocumentController() {
+	public DocumentController() throws ReflectiveOperationException {
+		jochreSession = new JochreSession(ConfigFactory.load());
 	}
 
 	@Override

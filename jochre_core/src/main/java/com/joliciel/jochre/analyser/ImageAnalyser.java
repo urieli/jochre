@@ -36,7 +36,17 @@ public interface ImageAnalyser extends DocumentObserver {
 
 	public abstract void addObserver(LetterGuessObserver letterGuessObserver);
 
+	/**
+	 * Only retain those guesses whose probability is &gt;= this value.
+	 * 
+	 * @return
+	 */
 	public abstract double getMinOutcomeWeight();
 
+	/**
+	 * The number of guesses to retain per analysis step.
+	 * 
+	 * @return
+	 */
 	public abstract int getBeamWidth();
 }

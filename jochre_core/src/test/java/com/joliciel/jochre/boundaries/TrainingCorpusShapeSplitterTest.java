@@ -20,7 +20,6 @@ package com.joliciel.jochre.boundaries;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class TrainingCorpusShapeSplitterTest {
 			@Mocked final Shape shape4, @Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
 			@Mocked final JochreImage jochreImage, @Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDocument,
 			@Mocked final Iterator<Split> i, @Mocked final List<Split> splits, @Mocked final Split split1, @Mocked final Split split2,
-			@Mocked final Split split3) throws IOException {
+			@Mocked final Split split3) throws Exception {
 
 		System.setProperty("config.file", "src/test/resources/testDualCharacters.conf");
 		ConfigFactory.invalidateCaches();

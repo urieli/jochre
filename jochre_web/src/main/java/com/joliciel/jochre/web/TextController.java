@@ -56,10 +56,10 @@ import com.joliciel.talismane.utils.ProgressMonitor;
 import com.typesafe.config.ConfigFactory;
 
 public class TextController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = 5620794383603025597L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TextController.class);
-	private final JochreSession jochreSession = new JochreSession(ConfigFactory.load());
+	private final JochreSession jochreSession;
 
 	private JochreDocument currentDoc;
 	private JochreImage currentImage;
@@ -100,7 +100,8 @@ public class TextController extends GenericForwardComposer<Window> {
 
 	int currentPageIndex = 0;
 
-	public TextController() {
+	public TextController() throws ReflectiveOperationException {
+		jochreSession = new JochreSession(ConfigFactory.load());
 	}
 
 	@Override
@@ -238,7 +239,6 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentFile != null) {
 				progressBox.setVisible(true);
 				lblAwaitingFile.setVisible(false);
-				JochreProperties jochreProperties = JochreProperties.getInstance();
 
 				int startPage = txtStartPage.getValue().length() == 0 ? -1 : Integer.parseInt(txtStartPage.getValue());
 				int endPage = txtEndPage.getValue().length() == 0 ? -1 : Integer.parseInt(txtEndPage.getValue());
@@ -252,10 +252,10 @@ public class TextController extends GenericForwardComposer<Window> {
 					this.documentGenerator = new JochreDocumentGenerator(currentFile.getName(), "", jochreSession);
 				}
 
-				File letterModelFile = jochreProperties.getLetterModelFile();
-				if (letterModelFile != null) {
+				String letterModelPath = jochreSession.getLetterModelPath();
+				if (letterModelPath != null) {
 					MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
-					documentGenerator.requestAnalysis(jochreProperties.getSplitModelFile(), jochreProperties.getMergeModelFile(), letterModelFile, wordChooser);
+					documentGenerator.requestAnalysis(wordChooser);
 				}
 				this.documentHtmlGenerator = new DocumentHtmlGenerator();
 

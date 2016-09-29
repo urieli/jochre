@@ -20,12 +20,10 @@ package com.joliciel.jochre.doc;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 
@@ -52,11 +50,11 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
-import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
+import com.typesafe.config.Config;
 
 /**
  * A utility interface to create and analyse JochreDocuments out of a source
@@ -76,11 +74,8 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	private boolean save = false;
 	private JochreDocument doc = null;
 	private User currentUser = null;
-	private File letterModelFile = null;
-	private File splitModelFile = null;
-	private File mergeModelFile = null;
 
-	private boolean showSegmentation = false;
+	private boolean drawSegmentedImage = false;
 	private boolean drawPixelSpread = false;
 
 	private MultiTaskProgressMonitor currentMonitor;
@@ -98,6 +93,10 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	public JochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
 		this.doc = jochreDocument;
+
+		Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
+		drawSegmentedImage = segmenterConfig.getBoolean("draw-segmented-image");
+		drawPixelSpread = segmenterConfig.getBoolean("draw-pixel-spread");
 	}
 
 	/**
@@ -200,7 +199,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 			LOG.debug("Segmenting image");
 			Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
-			segmenter.setDrawSegmentation(showSegmentation);
+			segmenter.setDrawSegmentation(drawSegmentedImage);
 			if (currentMonitor != null) {
 				ProgressMonitor monitor = segmenter.monitorTask();
 				double percentAlloted = 1;
@@ -217,7 +216,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			if (currentMonitor != null)
 				currentMonitor.endTask();
 
-			if (showSegmentation) {
+			if (drawSegmentedImage) {
 				LOG.debug("Writing segmentation file");
 				BufferedImage segmentedImage = segmenter.getSegmentedImage();
 				File imageFile = new File(outputDirectory, imageName + "_seg.png");
@@ -315,56 +314,19 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	}
 
 	/**
-	 * If analyse, the file containing the letter guessing model.
-	 */
-	public File getLetterModelFile() {
-		return letterModelFile;
-	}
-
-	/**
-	 * If analyse and split/merge required, the file containing the split model.
-	 */
-	public File getSplitModelFile() {
-		return splitModelFile;
-	}
-
-	/**
-	 * If analyse and split/merge required, the file containing the merge model.
-	 */
-	public File getMergeModelFile() {
-		return mergeModelFile;
-	}
-
-	/**
 	 * Should segmented images be generated?
 	 */
-	public boolean isShowSegmentation() {
-		return showSegmentation;
-	}
-
-	/**
-	 * Call if this document should be analysed for letters.
-	 */
-	public void requestAnalysis(File letterModelFile, MostLikelyWordChooser wordChooser) {
-		this.requestAnalysis(null, null, letterModelFile, wordChooser);
+	public boolean isDrawSegmentedImage() {
+		return drawSegmentedImage;
 	}
 
 	/**
 	 * Call if this document should be analysed for letters, after applying
 	 * split/merge models.
 	 */
-	public void requestAnalysis(File splitModelFile, File mergeModelFile, File letterModelFile, MostLikelyWordChooser wordChooser) {
-		this.letterModelFile = letterModelFile;
-		this.splitModelFile = splitModelFile;
-		this.mergeModelFile = mergeModelFile;
-
+	public void requestAnalysis(MostLikelyWordChooser wordChooser) {
 		try {
-			ClassificationModel letterModel = null;
-			MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-			try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile))) {
-				letterModel = modelFactory.getClassificationModel(zis);
-
-			}
+			ClassificationModel letterModel = jochreSession.getLetterModel();
 
 			List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 			LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
@@ -373,8 +335,8 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 			BoundaryDetector boundaryDetector = null;
 			LetterGuessObserver observer = null;
-			if (splitModelFile != null && mergeModelFile != null) {
-				boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
+			if (jochreSession.getSplitModel() != null && jochreSession.getMergeModel() != null) {
+				boundaryDetector = new DeterministicBoundaryDetector(jochreSession.getSplitModel(), jochreSession.getMergeModel(), jochreSession);
 
 				OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 				shapeLetterAssigner.setEvaluate(false);
@@ -412,7 +374,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	 * Call if the segmented images should be saved to a directory.
 	 */
 	public void requestSegmentation(File outputDirectory) {
-		this.showSegmentation = true;
+		this.drawSegmentedImage = true;
 		this.outputDirectory = outputDirectory;
 	}
 

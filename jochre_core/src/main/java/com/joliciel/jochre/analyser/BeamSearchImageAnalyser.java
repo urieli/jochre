@@ -93,7 +93,7 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 		this.mostLikelyWordChooser = mostLikelyWordChooser;
 		Config imageAnalyserConfig = jochreSession.getConfig().getConfig("jochre.image-analyser");
 		this.beamWidth = imageAnalyserConfig.getInt("beam-width");
-		this.minOutcomeWeight = imageAnalyserConfig.getDouble("min-outcome-weight");
+		this.minOutcomeWeight = imageAnalyserConfig.getDouble("min-outcome-prob");
 	}
 
 	@Override

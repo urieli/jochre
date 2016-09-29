@@ -18,13 +18,10 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipInputStream;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
@@ -35,7 +32,6 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 import com.typesafe.config.Config;
 
 /**
@@ -73,29 +69,17 @@ public class DeterministicBoundaryDetector implements BoundaryDetector {
 		this.configure(jochreSession);
 	}
 
-	public DeterministicBoundaryDetector(File splitModelFile, File mergeModelFile, JochreSession jochreSession) throws IOException {
+	public DeterministicBoundaryDetector(ClassificationModel splitModel, ClassificationModel mergeModel, JochreSession jochreSession) throws IOException {
 		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-
-		ClassificationModel splitModel = null;
-		try (ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelFile))) {
-			splitModel = modelFactory.getClassificationModel(splitZis);
-		}
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
 		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
 		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
-		ClassificationModel mergeModel = null;
-		try (ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelFile))) {
-			mergeModel = modelFactory.getClassificationModel(mergeZis);
-		}
-
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
 		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
-
 		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
 		this.shapeSplitter = shapeSplitter;

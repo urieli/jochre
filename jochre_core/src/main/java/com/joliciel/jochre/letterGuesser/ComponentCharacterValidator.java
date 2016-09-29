@@ -38,7 +38,7 @@ public class ComponentCharacterValidator implements LetterValidator {
 	public boolean validate(String letter) {
 		if (letter.length() == 0)
 			return true;
-		if (jochreSession.getLocale().getLanguage().equals("yi") || jochreSession.getLocale().getLanguage().equals("ji")) {
+		if (jochreSession.getLinguistics().getValidCharacters().size()>0) {
 			for (int i = 0; i < letter.length(); i++) {
 				char c = letter.charAt(i);
 				if (c == '|')

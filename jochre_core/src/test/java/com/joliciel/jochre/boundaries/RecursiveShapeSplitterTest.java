@@ -34,7 +34,7 @@ public class RecursiveShapeSplitterTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShape(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker) {
+	public void testSplitShape(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -105,7 +105,8 @@ public class RecursiveShapeSplitterTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker) {
+	public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker)
+			throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -210,7 +211,8 @@ public class RecursiveShapeSplitterTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker) {
+	public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker)
+			throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();

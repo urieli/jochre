@@ -38,7 +38,7 @@ public class VectorizerImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
 
 	@Test
-	public void testGetLongestLines() {
+	public void testGetLongestLines() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -82,16 +82,22 @@ public class VectorizerImplTest {
 	}
 
 	@Test
-	public void testGetLinesToEdge() {
+	public void testGetLinesToEdge() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
 		JochreSession jochreSession = new JochreSession(config);
 		final int threshold = 100;
 		final int whiteGapFillFactor = 5;
-		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-				0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0 };
-
+		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+				0, 1, 1, 1, 0, 1, 1, 1, // row
+				0, 0, 1, 1, 0, 0, 1, 1, // row
+				0, 0, 1, 1, 0, 1, 1, 0, // row
+				0, 0, 0, 1, 1, 1, 1, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 1, 1, 1, 0, 0, 0, // row
+				1, 1, 1, 1, 1, 0, 0, 0 // row
+		};
 		Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
 
 		Vectorizer vectorizer = new Vectorizer();
@@ -103,7 +109,7 @@ public class VectorizerImplTest {
 	}
 
 	@Test
-	public void testArrayListize(@Mocked final JochreImage image) {
+	public void testArrayListize(@Mocked final JochreImage image) throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
@@ -156,8 +162,8 @@ public class VectorizerImplTest {
 		int i = 0;
 		for (LineSegment lineSegment : lines) {
 			double slope = (double) (lineSegment.getEndY() - lineSegment.getStartY()) / (double) (lineSegment.getEndX() - lineSegment.getStartX());
-			LOG.debug("Line " + i++ + "(" + lineSegment.getStartX() + "," + lineSegment.getStartY() + ") " + "(" + lineSegment.getEndX() + "," + lineSegment.getEndY()
-					+ "). Length = " + lineSegment.getLength() + ", Slope = " + slope);
+			LOG.debug("Line " + i++ + "(" + lineSegment.getStartX() + "," + lineSegment.getStartY() + ") " + "(" + lineSegment.getEndX() + ","
+					+ lineSegment.getEndY() + "). Length = " + lineSegment.getLength() + ", Slope = " + slope);
 		}
 
 	}

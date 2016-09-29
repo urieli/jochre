@@ -19,10 +19,7 @@ import org.zkoss.zul.Window;
 import com.joliciel.jochre.security.User;
 
 public class ProfileController extends GenericForwardComposer<Div> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1664468221173319777L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
 

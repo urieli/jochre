@@ -1,6 +1,5 @@
 package com.joliciel.jochre.web;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
@@ -15,11 +14,7 @@ import org.zkoss.zul.Toolbar;
 import com.joliciel.jochre.security.User;
 
 public class MenuController extends GenericForwardComposer<Panel> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1664468221173319777L;
-
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(MenuController.class);
 
@@ -27,16 +22,17 @@ public class MenuController extends GenericForwardComposer<Panel> {
 	Label lblName;
 	Label lblCorpusName;
 	Toolbar toolbar1;
-	
+
 	public MenuController() {
 	}
-	
+
+	@Override
 	public void doAfterCompose(Panel panel) throws Exception {
 		super.doAfterCompose(panel);
 		LOG.debug("MenuController");
 		Session session = Sessions.getCurrent();
 		User currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-		if (currentUser!=null) {
+		if (currentUser != null) {
 			lblName.setValue(currentUser.getFirstName() + " " + currentUser.getLastName());
 			toolbar1.setVisible(true);
 		} else {
@@ -45,11 +41,11 @@ public class MenuController extends GenericForwardComposer<Panel> {
 		}
 		lblCorpusName.setValue(JochreProperties.getInstance().getProperties().getProperty("corpusName"));
 	}
-	
-    public void onClick$btnLogout(Event event) {
-    	LOG.debug("onClick$btnLogout");
+
+	public void onClick$btnLogout(Event event) {
+		LOG.debug("onClick$btnLogout");
 		Session session = Sessions.getCurrent();
 		session.removeAttribute(LoginController.SESSION_JOCHRE_USER);
 		Executions.sendRedirect("index.zul");
-    }
+	}
 }

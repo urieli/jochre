@@ -44,7 +44,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
@@ -125,7 +124,6 @@ import com.joliciel.jochre.utils.JochreLogUtils;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.ClassificationModelTrainer;
-import com.joliciel.talismane.machineLearning.MachineLearningModelFactory;
 import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
@@ -170,12 +168,49 @@ public class Jochre {
 	private final JochreSession jochreSession;
 
 	public Jochre() throws ReflectiveOperationException {
-		Config config = ConfigFactory.load();
+		this(ConfigFactory.load());
+	}
+
+	public Jochre(Config config) throws ReflectiveOperationException {
 		this.jochreSession = new JochreSession(config);
 	}
 
-	public Jochre(Config config) {
+	public Jochre(Config config, Map<String, String> argMap) throws ReflectiveOperationException {
+		if (argMap != null) {
+			Set<String> handledArgs = new HashSet<>();
+			Map<String, Object> values = new HashMap<>();
+			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+				String argName = argMapEntry.getKey();
+				String argValue = argMapEntry.getValue();
+				boolean handled = true;
+
+				if (argName.equals("drawSegmentedImage")) {
+					boolean drawSegmentedImage = argValue.equals("true");
+					values.put("jochre.segmentater.draw-segmented-image", drawSegmentedImage);
+				} else if (argName.equals("drawPixelSpread")) {
+					boolean drawPixelSpread = argValue.equals("true");
+					values.put("jochre.segmentater.draw-pixel-spread", drawPixelSpread);
+				} else if (argName.equals("letterModel")) {
+					values.put("jochre.image-analyser.letter-model", argValue);
+				} else if (argName.equals("splitModel")) {
+					values.put("jochre.image-analyser.split-model", argValue);
+				} else if (argName.equals("mergeModel")) {
+					values.put("jochre.image-analyser.merge-model", argValue);
+				} else if (argName.equals("unknownWordFactor")) {
+					values.put("jochre.word-chooser.unknown-word-factor", Double.parseDouble(argValue));
+				} else {
+					handled = false;
+				}
+
+				if (handled)
+					handledArgs.add(argName);
+			}
+			argMap.keySet().removeAll(handledArgs);
+
+			config = ConfigFactory.parseMap(values).withFallback(config);
+		}
 		this.jochreSession = new JochreSession(config);
+
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -233,12 +268,7 @@ public class Jochre {
 		int userId = -1;
 		int imageCount = 0;
 		int multiplier = 0;
-		boolean showSegmentation = false;
-		boolean drawPixelSpread = false;
 		boolean save = false;
-		String letterModelPath = "";
-		String splitModelPath = "";
-		String mergeModelPath = "";
 		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
 		boolean reconstructLetters = false;
 		double minProbForDecision = 0.5;
@@ -274,10 +304,6 @@ public class Jochre {
 				outputDirPath = argValue;
 			else if (argName.equals("outputFile"))
 				outputFilePath = argValue;
-			else if (argName.equals("showSeg"))
-				showSegmentation = (argValue.equals("true"));
-			else if (argName.equals("drawPixelSpread"))
-				drawPixelSpread = (argValue.equals("true"));
 			else if (argName.equals("save"))
 				save = (argValue.equals("true"));
 			else if (argName.equals("shapeId"))
@@ -292,12 +318,6 @@ public class Jochre {
 				imageCount = Integer.parseInt(argValue);
 			else if (argName.equals("multiplier"))
 				multiplier = Integer.parseInt(argValue);
-			else if (argName.equals("letterModel"))
-				letterModelPath = argValue;
-			else if (argName.equals("splitModel"))
-				splitModelPath = argValue;
-			else if (argName.equals("mergeModel"))
-				mergeModelPath = argValue;
 			else if (argName.equals("imageStatus")) {
 				String[] statusCodes = argValue.split(",");
 				Set<ImageStatus> imageStasuses = new HashSet<>();
@@ -357,18 +377,18 @@ public class Jochre {
 				}
 				if (outputFormats.size() == 0)
 					throw new JochreException("At least one outputFormat required.");
-				else if (argName.equals("features")) {
-					featureDescriptors = new ArrayList<>();
-					InputStream featureFile = new FileInputStream(new File(argValue));
-					try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
-						while (scanner.hasNextLine()) {
-							String descriptor = scanner.nextLine();
-							featureDescriptors.add(descriptor);
-							LOG.debug(descriptor);
-						}
+			} else if (argName.equals("features")) {
+				featureDescriptors = new ArrayList<>();
+				InputStream featureFile = new FileInputStream(new File(argValue));
+				try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
+					while (scanner.hasNextLine()) {
+						String descriptor = scanner.nextLine();
+						featureDescriptors.add(descriptor);
+						LOG.debug(descriptor);
 					}
-				} else
-					throw new RuntimeException("Unknown argument: " + argName);
+				}
+			} else {
+				throw new RuntimeException("Unknown argument: " + argName);
 			}
 		}
 
@@ -447,7 +467,7 @@ public class Jochre {
 				userFriendlyName = inFilePath;
 
 			if (command.equals("segment")) {
-				this.doCommandSegment(inFilePath, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
+				this.doCommandSegment(inFilePath, userFriendlyName, outputDirPath, save, firstPage, lastPage);
 			} else if (command.equals("extract")) {
 				this.doCommandExtractImages(inFilePath, outputDirPath, firstPage, lastPage);
 			} else if (command.equals("updateImages")) {
@@ -455,22 +475,21 @@ public class Jochre {
 			} else if (command.equals("applyFeatures")) {
 				this.doCommandApplyFeatures(imageId, shapeId, featureDescriptors);
 			} else if (command.equals("train")) {
-				this.doCommandTrain(letterModelPath, featureDescriptors, criteria, reconstructLetters);
+				this.doCommandTrain(featureDescriptors, criteria, reconstructLetters);
 			} else if (command.equals("evaluate") || command.equals("evaluateComplex")) {
-				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
+				this.doCommandEvaluate(criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
 			} else if (command.equals("evaluateFull")) {
-				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, boundaryDetectorType,
-						minProbForDecision, suffix, observers);
+				this.doCommandEvaluateFull(criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix, observers);
 			} else if (command.equals("analyse")) {
-				this.doCommandAnalyse(letterModelPath, criteria, wordChooser, observers);
+				this.doCommandAnalyse(criteria, wordChooser, observers);
 			} else if (command.equals("trainSplits")) {
-				this.doCommandTrainSplits(splitModelPath, featureDescriptors, criteria);
+				this.doCommandTrainSplits(featureDescriptors, criteria);
 			} else if (command.equals("evaluateSplits")) {
-				this.doCommandEvaluateSplits(splitModelPath, criteria, minProbForDecision);
+				this.doCommandEvaluateSplits(criteria, minProbForDecision);
 			} else if (command.equals("trainMerge")) {
-				this.doCommandTrainMerge(mergeModelPath, featureDescriptors, multiplier, criteria);
+				this.doCommandTrainMerge(featureDescriptors, multiplier, criteria);
 			} else if (command.equals("evaluateMerge")) {
-				this.doCommandEvaluateMerge(mergeModelPath, criteria, minProbForDecision);
+				this.doCommandEvaluateMerge(criteria, minProbForDecision);
 			} else if (command.equals("logImage")) {
 				this.doCommandLogImage(shapeId);
 			} else if (command.equals("testFeature")) {
@@ -528,14 +547,8 @@ public class Jochre {
 						File analysisDir = new File(inDir, baseName);
 						analysisDir.mkdirs();
 						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir);
-						File letterModelFile = new File(letterModelPath);
-						File splitModelFile = null;
-						File mergeModelFile = null;
-						if (splitModelPath.length() > 0)
-							splitModelFile = new File(splitModelPath);
-						if (mergeModelPath.length() > 0)
-							mergeModelFile = new File(mergeModelPath);
-						this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, pdfObservers);
+
+						this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, pdfObservers);
 
 						File pdfOutputDir = new File(outputDir, baseName);
 						pdfOutputDir.mkdirs();
@@ -555,14 +568,7 @@ public class Jochre {
 				}
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);
-				File letterModelFile = new File(letterModelPath);
-				File splitModelFile = null;
-				File mergeModelFile = null;
-				if (splitModelPath.length() > 0)
-					splitModelFile = new File(splitModelPath);
-				if (mergeModelPath.length() > 0)
-					mergeModelFile = new File(mergeModelPath);
-				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, observers);
+				this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, observers);
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
@@ -682,16 +688,14 @@ public class Jochre {
 	 * @param criteria
 	 *            the criteria used to select the training corpus
 	 */
-	public void doCommandTrainMerge(String mergeModelPath, List<String> featureDescriptors, int multiplier, CorpusSelectionCriteria criteria) {
-		if (mergeModelPath.length() == 0)
+	public void doCommandTrainMerge(List<String> featureDescriptors, int multiplier, CorpusSelectionCriteria criteria) {
+		if (jochreSession.getMergeModelPath() == null)
 			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
 
 		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		File mergeModelFile = new File(mergeModelPath);
+		File mergeModelFile = new File(jochreSession.getMergeModelPath());
 		mergeModelFile.getParentFile().mkdirs();
 
 		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
@@ -701,9 +705,8 @@ public class Jochre {
 			corpusEventStream = new OutcomeEqualiserEventStream(corpusEventStream, multiplier);
 		}
 
-		Config config = ConfigFactory.load();
 		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
-		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
 
 		ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		mergeModel.persist(mergeModelFile);
@@ -720,17 +723,10 @@ public class Jochre {
 	 *            at which probability should a merge be made. If &lt; 0, 0.5 is
 	 *            assumed.
 	 */
-	public void doCommandEvaluateMerge(String mergeModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
-		if (mergeModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
-
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel mergeModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath))) {
-			mergeModel = modelFactory.getClassificationModel(zis);
-		}
+	public void doCommandEvaluateMerge(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+		ClassificationModel mergeModel = jochreSession.getMergeModel();
+		if (mergeModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.merge-model");
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
@@ -758,15 +754,13 @@ public class Jochre {
 	 * @param criteria
 	 *            the criteria used to select the training corpus
 	 */
-	public void doCommandTrainSplits(String splitModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria) {
-		if (splitModelPath.length() == 0)
+	public void doCommandTrainSplits(List<String> featureDescriptors, CorpusSelectionCriteria criteria) {
+		if (jochreSession.getSplitModelPath() == null)
 			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
 		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		File splitModelFile = new File(splitModelPath);
+		File splitModelFile = new File(jochreSession.getSplitModelPath());
 		splitModelFile.getParentFile().mkdirs();
 
 		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
@@ -774,9 +768,8 @@ public class Jochre {
 
 		ClassificationEventStream corpusEventStream = new JochreSplitEventStream(criteria, splitFeatures, jochreSession);
 
-		Config config = ConfigFactory.load();
 		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
-		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
 
 		ClassificationModel splitModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		splitModel.persist(splitModelFile);
@@ -793,17 +786,10 @@ public class Jochre {
 	 *            at which probability should a split be made. If &lt; 0, 0.5 is
 	 *            assumed.
 	 */
-	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
-		if (splitModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
-
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel splitModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath))) {
-			splitModel = modelFactory.getClassificationModel(zis);
-		}
+	public void doCommandEvaluateSplits(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+		ClassificationModel splitModel = jochreSession.getSplitModel();
+		if (splitModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.split-model");
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
@@ -838,11 +824,9 @@ public class Jochre {
 	 *            whether or not complete letters should be reconstructed for
 	 *            training, from merged/split letters
 	 */
-	public void doCommandTrain(String letterModelPath, List<String> featureDescriptors, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
-		if (letterModelPath.length() == 0)
+	public void doCommandTrain(List<String> featureDescriptors, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
+		if (jochreSession.getLetterModelPath() == null)
 			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
 		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
@@ -862,11 +846,11 @@ public class Jochre {
 
 		ClassificationEventStream corpusEventStream = new JochreLetterEventStream(features, boundaryDetector, letterValidator, criteria, jochreSession);
 
-		File letterModelFile = new File(letterModelPath);
+		File letterModelFile = new File(jochreSession.getLetterModelPath());
 		letterModelFile.getParentFile().mkdirs();
-		Config config = ConfigFactory.load();
+
 		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
-		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(config);
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
 
 		ClassificationModel letterModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		letterModel.persist(letterModelFile);
@@ -882,23 +866,14 @@ public class Jochre {
 	 * @param outputDirPath
 	 *            the directory to which we write the evaluation files
 	 */
-	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser,
-			boolean reconstructLetters, boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
+	public void doCommandEvaluate(CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, boolean reconstructLetters,
+			boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
 		File outputDir = new File(outputDirPath);
 		outputDir.mkdirs();
-
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel letterModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
-			letterModel = modelFactory.getClassificationModel(zis);
-		}
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
@@ -906,7 +881,7 @@ public class Jochre {
 
 		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		String baseName = letterModelPath.substring(0, letterModelPath.indexOf("."));
+		String baseName = jochreSession.getLetterModelPath().substring(0, jochreSession.getLetterModelPath().indexOf("."));
 		if (baseName.lastIndexOf("/") > 0)
 			baseName = baseName.substring(baseName.lastIndexOf("/") + 1);
 		baseName += suffix;
@@ -992,7 +967,7 @@ public class Jochre {
 			if (errorWriter != null)
 				errorWriter.close();
 		}
-		LOG.debug("F-score for " + letterModelPath + ": " + fScoreObserver.getFScoreCalculator().getTotalFScore());
+		LOG.debug("F-score for " + jochreSession.getLetterModelPath() + ": " + fScoreObserver.getFScoreCalculator().getTotalFScore());
 
 		String modelFileName = baseName;
 		if (reconstructLetters)
@@ -1016,18 +991,8 @@ public class Jochre {
 	 * @param observers
 	 *            the observers, used to create analysis output
 	 */
-	public void doCommandAnalyse(String letterModelPath, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers)
-			throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
-
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel letterModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
-			letterModel = modelFactory.getClassificationModel(zis);
-		}
+	public void doCommandAnalyse(CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers) throws IOException {
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
@@ -1050,14 +1015,10 @@ public class Jochre {
 	/**
 	 * Full analysis, including merge, split and letter guessing.
 	 */
-	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser,
-			int firstPage, int lastPage, List<DocumentObserver> observers) throws IOException {
+	public void doCommandAnalyse(File sourceFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage, List<DocumentObserver> observers)
+			throws IOException {
 
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel letterModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile))) {
-			letterModel = modelFactory.getClassificationModel(zis);
-		}
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
@@ -1066,8 +1027,8 @@ public class Jochre {
 		BoundaryDetector boundaryDetector = null;
 		LetterGuessObserver letterGuessObserver = null;
 
-		if (splitModelFile != null && mergeModelFile != null) {
-			boundaryDetector = new DeterministicBoundaryDetector(splitModelFile, mergeModelFile, jochreSession);
+		if (jochreSession.getSplitModel() != null && jochreSession.getMergeModel() != null) {
+			boundaryDetector = new DeterministicBoundaryDetector(jochreSession.getSplitModel(), jochreSession.getMergeModel(), jochreSession);
 
 			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 			shapeLetterAssigner.setEvaluate(false);
@@ -1112,12 +1073,6 @@ public class Jochre {
 	/**
 	 * Evaluate a suite of split/merge models and letter guessing model.
 	 * 
-	 * @param letterModelPath
-	 *            the path to the letter-guessing model
-	 * @param splitModelPath
-	 *            the path to the splitting model
-	 * @param mergeModelPath
-	 *            the path to the merging model
 	 * @param criteria
 	 *            for selecting the evaluation corpus
 	 * @param save
@@ -1125,41 +1080,27 @@ public class Jochre {
 	 * @param outputDirPath
 	 *            the output directory where we write the evaluation results
 	 */
-	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, boolean save,
-			String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix,
-			List<DocumentObserver> observers) throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
+	public void doCommandEvaluateFull(CorpusSelectionCriteria criteria, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser,
+			BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix, List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
 		File outputDir = new File(outputDirPath);
 		outputDir.mkdirs();
-		String baseName = letterModelPath.substring(0, letterModelPath.indexOf("."));
+		String baseName = jochreSession.getLetterModelPath().substring(0, jochreSession.getLetterModelPath().indexOf("."));
 		if (baseName.lastIndexOf("/") > 0)
 			baseName = baseName.substring(baseName.lastIndexOf("/") + 1);
 
-		MachineLearningModelFactory modelFactory = new MachineLearningModelFactory();
-		ClassificationModel letterModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath))) {
-			letterModel = modelFactory.getClassificationModel(zis);
-		}
-
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
 		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		if (splitModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
-
-		ClassificationModel splitModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath))) {
-			splitModel = modelFactory.getClassificationModel(zis);
-		}
+		ClassificationModel splitModel = jochreSession.getSplitModel();
+		if (splitModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.split-model");
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
 		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
@@ -1170,15 +1111,9 @@ public class Jochre {
 
 		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
-		if (mergeModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
-
-		ClassificationModel mergeModel = null;
-		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath))) {
-			mergeModel = modelFactory.getClassificationModel(zis);
-		}
+		ClassificationModel mergeModel = jochreSession.getMergeModel();
+		if (mergeModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.merge-model");
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
 		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
@@ -1223,7 +1158,7 @@ public class Jochre {
 			imageProcessor.addObserver(observer);
 		imageProcessor.process();
 
-		LOG.debug("F-score for " + letterModelPath + ": " + shapeLetterAssigner.getFScoreCalculator().getTotalFScore());
+		LOG.debug("F-score for " + jochreSession.getLetterModelPath() + ": " + shapeLetterAssigner.getFScoreCalculator().getTotalFScore());
 
 		String modelFileName = baseName + suffix + "_full";
 
@@ -1325,8 +1260,7 @@ public class Jochre {
 	 *            the last page to segment, if &lt;=0 will segment until last
 	 *            document page
 	 */
-	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath,
-			boolean save, int firstPage, int lastPage) {
+	public void doCommandSegment(String filename, String userFriendlyName, String outputDirPath, boolean save, int firstPage, int lastPage) {
 
 		if (filename.length() == 0)
 			throw new RuntimeException("Missing argument: file");
@@ -1341,24 +1275,23 @@ public class Jochre {
 		}
 
 		File file = new File(filename);
-		JochreDocumentGenerator sourceFileProcessor = new JochreDocumentGenerator(file.getName(), userFriendlyName, jochreSession);
-		sourceFileProcessor.setDrawPixelSpread(drawPixelSpread);
+		JochreDocumentGenerator jochreDocumentGenerator = new JochreDocumentGenerator(file.getName(), userFriendlyName, jochreSession);
 		if (save)
-			sourceFileProcessor.requestSave(user);
-		if (showSegmentation) {
+			jochreDocumentGenerator.requestSave(user);
+		if (jochreDocumentGenerator.isDrawSegmentedImage()) {
 			if (outputDirPath != null && outputDirPath.length() > 0) {
 				File outputDir = new File(outputDirPath);
 				outputDir.mkdirs();
-				sourceFileProcessor.requestSegmentation(outputDir);
+				jochreDocumentGenerator.requestSegmentation(outputDir);
 			}
 		}
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(file, firstPage, lastPage, sourceFileProcessor);
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(file, firstPage, lastPage, jochreDocumentGenerator);
 			pdfImageVisitor.visitImages();
 		} else if (filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")
 				|| filename.toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = new ImageDocumentExtractor(file, sourceFileProcessor);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(file, jochreDocumentGenerator);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");

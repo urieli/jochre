@@ -9,7 +9,7 @@ import com.typesafe.config.ConfigFactory;
 
 public class JochreOccitan extends Jochre {
 
-	public JochreOccitan(Config config) {
+	public JochreOccitan(Config config) throws ReflectiveOperationException {
 		super(config);
 	}
 

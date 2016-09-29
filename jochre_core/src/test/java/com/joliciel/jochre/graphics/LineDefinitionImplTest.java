@@ -116,7 +116,7 @@ public class LineDefinitionImplTest {
 	}
 
 	@Test
-	public void testFollowInShape() {
+	public void testFollowInShape() throws Exception {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 		Config config = ConfigFactory.load();
