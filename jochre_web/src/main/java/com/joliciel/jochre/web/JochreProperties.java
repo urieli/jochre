@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -17,13 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
 
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
+import com.joliciel.jochre.JochreSession;
+import com.typesafe.config.ConfigFactory;
 
 public class JochreProperties {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreProperties.class);
 	private static JochreProperties instance;
-	private Properties properties;
-	private LocaleSpecificLexiconService lexiconService;
+	private final Properties properties;
+	private final JochreSession jochreSession;
 
 	public static JochreProperties getInstance() {
 		if (instance == null) {
@@ -37,107 +35,22 @@ public class JochreProperties {
 			String jochrePropertiesPath = "/jochre.properties";
 			properties = new Properties();
 			properties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
-		} catch (IOException e) {
+			jochreSession = new JochreSession(ConfigFactory.load());
+		} catch (IOException | ReflectiveOperationException e) {
 			LOG.error("Failure in JochreProperties$construct", e);
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	public Properties getProperties() {
 		return properties;
 	}
 
-	public LocaleSpecificLexiconService getLexiconService() {
-		try {
-			if (lexiconService == null) {
-				ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-
-				String lexiconServiceClassName = this.properties.getProperty("lexiconService");
-				LOG.debug("lexiconServiceClassName: " + lexiconServiceClassName);
-				@SuppressWarnings("rawtypes")
-				Class lexiconServiceClass = Class.forName(lexiconServiceClassName);
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				Constructor constructor = lexiconServiceClass.getConstructor(new Class[] {});
-				lexiconService = (LocaleSpecificLexiconService) constructor.newInstance();
-
-				if (this.properties.containsKey("locale")) {
-					String languageCode = this.getProperties().getProperty("locale");
-					Locale locale = new Locale(languageCode);
-					lexiconService.setLocale(locale);
-				}
-
-				LOG.debug("locale: " + lexiconService.getLocale());
-
-				String lexiconDirPath = this.properties.getProperty("lexiconDirPath");
-				LOG.debug("lexiconDirPath: " + lexiconDirPath);
-				String lexiconDirRealPath = servletContext.getRealPath(lexiconDirPath);
-
-				lexiconService.setLexiconPath(lexiconDirRealPath);
-			}
-			return lexiconService;
-		} catch (ClassNotFoundException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (SecurityException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (NoSuchMethodException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (InstantiationException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			LOG.error("Failure in JochreProperties$getLexiconService", e);
-			throw new RuntimeException(e);
-		}
+	public JochreSession getJochreSession() {
+		return jochreSession;
 	}
 
-	public Locale getLocale() {
-		return this.getLexiconService().getLocale();
-	}
-
-	public File getLetterModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String letterModelPath = properties.getProperty("letterModelPath");
-		LOG.debug("letterModelPath: " + letterModelPath);
-		File letterModelFile = null;
-		if (letterModelPath != null) {
-			String letterModelRealPath = servletContext.getRealPath(letterModelPath);
-			letterModelFile = new File(letterModelRealPath);
-		}
-		return letterModelFile;
-	}
-
-	public File getSplitModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String splitModelPath = properties.getProperty("splitModelPath");
-		File splitModelFile = null;
-		LOG.debug("splitModelPath: " + splitModelPath);
-		if (splitModelPath != null) {
-			String splitModelRealPath = servletContext.getRealPath(splitModelPath);
-			splitModelFile = new File(splitModelRealPath);
-		}
-		return splitModelFile;
-	}
-
-	public File getMergeModelFile() {
-		ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
-		String mergeModelPath = properties.getProperty("mergeModelPath");
-		LOG.debug("mergeModelPath: " + mergeModelPath);
-		File mergeModelFile = null;
-		if (mergeModelPath != null) {
-			String mergeModelRealPath = servletContext.getRealPath(mergeModelPath);
-			mergeModelFile = new File(mergeModelRealPath);
-		}
-		return mergeModelFile;
-	}
-
-	public String getWelcomeText() {
+	public static String getWelcomeText() {
 		try {
 			ServletContext servletContext = Executions.getCurrent().getDesktop().getWebApp().getServletContext();
 			String welcomeTextPath = servletContext.getRealPath("/resources/welcome.txt");

@@ -18,19 +18,18 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
-import java.util.Locale;
-
 /**
- * Decides whether a particular letter is valid or not for training/guessing/evaluating.
- * Useful for keeping out letters from foreign alphabets.
+ * Decides whether a particular letter is valid or not for
+ * training/guessing/evaluating. Useful for keeping out letters from foreign
+ * alphabets.
+ * 
  * @author Assaf Urieli
  *
  */
 public interface LetterValidator {
 	/**
-	 * Return true if this letter is valid for training/guessing/evaluating, false otherwise.
+	 * Return true if this letter is valid for training/guessing/evaluating, false
+	 * otherwise.
 	 */
 	public boolean validate(String letter);
-	
-	public Locale getLocale();
 }

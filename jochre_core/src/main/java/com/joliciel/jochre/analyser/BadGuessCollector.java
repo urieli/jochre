@@ -18,33 +18,35 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 
 public class BadGuessCollector implements LetterGuessObserver {
-    private static final Logger LOG = LoggerFactory.getLogger(BadGuessCollector.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BadGuessCollector.class);
 	private String[] outcomesToAnalyse = new String[0];
 	List<String> outcomesToAnalyseList = new ArrayList<String>();
-	Map<Integer,String> shapeIdsToAnalyse = new HashMap<Integer,String>();
-	
-	private GraphicsService graphicsService;
+	Map<Integer, String> shapeIdsToAnalyse = new HashMap<Integer, String>();
 
-	private BadGuessCollector(String[] outcomesToAnalyse,
-			GraphicsService graphicsService) {
-		super();
+	@SuppressWarnings("unused")
+	private final JochreSession jochreSession;
+	private final GraphicsDao graphicsDao;
+
+	private BadGuessCollector(String[] outcomesToAnalyse, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+		this.graphicsDao = GraphicsDao.getInstance(jochreSession);
 		this.outcomesToAnalyse = outcomesToAnalyse;
-		this.graphicsService = graphicsService;
 	}
 
 	@Override
@@ -54,22 +56,22 @@ public class BadGuessCollector implements LetterGuessObserver {
 	@Override
 	public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess) {
 		Shape shape = shapeInSequence.getShape();
-		if (outcomesToAnalyseList.contains(shape.getLetter())
-				&& !shape.getLetter().equals(bestGuess))
-			shapeIdsToAnalyse.put(shape.getId(), bestGuess);	}
+		if (outcomesToAnalyseList.contains(shape.getLetter()) && !shape.getLetter().equals(bestGuess))
+			shapeIdsToAnalyse.put(shape.getId(), bestGuess);
+	}
 
 	@Override
 	public void onFinish() {
-		
+
 		for (int shapeId : shapeIdsToAnalyse.keySet()) {
-			Shape shape = this.graphicsService.loadShape(shapeId);
+			Shape shape = this.graphicsDao.loadShape(shapeId);
 			String bestOutcome = shapeIdsToAnalyse.get(shapeId);
 			LOG.debug("### Shape " + shape);
 			LOG.debug("Expected: " + shape.getLetter() + " Guessed: " + bestOutcome);
 			shape.writeImageToLog();
 		}
 	}
-	
+
 	/**
 	 * A list of outcomes that should be written to the log to allow for more
 	 * detailed analysis.
@@ -77,19 +79,12 @@ public class BadGuessCollector implements LetterGuessObserver {
 	public String[] getOutcomesToAnalyse() {
 		return outcomesToAnalyse;
 	}
+
 	public void setOutcomesToAnalyse(String[] outcomesToAnalyse) {
 		this.outcomesToAnalyse = outcomesToAnalyse;
 		this.outcomesToAnalyseList = new ArrayList<String>();
 		for (String outcomeToAnalyse : this.outcomesToAnalyse)
 			this.outcomesToAnalyseList.add(outcomeToAnalyse);
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
 	}
 
 	@Override
@@ -98,19 +93,16 @@ public class BadGuessCollector implements LetterGuessObserver {
 
 	@Override
 	public void onGuessSequence(LetterSequence letterSequence) {
-		
+
 	}
 
 	@Override
 	public void onStartSequence(LetterSequence letterSequence) {
-		
+
 	}
 
 	@Override
-	public void onBeamSearchEnd(LetterSequence bestSequence,
-			List<LetterSequence> finalSequences,
-			List<LetterSequence> holdoverSequences) {
+	public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences) {
 	}
-	
-	
+
 }

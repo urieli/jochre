@@ -18,31 +18,33 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
+import com.joliciel.jochre.boundaries.ShapeInSequence;
+import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.jochre.boundaries.ShapeInSequence;
-import com.joliciel.jochre.graphics.GroupOfShapes;
 
 /**
  * Is this shape the last one in the row? Especially useful for dashes!
+ * 
  * @author Assaf Urieli
  *
  */
-public final class LastShapeInRowFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequence> {
+public final class LastShapeInRowFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequenceWrapper> {
 	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
+	public FeatureResult<Boolean> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
 		boolean lastShapeInSequence = false;
-		if (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex()+1))
+		if (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex() + 1))
 			lastShapeInSequence = true;
-		
+
 		boolean lastShapeInRow = false;
 		if (lastShapeInSequence) {
 			GroupOfShapes group = shapeInSequence.getShape().getGroup();
-			if (group.getIndex()==group.getRow().getGroups().size()-1)
+			if (group.getIndex() == group.getRow().getGroups().size() - 1)
 				lastShapeInRow = true;
 		}
-		
+
 		FeatureResult<Boolean> outcome = this.generateResult(lastShapeInRow);
 
 		return outcome;

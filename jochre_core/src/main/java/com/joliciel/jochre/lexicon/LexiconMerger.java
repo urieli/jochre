@@ -22,15 +22,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.joliciel.talismane.utils.CountedOutcome;
-
 /**
- * Merges lexicons by returning the maximum frequency that any single lexicon gives for a given word.
+ * Merges lexicons by returning the maximum frequency that any single lexicon
+ * gives for a given word.
+ * 
  * @author Assaf Urieli
  *
  */
 public class LexiconMerger implements Lexicon {
 	private List<Lexicon> lexicons = new ArrayList<Lexicon>();
+
 	@Override
 	public int getFrequency(String word) {
 		int maxFrequency = 0;
@@ -41,38 +42,30 @@ public class LexiconMerger implements Lexicon {
 		}
 		return maxFrequency;
 	}
-	
-	@Override
-	public List<CountedOutcome<String>> getFrequencies(String word) {
-		int frequency = this.getFrequency(word);
-		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
-		if (frequency>0) {
-			results.add(new CountedOutcome<String>(word, frequency));
-		}
-		return results;
-	}
-	
+
 	public List<Lexicon> getLexicons() {
 		return lexicons;
 	}
+
 	public void addLexicon(Lexicon lexicon) {
 		this.lexicons.add(lexicon);
 	}
+
 	@Override
 	public Iterator<String> getWords() {
 		final List<Lexicon> myLexicons = lexicons;
-		if (lexicons.size()==0) {
+		if (lexicons.size() == 0) {
 			List<String> words = new ArrayList<String>();
 			return words.iterator();
 		}
-		
+
 		return new Iterator<String>() {
 			int i = 0;
 			Iterator<String> iterator = lexicons.get(0).getWords();
-			
+
 			@Override
 			public boolean hasNext() {
-				while (!iterator.hasNext() && i+1<lexicons.size()) {
+				while (!iterator.hasNext() && i + 1 < lexicons.size()) {
 					i++;
 					iterator = myLexicons.get(i).getWords();
 				}
@@ -89,6 +82,5 @@ public class LexiconMerger implements Lexicon {
 			}
 		};
 	}
-
 
 }

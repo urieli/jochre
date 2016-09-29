@@ -19,31 +19,99 @@
 package com.joliciel.jochre.doc;
 
 import com.joliciel.jochre.Entity;
+import com.joliciel.jochre.JochreSession;
 
 /**
  * The author (or co-author) of a document being scanned.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface Author extends Entity {
+public class Author implements Entity {
+	private String firstName;
+	private String lastName;
+	private String firstNameLocal;
+	private String lastNameLocal;
+	private int id;
 
-	public abstract void setLastNameLocal(String lastNameLocal);
+	private final JochreSession jochreSession;
 
-	public abstract String getLastNameLocal();
+	public Author(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+	}
 
-	public abstract void setFirstNameLocal(String firstNameLocal);
+	@Override
+	public void save() {
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		documentDao.saveAuthor(this);
+	}
 
-	public abstract String getFirstNameLocal();
+	public String getFirstName() {
+		return firstName;
+	}
 
-	public abstract void setLastName(String lastName);
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
 
-	public abstract String getLastName();
+	public String getLastName() {
+		return lastName;
+	}
 
-	public abstract void setFirstName(String firstName);
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
 
-	public abstract String getFirstName();
-	
-	public String getFullName();
-	public String getFullNameLocal();
+	public String getFirstNameLocal() {
+		return firstNameLocal;
+	}
+
+	public void setFirstNameLocal(String firstNameLocal) {
+		this.firstNameLocal = firstNameLocal;
+	}
+
+	public String getLastNameLocal() {
+		return lastNameLocal;
+	}
+
+	public void setLastNameLocal(String lastNameLocal) {
+		this.lastNameLocal = lastNameLocal;
+	}
+
+	public String getFullName() {
+		return this.firstName + " " + this.lastName;
+	}
+
+	public String getFullNameLocal() {
+		return this.firstNameLocal + " " + this.lastNameLocal;
+	}
+
+	@Override
+	public int hashCode() {
+		if (this.id == 0)
+			return super.hashCode();
+		else
+			return this.getId();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this.id == 0) {
+			return super.equals(obj);
+		} else {
+			Author other = (Author) obj;
+			return (this.getId() == other.getId());
+		}
+	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
 
 }

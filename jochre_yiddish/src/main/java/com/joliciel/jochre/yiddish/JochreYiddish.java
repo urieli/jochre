@@ -19,48 +19,24 @@
 package com.joliciel.jochre.yiddish;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.joliciel.jochre.Jochre;
-import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.lexicon.FakeLexicon;
-import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
-import com.joliciel.jochre.lexicon.WordSplitter;
 import com.joliciel.jochre.utils.JochreLogUtils;
+import com.joliciel.talismane.utils.StringUtils;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
-public class JochreYiddish extends Jochre implements LocaleSpecificLexiconService {
-	public JochreYiddish() {
-		super();
-		this.setLocale(new Locale("yi"));
-		JochreSession.getInstance().setLinguistics(new YiddishLinguistics());
-	}
-
-	@SuppressWarnings("unused")
-	private static final Logger LOG = LoggerFactory.getLogger(JochreYiddish.class);
-
-	WordSplitter yiddishWordSplitter = null;
-	Lexicon yiddishLexicon = null;
-
+public class JochreYiddish {
 	public static void main(String[] args) throws Exception {
-		Map<String, String> argMap = new HashMap<String, String>();
-
-		for (String arg : args) {
-			int equalsPos = arg.indexOf('=');
-			String argName = arg.substring(0, equalsPos);
-			String argValue = arg.substring(equalsPos + 1);
-			argMap.put(argName, argValue);
-		}
+		Map<String, String> argMap = StringUtils.convertArgs(args);
 
 		String logConfigPath = argMap.get("logConfigFile");
-		argMap.remove("logConfigFile");
-		JochreLogUtils.configureLogging(logConfigPath);
+		if (logConfigPath != null) {
+			argMap.remove("logConfigFile");
+			JochreLogUtils.configureLogging(logConfigPath);
+		}
 
 		String command = argMap.get("command");
 		if (command != null && command.equals("metadata")) {
@@ -92,31 +68,9 @@ public class JochreYiddish extends Jochre implements LocaleSpecificLexiconServic
 			fetcher.setForceUpdate(forceUpdate);
 			fetcher.fetchMetaData(inDir);
 		} else {
-			JochreYiddish jochre = new JochreYiddish();
+			Config config = ConfigFactory.load();
+			Jochre jochre = new Jochre(config, argMap);
 			jochre.execute(argMap);
 		}
 	}
-
-	@Override
-	public Lexicon getLexicon() {
-		if (yiddishLexicon == null) {
-			if (this.getLexiconPath() != null && this.getLexiconPath().length() > 0) {
-				File lexiconDir = new File(this.getLexiconPath());
-				Lexicon myLexicon = this.readLexicon(lexiconDir);
-				yiddishLexicon = new YiddishWordFrequencyFinder(myLexicon);
-			} else {
-				yiddishLexicon = new FakeLexicon();
-			}
-		}
-		return yiddishLexicon;
-	}
-
-	@Override
-	public WordSplitter getWordSplitter() {
-		if (yiddishWordSplitter == null) {
-			yiddishWordSplitter = new YiddishWordSplitter();
-		}
-		return yiddishWordSplitter;
-	}
-
 }

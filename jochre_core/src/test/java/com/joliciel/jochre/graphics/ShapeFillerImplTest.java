@@ -18,78 +18,93 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.BitSet;
 
 import javax.imageio.ImageIO;
 
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.JochreSession;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-
-public class ShapeFillerImplTest  {
+public class ShapeFillerImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(ShapeFillerImplTest.class);
-	
+
 	@Test
 	public void testGetFillFactor(@Mocked final JochreImage jochreImage) throws Exception {
-		
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
+
 		new NonStrictExpectations() {
 			{
-        	jochreImage.normalize(255); returns(255);
-        	jochreImage.normalize(0); returns(0);
-        }};
+				jochreImage.normalize(255);
+				returns(255);
+				jochreImage.normalize(0);
+				returns(0);
+			}
+		};
 
-        for (int i = 0; i<=2; i++) {
+		for (int i = 0; i <= 2; i++) {
 			String imageName = "";
-			if (i==0) {
+			if (i == 0) {
 				imageName = "AlephWithHoles.png";
-			} else if (i==1) {
+			} else if (i == 1) {
 				imageName = "TesWithHoles.png";
 			} else {
 				imageName = "AlephNoHoles.png";
 			}
 			LOG.debug(imageName);
-	        InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/test/resources/" + imageName); 
-	        assertNotNull(imageFileStream);
+			InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/test/resources/" + imageName);
+			assertNotNull(imageFileStream);
 			BufferedImage image = ImageIO.read(imageFileStream);
-			
-	        
-			ShapeInternal shape = new ShapeImpl();
+
+			Shape shape = new Shape(jochreImage, jochreSession);
 			shape.setImage(image);
-			shape.setJochreImage(jochreImage);
 			shape.setTop(0);
 			shape.setLeft(0);
-			shape.setRight(image.getWidth()-1);
-			shape.setBottom(image.getHeight()-1);
-			
-			ShapeFillerImpl shapeFiller = new ShapeFillerImpl();
+			shape.setRight(image.getWidth() - 1);
+			shape.setBottom(image.getHeight() - 1);
+
+			ShapeFiller shapeFiller = new ShapeFiller();
 			shapeFiller.getFillFactor(shape, 100);
 		}
 	}
 
 	@Test
 	public void testFillShape(@Mocked final JochreImage jochreImage) throws Exception {
-		
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
+
 		new NonStrictExpectations() {
 			{
-        	jochreImage.normalize(255); returns(255);
-        	jochreImage.normalize(0); returns(0);
-        }};
+				jochreImage.normalize(255);
+				returns(255);
+				jochreImage.normalize(0);
+				returns(0);
+			}
+		};
 
-        for (int i = 0; i<=1; i++) {
+		for (int i = 0; i <= 1; i++) {
 			String imageName = "";
 			int fillFactor = 0;
-			if (i==0) {
+			if (i == 0) {
 				imageName = "AlephWithHoles.png";
 				fillFactor = 5;
-			} else if (i==1) {
+			} else if (i == 1) {
 				imageName = "TesWithHoles.png";
 				fillFactor = 5;
 			} else {
@@ -97,64 +112,65 @@ public class ShapeFillerImplTest  {
 				fillFactor = 1;
 			}
 			LOG.debug(imageName);
-	        InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/test/resources/" + imageName); 
-	        assertNotNull(imageFileStream);
+			InputStream imageFileStream = getClass().getResourceAsStream("/com/joliciel/jochre/test/resources/" + imageName);
+			assertNotNull(imageFileStream);
 			BufferedImage image = ImageIO.read(imageFileStream);
-			ShapeInternal shape = new ShapeImpl();
-			shape.setJochreImage(jochreImage);
+			Shape shape = new Shape(jochreImage, jochreSession);
 			shape.setImage(image);
 			shape.setTop(0);
 			shape.setLeft(0);
-			shape.setRight(image.getWidth()-1);
-			shape.setBottom(image.getHeight()-1);
-			
-			ShapeFillerImpl shapeFiller = new ShapeFillerImpl();
+			shape.setRight(image.getWidth() - 1);
+			shape.setBottom(image.getHeight() - 1);
+
+			ShapeFiller shapeFiller = new ShapeFiller();
 			BitSet bitset = shapeFiller.fillShape(shape, 100, fillFactor);
-	 		for (int y = 0; y < shape.getHeight(); y++) {
-	 			StringBuilder line = new StringBuilder();
-	 	      	for (int x = 0; x < shape.getWidth(); x++) {
-	 	      		if (bitset.get(y * shape.getWidth() + x))
-	 	      			line.append("x");
-	 	      		else
-	 	      			line.append("o");
-	 	      	}
-	 	      	LOG.debug(line.toString());
-	 		}
- 		}
+			for (int y = 0; y < shape.getHeight(); y++) {
+				StringBuilder line = new StringBuilder();
+				for (int x = 0; x < shape.getWidth(); x++) {
+					if (bitset.get(y * shape.getWidth() + x))
+						line.append("x");
+					else
+						line.append("o");
+				}
+				LOG.debug(line.toString());
+			}
+		}
 	}
 
 	@Test
-	public void testFillBitSet() {
+	public void testFillBitSet() throws Exception {
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
 		final int threshold = 100;
 		final int width = 8;
 		final int height = 8;
 
-       	int[] pixels =
-		{ 0, 1, 1, 0, 0, 1, 1, 1, // row 0
-		  0, 1, 0, 1, 0, 1, 0, 1, // row 1
-		  0, 0, 1, 1, 0, 0, 1, 1, // row 2
-		  0, 0, 1, 1, 0, 1, 1, 0, // row 3
-		  0, 0, 0, 1, 0, 1, 1, 0, // row 4
-		  0, 0, 0, 1, 1, 1, 0, 0, // row 5
-		  0, 0, 1, 0, 1, 0, 0, 0, // row 6
-		  1, 1, 0, 1, 1, 0, 0, 0, // row 7
+		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row 0
+				0, 1, 0, 1, 0, 1, 0, 1, // row 1
+				0, 0, 1, 1, 0, 0, 1, 1, // row 2
+				0, 0, 1, 1, 0, 1, 1, 0, // row 3
+				0, 0, 0, 1, 0, 1, 1, 0, // row 4
+				0, 0, 0, 1, 1, 1, 0, 0, // row 5
+				0, 0, 1, 0, 1, 0, 0, 0, // row 6
+				1, 1, 0, 1, 1, 0, 0, 0, // row 7
 		};
 
-		ShapeMock shape = new ShapeMock(pixels, width, height);		
-        
-		ShapeFillerImpl shapeFiller = new ShapeFillerImpl();
+		ShapeMock shape = new ShapeMock(pixels, width, height, jochreSession);
+
+		ShapeFiller shapeFiller = new ShapeFiller();
 		BitSet filledBitSet = shapeFiller.fillBitSet(shape, shape.getBlackAndWhiteBitSet(threshold), 5);
- 		for (int y = 0; y < height; y++) {
- 			StringBuilder line = new StringBuilder();
- 	      	for (int x = 0; x < width; x++) {
- 	      		if (filledBitSet.get(y * width + x))
- 	      			line.append("x");
- 	      		else
- 	      			line.append("o");
- 	      	}
- 	      	LOG.debug(line.toString());
- 		}
- 		
- 		
+		for (int y = 0; y < height; y++) {
+			StringBuilder line = new StringBuilder();
+			for (int x = 0; x < width; x++) {
+				if (filledBitSet.get(y * width + x))
+					line.append("x");
+				else
+					line.append("o");
+			}
+			LOG.debug(line.toString());
+		}
+
 	}
 }

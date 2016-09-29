@@ -36,38 +36,29 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timer;
 import org.zkoss.zul.Window;
 
-import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.lexicon.Lexicon;
-import com.joliciel.jochre.lexicon.LexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
-import com.joliciel.jochre.lexicon.WordSplitter;
-import com.joliciel.jochre.output.OutputService;
-import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextGetter;
+import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
-import com.joliciel.jochre.pdf.PdfService;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
 import com.joliciel.talismane.utils.ProgressMonitor;
 
 public class TextController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = 5620794383603025597L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TextController.class);
-
-	private JochreServiceLocator locator = null;
-	private GraphicsService graphicsService;
-	private DocumentService documentService;
-	private LexiconService lexiconService;
-	private OutputService textService;
+	private final JochreSession jochreSession;
 
 	private JochreDocument currentDoc;
 	private JochreImage currentImage;
@@ -108,7 +99,8 @@ public class TextController extends GenericForwardComposer<Window> {
 
 	int currentPageIndex = 0;
 
-	public TextController() {
+	public TextController() throws ReflectiveOperationException {
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override
@@ -120,27 +112,19 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentUser == null)
 				Executions.sendRedirect("login.zul");
 
-			locator = JochreServiceLocator.getInstance();
-
-			String resourcePath = "/jdbc-jochreWeb.properties";
-			LOG.debug("resource path: " + resourcePath);
-			locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
-			graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-			textService = locator.getTextServiceLocator().getTextService();
-			documentService = locator.getDocumentServiceLocator().getDocumentService();
-			lexiconService = locator.getLexiconServiceLocator().getLexiconService();
-
 			HttpServletRequest request = (HttpServletRequest) Executions.getCurrent().getNativeRequest();
 			if (request.getParameter("imageId") != null) {
 				int imageId = Integer.parseInt(request.getParameter("imageId"));
-				currentImage = graphicsService.loadJochreImage(imageId);
+				GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+				currentImage = graphicsDao.loadJochreImage(imageId);
 				currentDoc = currentImage.getPage().getDocument();
 				uploadPanel.setVisible(false);
 				progressBox.setVisible(true);
 				startRenderTimer.setRunning(true);
 			} else if (request.getParameter("docId") != null) {
 				int docId = Integer.parseInt(request.getParameter("docId"));
-				currentDoc = documentService.loadJochreDocument(docId);
+				DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+				currentDoc = documentDao.loadJochreDocument(docId);
 				if (request.getParameter("addPages") != null) {
 					uploadPanel.setVisible(true);
 					// progressBox.setVisible(false);
@@ -179,7 +163,7 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentImage != null) {
 				Html html = new Html();
 				StringWriter out = new StringWriter();
-				DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+				DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 				textGetter.onImageComplete(currentImage);
 				html.setContent(out.toString());
 				htmlContent.appendChild(html);
@@ -191,7 +175,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					for (JochreImage image : page.getImages()) {
 						Html html = new Html();
 						StringWriter out = new StringWriter();
-						DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+						DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 						textGetter.onImageComplete(image);
 						out.append("<HR/>");
 						html.setContent(out.toString());
@@ -254,7 +238,6 @@ public class TextController extends GenericForwardComposer<Window> {
 			if (currentFile != null) {
 				progressBox.setVisible(true);
 				lblAwaitingFile.setVisible(false);
-				JochreProperties jochreProperties = JochreProperties.getInstance();
 
 				int startPage = txtStartPage.getValue().length() == 0 ? -1 : Integer.parseInt(txtStartPage.getValue());
 				int endPage = txtEndPage.getValue().length() == 0 ? -1 : Integer.parseInt(txtEndPage.getValue());
@@ -262,20 +245,16 @@ public class TextController extends GenericForwardComposer<Window> {
 				if (this.currentDoc != null) {
 					this.currentDoc.setFileName(currentFile.getName());
 					this.currentDoc.save();
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(this.currentDoc);
+					this.documentGenerator = new JochreDocumentGenerator(this.currentDoc, jochreSession);
 					this.documentGenerator.requestSave(currentUser);
 				} else {
-					this.documentGenerator = this.documentService.getJochreDocumentGenerator(currentFile.getName(), "", jochreProperties.getLocale());
+					this.documentGenerator = new JochreDocumentGenerator(currentFile.getName(), "", jochreSession);
 				}
 
-				File letterModelFile = jochreProperties.getLetterModelFile();
-				if (letterModelFile != null) {
-
-					Lexicon lexicon = jochreProperties.getLexiconService().getLexicon();
-					WordSplitter wordSplitter = jochreProperties.getLexiconService().getWordSplitter();
-
-					MostLikelyWordChooser wordChooser = lexiconService.getMostLikelyWordChooser(lexicon, wordSplitter);
-					documentGenerator.requestAnalysis(jochreProperties.getSplitModelFile(), jochreProperties.getMergeModelFile(), letterModelFile, wordChooser);
+				String letterModelPath = jochreSession.getLetterModelPath();
+				if (letterModelPath != null) {
+					MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
+					documentGenerator.requestAnalysis(wordChooser);
 				}
 				this.documentHtmlGenerator = new DocumentHtmlGenerator();
 
@@ -284,8 +263,7 @@ public class TextController extends GenericForwardComposer<Window> {
 				String lowerCaseFileName = currentFile.getName().toLowerCase();
 				Thread thread = null;
 				if (lowerCaseFileName.endsWith(".pdf")) {
-					PdfService pdfService = locator.getPdfServiceLocator().getPdfService();
-					PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(currentFile, startPage, endPage, documentGenerator);
+					PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(currentFile, startPage, endPage, documentGenerator);
 					this.progressMonitor = pdfImageVisitor.monitorTask();
 					this.currentHtmlIndex = 0;
 					thread = new Thread(pdfImageVisitor);
@@ -293,7 +271,7 @@ public class TextController extends GenericForwardComposer<Window> {
 					progressTimer.setRunning(true);
 				} else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")
 						|| lowerCaseFileName.endsWith(".gif")) {
-					ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(currentFile, documentGenerator);
+					ImageDocumentExtractor extractor = new ImageDocumentExtractor(currentFile, documentGenerator);
 					if (startPage >= 0)
 						extractor.setPageNumber(startPage);
 					this.progressMonitor = extractor.monitorTask();
@@ -415,7 +393,7 @@ public class TextController extends GenericForwardComposer<Window> {
 		public void onImageComplete(JochreImage jochreImage) {
 			Html html = new Html();
 			StringWriter out = new StringWriter();
-			DocumentObserver textGetter = textService.getTextGetter(out, TextFormat.XHTML);
+			DocumentObserver textGetter = new TextGetter(out, TextFormat.XHTML);
 			textGetter.onImageComplete(jochreImage);
 			out.append("<HR/>");
 			html.setContent(out.toString());

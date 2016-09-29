@@ -20,29 +20,23 @@ package com.joliciel.jochre.boundaries;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
-import com.joliciel.jochre.lang.DefaultLinguistics;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -50,27 +44,18 @@ import mockit.Verifications;
 
 public class TrainingCorpusShapeSplitterTest {
 	private static final Logger LOG = LoggerFactory.getLogger(TrainingCorpusShapeSplitterTest.class);
-	private JochreServiceLocator locator = null;
 
 	@Test
 	public void testSplit(@Mocked final Shape shape, @Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Shape shape3,
 			@Mocked final Shape shape4, @Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
 			@Mocked final JochreImage jochreImage, @Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDocument,
 			@Mocked final Iterator<Split> i, @Mocked final List<Split> splits, @Mocked final Split split1, @Mocked final Split split2,
-			@Mocked final Split split3) throws IOException {
-		locator = JochreServiceLocator.getInstance();
+			@Mocked final Split split3) throws Exception {
 
-		final Locale locale = new Locale("yi");
-		JochreSession jochreSession = JochreSession.getInstance();
-		jochreSession.setLocale(locale);
-
-		DefaultLinguistics linguistics = (DefaultLinguistics) DefaultLinguistics.getInstance(locale);
-		Set<String> dualCharacterLetters = new HashSet<>(Arrays.asList(new String[] { "אָ", "בּ" }));
-		linguistics.setDualCharacterLetters(dualCharacterLetters);
-		jochreSession.setLinguistics(linguistics);
-
-		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();
+		System.setProperty("config.file", "src/test/resources/testDualCharacters.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		final JochreSession jochreSession = new JochreSession(config);
 
 		new NonStrictExpectations() {
 			{
@@ -101,7 +86,7 @@ public class TrainingCorpusShapeSplitterTest {
 				jochrePage.getDocument();
 				returns(jochreDocument);
 				jochreDocument.getLocale();
-				returns(locale);
+				returns(jochreSession.getLocale());
 
 				shape.getSplits();
 				returns(splits);
@@ -133,13 +118,11 @@ public class TrainingCorpusShapeSplitterTest {
 
 		LOG.debug(shape.toString());
 		LOG.debug(shape.getLetter());
-		LOG.debug("Split into: ");
-		TrainingCorpusShapeSplitter splitter = new TrainingCorpusShapeSplitter();
-		splitter.setGraphicsService(graphicsService);
-		splitter.setBoundaryServiceInternal(boundaryService);
+		TrainingCorpusShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
 		List<ShapeSequence> result = splitter.split(shape);
 		ShapeSequence shapeSequence = result.get(0);
 		assertEquals(4, shapeSequence.size());
+		LOG.debug("Split into: " + shapeSequence.toString());
 
 		new Verifications() {
 			{

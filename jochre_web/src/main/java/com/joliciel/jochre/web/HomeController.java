@@ -10,10 +10,7 @@ import org.zkoss.zul.Html;
 import org.zkoss.zul.Window;
 
 public class HomeController extends GenericForwardComposer<Window> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1664468221173319777L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(HomeController.class);
 
@@ -28,7 +25,7 @@ public class HomeController extends GenericForwardComposer<Window> {
 	public void doAfterCompose(Window comp) throws Exception {
 		LOG.debug("HomeController.doAfterCompose");
 		super.doAfterCompose(comp);
-		htmlContent.setContent(JochreProperties.getInstance().getWelcomeText());
+		htmlContent.setContent(JochreProperties.getWelcomeText());
 	}
 
 	public void onClick$btnLogin(Event event) {

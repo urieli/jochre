@@ -18,30 +18,24 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.letterGuesser;
 
-import java.util.Locale;
-
 import com.joliciel.jochre.JochreSession;
 
 /**
  * Returns true only if the entire letter is valid. Empty strings are allowed.
+ * 
  * @author Assaf Urieli
  *
  */
 public class FullLetterValidator implements LetterValidator {
-	private Locale locale;
-	
-	public FullLetterValidator(Locale locale) {
-		super();
-		this.locale = locale;
+	private final JochreSession jochreSession;
+
+	public FullLetterValidator(JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 	}
 
 	@Override
 	public boolean validate(String letter) {
-		return (letter.length()==0||JochreSession.getInstance().getLinguistics().getValidLetters().contains(letter));
-	}
-
-	public Locale getLocale() {
-		return locale;
+		return (letter.length() == 0 || jochreSession.getLinguistics().getValidLetters().contains(letter));
 	}
 
 }

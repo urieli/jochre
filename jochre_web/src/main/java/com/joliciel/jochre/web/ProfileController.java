@@ -16,18 +16,12 @@ import org.zkoss.zul.SimpleConstraint;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
-import com.joliciel.jochre.JochreServiceLocator;
 import com.joliciel.jochre.security.User;
 
 public class ProfileController extends GenericForwardComposer<Div> {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1664468221173319777L;
+	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
-
-	private JochreServiceLocator locator = null;
 
 	Window winProfile;
 	Label lblUsername;
@@ -53,11 +47,6 @@ public class ProfileController extends GenericForwardComposer<Div> {
 			Executions.sendRedirect("login.zul");
 			return;
 		}
-
-		locator = JochreServiceLocator.getInstance();
-		String resourcePath = "/jdbc-jochreWeb.properties";
-		LOG.debug("resource path: " + resourcePath);
-		locator.setDataSourceProperties(this.getClass().getResourceAsStream(resourcePath));
 
 		lblUsername.setValue(user.getUsername());
 		txtFirstName.setText(user.getFirstName());

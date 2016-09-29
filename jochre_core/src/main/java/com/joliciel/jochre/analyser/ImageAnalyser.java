@@ -18,15 +18,12 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.analyser;
 
-import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 
 /**
- * Analyse images using a given model.
- * Can be used for both evaluation of held-out/test data, and for analysis of new pages.
+ * Analyse images using a given model. Can be used for both evaluation of
+ * held-out/test data, and for analysis of new pages.
  * 
  * @author Assaf Urieli
  *
@@ -39,18 +36,17 @@ public interface ImageAnalyser extends DocumentObserver {
 
 	public abstract void addObserver(LetterGuessObserver letterGuessObserver);
 
-	public abstract void setLetterGuesser(LetterGuesser letterGuesser);
-	public abstract LetterGuesser getLetterGuesser();
-	
-	public abstract void setBoundaryDetector(BoundaryDetector boundaryDetector);
-	public abstract BoundaryDetector getBoundaryDetector();
-
-	public abstract void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser);
-	public abstract MostLikelyWordChooser getMostLikelyWordChooser();
-
-	public abstract void setMinOutcomeWeight(double minOutcomeWeight);
+	/**
+	 * Only retain those guesses whose probability is &gt;= this value.
+	 * 
+	 * @return
+	 */
 	public abstract double getMinOutcomeWeight();
 
-	public abstract void setBeamWidth(int beamWidth);
+	/**
+	 * The number of guesses to retain per analysis step.
+	 * 
+	 * @return
+	 */
 	public abstract int getBeamWidth();
 }

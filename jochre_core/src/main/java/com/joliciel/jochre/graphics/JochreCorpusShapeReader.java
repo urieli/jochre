@@ -18,15 +18,68 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.JochreSession;
 
 /**
  * An interface for reading shapes out of a Jochre corpus.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface JochreCorpusShapeReader extends JochreCorpusReader {
-	public Shape next();
-	public boolean hasNext();
-	
+public class JochreCorpusShapeReader extends JochreCorpusReader {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusShapeReader.class);
+
+	private int shapeIndex = 0;
+
+	private GroupOfShapes group = null;
+	private Shape shape = null;
+
+	private JochreCorpusGroupReader groupReader;
+
+	public JochreCorpusShapeReader(JochreSession jochreSession) {
+		super(jochreSession);
+	}
+
+	public Shape next() {
+		Shape nextShape = null;
+		if (this.hasNext()) {
+			LOG.debug("next shape: " + shape);
+			nextShape = this.shape;
+
+			this.shape = null;
+		}
+		return nextShape;
+	}
+
+	public boolean hasNext() {
+		this.initialiseStream();
+		while (shape == null && group != null) {
+			if (shapeIndex < group.getShapes().size()) {
+				shape = group.getShapes().get(shapeIndex);
+				shapeIndex++;
+			} else {
+				group = null;
+				shapeIndex = 0;
+				if (groupReader.hasNext())
+					group = groupReader.next();
+			}
+		}
+
+		return shape != null;
+	}
+
+	@Override
+	protected void initialiseStream() {
+		if (groupReader == null) {
+			groupReader = new JochreCorpusGroupReader(jochreSession);
+			groupReader.setSelectionCriteria(this.getSelectionCriteria());
+
+			if (groupReader.hasNext())
+				group = groupReader.next();
+		}
+	}
 
 }

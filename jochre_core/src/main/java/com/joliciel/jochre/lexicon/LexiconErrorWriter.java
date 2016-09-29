@@ -25,6 +25,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,16 +60,16 @@ import com.joliciel.talismane.utils.CSVFormatter;
 public class LexiconErrorWriter implements LetterGuessObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(LexiconErrorWriter.class);
 	private static final CSVFormatter CSV = new CSVFormatter(5);
-	private File outputDir;
-	private String baseName;
-	MostLikelyWordChooser wordChooser;
+	private final File outputDir;
+	private final String baseName;
+	private final MostLikelyWordChooser wordChooser;
 
-	Writer knownWordErrorWriter;
-	Writer knownWordCorrectWriter;
-	Writer unknownWordErrorWriter;
-	Writer unknownWordCorrectWriter;
-	Writer allErrorWriter;
-	Writer allWordWriter;
+	private final Writer knownWordErrorWriter;
+	private final Writer knownWordCorrectWriter;
+	private final Writer unknownWordErrorWriter;
+	private final Writer unknownWordCorrectWriter;
+	private final Writer allErrorWriter;
+	private final Writer allWordWriter;
 
 	private static final String ALL_GROUP = "All";
 	Map<String, Set<Integer>> documentGroups = new HashMap<String, Set<Integer>>();
@@ -84,12 +85,16 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 
 	private static DecimalFormat df = new DecimalFormat("0.##");
 
-	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser, String encoding) {
+	private final JochreSession jochreSession;
+
+	public LexiconErrorWriter(File outputDir, String baseName, MostLikelyWordChooser wordChooser, JochreSession jochreSession) {
 		try {
+			this.jochreSession = jochreSession;
 			this.outputDir = outputDir;
 			this.baseName = baseName;
 			this.wordChooser = wordChooser;
 
+			Charset encoding = jochreSession.getCsvEncoding();
 			errorMap.put(ALL_GROUP, new ErrorStatistics());
 
 			knownWordErrorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(outputDir, baseName + "_KE.csv"), false), encoding));
@@ -221,7 +226,7 @@ public class LexiconErrorWriter implements LetterGuessObserver {
 						beamContainsRightWord = false;
 					}
 
-					Linguistics linguistics = JochreSession.getInstance().getLinguistics();
+					Linguistics linguistics = jochreSession.getLinguistics();
 					for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
 						String letterGuess = bestSequence.getLetters().get(j++);
 						String letter = shapeInSequence.getShape().getLetter();

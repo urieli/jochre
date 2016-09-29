@@ -20,28 +20,25 @@ package com.joliciel.jochre.analyser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
 import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.jochre.boundaries.ShapeSequence;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.talismane.machineLearning.Decision;
@@ -50,49 +47,61 @@ import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
+import com.typesafe.config.Config;
 
 /**
  * Perform a analysis using a beam search.
+ * 
  * @author Assaf Urieli
  *
  */
-class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
-    private static final Logger LOG = LoggerFactory.getLogger(BeamSearchImageAnalyser.class);
+public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
+	private static final Logger LOG = LoggerFactory.getLogger(BeamSearchImageAnalyser.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
-    
-    private static final int DEFAULT_BEAM_WIDTH = 5;
-    
-	private AnalyserServiceInternal analyserServiceInternal;
-	private LetterGuesserService letterGuesserService;
-	private GraphicsService graphicsService;
-	private BoundaryService boundaryService;
 
-	private MostLikelyWordChooser mostLikelyWordChooser;
-	private BoundaryDetector boundaryDetector;
-	private LetterGuesser letterGuesser;
-	
-	private int beamWidth = DEFAULT_BEAM_WIDTH;
-	private double minOutcomeWeight = 0;	
+	private final MostLikelyWordChooser mostLikelyWordChooser;
+	private final BoundaryDetector boundaryDetector;
+	private final LetterGuesser letterGuesser;
+
+	private final int beamWidth;
+	private final double minOutcomeWeight;
 
 	private int shapeCount = 0;
 	private int totalShapeCount = -1;
-	
+
 	private SimpleProgressMonitor currentMonitor;
-	
+
 	private List<LetterGuessObserver> observers = new ArrayList<LetterGuessObserver>();
-	
-	public BeamSearchImageAnalyser(int beamWidth, double minOutcomeWeight) {
-		if (beamWidth>0)
-			this.beamWidth = beamWidth;
-		this.minOutcomeWeight = minOutcomeWeight;
+
+	private final JochreSession jochreSession;
+
+	/**
+	 * 
+	 * @param boundaryDetector
+	 *            if null, boundaries are not changed from the original shapes
+	 * @param letterGuesser
+	 *            cannot be null - used to guess letters
+	 * @param mostLikelyWordChooser
+	 *            if not null, adjusts the probabilities of the variou guesses
+	 * @param jochreSession
+	 */
+	public BeamSearchImageAnalyser(BoundaryDetector boundaryDetector, LetterGuesser letterGuesser, MostLikelyWordChooser mostLikelyWordChooser,
+			JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+		this.letterGuesser = letterGuesser;
+		this.boundaryDetector = boundaryDetector;
+		this.mostLikelyWordChooser = mostLikelyWordChooser;
+		Config imageAnalyserConfig = jochreSession.getConfig().getConfig("jochre.image-analyser");
+		this.beamWidth = imageAnalyserConfig.getInt("beam-width");
+		this.minOutcomeWeight = imageAnalyserConfig.getDouble("min-outcome-prob");
 	}
-	
+
 	@Override
 	public void analyse(JochreImage image) {
 		MONITOR.startTask("analyse");
 		try {
 			this.analyseInternal(image);
-			
+
 			for (LetterGuessObserver observer : observers) {
 				observer.onFinish();
 			}
@@ -100,23 +109,23 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 			MONITOR.endTask();
 		}
 	}
-	
+
 	public void analyseInternal(JochreImage image) {
 		LOG.debug("Analysing image " + image.getId());
-		if (currentMonitor!=null) {
-			currentMonitor.setCurrentAction("imageMonitor.analysingImage", new Object[] {image.getPage().getIndex()});
+		if (currentMonitor != null) {
+			currentMonitor.setCurrentAction("imageMonitor.analysingImage", new Object[] { image.getPage().getIndex() });
 		}
 		for (LetterGuessObserver observer : observers) {
 			observer.onImageStart(image);
 		}
-		if (totalShapeCount<0)
+		if (totalShapeCount < 0)
 			totalShapeCount = image.getShapeCount();
 
 		for (Paragraph paragraph : image.getParagraphs()) {
 			LOG.debug("Analysing paragraph " + paragraph.getIndex() + " (id=" + paragraph.getId() + ")");
 			List<LetterSequence> holdoverSequences = null;
 			GroupOfShapes holdoverGroup = null;
-			for (RowOfShapes row: paragraph.getRows()) {
+			for (RowOfShapes row : paragraph.getRows()) {
 				LOG.debug("Analysing row " + row.getIndex() + " (id=" + row.getId() + ")");
 				for (GroupOfShapes group : row.getGroups()) {
 					if (group.isSkip()) {
@@ -124,38 +133,42 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 						continue;
 					}
 					LOG.debug("Analysing group " + group.getIndex() + " (id=" + group.getId() + ")");
-					
+
 					int width = group.getRight() - group.getLeft() + 1;
-					
+
 					List<ShapeSequence> shapeSequences = null;
-					if (boundaryDetector!=null) {
+					if (boundaryDetector != null) {
 						shapeSequences = boundaryDetector.findBoundaries(group);
 					} else {
 						// simply add this groups shape's
 						shapeSequences = new ArrayList<ShapeSequence>();
-						ShapeSequence shapeSequence = boundaryService.getEmptyShapeSequence();
+						ShapeSequence shapeSequence = new ShapeSequence();
 						for (Shape shape : group.getShapes())
 							shapeSequence.addShape(shape);
 						shapeSequences.add(shapeSequence);
 					}
-					
-					// Perform a beam search to guess the most likely sequence for this word
+
+					// Perform a beam search to guess the most likely sequence
+					// for this
+					// word
 					TreeMap<Integer, PriorityQueue<LetterSequence>> heaps = new TreeMap<Integer, PriorityQueue<LetterSequence>>();
 
-					// prime a starter heap with the n best shape boundary analyses for this group
+					// prime a starter heap with the n best shape boundary
+					// analyses for
+					// this group
 					PriorityQueue<LetterSequence> starterHeap = new PriorityQueue<LetterSequence>(1);
 					for (ShapeSequence shapeSequence : shapeSequences) {
-						LetterSequence emptySequence = this.getLetterGuesserService().getEmptyLetterSequence(shapeSequence);
+						LetterSequence emptySequence = new LetterSequence(shapeSequence, jochreSession);
 						starterHeap.add(emptySequence);
 					}
 					heaps.put(0, starterHeap);
-					
+
 					PriorityQueue<LetterSequence> finalHeap = null;
-					while (heaps.size()>0) {
+					while (heaps.size() > 0) {
 						Entry<Integer, PriorityQueue<LetterSequence>> heapEntry = heaps.pollFirstEntry();
 						if (LOG.isTraceEnabled())
 							LOG.trace("heap for index: " + heapEntry.getKey().intValue() + ", width: " + width);
-						if (heapEntry.getKey().intValue()==width) {
+						if (heapEntry.getKey().intValue() == width) {
 							finalHeap = heapEntry.getValue();
 							break;
 						}
@@ -164,40 +177,40 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 						// limit the breadth to K
 						int maxSequences = previousHeap.size() > this.beamWidth ? this.beamWidth : previousHeap.size();
-						
-						for (int j = 0; j<maxSequences; j++) {
+
+						for (int j = 0; j < maxSequences; j++) {
 							LetterSequence history = previousHeap.poll();
 							ShapeInSequence shapeInSequence = history.getNextShape();
 							Shape shape = shapeInSequence.getShape();
 							if (LOG.isTraceEnabled()) {
-								LOG.trace("Sequence " + history + ", shape: " + shape);				
+								LOG.trace("Sequence " + history + ", shape: " + shape);
 							}
 							LogUtils.logMemory(LOG);
 							int position = 0;
-							if (JochreSession.getInstance().getLinguistics().isLeftToRight()) {
+							if (jochreSession.getLinguistics().isLeftToRight()) {
 								position = shape.getRight() - group.getLeft() + 1;
 							} else {
 								position = group.getRight() - shape.getLeft() + 1;
 							}
 							PriorityQueue<LetterSequence> heap = heaps.get(position);
-							if (heap==null) {
+							if (heap == null) {
 								heap = new PriorityQueue<LetterSequence>();
 								heaps.put(position, heap);
 							}
-							
+
 							MONITOR.startTask("guess letter");
 							try {
 								letterGuesser.guessLetter(shapeInSequence, history);
 							} finally {
 								MONITOR.endTask();
 							}
-							
+
 							MONITOR.startTask("heap sort");
 							try {
 								for (Decision letterGuess : shape.getLetterGuesses()) {
 									// leave out very low probability outcomes
 									if (letterGuess.getProbability() > this.minOutcomeWeight) {
-										LetterSequence sequence = this.getLetterGuesserService().getLetterSequencePlusOne(history);
+										LetterSequence sequence = new LetterSequence(history);
 										sequence.getLetters().add(letterGuess.getOutcome());
 										sequence.addDecision(letterGuess);
 										heap.add(sequence);
@@ -208,31 +221,33 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							}
 						} // next history in heap
 					} // any more heaps?
-					
+
 					LetterSequence bestSequence = null;
 					boolean isHoldover = false;
 					MONITOR.startTask("best sequence");
 					try {
 						List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
-						for (int i=0;i<this.beamWidth;i++) {
+						for (int i = 0; i < this.beamWidth; i++) {
 							if (finalHeap.isEmpty())
 								break;
 							finalSequences.add(finalHeap.poll());
 						}
 
-						if (this.getMostLikelyWordChooser()==null) {
+						if (this.mostLikelyWordChooser == null) {
 							// most likely sequence is on top of the last heap
 							bestSequence = finalSequences.get(0);
 						} else {
 							// get most likely sequence using lexicon
-							if (holdoverSequences!=null) {
-								// we have a holdover from the previous row ending with a dash
-								bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
+							if (holdoverSequences != null) {
+								// we have a holdover from the previous row
+								// ending with a dash
+								bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
 							} else {
-								// check if this is the last group on the row and could end with a dash
+								// check if this is the last group on the row
+								// and could end with
+								// a dash
 								boolean shouldBeHeldOver = false;
-								if (group.getIndex()==row.getGroups().size()-1
-										&& row.getIndex()<paragraph.getRows().size()-1) {
+								if (group.getIndex() == row.getGroups().size() - 1 && row.getIndex() < paragraph.getRows().size() - 1) {
 									for (LetterSequence letterSequence : finalSequences) {
 										if (letterSequence.toString().endsWith("-")) {
 											shouldBeHeldOver = true;
@@ -246,11 +261,11 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 									isHoldover = true;
 								} else {
 									// simplest case: no holdover
-									bestSequence = this.getMostLikelyWordChooser().chooseMostLikelyWord(finalSequences, this.beamWidth);
+									bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, this.beamWidth);
 								}
 							} // have we holdover sequences?
 						} // have we a most likely word chooser?
-						
+
 						if (!isHoldover) {
 							for (LetterGuessObserver observer : observers) {
 								observer.onBeamSearchEnd(bestSequence, finalSequences, holdoverSequences);
@@ -259,15 +274,15 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					} finally {
 						MONITOR.endTask();
 					}
-					
+
 					MONITOR.startTask("assign letter");
 					try {
 						if (!isHoldover) {
 							for (LetterGuessObserver observer : observers) {
 								observer.onStartSequence(bestSequence);
 							}
-							
-							if (holdoverGroup==null) {
+
+							if (holdoverGroup == null) {
 								group.setBestLetterSequence(bestSequence);
 							} else {
 								// split bestSequence by group
@@ -281,21 +296,21 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								holdoverSequences = null;
 								holdoverGroup = null;
 							}
-							
+
 							int i = 0;
 							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
 								String bestOutcome = bestSequence.getLetters().get(i);
 								this.assignLetter(shapeInSequence, bestOutcome);
 								i++;
 							} // next shape
-							
+
 							for (LetterGuessObserver observer : observers) {
 								observer.onGuessSequence(bestSequence);
 							}
 						}
-						
+
 						this.shapeCount += group.getShapes().size();
-						if (this.currentMonitor!=null) {
+						if (this.currentMonitor != null) {
 							double progress = (double) shapeCount / (double) totalShapeCount;
 							LOG.debug("progress: " + progress);
 							currentMonitor.setPercentComplete(progress);
@@ -306,58 +321,17 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 				} // next group
 			} // next row
 		} // next paragraph
-		
+
 		for (LetterGuessObserver observer : observers) {
 			observer.onImageEnd();
 		}
 	}
-	
+
 	private void assignLetter(ShapeInSequence shapeInSequence, String bestGuess) {
 		for (LetterGuessObserver observer : observers) {
 			observer.onGuessLetter(shapeInSequence, bestGuess);
 		}
-		
-	}
-	
-	public AnalyserServiceInternal getAnalyserServiceInternal() {
-		return analyserServiceInternal;
-	}
-	public void setAnalyserServiceInternal(
-			AnalyserServiceInternal analyserServiceInternal) {
-		this.analyserServiceInternal = analyserServiceInternal;
-	}
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
 
-
-	@Override
-	public MostLikelyWordChooser getMostLikelyWordChooser() {
-		return mostLikelyWordChooser;
-	}
-
-	@Override
-	public void setMostLikelyWordChooser(MostLikelyWordChooser mostLikelyWordChooser) {
-		this.mostLikelyWordChooser = mostLikelyWordChooser;
-	}
-
-	public LetterGuesserService getLetterGuesserService() {
-		return letterGuesserService;
-	}
-
-	public void setLetterGuesserService(LetterGuesserService letterGuesserService) {
-		this.letterGuesserService = letterGuesserService;
-	}
-
-	public BoundaryService getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryService boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	@Override
@@ -365,28 +339,10 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 		currentMonitor = new SimpleProgressMonitor();
 		return currentMonitor;
 	}
-	
+
 	@Override
 	public void addObserver(LetterGuessObserver letterGuessObserver) {
 		this.observers.add(letterGuessObserver);
-	}
-
-	@Override
-	public BoundaryDetector getBoundaryDetector() {
-		return boundaryDetector;
-	}
-
-	@Override
-	public void setBoundaryDetector(BoundaryDetector boundaryDetector) {
-		this.boundaryDetector = boundaryDetector;
-	}
-
-	public LetterGuesser getLetterGuesser() {
-		return letterGuesser;
-	}
-
-	public void setLetterGuesser(LetterGuesser letterGuesser) {
-		this.letterGuesser = letterGuesser;
 	}
 
 	@Override
@@ -395,18 +351,8 @@ class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	}
 
 	@Override
-	public void setBeamWidth(int beamWidth) {
-		this.beamWidth = beamWidth;
-	}
-
-	@Override
 	public double getMinOutcomeWeight() {
 		return minOutcomeWeight;
-	}
-
-	@Override
-	public void setMinOutcomeWeight(double minOutcomeWeight) {
-		this.minOutcomeWeight = minOutcomeWeight;
 	}
 
 	@Override

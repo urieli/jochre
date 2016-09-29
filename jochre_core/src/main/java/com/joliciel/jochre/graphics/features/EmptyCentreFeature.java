@@ -18,23 +18,22 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics.features;
 
-
 /**
  * Tests whether the centre sector is relatively empty.
+ * 
  * @author Assaf Urieli
  *
  */
 public final class EmptyCentreFeature extends EmptySectorsBinaryFeature {
 	public EmptyCentreFeature() {
-		super(new boolean[][] {
-			{ false, false, false, false, false } ,
-			{ false, false, false, false, false } ,
-			{ false, false, false, false, false } ,
-			{ false, false, true, false, false } ,
-			{ false, false, false, false, false } ,
-			{ false, false, false, false, false } ,
-			{ false, false, false, false, false } ,
-			
+		super(new boolean[][] { { false, false, false, false, false, false, false }, // row
+				{ false, false, false, false, false, false, false }, // row
+				{ false, false, false, false, false, false, false }, // row
+				{ false, false, false, true, false, false, false }, // row
+				{ false, false, false, false, false, false, false }, // row
+				{ false, false, false, false, false, false, false }, // row
+				{ false, false, false, false, false, false, false }, // row
+
 		});
 	}
 }

@@ -18,13 +18,48 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.JochreSession;
 
 /**
  * An interface for reading images out of a Jochre corpus.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface JochreCorpusImageReader extends JochreCorpusReader {
-	public JochreImage next();
-	public boolean hasNext();
+public class JochreCorpusImageReader extends JochreCorpusReader {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageReader.class);
+
+	private JochreImage image = null;
+	private int imageIndex = 0;
+
+	public JochreCorpusImageReader(JochreSession jochreSession) {
+		super(jochreSession);
+	}
+
+	public JochreImage next() {
+		if (this.image != null) {
+			this.image.clearMemory();
+		}
+		JochreImage nextImage = null;
+		if (this.hasNext()) {
+			LOG.debug("next image: " + this.image);
+			nextImage = this.image;
+
+			this.image = null;
+		}
+		return nextImage;
+	}
+
+	public boolean hasNext() {
+		this.initialiseStream();
+		if (image == null && imageIndex < this.getImages().size()) {
+			image = this.getImages().get(imageIndex);
+			imageIndex++;
+		}
+
+		return image != null;
+	}
 }

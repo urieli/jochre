@@ -26,10 +26,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -38,45 +38,52 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.analyser.AnalyserService;
+import com.joliciel.jochre.analyser.BeamSearchImageAnalyser;
 import com.joliciel.jochre.analyser.ErrorLogger;
 import com.joliciel.jochre.analyser.FScoreObserver;
 import com.joliciel.jochre.analyser.ImageAnalyser;
 import com.joliciel.jochre.analyser.LetterAssigner;
+import com.joliciel.jochre.analyser.LetterGuessObserver;
 import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.analyser.SimpleLetterFScoreObserver;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
-import com.joliciel.jochre.boundaries.BoundaryService;
+import com.joliciel.jochre.boundaries.DeterministicBoundaryDetector;
+import com.joliciel.jochre.boundaries.JochreMergeEventStream;
+import com.joliciel.jochre.boundaries.JochreSplitEventStream;
+import com.joliciel.jochre.boundaries.LetterByLetterBoundaryDetector;
 import com.joliciel.jochre.boundaries.MergeEvaluator;
+import com.joliciel.jochre.boundaries.OriginalBoundaryDetector;
+import com.joliciel.jochre.boundaries.RecursiveShapeSplitter;
 import com.joliciel.jochre.boundaries.ShapeMerger;
 import com.joliciel.jochre.boundaries.ShapeSplitter;
 import com.joliciel.jochre.boundaries.SplitCandidateFinder;
 import com.joliciel.jochre.boundaries.SplitEvaluator;
-import com.joliciel.jochre.boundaries.features.BoundaryFeatureService;
+import com.joliciel.jochre.boundaries.TrainingCorpusShapeMerger;
+import com.joliciel.jochre.boundaries.TrainingCorpusShapeSplitter;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
+import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
+import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.DocumentService;
 import com.joliciel.jochre.doc.ImageDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
+import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.ImageStatus;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.JochreCorpusImageProcessor;
@@ -87,34 +94,29 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.graphics.features.ShapeFeature;
 import com.joliciel.jochre.graphics.features.VerticalElongationFeature;
 import com.joliciel.jochre.letterGuesser.ComponentCharacterValidator;
+import com.joliciel.jochre.letterGuesser.JochreLetterEventStream;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
-import com.joliciel.jochre.letterGuesser.LetterGuesserService;
 import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
-import com.joliciel.jochre.letterGuesser.features.LetterFeatureService;
+import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureTester;
 import com.joliciel.jochre.lexicon.CorpusLexiconBuilder;
-import com.joliciel.jochre.lexicon.DefaultLexiconWrapper;
-import com.joliciel.jochre.lexicon.DefaultWordSplitter;
-import com.joliciel.jochre.lexicon.FakeLexicon;
-import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.LexiconErrorWriter;
-import com.joliciel.jochre.lexicon.LexiconMerger;
-import com.joliciel.jochre.lexicon.LexiconService;
-import com.joliciel.jochre.lexicon.LocaleSpecificLexiconService;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 import com.joliciel.jochre.lexicon.UnknownWordListWriter;
-import com.joliciel.jochre.lexicon.WordSplitter;
+import com.joliciel.jochre.output.AbbyyFineReader8Exporter;
+import com.joliciel.jochre.output.AltoXMLExporter;
 import com.joliciel.jochre.output.ImageExtractor;
+import com.joliciel.jochre.output.JochrePageByPageExporter;
+import com.joliciel.jochre.output.JochreXMLExporter;
 import com.joliciel.jochre.output.MetaDataExporter;
-import com.joliciel.jochre.output.OutputService;
-import com.joliciel.jochre.output.OutputService.ExportFormat;
-import com.joliciel.jochre.output.TextFormat;
+import com.joliciel.jochre.output.TextExporter;
+import com.joliciel.jochre.output.TextGetter;
+import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.pdf.PdfImageSaver;
 import com.joliciel.jochre.pdf.PdfImageVisitor;
-import com.joliciel.jochre.pdf.PdfService;
-import com.joliciel.jochre.security.SecurityService;
+import com.joliciel.jochre.security.SecurityDao;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.stats.FScoreCalculator;
 import com.joliciel.jochre.utils.JochreException;
@@ -122,14 +124,13 @@ import com.joliciel.jochre.utils.JochreLogUtils;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.ClassificationModelTrainer;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
-import com.joliciel.talismane.machineLearning.TrainingParameters;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.CSVFormatter;
 import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * Class encapsulating the various top-level Jochre commands and command-line
@@ -138,61 +139,83 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  * @author Assaf Urieli
  *
  */
-public class Jochre implements LocaleSpecificLexiconService {
+public class Jochre {
 	private static final Logger LOG = LoggerFactory.getLogger(Jochre.class);
 
 	public enum BoundaryDetectorType {
-		LetterByLetter, Deterministic
+		LetterByLetter,
+		Deterministic
 	}
 
 	public enum OutputFormat {
-		Jochre, JochrePageByPage, Alto3, Alto3zip, AbbyyFineReader8, HTML, UnknownWords, Metadata, ImageExtractor, Text, GuessText
+		Jochre,
+		JochrePageByPage,
+		Alto3,
+		Alto3zip,
+		AbbyyFineReader8,
+		HTML,
+		UnknownWords,
+		Metadata,
+		ImageExtractor,
+		Text,
+		GuessText
 	}
 
-	GraphicsService graphicsService;
-	DocumentService documentService;
-	AnalyserService analyserService;
-	LexiconService lexiconService;
-	LetterGuesserService letterGuesserService;
-	BoundaryService boundaryService;
-	SecurityService securityService;
-	PdfService pdfService;
-	LetterFeatureService letterFeatureService;
-	BoundaryFeatureService boundaryFeatureService;
-	MachineLearningService machineLearningService;
-	FeatureService featureService;
+	private int userId = -1;
 
-	Locale locale = null;
-	int userId = -1;
-	String dataSourcePropertiesPath;
+	private final Map<String, Set<Integer>> documentGroups = new LinkedHashMap<>();
 
-	String encoding = null;
-	String lexiconPath = null;
-	WordSplitter wordSplitter = null;
-	Lexicon lexicon = null;
-	Map<String, Set<Integer>> documentGroups = new LinkedHashMap<String, Set<Integer>>();
-	String csvEncoding = null;
+	private final JochreSession jochreSession;
 
-	private int beamWidth = 5;
-
-	public Jochre() {
+	public Jochre() throws ReflectiveOperationException {
+		this(ConfigFactory.load());
 	}
 
-	private void initialise() {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance();
+	public Jochre(Config config) throws ReflectiveOperationException {
+		this.jochreSession = new JochreSession(config);
+	}
 
-		graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-		documentService = locator.getDocumentServiceLocator().getDocumentService();
-		analyserService = locator.getAnalyserServiceLocator().getAnalyserService();
-		lexiconService = locator.getLexiconServiceLocator().getLexiconService();
-		letterGuesserService = locator.getLetterGuesserServiceLocator().getLetterGuesserService();
-		boundaryService = locator.getBoundaryServiceLocator().getBoundaryService();
-		securityService = locator.getSecurityServiceLocator().getSecurityService();
-		pdfService = locator.getPdfServiceLocator().getPdfService();
-		letterFeatureService = locator.getLetterFeatureServiceLocator().getLetterFeatureService();
-		boundaryFeatureService = locator.getBoundaryFeatureServiceLocator().getBoundaryFeatureService();
-		machineLearningService = locator.getMachineLearningServiceLocator().getMachineLearningService();
-		featureService = locator.getFeatureService();
+	public Jochre(Config config, Map<String, String> argMap) throws ReflectiveOperationException {
+		if (argMap != null) {
+			Set<String> handledArgs = new HashSet<>();
+			Map<String, Object> values = new HashMap<>();
+			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+				String argName = argMapEntry.getKey();
+				String argValue = argMapEntry.getValue();
+				boolean handled = true;
+
+				if (argName.equals("drawSegmentedImage")) {
+					boolean drawSegmentedImage = argValue.equals("true");
+					values.put("jochre.segmentater.draw-segmented-image", drawSegmentedImage);
+				} else if (argName.equals("drawPixelSpread")) {
+					boolean drawPixelSpread = argValue.equals("true");
+					values.put("jochre.segmentater.draw-pixel-spread", drawPixelSpread);
+				} else if (argName.equals("letterModel")) {
+					values.put("jochre.image-analyser.letter-model", argValue);
+				} else if (argName.equals("splitModel")) {
+					values.put("jochre.image-analyser.split-model", argValue);
+				} else if (argName.equals("mergeModel")) {
+					values.put("jochre.image-analyser.merge-model", argValue);
+				} else if (argName.equals("unknownWordFactor")) {
+					values.put("jochre.word-chooser.unknown-word-factor", Double.parseDouble(argValue));
+				} else if (argName.equals("beamWidth")) {
+					values.put("jochre.image-analyser.beam-width", Integer.parseInt(argValue));
+					values.put("jochre.boundaries.splitter.beam-width", Integer.parseInt(argValue));
+				} else if (argName.equals("lexicon")) {
+					values.put("jochre.lexicon", argValue);
+				} else {
+					handled = false;
+				}
+
+				if (handled)
+					handledArgs.add(argName);
+			}
+			argMap.keySet().removeAll(handledArgs);
+
+			config = ConfigFactory.parseMap(values).withFallback(config);
+		}
+		this.jochreSession = new JochreSession(config);
+
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -231,8 +254,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 		}
 
 		String logConfigPath = argMap.get("logConfigFile");
-		argMap.remove("logConfigFile");
-		JochreLogUtils.configureLogging(logConfigPath);
+		if (logConfigPath != null) {
+			argMap.remove("logConfigFile");
+			JochreLogUtils.configureLogging(logConfigPath);
+		}
 
 		File performanceConfigFile = null;
 
@@ -250,38 +275,22 @@ public class Jochre implements LocaleSpecificLexiconService {
 		int userId = -1;
 		int imageCount = 0;
 		int multiplier = 0;
-		boolean showSegmentation = false;
-		boolean drawPixelSpread = false;
 		boolean save = false;
-		String letterModelPath = "";
-		String splitModelPath = "";
-		String mergeModelPath = "";
 		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
 		boolean reconstructLetters = false;
 		double minProbForDecision = 0.5;
-		double junkThreshold = 0.0;
 		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
 		int excludeImageId = 0;
 		int crossValidationSize = -1;
 		int includeIndex = -1;
 		int excludeIndex = -1;
 		Set<Integer> documentSet = null;
-		boolean frequencyAdjusted = false;
-		double smoothing = -1;
-		double frequencyLogBase = 10.0;
 		String suffix = "";
-		String dataSourcePath = null;
 		String docGroupPath = null;
 		boolean includeBeam = false;
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
-		String csvSeparator = "\t";
-		String csvLocale = null;
 		String docSelectionPath = null;
-
-		TrainingParameters trainingParameters = new TrainingParameters("");
-		Set<String> propsRead = trainingParameters.load(null, argMap);
-		for (String propRead : propsRead)
-			argMap.remove(propRead);
+		List<String> featureDescriptors = null;
 
 		for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 			String argName = argMapEntry.getKey();
@@ -292,8 +301,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				inFilePath = argValue;
 			else if (argName.equals("name"))
 				userFriendlyName = argValue;
-			else if (argName.equals("lang"))
-				locale = new Locale(argValue);
 			else if (argName.equals("first"))
 				firstPage = Integer.parseInt(argValue);
 			else if (argName.equals("last"))
@@ -304,10 +311,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 				outputDirPath = argValue;
 			else if (argName.equals("outputFile"))
 				outputFilePath = argValue;
-			else if (argName.equals("showSeg"))
-				showSegmentation = (argValue.equals("true"));
-			else if (argName.equals("drawPixelSpread"))
-				drawPixelSpread = (argValue.equals("true"));
 			else if (argName.equals("save"))
 				save = (argValue.equals("true"));
 			else if (argName.equals("shapeId"))
@@ -320,16 +323,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				userId = Integer.parseInt(argValue);
 			else if (argName.equals("imageCount"))
 				imageCount = Integer.parseInt(argValue);
-			else if (argName.equals("beamWidth"))
-				beamWidth = Integer.parseInt(argValue);
 			else if (argName.equals("multiplier"))
 				multiplier = Integer.parseInt(argValue);
-			else if (argName.equals("letterModel"))
-				letterModelPath = argValue;
-			else if (argName.equals("splitModel"))
-				splitModelPath = argValue;
-			else if (argName.equals("mergeModel"))
-				mergeModelPath = argValue;
 			else if (argName.equals("imageStatus")) {
 				String[] statusCodes = argValue.split(",");
 				Set<ImageStatus> imageStasuses = new HashSet<>();
@@ -354,19 +349,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				}
 			} else if (argName.equals("reconstructLetters"))
 				reconstructLetters = (argValue.equals("true"));
-			else if (argName.equals("minProbForDecision"))
-				minProbForDecision = Double.parseDouble(argValue);
-			else if (argName.equals("junkThreshold"))
-				junkThreshold = Double.parseDouble(argValue);
 			else if (argName.equals("boundaryDetector"))
 				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
-			else if (argName.equals("lexicon"))
-				lexiconPath = argValue;
-			else if (argName.equals("freqLogBase")) {
-				frequencyLogBase = Double.parseDouble(argValue);
-				frequencyAdjusted = true;
-			} else if (argName.equals("smoothing"))
-				smoothing = Double.parseDouble(argValue);
 			else if (argName.equals("excludeImageId"))
 				excludeImageId = Integer.parseInt(argValue);
 			else if (argName.equals("crossValidationSize"))
@@ -386,14 +370,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 				docSelectionPath = argValue;
 			} else if (argName.equals("docGroupFile"))
 				docGroupPath = argValue;
-			else if (argName.equals("frequencyAdjusted"))
-				frequencyAdjusted = argValue.equalsIgnoreCase("true");
 			else if (argName.equals("suffix"))
 				suffix = argValue;
-			else if (argName.equals("dataSource"))
-				dataSourcePath = argValue;
-			else if (argName.equals("encoding"))
-				encoding = argValue;
 			else if (argName.equals("performanceConfigFile"))
 				performanceConfigFile = new File(argValue);
 			else if (argName.equals("includeBeam"))
@@ -406,46 +384,31 @@ public class Jochre implements LocaleSpecificLexiconService {
 				}
 				if (outputFormats.size() == 0)
 					throw new JochreException("At least one outputFormat required.");
-			} else if (argName.equals("csvSeparator"))
-				csvSeparator = argValue;
-			else if (argName.equals("csvEncoding"))
-				csvEncoding = argValue;
-			else if (argName.equals("csvLocale"))
-				csvLocale = argValue;
-			else
+			} else if (argName.equals("features")) {
+				featureDescriptors = new ArrayList<>();
+				InputStream featureFile = new FileInputStream(new File(argValue));
+				try (Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(featureFile, "UTF-8")))) {
+					while (scanner.hasNextLine()) {
+						String descriptor = scanner.nextLine();
+						featureDescriptors.add(descriptor);
+						LOG.debug(descriptor);
+					}
+				}
+			} else {
 				throw new RuntimeException("Unknown argument: " + argName);
+			}
 		}
 
 		long startTime = System.currentTimeMillis();
 		PerformanceMonitor.start(performanceConfigFile);
 		try {
-			if (locale == null) {
-				throw new JochreException("Argument lang is required");
-			}
-			JochreSession jochreSession = JochreSession.getInstance();
-			jochreSession.setLocale(locale);
-
-			if (encoding == null)
-				encoding = Charset.defaultCharset().name();
-			if (csvEncoding == null)
-				csvEncoding = encoding;
-
-			CSVFormatter.setGlobalCsvSeparator(csvSeparator);
-			if (csvLocale != null)
-				CSVFormatter.setGlobalLocale(Locale.forLanguageTag(csvLocale));
-
-			JochreServiceLocator locator = JochreServiceLocator.getInstance();
-			if (dataSourcePath != null)
-				locator.setDataSourcePropertiesFile(dataSourcePath);
-
-			this.initialise();
 
 			this.setUserId(userId);
 
-			CorpusSelectionCriteria criteria = this.getGraphicsService().getCorpusSelectionCriteria();
+			CorpusSelectionCriteria criteria = new CorpusSelectionCriteria();
 			if (docSelectionPath != null) {
 				File docSelectionFile = new File(docSelectionPath);
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docSelectionFile), encoding)));
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docSelectionFile), jochreSession.getEncoding())));
 				criteria.loadSelection(scanner);
 				scanner.close();
 			} else {
@@ -462,7 +425,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 			if (docGroupPath != null) {
 				File docGroupFile = new File(docGroupPath);
-				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docGroupFile), encoding)));
+				Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(docGroupFile), jochreSession.getEncoding())));
 
 				while (scanner.hasNextLine()) {
 					String line = scanner.nextLine();
@@ -478,18 +441,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				scanner.close();
 			}
 
-			OutputService outputService = locator.getTextServiceLocator().getTextService();
-			MostLikelyWordChooser wordChooser = null;
-
-			LexiconService lexiconService = locator.getLexiconServiceLocator().getLexiconService();
-
-			wordChooser = lexiconService.getMostLikelyWordChooser(this.getLexicon(), this.getWordSplitter());
-			if (smoothing > 0)
-				wordChooser.setAdditiveSmoothing(smoothing);
-			wordChooser.setFrequencyLogBase(frequencyLogBase);
-			wordChooser.setFrequencyAdjusted(frequencyAdjusted);
-
-			jochreSession.setJunkConfidenceThreshold(junkThreshold);
+			MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
 
 			File outputDir = null;
 			File outputFile = null;
@@ -515,37 +467,36 @@ public class Jochre implements LocaleSpecificLexiconService {
 					baseName = this.getBaseName(inFile);
 				}
 
-				observers = this.getObservers(outputFormats, baseName, outputDir, outputService);
+				observers = this.getObservers(outputFormats, baseName, outputDir);
 			}
 
 			if (userFriendlyName.length() == 0)
 				userFriendlyName = inFilePath;
 
 			if (command.equals("segment")) {
-				this.doCommandSegment(inFilePath, userFriendlyName, showSegmentation, drawPixelSpread, outputDirPath, save, firstPage, lastPage);
+				this.doCommandSegment(inFilePath, userFriendlyName, outputDirPath, save, firstPage, lastPage);
 			} else if (command.equals("extract")) {
 				this.doCommandExtractImages(inFilePath, outputDirPath, firstPage, lastPage);
 			} else if (command.equals("updateImages")) {
 				this.doCommandUpdateImages(inFilePath, docId, firstPage, lastPage);
 			} else if (command.equals("applyFeatures")) {
-				this.doCommandApplyFeatures(imageId, shapeId, trainingParameters);
+				this.doCommandApplyFeatures(imageId, shapeId, featureDescriptors);
 			} else if (command.equals("train")) {
-				this.doCommandTrain(letterModelPath, trainingParameters, criteria, reconstructLetters);
+				this.doCommandTrain(featureDescriptors, criteria, reconstructLetters);
 			} else if (command.equals("evaluate") || command.equals("evaluateComplex")) {
-				this.doCommandEvaluate(letterModelPath, criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
+				this.doCommandEvaluate(criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
 			} else if (command.equals("evaluateFull")) {
-				this.doCommandEvaluateFull(letterModelPath, splitModelPath, mergeModelPath, criteria, save, outputDirPath, wordChooser, boundaryDetectorType,
-						minProbForDecision, suffix, observers);
+				this.doCommandEvaluateFull(criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix, observers);
 			} else if (command.equals("analyse")) {
-				this.doCommandAnalyse(letterModelPath, criteria, wordChooser, observers);
+				this.doCommandAnalyse(criteria, wordChooser, observers);
 			} else if (command.equals("trainSplits")) {
-				this.doCommandTrainSplits(splitModelPath, trainingParameters, criteria);
+				this.doCommandTrainSplits(featureDescriptors, criteria);
 			} else if (command.equals("evaluateSplits")) {
-				this.doCommandEvaluateSplits(splitModelPath, criteria, minProbForDecision);
+				this.doCommandEvaluateSplits(criteria, minProbForDecision);
 			} else if (command.equals("trainMerge")) {
-				this.doCommandTrainMerge(mergeModelPath, trainingParameters, multiplier, criteria);
+				this.doCommandTrainMerge(featureDescriptors, multiplier, criteria);
 			} else if (command.equals("evaluateMerge")) {
-				this.doCommandEvaluateMerge(mergeModelPath, criteria, minProbForDecision);
+				this.doCommandEvaluateMerge(criteria, minProbForDecision);
 			} else if (command.equals("logImage")) {
 				this.doCommandLogImage(shapeId);
 			} else if (command.equals("testFeature")) {
@@ -561,7 +512,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					for (File oneLexFile : lexiconFiles) {
 						LOG.debug(oneLexFile.getName() + ": " + ", size: " + oneLexFile.length());
 
-						TextFileLexicon lexicon = new TextFileLexicon(oneLexFile, encoding);
+						TextFileLexicon lexicon = new TextFileLexicon(oneLexFile, jochreSession.getEncoding());
 
 						String baseName = oneLexFile.getName().substring(0, oneLexFile.getName().indexOf("."));
 						if (baseName.lastIndexOf("/") > 0)
@@ -573,7 +524,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				} else {
 					LOG.debug(inFilePath + ": " + inputFile.exists() + ", size: " + inputFile.length());
 
-					TextFileLexicon lexicon = new TextFileLexicon(inputFile, encoding);
+					TextFileLexicon lexicon = new TextFileLexicon(inputFile, jochreSession.getEncoding());
 
 					String baseName = inFilePath.substring(0, inFilePath.indexOf("."));
 					if (baseName.lastIndexOf("/") > 0)
@@ -602,15 +553,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 						String baseName = this.getBaseName(pdfFile);
 						File analysisDir = new File(inDir, baseName);
 						analysisDir.mkdirs();
-						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, outputService);
-						File letterModelFile = new File(letterModelPath);
-						File splitModelFile = null;
-						File mergeModelFile = null;
-						if (splitModelPath.length() > 0)
-							splitModelFile = new File(splitModelPath);
-						if (mergeModelPath.length() > 0)
-							mergeModelFile = new File(mergeModelPath);
-						this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, pdfObservers);
+						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir);
+
+						this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, pdfObservers);
 
 						File pdfOutputDir = new File(outputDir, baseName);
 						pdfOutputDir.mkdirs();
@@ -630,14 +575,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 				}
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);
-				File letterModelFile = new File(letterModelPath);
-				File splitModelFile = null;
-				File mergeModelFile = null;
-				if (splitModelPath.length() > 0)
-					splitModelFile = new File(splitModelPath);
-				if (mergeModelPath.length() > 0)
-					mergeModelFile = new File(mergeModelPath);
-				this.doCommandAnalyse(pdfFile, letterModelFile, splitModelFile, mergeModelFile, wordChooser, firstPage, lastPage, observers);
+				this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, observers);
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
@@ -665,10 +603,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 	public void doCommandTestFeature(int shapeId) {
 		// just a utility for testing a feature on a particular shape
 		ShapeFeature<?> feature = new VerticalElongationFeature();
+		GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
 		if (shapeId > 0) {
-			Shape shape = graphicsService.loadShape(shapeId);
+			Shape shape = graphicsDao.loadShape(shapeId);
 			shape.writeImageToLog();
-			RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+			RuntimeEnvironment env = new RuntimeEnvironment();
 			feature.check(shape, env);
 		} else {
 
@@ -679,12 +618,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 			// trainingServiceLocator.getTrainingService();
 			// List<Integer> shapeIds =
 			// trainingService.findShapesForFeature("ג", feature, result);
-			List<Integer> shapeIds = graphicsService.findShapeIds("—");
+			List<Integer> shapeIds = graphicsDao.findShapeIds("—");
 			Map<Object, Integer> outcomeMap = new HashMap<Object, Integer>();
 			for (int oneShapeId : shapeIds) {
-				Shape shape = graphicsService.loadShape(oneShapeId);
+				Shape shape = graphicsDao.loadShape(oneShapeId);
 				shape.writeImageToLog();
-				RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+				RuntimeEnvironment env = new RuntimeEnvironment();
 				FeatureResult<?> weightedOutcome = feature.check(shape, env);
 
 				Object outcome = weightedOutcome.getOutcome();
@@ -705,10 +644,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 	/**
 	 * Rebuild the training corpus lexicon.
 	 */
-	public void doCommandBuildLexicon(String outputDirPath, WordSplitter wordSplitter, CorpusSelectionCriteria criteria) {
+	public void doCommandBuildLexicon(String outputDirPath, CorpusSelectionCriteria criteria) {
 		try {
-			CorpusLexiconBuilder builder = lexiconService.getCorpusLexiconBuilder(wordSplitter);
-			builder.setCriteria(criteria);
+			CorpusLexiconBuilder builder = new CorpusLexiconBuilder(criteria, jochreSession);
 			TextFileLexicon lexicon = builder.buildLexicon();
 
 			File outputDir = new File(outputDirPath);
@@ -738,7 +676,8 @@ public class Jochre implements LocaleSpecificLexiconService {
 		// just a utility for making sure images got segmented and stored
 		// correctly
 		if (shapeId > 0) {
-			Shape shape = graphicsService.loadShape(shapeId);
+			GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+			Shape shape = graphicsDao.loadShape(shapeId);
 			shape.writeImageToLog();
 			LOG.debug("Letter: " + shape.getLetter());
 		}
@@ -749,39 +688,34 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * 
 	 * @param mergeModelPath
 	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the training parameters to use for building the model
+	 * @param featureDescriptors
+	 *            feature descriptors for training
 	 * @param multiplier
 	 *            if &gt; 0, will be used to equalize the outcomes
 	 * @param criteria
 	 *            the criteria used to select the training corpus
 	 */
-	public void doCommandTrainMerge(String mergeModelPath, TrainingParameters trainingParameters, int multiplier, CorpusSelectionCriteria criteria) {
-		if (mergeModelPath.length() == 0)
+	public void doCommandTrainMerge(List<String> featureDescriptors, int multiplier, CorpusSelectionCriteria criteria) {
+		if (jochreSession.getMergeModelPath() == null)
 			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
 
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		File mergeModelFile = new File(mergeModelPath);
+		File mergeModelFile = new File(jochreSession.getMergeModelPath());
 		mergeModelFile.getParentFile().mkdirs();
 
-		Set<MergeFeature<?>> mergeFeatures = this.boundaryFeatureService.getMergeFeatureSet(trainingParameters.getFeatureDescriptors());
-		double maxWidthRatio = 1.2;
-		double maxDistanceRatio = 0.15;
-		ClassificationEventStream corpusEventStream = boundaryService.getJochreMergeEventStream(criteria, mergeFeatures, maxWidthRatio, maxDistanceRatio);
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(featureDescriptors);
+		ClassificationEventStream corpusEventStream = new JochreMergeEventStream(criteria, mergeFeatures, jochreSession);
 		if (multiplier > 0) {
 			corpusEventStream = new OutcomeEqualiserEventStream(corpusEventStream, multiplier);
 		}
 
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
 
-		ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ClassificationModel mergeModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		mergeModel.persist(mergeModelFile);
 	}
 
@@ -796,26 +730,21 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 *            at which probability should a merge be made. If &lt; 0, 0.5 is
 	 *            assumed.
 	 */
-	public void doCommandEvaluateMerge(String mergeModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
-		if (mergeModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
-
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel mergeModel = machineLearningService.getClassificationModel(zis);
+	public void doCommandEvaluateMerge(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+		ClassificationModel mergeModel = jochreSession.getMergeModel();
+		if (mergeModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.merge-model");
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
 
-		JochreCorpusGroupReader groupReader = graphicsService.getJochreCorpusGroupReader();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
+
+		JochreCorpusGroupReader groupReader = new JochreCorpusGroupReader(jochreSession);
 		groupReader.setSelectionCriteria(criteria);
 
-		double maxWidthRatio = 1.2;
-		double maxDistanceRatio = 0.15;
-
-		ShapeMerger merger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
-		MergeEvaluator evaluator = boundaryService.getMergeEvaluator(maxWidthRatio, maxDistanceRatio);
+		ShapeMerger merger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+		MergeEvaluator evaluator = new MergeEvaluator(jochreSession);
 		if (minProbForDecision >= 0)
 			evaluator.setMinProbabilityForDecision(minProbForDecision);
 		FScoreCalculator<String> fScoreCalculator = evaluator.evaluate(groupReader, merger);
@@ -827,34 +756,29 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * 
 	 * @param splitModelPath
 	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the parameters for training the model
+	 * @param featureDescriptors
+	 *            the feature descriptors for training this model
 	 * @param criteria
 	 *            the criteria used to select the training corpus
 	 */
-	public void doCommandTrainSplits(String splitModelPath, TrainingParameters trainingParameters, CorpusSelectionCriteria criteria) {
-		if (splitModelPath.length() == 0)
+	public void doCommandTrainSplits(List<String> featureDescriptors, CorpusSelectionCriteria criteria) {
+		if (jochreSession.getSplitModelPath() == null)
 			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		File splitModelFile = new File(splitModelPath);
+		File splitModelFile = new File(jochreSession.getSplitModelPath());
 		splitModelFile.getParentFile().mkdirs();
 
-		Set<SplitFeature<?>> splitFeatures = this.boundaryFeatureService.getSplitFeatureSet(trainingParameters.getFeatureDescriptors());
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(featureDescriptors);
 
-		double minWidthRatio = 1.1;
-		double minHeightRatio = 1.0;
-		ClassificationEventStream corpusEventStream = boundaryService.getJochreSplitEventStream(criteria, splitFeatures, minWidthRatio, minHeightRatio);
+		ClassificationEventStream corpusEventStream = new JochreSplitEventStream(criteria, splitFeatures, jochreSession);
 
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
 
-		ClassificationModel splitModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ClassificationModel splitModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		splitModel.persist(splitModelFile);
 	}
 
@@ -869,32 +793,24 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 *            at which probability should a split be made. If &lt; 0, 0.5 is
 	 *            assumed.
 	 */
-	public void doCommandEvaluateSplits(String splitModelPath, CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
-		if (splitModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
-
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel splitModel = machineLearningService.getClassificationModel(zis);
+	public void doCommandEvaluateSplits(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+		ClassificationModel splitModel = jochreSession.getSplitModel();
+		if (splitModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.split-model");
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
 
-		double minWidthRatio = 1.1;
-		double minHeightRatio = 1.0;
-		int maxDepth = 2;
-
-		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), minWidthRatio,
-				beamWidth, maxDepth);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
-		JochreCorpusShapeReader shapeReader = graphicsService.getJochreCorpusShapeReader();
+		JochreCorpusShapeReader shapeReader = new JochreCorpusShapeReader(jochreSession);
 		shapeReader.setSelectionCriteria(criteria);
 
-		SplitEvaluator splitEvaluator = boundaryService.getSplitEvaluator(5, minWidthRatio, minHeightRatio);
+		SplitEvaluator splitEvaluator = new SplitEvaluator(jochreSession);
 		if (minProbForDecision >= 0)
 			splitEvaluator.setMinProbabilityForDecision(minProbForDecision);
 
@@ -907,45 +823,43 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * 
 	 * @param letterModelPath
 	 *            the path where the model should be saved
-	 * @param trainingParameters
-	 *            the parameters used for training
+	 * @param featureDescriptors
+	 *            the feature descriptors for training
 	 * @param criteria
 	 *            criteria for selecting images to include when training
 	 * @param reconstructLetters
 	 *            whether or not complete letters should be reconstructed for
 	 *            training, from merged/split letters
 	 */
-	public void doCommandTrain(String letterModelPath, TrainingParameters trainingParameters, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
-		if (letterModelPath.length() == 0)
+	public void doCommandTrain(List<String> featureDescriptors, CorpusSelectionCriteria criteria, boolean reconstructLetters) {
+		if (jochreSession.getLetterModelPath() == null)
 			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
-		if (trainingParameters.getAlgorithm() == null)
-			throw new JochreException("algorithm is required");
-		if (trainingParameters.getFeatureDescriptors() == null)
+		if (featureDescriptors == null)
 			throw new JochreException("features is required");
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(trainingParameters.getFeatureDescriptors());
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> features = letterFeatureParser.getLetterFeatureSet(featureDescriptors);
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
-			ShapeSplitter splitter = boundaryService.getTrainingCorpusShapeSplitter();
-			ShapeMerger merger = boundaryService.getTrainingCorpusShapeMerger();
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(splitter, merger, 1);
+			ShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
+			ShapeMerger merger = new TrainingCorpusShapeMerger();
+			boundaryDetector = new LetterByLetterBoundaryDetector(splitter, merger, jochreSession);
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			boundaryDetector = new OriginalBoundaryDetector();
 		}
 
-		LetterValidator letterValidator = new ComponentCharacterValidator(locale);
+		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
 
-		ClassificationEventStream corpusEventStream = letterGuesserService.getJochreLetterEventStream(criteria, features, boundaryDetector, letterValidator);
+		ClassificationEventStream corpusEventStream = new JochreLetterEventStream(features, boundaryDetector, letterValidator, criteria, jochreSession);
 
-		File letterModelFile = new File(letterModelPath);
+		File letterModelFile = new File(jochreSession.getLetterModelPath());
 		letterModelFile.getParentFile().mkdirs();
-		ClassificationModelTrainer trainer = machineLearningService.getClassificationModelTrainer(trainingParameters.getAlgorithm(),
-				trainingParameters.getParameters());
 
-		ClassificationModel letterModel = trainer.trainModel(corpusEventStream, trainingParameters.getFeatureDescriptors());
+		ModelTrainerFactory modelTrainerFactory = new ModelTrainerFactory();
+		ClassificationModelTrainer trainer = modelTrainerFactory.constructTrainer(jochreSession.getConfig());
+
+		ClassificationModel letterModel = trainer.trainModel(corpusEventStream, featureDescriptors);
 		letterModel.persist(letterModelFile);
 	}
 
@@ -959,51 +873,42 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param outputDirPath
 	 *            the directory to which we write the evaluation files
 	 */
-	public void doCommandEvaluate(String letterModelPath, CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser,
-			boolean reconstructLetters, boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
+	public void doCommandEvaluate(CorpusSelectionCriteria criteria, String outputDirPath, MostLikelyWordChooser wordChooser, boolean reconstructLetters,
+			boolean save, String suffix, boolean includeBeam, List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
 		File outputDir = new File(outputDirPath);
 		outputDir.mkdirs();
-
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		String baseName = letterModelPath.substring(0, letterModelPath.indexOf("."));
+		String baseName = jochreSession.getLetterModelPath().substring(0, jochreSession.getLetterModelPath().indexOf("."));
 		if (baseName.lastIndexOf("/") > 0)
 			baseName = baseName.substring(baseName.lastIndexOf("/") + 1);
 		baseName += suffix;
 
 		BoundaryDetector boundaryDetector = null;
 		if (reconstructLetters) {
-			ShapeSplitter splitter = boundaryService.getTrainingCorpusShapeSplitter();
-			ShapeMerger merger = boundaryService.getTrainingCorpusShapeMerger();
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(splitter, merger, 1);
+			ShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
+			ShapeMerger merger = new TrainingCorpusShapeMerger();
+			boundaryDetector = new LetterByLetterBoundaryDetector(splitter, merger, jochreSession);
 			boundaryDetector.setMinWidthRatioForSplit(0.0);
-			boundaryDetector.setMinHeightRatioForSplit(0.0);
 			boundaryDetector.setMaxWidthRatioForMerge(100.0);
 			boundaryDetector.setMaxDistanceRatioForMerge(100.0);
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
+			boundaryDetector = new OriginalBoundaryDetector();
 		}
 
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
-		evaluator.setBoundaryDetector(boundaryDetector);
-		evaluator.setLetterGuesser(letterGuesser);
-		evaluator.setMostLikelyWordChooser(wordChooser);
+		ImageAnalyser evaluator = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
 
 		FScoreObserver fScoreObserver = null;
-		LetterValidator letterValidator = new ComponentCharacterValidator(locale);
+		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
 		if (reconstructLetters) {
 			OriginalShapeLetterAssigner originalShapeLetterAssigner = new OriginalShapeLetterAssigner();
 			originalShapeLetterAssigner.setEvaluate(true);
@@ -1016,16 +921,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 			letterAssigner.setSave(save);
 			evaluator.addObserver(letterAssigner);
 
-			fScoreObserver = new SimpleLetterFScoreObserver(letterValidator);
+			fScoreObserver = new SimpleLetterFScoreObserver(letterValidator, jochreSession);
 		}
 
 		evaluator.addObserver(fScoreObserver);
 
-		ErrorLogger errorLogger = new ErrorLogger();
-		if (wordChooser != null) {
-			errorLogger.setLexicon(wordChooser.getLexicon());
-			errorLogger.setWordSplitter(wordChooser.getWordSplitter());
-		}
+		ErrorLogger errorLogger = new ErrorLogger(jochreSession);
 		Writer errorWriter = null;
 
 		File errorFile = new File(outputDir, baseName + "_errors.txt");
@@ -1035,15 +936,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 		errorLogger.setErrorWriter(errorWriter);
 		evaluator.addObserver(errorLogger);
 
-		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser, csvEncoding);
+		LexiconErrorWriter lexiconErrorWriter = new LexiconErrorWriter(outputDir, baseName, wordChooser, jochreSession);
 		if (documentGroups != null)
 			lexiconErrorWriter.setDocumentGroups(documentGroups);
 		lexiconErrorWriter.setIncludeBeam(includeBeam);
 
 		// find all document names (alphabetical ordering)
 		Set<String> documentNameSet = new TreeSet<String>();
-		JochreCorpusImageReader imageReader1 = graphicsService.getJochreCorpusImageReader();
-		CorpusSelectionCriteria docCriteria = graphicsService.getCorpusSelectionCriteria();
+		JochreCorpusImageReader imageReader1 = new JochreCorpusImageReader(jochreSession);
+		CorpusSelectionCriteria docCriteria = new CorpusSelectionCriteria();
 		docCriteria.setImageStatusesToInclude(criteria.getImageStatusesToInclude());
 		docCriteria.setImageId(criteria.getImageId());
 		docCriteria.setDocumentId(criteria.getDocumentId());
@@ -1062,7 +963,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		evaluator.addObserver(lexiconErrorWriter);
 
-		JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
+		JochreCorpusImageProcessor imageProcessor = new JochreCorpusImageProcessor(criteria, jochreSession);
 		imageProcessor.addObserver(evaluator);
 		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
@@ -1073,14 +974,14 @@ public class Jochre implements LocaleSpecificLexiconService {
 			if (errorWriter != null)
 				errorWriter.close();
 		}
-		LOG.debug("F-score for " + letterModelPath + ": " + fScoreObserver.getFScoreCalculator().getTotalFScore());
+		LOG.debug("F-score for " + jochreSession.getLetterModelPath() + ": " + fScoreObserver.getFScoreCalculator().getTotalFScore());
 
 		String modelFileName = baseName;
 		if (reconstructLetters)
 			modelFileName += "_Reconstruct";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), csvEncoding));
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), jochreSession.getCsvEncoding()));
 		fScoreObserver.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 
 	}
@@ -1097,28 +998,20 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param observers
 	 *            the observers, used to create analysis output
 	 */
-	public void doCommandAnalyse(String letterModelPath, CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers)
-			throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
-		if (!letterModelPath.endsWith(".zip"))
-			throw new RuntimeException("letterModel must end with .zip");
-
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+	public void doCommandAnalyse(CorpusSelectionCriteria criteria, MostLikelyWordChooser wordChooser, List<DocumentObserver> observers) throws IOException {
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
-		analyser.setLetterGuesser(letterGuesser);
-		analyser.setMostLikelyWordChooser(wordChooser);
+		ImageAnalyser analyser = new BeamSearchImageAnalyser(null, letterGuesser, wordChooser, jochreSession);
 		LetterAssigner letterAssigner = new LetterAssigner();
 		analyser.addObserver(letterAssigner);
 
-		JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
+		JochreCorpusImageProcessor imageProcessor = new JochreCorpusImageProcessor(criteria, jochreSession);
 		imageProcessor.addObserver(analyser);
 		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
@@ -1129,37 +1022,37 @@ public class Jochre implements LocaleSpecificLexiconService {
 	/**
 	 * Full analysis, including merge, split and letter guessing.
 	 */
-	public void doCommandAnalyse(File sourceFile, File letterModelFile, File splitModelFile, File mergeModelFile, MostLikelyWordChooser wordChooser,
-			int firstPage, int lastPage, List<DocumentObserver> observers) throws IOException {
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelFile));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
+	public void doCommandAnalyse(File sourceFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage, List<DocumentObserver> observers)
+			throws IOException {
+
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
-		ImageAnalyser analyser = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
-		analyser.setLetterGuesser(letterGuesser);
-		analyser.setMostLikelyWordChooser(wordChooser);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 		BoundaryDetector boundaryDetector = null;
+		LetterGuessObserver letterGuessObserver = null;
 
-		if (splitModelFile != null && mergeModelFile != null) {
-			boundaryDetector = boundaryService.getBoundaryDetector(splitModelFile, mergeModelFile);
-			analyser.setBoundaryDetector(boundaryDetector);
+		if (jochreSession.getSplitModel() != null && jochreSession.getMergeModel() != null) {
+			boundaryDetector = new DeterministicBoundaryDetector(jochreSession.getSplitModel(), jochreSession.getMergeModel(), jochreSession);
 
 			OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 			shapeLetterAssigner.setEvaluate(false);
 			shapeLetterAssigner.setSingleLetterMethod(false);
 
-			analyser.addObserver(shapeLetterAssigner);
+			letterGuessObserver = shapeLetterAssigner;
 		} else {
-			boundaryDetector = boundaryService.getOriginalBoundaryDetector();
-			analyser.setBoundaryDetector(boundaryDetector);
+			boundaryDetector = new OriginalBoundaryDetector();
 
 			LetterAssigner letterAssigner = new LetterAssigner();
-			analyser.addObserver(letterAssigner);
+			letterGuessObserver = letterAssigner;
 		}
 
-		JochreDocumentGenerator documentGenerator = documentService.getJochreDocumentGenerator(sourceFile.getName(), "", locale);
+		ImageAnalyser analyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
+		analyser.addObserver(letterGuessObserver);
+
+		JochreDocumentGenerator documentGenerator = new JochreDocumentGenerator(sourceFile.getName(), "", jochreSession);
 		documentGenerator.addDocumentObserver(analyser);
 
 		for (DocumentObserver observer : observers)
@@ -1169,15 +1062,15 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new JochreException("The file " + sourceFile.getPath() + " does not exist");
 
 		if (sourceFile.getName().toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(sourceFile, firstPage, lastPage, documentGenerator);
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(sourceFile, firstPage, lastPage, documentGenerator);
 
 			pdfImageVisitor.visitImages();
 		} else if (sourceFile.getName().toLowerCase().endsWith(".png") || sourceFile.getName().toLowerCase().endsWith(".jpg")
 				|| sourceFile.getName().toLowerCase().endsWith(".jpeg") || sourceFile.getName().toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
 			extractor.extractDocument();
 		} else if (sourceFile.isDirectory()) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(sourceFile, documentGenerator);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1187,12 +1080,6 @@ public class Jochre implements LocaleSpecificLexiconService {
 	/**
 	 * Evaluate a suite of split/merge models and letter guessing model.
 	 * 
-	 * @param letterModelPath
-	 *            the path to the letter-guessing model
-	 * @param splitModelPath
-	 *            the path to the splitting model
-	 * @param mergeModelPath
-	 *            the path to the merging model
 	 * @param criteria
 	 *            for selecting the evaluation corpus
 	 * @param save
@@ -1200,97 +1087,69 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 * @param outputDirPath
 	 *            the output directory where we write the evaluation results
 	 */
-	public void doCommandEvaluateFull(String letterModelPath, String splitModelPath, String mergeModelPath, CorpusSelectionCriteria criteria, boolean save,
-			String outputDirPath, MostLikelyWordChooser wordChooser, BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix,
-			List<DocumentObserver> observers) throws IOException {
-		if (letterModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: letterModel");
+	public void doCommandEvaluateFull(CorpusSelectionCriteria criteria, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser,
+			BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix, List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
 		File outputDir = new File(outputDirPath);
 		outputDir.mkdirs();
-		String baseName = letterModelPath.substring(0, letterModelPath.indexOf("."));
+		String baseName = jochreSession.getLetterModelPath().substring(0, jochreSession.getLetterModelPath().indexOf("."));
 		if (baseName.lastIndexOf("/") > 0)
 			baseName = baseName.substring(baseName.lastIndexOf("/") + 1);
 
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(letterModelPath));
-		ClassificationModel letterModel = machineLearningService.getClassificationModel(zis);
-
+		ClassificationModel letterModel = jochreSession.getLetterModel();
 		List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
-		Set<LetterFeature<?>> letterFeatures = letterFeatureService.getLetterFeatureSet(letterFeatureDescriptors);
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> letterFeatures = letterFeatureParser.getLetterFeatureSet(letterFeatureDescriptors);
 
-		LetterGuesser letterGuesser = letterGuesserService.getLetterGuesser(letterFeatures, letterModel.getDecisionMaker());
+		LetterGuesser letterGuesser = new LetterGuesser(letterFeatures, letterModel.getDecisionMaker());
 
-		if (splitModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: splitModel");
-		if (!splitModelPath.endsWith(".zip"))
-			throw new RuntimeException("splitModel must end with .zip");
-
-		ZipInputStream splitZis = new ZipInputStream(new FileInputStream(splitModelPath));
-		ClassificationModel splitModel = machineLearningService.getClassificationModel(splitZis);
+		ClassificationModel splitModel = jochreSession.getSplitModel();
+		if (splitModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.split-model");
 
 		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-		Set<SplitFeature<?>> splitFeatures = boundaryFeatureService.getSplitFeatureSet(splitFeatureDescriptors);
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
 
-		double minWidthRatioForSplit = 1.1;
-		double minHeightRatioForSplit = 1.0;
-		int maxSplitDepth = 2;
-
-		SplitCandidateFinder splitCandidateFinder = boundaryService.getSplitCandidateFinder();
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		splitCandidateFinder.setMinDistanceBetweenSplits(5);
 
-		ShapeSplitter shapeSplitter = boundaryService.getShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(),
-				minWidthRatioForSplit, beamWidth, maxSplitDepth);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
-		if (mergeModelPath.length() == 0)
-			throw new RuntimeException("Missing argument: mergeModel");
-		if (!mergeModelPath.endsWith(".zip"))
-			throw new RuntimeException("mergeModel must end with .zip");
-
-		ZipInputStream mergeZis = new ZipInputStream(new FileInputStream(mergeModelPath));
-		ClassificationModel mergeModel = machineLearningService.getClassificationModel(mergeZis);
+		ClassificationModel mergeModel = jochreSession.getMergeModel();
+		if (mergeModel == null)
+			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.merge-model");
 
 		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-		Set<MergeFeature<?>> mergeFeatures = boundaryFeatureService.getMergeFeatureSet(mergeFeatureDescriptors);
-		double maxWidthRatioForMerge = 1.2;
-		double maxDistanceRatioForMerge = 0.15;
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
 
-		ShapeMerger shapeMerger = boundaryService.getShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
 		BoundaryDetector boundaryDetector = null;
 		switch (boundaryDetectorType) {
 		case LetterByLetter:
-			boundaryDetector = boundaryService.getLetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, 5);
+			boundaryDetector = new LetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, jochreSession);
 			break;
 		case Deterministic:
-			boundaryDetector = boundaryService.getDeterministicBoundaryDetector(shapeSplitter, shapeMerger, minProbForDecision);
+			boundaryDetector = new DeterministicBoundaryDetector(shapeSplitter, shapeMerger, jochreSession);
 			break;
 		}
-		boundaryDetector.setMinWidthRatioForSplit(minWidthRatioForSplit);
-		boundaryDetector.setMinHeightRatioForSplit(minHeightRatioForSplit);
-		boundaryDetector.setMaxWidthRatioForMerge(maxWidthRatioForMerge);
-		boundaryDetector.setMaxDistanceRatioForMerge(maxDistanceRatioForMerge);
 
-		ImageAnalyser evaluator = analyserService.getBeamSearchImageAnalyser(beamWidth, 0.01);
-		evaluator.setLetterGuesser(letterGuesser);
-		evaluator.setMostLikelyWordChooser(wordChooser);
-		evaluator.setBoundaryDetector(boundaryDetector);
+		ImageAnalyser imageAnalyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
 
-		LetterValidator letterValidator = new ComponentCharacterValidator(locale);
+		LetterValidator letterValidator = new ComponentCharacterValidator(jochreSession);
 
 		OriginalShapeLetterAssigner shapeLetterAssigner = new OriginalShapeLetterAssigner();
 		shapeLetterAssigner.setEvaluate(true);
 		shapeLetterAssigner.setSave(save);
 		shapeLetterAssigner.setLetterValidator(letterValidator);
 		shapeLetterAssigner.setSingleLetterMethod(false);
-		evaluator.addObserver(shapeLetterAssigner);
+		imageAnalyser.addObserver(shapeLetterAssigner);
 
-		ErrorLogger errorLogger = new ErrorLogger();
-		if (wordChooser != null) {
-			errorLogger.setLexicon(wordChooser.getLexicon());
-			errorLogger.setWordSplitter(wordChooser.getWordSplitter());
-		}
+		ErrorLogger errorLogger = new ErrorLogger(jochreSession);
 		Writer errorWriter = null;
 
 		File errorFile = new File(outputDir, baseName + suffix + "errors.txt");
@@ -1298,32 +1157,31 @@ public class Jochre implements LocaleSpecificLexiconService {
 		errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(errorFile, true), "UTF8"));
 
 		errorLogger.setErrorWriter(errorWriter);
-		evaluator.addObserver(errorLogger);
+		imageAnalyser.addObserver(errorLogger);
 
-		JochreCorpusImageProcessor imageProcessor = graphicsService.getJochreCorpusImageProcessor(criteria);
-		imageProcessor.addObserver(evaluator);
+		JochreCorpusImageProcessor imageProcessor = new JochreCorpusImageProcessor(criteria, jochreSession);
+		imageProcessor.addObserver(imageAnalyser);
 		for (DocumentObserver observer : observers)
 			imageProcessor.addObserver(observer);
 		imageProcessor.process();
 
-		LOG.debug("F-score for " + letterModelPath + ": " + shapeLetterAssigner.getFScoreCalculator().getTotalFScore());
+		LOG.debug("F-score for " + jochreSession.getLetterModelPath() + ": " + shapeLetterAssigner.getFScoreCalculator().getTotalFScore());
 
 		String modelFileName = baseName + suffix + "_full";
 
 		File fscoreFile = new File(outputDir, modelFileName + "_fscores.csv");
-		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), csvEncoding));
+		Writer fscoreWriter = errorWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fscoreFile, true), jochreSession.getCsvEncoding()));
 		shapeLetterAssigner.getFScoreCalculator().writeScoresToCSV(fscoreWriter);
 	}
 
 	/**
-	 * Apply a set of images to a given image or a given shape.
+	 * Apply a set of features to a given image or a given shape.
 	 */
-	public void doCommandApplyFeatures(int imageId, int shapeId, TrainingParameters trainingParameters) {
-		if (trainingParameters.getFeatureDescriptors() == null)
-			throw new RuntimeException("Missing argument: features");
-		LetterFeatureTester featureTester = letterFeatureService.getFeatureTester();
+	public void doCommandApplyFeatures(int imageId, int shapeId, List<String> featureDescriptors) {
+		LetterFeatureTester featureTester = new LetterFeatureTester(jochreSession);
 
-		Set<LetterFeature<?>> features = letterFeatureService.getLetterFeatureSet(trainingParameters.getFeatureDescriptors());
+		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
+		Set<LetterFeature<?>> features = letterFeatureParser.getLetterFeatureSet(featureDescriptors);
 		Set<String> letters = new HashSet<String>();
 
 		featureTester.applyFeatures(features, letters, imageId, shapeId);
@@ -1349,10 +1207,11 @@ public class Jochre implements LocaleSpecificLexiconService {
 		if (docId < 0)
 			throw new RuntimeException("Missing argument: docId");
 
-		JochreDocument doc = documentService.loadJochreDocument(docId);
+		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+		JochreDocument doc = documentDao.loadJochreDocument(docId);
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(pdfFile, firstPage, lastPage, new PdfImageUpdater(doc));
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(pdfFile, firstPage, lastPage, new PdfImageUpdater(doc));
 			pdfImageVisitor.visitImages();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1381,7 +1240,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageSaver pdfImageSaver = pdfService.getPdfImageSaver(pdfFile);
+			PdfImageSaver pdfImageSaver = new PdfImageSaver(pdfFile);
 			pdfImageSaver.saveImages(outputDirPath, firstPage, lastPage);
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1408,8 +1267,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 	 *            the last page to segment, if &lt;=0 will segment until last
 	 *            document page
 	 */
-	public void doCommandSegment(String filename, String userFriendlyName, boolean showSegmentation, boolean drawPixelSpread, String outputDirPath,
-			boolean save, int firstPage, int lastPage) {
+	public void doCommandSegment(String filename, String userFriendlyName, String outputDirPath, boolean save, int firstPage, int lastPage) {
 
 		if (filename.length() == 0)
 			throw new RuntimeException("Missing argument: file");
@@ -1418,28 +1276,29 @@ public class Jochre implements LocaleSpecificLexiconService {
 
 		User user = null;
 		if (userId >= 0) {
-			user = securityService.loadUser(userId);
+			SecurityDao securityDao = SecurityDao.getInstance(jochreSession);
+
+			user = securityDao.loadUser(userId);
 		}
 
 		File file = new File(filename);
-		JochreDocumentGenerator sourceFileProcessor = this.documentService.getJochreDocumentGenerator(file.getName(), userFriendlyName, locale);
-		sourceFileProcessor.setDrawPixelSpread(drawPixelSpread);
+		JochreDocumentGenerator jochreDocumentGenerator = new JochreDocumentGenerator(file.getName(), userFriendlyName, jochreSession);
 		if (save)
-			sourceFileProcessor.requestSave(user);
-		if (showSegmentation) {
+			jochreDocumentGenerator.requestSave(user);
+		if (jochreDocumentGenerator.isDrawSegmentedImage()) {
 			if (outputDirPath != null && outputDirPath.length() > 0) {
 				File outputDir = new File(outputDirPath);
 				outputDir.mkdirs();
-				sourceFileProcessor.requestSegmentation(outputDir);
+				jochreDocumentGenerator.requestSegmentation(outputDir);
 			}
 		}
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
-			PdfImageVisitor pdfImageVisitor = pdfService.getPdfImageVisitor(file, firstPage, lastPage, sourceFileProcessor);
+			PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(file, firstPage, lastPage, jochreDocumentGenerator);
 			pdfImageVisitor.visitImages();
 		} else if (filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".jpg") || filename.toLowerCase().endsWith(".jpeg")
 				|| filename.toLowerCase().endsWith(".gif")) {
-			ImageDocumentExtractor extractor = documentService.getImageDocumentExtractor(file, sourceFileProcessor);
+			ImageDocumentExtractor extractor = new ImageDocumentExtractor(file, jochreDocumentGenerator);
 			extractor.extractDocument();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
@@ -1503,87 +1362,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 		this.userId = userId;
 	}
 
-	@Override
-	public Locale getLocale() {
-		return locale;
-	}
-
-	@Override
-	public void setLocale(Locale locale) {
-		this.locale = locale;
-		JochreSession jochreSession = JochreSession.getInstance();
-		jochreSession.setLocale(locale);
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
-
-	protected Lexicon readLexicon(File lexiconDir) {
-		Lexicon myLexicon = null;
-
-		if (lexiconDir.isDirectory()) {
-			LexiconMerger lexiconMerger = new LexiconMerger();
-			File[] lexiconFiles = lexiconDir.listFiles();
-			for (File lexiconFile : lexiconFiles) {
-				if (lexiconFile.getName().endsWith(".txt")) {
-					TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, encoding);
-					lexiconMerger.addLexicon(textFileLexicon);
-				} else {
-					TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
-					lexiconMerger.addLexicon(textFileLexicon);
-				}
-			}
-
-			myLexicon = lexiconMerger;
-		} else {
-			if (lexiconDir.getName().endsWith(".txt")) {
-				TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, encoding);
-				myLexicon = textFileLexicon;
-			} else {
-				TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
-				myLexicon = textFileLexicon;
-			}
-		}
-		return myLexicon;
-	}
-
-	@Override
-	public Lexicon getLexicon() {
-		if (lexicon == null) {
-			if (lexiconPath != null && lexiconPath.length() > 0) {
-				File lexiconDir = new File(lexiconPath);
-				Lexicon myLexicon = this.readLexicon(lexiconDir);
-				this.lexicon = new DefaultLexiconWrapper(myLexicon);
-			} else {
-				this.lexicon = new FakeLexicon();
-			}
-		}
-		return this.lexicon;
-	}
-
-	@Override
-	public WordSplitter getWordSplitter() {
-		if (wordSplitter == null)
-			wordSplitter = new DefaultWordSplitter();
-		return wordSplitter;
-	}
-
-	@Override
-	public String getLexiconPath() {
-		return lexiconPath;
-	}
-
-	@Override
-	public void setLexiconPath(String lexiconPath) {
-		this.lexiconPath = lexiconPath;
-	}
-
-	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir, OutputService outputService) {
+	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir) {
 		try {
 			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 
@@ -1596,7 +1375,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					analysisFile.delete();
 					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Abbyy);
+					DocumentObserver observer = new AbbyyFineReader8Exporter(analysisFileWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1608,10 +1387,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						analysisFile.delete();
 						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Alto);
+						DocumentObserver observer = new AltoXMLExporter(analysisFileWriter);
 						observers.add(observer);
 					} else {
-						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.Alto);
+						DocumentObserver observer = new AltoXMLExporter(outputDir);
 						observers.add(observer);
 					}
 					break;
@@ -1626,7 +1405,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					zos.putNextEntry(zipEntry);
 					Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 
-					DocumentObserver observer = outputService.getExporter(zipWriter, ExportFormat.Alto);
+					DocumentObserver observer = new AltoXMLExporter(zipWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1639,10 +1418,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.XHTML, jochreSession.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.XHTML, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.XHTML, jochreSession.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1656,10 +1435,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						htmlFile.delete();
 						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
 
-						DocumentObserver textGetter = outputService.getTextGetter(htmlWriter, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.PLAIN, jochreSession.getLexicon());
 						observers.add(textGetter);
 					} else {
-						DocumentObserver textGetter = outputService.getTextGetter(outputDir, TextFormat.PLAIN, this.getLexicon());
+						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.PLAIN, jochreSession.getLexicon());
 						observers.add(textGetter);
 					}
 					break;
@@ -1672,10 +1451,10 @@ public class Jochre implements LocaleSpecificLexiconService {
 						analysisFile.delete();
 						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-						DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.GuessedText);
+						DocumentObserver observer = new TextExporter(analysisFileWriter);
 						observers.add(observer);
 					} else {
-						DocumentObserver observer = outputService.getExporter(outputDir, ExportFormat.GuessedText);
+						DocumentObserver observer = new TextExporter(outputDir);
 						observers.add(observer);
 					}
 					break;
@@ -1692,7 +1471,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					analysisFile.delete();
 					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
 
-					DocumentObserver observer = outputService.getExporter(analysisFileWriter, ExportFormat.Jochre);
+					DocumentObserver observer = new JochreXMLExporter(analysisFileWriter);
 					observers.add(observer);
 					break;
 				}
@@ -1700,7 +1479,7 @@ public class Jochre implements LocaleSpecificLexiconService {
 					outputDir.mkdirs();
 					File zipFile = new File(outputDir, baseName + "_jochre.zip");
 
-					DocumentObserver observer = outputService.getJochrePageByPageExporter(zipFile, baseName);
+					DocumentObserver observer = new JochrePageByPageExporter(zipFile, baseName);
 					observers.add(observer);
 					break;
 				}
@@ -1710,14 +1489,12 @@ public class Jochre implements LocaleSpecificLexiconService {
 					break;
 				}
 				case UnknownWords: {
-					if (this.getLexicon() != null) {
-						File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
-						unknownWordFile.delete();
-						Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true), "UTF8"));
+					File unknownWordFile = new File(outputDir, baseName + "_unknownWords.txt");
+					unknownWordFile.delete();
+					Writer unknownWordWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(unknownWordFile, true), "UTF8"));
 
-						UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
-						observers.add(unknownWordListWriter);
-					}
+					UnknownWordListWriter unknownWordListWriter = new UnknownWordListWriter(unknownWordWriter);
+					observers.add(unknownWordListWriter);
 					break;
 				}
 				}
@@ -1728,4 +1505,9 @@ public class Jochre implements LocaleSpecificLexiconService {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public JochreSession getJochreSession() {
+		return jochreSession;
+	}
+
 }
