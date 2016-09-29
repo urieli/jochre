@@ -49,6 +49,7 @@ import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.stats.DBSCANClusterer;
 import com.joliciel.jochre.utils.JochreException;
+import com.typesafe.config.Config;
 
 /**
  * A wrapper for a JochreImage which includes an actual graphical image. In
@@ -85,9 +86,14 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	private int myShapeCount = -1;
 
 	private boolean drawPixelSpread = false;
+	private final double blackThresholdPercentile;
+	private final double separationThresholdPercentile;
 
 	SourceImage(JochreSession jochreSession) {
 		super(jochreSession);
+		Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
+		blackThresholdPercentile = segmenterConfig.getDouble("black-threshold-percentile");
+		separationThresholdPercentile = segmenterConfig.getDouble("separation-threshold-percentile");
 		this.imageBackup = null;
 	}
 
@@ -98,6 +104,10 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 	public SourceImage(String name, BufferedImage image, JochreSession jochreSession) {
 		super(image, jochreSession);
+		Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
+		blackThresholdPercentile = segmenterConfig.getDouble("black-threshold-percentile");
+		separationThresholdPercentile = segmenterConfig.getDouble("separation-threshold-percentile");
+
 		this.name = name;
 
 		// increase contrast for grayscale images, to help with segmentation
@@ -200,48 +210,20 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 		this.greyscaleMultiplier = (255.0 / (whiteLimit - blackLimit));
 
-		// use mean + 2 sigma to find the black threshold
-		// we make the threshold high (darker) to put more pixels in the letter
-		// when analysing
-		double blackthresholdCount = blackCountStats.getMean() + (2.0 * blackCountStats.getStandardDeviation());
-		LOG.debug("blackthresholdCount: " + blackthresholdCount);
-
-		int blackThresholdValue = endWhite;
-		for (int i = endWhite; i >= startBlack; i--) {
-			if (pixelSpread[i] < blackthresholdCount) {
-				blackThresholdValue = i;
-				break;
-			}
-		}
-		LOG.debug("Black threshold value (old): " + blackThresholdValue);
-		blackThreshold = (int) Math.round((blackThresholdValue - blackLimit) * greyscaleMultiplier);
-		LOG.debug("Black threshold (old): " + blackThreshold);
-
-		blackThresholdValue = (int) Math.round(blackSpread.getPercentile(60.0));
-		LOG.debug("Black threshold value (new): " + blackThresholdValue);
+		// the higher the black threshold, the more pixels will be considered
+		// "black" in each letter
+		int blackThresholdValue = (int) Math.round(blackSpread.getPercentile(blackThresholdPercentile));
+		LOG.debug("Black threshold value: " + blackThresholdValue);
 		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
 		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
 		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
 
 		blackThreshold = (int) Math.round((blackThresholdValue - blackLimit) * greyscaleMultiplier);
-		LOG.debug("Black threshold (new): " + blackThreshold);
+		LOG.debug("Black threshold: " + blackThreshold);
 
-		// use mean + 1 sigma to find the separation threshold
-		// we keep threshold low (1 sigma) to encourage letter breaks
-		double separationthresholdCount = blackCountStats.getMean() + (1.0 * blackCountStats.getStandardDeviation());
-		LOG.debug("Separation threshold value: " + separationthresholdCount);
-
-		int separationThresholdValue = endWhite;
-		for (int i = endWhite; i >= startBlack; i--) {
-			if (pixelSpread[i] < separationthresholdCount) {
-				separationThresholdValue = i;
-				break;
-			}
-		}
-		LOG.debug("Separation threshold value (old): " + separationThresholdValue);
-
-		separationThresholdValue = (int) Math.round(blackSpread.getPercentile(75.0));
-		LOG.debug("Separation threshold value (new): " + separationThresholdValue);
+		// the lower the threshold, the more separate letters will be
+		int separationThresholdValue = (int) Math.round(blackSpread.getPercentile(separationThresholdPercentile));
+		LOG.debug("Separation threshold value: " + separationThresholdValue);
 		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
 		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
 		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
@@ -386,8 +368,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape width, to
-	 * return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape width,
+	 * to return only "average shapes".
 	 */
 	public double getAverageShapeWidthMargin() {
 		this.calculateShapeStatistics();
@@ -405,8 +387,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape height, to
-	 * return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape height,
+	 * to return only "average shapes".
 	 */
 	public double getAverageShapeHeightMargin() {
 		this.calculateShapeStatistics();
@@ -440,9 +422,9 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns the slope of the current image's horizontal inclination. Assumes an
-	 * initial stab has already been made at group shapes into rows, and that rows
-	 * are grouped from top to bottom.
+	 * Returns the slope of the current image's horizontal inclination. Assumes
+	 * an initial stab has already been made at group shapes into rows, and that
+	 * rows are grouped from top to bottom.
 	 */
 	public double getInclination() {
 		LOG.debug("#### getInclination ####");
@@ -498,7 +480,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	 * areas artificially).
 	 * 
 	 * @param shapes
-	 *          the shapes to be considered when looking for white space.
+	 *            the shapes to be considered when looking for white space.
 	 * @return a List of {whiteArea.left, whiteArea.top, whiteArea.right,
 	 *         whiteArea.bottom}
 	 */
@@ -567,7 +549,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 		LOG.debug("minSquareWhiteAreaWidth: " + minSquareWhiteAreaWidth);
 		LOG.debug("minSquareWhiteAreaHeight: " + minSquareWhiteAreaHeight);
 
-		List<Rectangle> squareWhiteAreas = whiteAreaFinder.getWhiteAreas(blackAreas, left, top, right, bottom, minSquareWhiteAreaWidth, minSquareWhiteAreaHeight);
+		List<Rectangle> squareWhiteAreas = whiteAreaFinder.getWhiteAreas(blackAreas, left, top, right, bottom, minSquareWhiteAreaWidth,
+				minSquareWhiteAreaHeight);
 		whiteAreas.addAll(squareWhiteAreas);
 		blackAreas.addAll(squareWhiteAreas);
 		blackAreas.addAll(this.getWhiteAreasAroundLargeShapes(shapes));
@@ -717,9 +700,11 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 				// extensions up and down
 				for (RowOfShapes row : this.getRows()) {
-					if (row.getLeft() <= nearestRight && row.getRight() >= nearestLeft && row.getBottom() <= largeShape.getTop() && row.getBottom() >= nearestAbove) {
+					if (row.getLeft() <= nearestRight && row.getRight() >= nearestLeft && row.getBottom() <= largeShape.getTop()
+							&& row.getBottom() >= nearestAbove) {
 						nearestAbove = row.getBottom();
-					} else if (row.getLeft() <= nearestRight && row.getRight() >= nearestLeft && row.getTop() >= largeShape.getBottom() && row.getTop() <= nearestBelow) {
+					} else if (row.getLeft() <= nearestRight && row.getRight() >= nearestLeft && row.getTop() >= largeShape.getBottom()
+							&& row.getTop() <= nearestBelow) {
 						nearestBelow = row.getTop();
 					}
 				}
@@ -833,8 +818,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 			for (int i = emptyHorizontalRanges.size() - 1; i >= 0; i--) {
 				int[] emptyHorizontalRange = emptyHorizontalRanges.get(i);
 				int height = emptyHorizontalRange[1] - emptyHorizontalRange[0];
-				LOG.trace("emptyHorizontalRange: " + emptyHorizontalRange[0] + ", height: " + height + ", bigBreakCount: " + bigBreakCount + ", smallBreakCount: "
-						+ smallBreakCount);
+				LOG.trace("emptyHorizontalRange: " + emptyHorizontalRange[0] + ", height: " + height + ", bigBreakCount: " + bigBreakCount
+						+ ", smallBreakCount: " + smallBreakCount);
 				if ((bigBreakCount + smallBreakCount) <= 2 && height > minHorizontalBreak) {
 					mainTextBottom = emptyHorizontalRange[0];
 					LOG.trace("Set mainTextBottom to " + mainTextBottom);
@@ -866,7 +851,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 					int slopeAdjustedLeft = (int) Math.round(shape.getLeft() - row.getXAdjustment());
 					double shapeMidPointX = (shape.getLeft() + shape.getRight()) / 2.0;
 					int slopeAdjustedTop = (int) Math.round(shape.getTop() + (slope * (shapeMidPointX - imageMidPointX)));
-					if (slopeAdjustedTop >= mainTextTop && slopeAdjustedTop <= mainTextBottom && slopeAdjustedLeft >= 0 && slopeAdjustedLeft < this.getWidth()) {
+					if (slopeAdjustedTop >= mainTextTop && slopeAdjustedTop <= mainTextBottom && slopeAdjustedLeft >= 0
+							&& slopeAdjustedLeft < this.getWidth()) {
 						for (int i = 0; i < shape.getWidth(); i++) {
 							if (slopeAdjustedLeft + i < this.getWidth())
 								verticalCounts[slopeAdjustedLeft + i] += shape.getHeight();
