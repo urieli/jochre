@@ -54,7 +54,6 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.security.SecurityDao;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
-import com.typesafe.config.ConfigFactory;
 
 public class ImageController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 1L;
@@ -87,7 +86,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 	Label lblOwner;
 
 	public ImageController() throws ReflectiveOperationException {
-		jochreSession = new JochreSession(ConfigFactory.load());
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override

@@ -47,7 +47,6 @@ import com.joliciel.jochre.output.TextGetter;
 import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
-import com.typesafe.config.ConfigFactory;
 
 public class DocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(DocumentController.class);
@@ -93,7 +92,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 	Properties jochreProperties = null;
 
 	public DocumentController() throws ReflectiveOperationException {
-		jochreSession = new JochreSession(ConfigFactory.load());
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override

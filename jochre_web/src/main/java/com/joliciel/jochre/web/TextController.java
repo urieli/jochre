@@ -53,7 +53,6 @@ import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
 import com.joliciel.talismane.utils.ProgressMonitor;
-import com.typesafe.config.ConfigFactory;
 
 public class TextController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 1L;
@@ -101,7 +100,7 @@ public class TextController extends GenericForwardComposer<Window> {
 	int currentPageIndex = 0;
 
 	public TextController() throws ReflectiveOperationException {
-		jochreSession = new JochreSession(ConfigFactory.load());
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override

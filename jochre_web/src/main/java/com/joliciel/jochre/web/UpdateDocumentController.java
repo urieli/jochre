@@ -26,7 +26,6 @@ import com.joliciel.jochre.doc.Author;
 import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.security.User;
-import com.typesafe.config.ConfigFactory;
 
 public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateDocumentController.class);
@@ -61,7 +60,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	Combobox cmbAuthors;
 
 	public UpdateDocumentController() throws ReflectiveOperationException {
-		jochreSession = new JochreSession(ConfigFactory.load());
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override

@@ -33,7 +33,6 @@ import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.security.User;
-import com.typesafe.config.ConfigFactory;
 
 public class SplitController extends GenericForwardComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(SplitController.class);
@@ -56,7 +55,7 @@ public class SplitController extends GenericForwardComposer<Window> {
 	List<Shape> shapesToSplit = null;
 
 	public SplitController() throws ReflectiveOperationException {
-		jochreSession = new JochreSession(ConfigFactory.load());
+		jochreSession = JochreProperties.getInstance().getJochreSession();
 	}
 
 	@Override

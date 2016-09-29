@@ -14,10 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
 
+import com.joliciel.jochre.JochreSession;
+import com.typesafe.config.ConfigFactory;
+
 public class JochreProperties {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreProperties.class);
 	private static JochreProperties instance;
-	private Properties properties;
+	private final Properties properties;
+	private final JochreSession jochreSession;
 
 	public static JochreProperties getInstance() {
 		if (instance == null) {
@@ -31,15 +35,19 @@ public class JochreProperties {
 			String jochrePropertiesPath = "/jochre.properties";
 			properties = new Properties();
 			properties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
-		} catch (IOException e) {
+			jochreSession = new JochreSession(ConfigFactory.load());
+		} catch (IOException | ReflectiveOperationException e) {
 			LOG.error("Failure in JochreProperties$construct", e);
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	public Properties getProperties() {
 		return properties;
+	}
+
+	public JochreSession getJochreSession() {
+		return jochreSession;
 	}
 
 	public static String getWelcomeText() {
