@@ -18,10 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
-import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 
-abstract class AbstractShapeInSequenceFeature<Y> extends AbstractCachableFeature<ShapeInSequence,Y> implements
-		ShapeInSequenceFeature<Y> {
+abstract class AbstractShapeInSequenceFeature<Y> extends AbstractCachableFeature<ShapeInSequenceWrapper, Y> implements ShapeInSequenceFeature<Y> {
 
 }

@@ -26,13 +26,13 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.JochreIndexDocument;
 
 public class ImageSnippet {
-	private static final Log LOG = LogFactory.getLog(ImageSnippet.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ImageSnippet.class);
 	private Snippet snippet;
 	private Rectangle rectangle;
 	private List<Rectangle> highlights;

@@ -32,8 +32,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.talismane.utils.CSVFormatter;
@@ -44,7 +44,7 @@ import com.joliciel.talismane.utils.CSVFormatter;
  *
  */
 public class FScoreCalculator<E> {
-	private static final Log LOG = LogFactory.getLog(FScoreCalculator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FScoreCalculator.class);
 	private static final CSVFormatter CSV = new CSVFormatter();
 	Map<E,Map<E,Integer>> falsePositives = new TreeMap<E,Map<E,Integer>>();
 	Map<E,Map<E,Integer>> falseNegatives = new TreeMap<E,Map<E,Integer>>();

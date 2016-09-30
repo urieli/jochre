@@ -18,65 +18,70 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
-import com.joliciel.talismane.machineLearning.ClassificationEvent;
-import com.joliciel.talismane.machineLearning.ClassificationEventStream;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
-import com.joliciel.talismane.machineLearning.features.FeatureResult;
-import com.joliciel.talismane.machineLearning.features.FeatureService;
-import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreCorpusGroupReader;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.ClassificationEvent;
+import com.joliciel.talismane.machineLearning.ClassificationEventStream;
+import com.joliciel.talismane.machineLearning.features.FeatureResult;
+import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
+import com.joliciel.talismane.utils.PerformanceMonitor;
+import com.typesafe.config.Config;
 
-class JochreMergeEventStream implements ClassificationEventStream {
-    private static final Log LOG = LogFactory.getLog(JochreMergeEventStream.class);
+public class JochreMergeEventStream implements ClassificationEventStream {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
 	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
 
-	private GraphicsService graphicsService;
-	private BoundaryServiceInternal boundaryService;
-	private MachineLearningService machineLearningService;
-	private FeatureService featureService;
-
 	private SplitCandidateFinder splitCandidateFinder;
-	
-	private Set<MergeFeature<?>> mergeFeatures = null;
+
+	private final Set<MergeFeature<?>> mergeFeatures;
+	private final JochreSession jochreSession;
+
 	private double maxWidthRatio = 1.2;
 	private double maxDistanceRatio = 0.15;
-	
+
 	private int shapeIndex = 0;
-	
+
 	private int belowRatioCount = 0;
 	private int aboveRatioCount = 0;
 	private int yesCount = 0;
 	private int noCount = 0;
-	
-	private ShapePair mergeCandidate;
-	
-	private JochreCorpusGroupReader groupReader;
-	GroupOfShapes group = null;
 
-	CorpusSelectionCriteria criteria;
-	
+	private ShapePair mergeCandidate;
+
+	private JochreCorpusGroupReader groupReader;
+	private GroupOfShapes group = null;
+
+	private final CorpusSelectionCriteria criteria;
+
 	/**
 	 * Constructor.
-	 * @param mergeFeatures the features to analyse when training
+	 * 
+	 * @param mergeFeatures
+	 *          the features to analyse when training
 	 */
-	public JochreMergeEventStream(Set<MergeFeature<?>> mergeFeatures) {
+	public JochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
+		this.criteria = criteria;
 		this.mergeFeatures = mergeFeatures;
+
+		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+		maxWidthRatio = mergerConfig.getDouble("max-width-ratio");
+		maxDistanceRatio = mergerConfig.getDouble("max-distance-ratio");
 	}
-	
+
 	@Override
 	public ClassificationEvent next() {
 		MONITOR.startTask("next");
@@ -84,17 +89,17 @@ class JochreMergeEventStream implements ClassificationEventStream {
 			ClassificationEvent event = null;
 			if (this.hasNext()) {
 				LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
-	
+
 				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
-	
+
 				MONITOR.startTask("analyse features");
 				try {
 					for (MergeFeature<?> feature : mergeFeatures) {
 						MONITOR.startTask(feature.getName());
 						try {
-							RuntimeEnvironment env = this.featureService.getRuntimeEnvironment();
+							RuntimeEnvironment env = new RuntimeEnvironment();
 							FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-							if (featureResult!=null) {
+							if (featureResult != null) {
 								featureResults.add(featureResult);
 								if (LOG.isTraceEnabled()) {
 									LOG.trace(featureResult.toString());
@@ -107,27 +112,27 @@ class JochreMergeEventStream implements ClassificationEventStream {
 				} finally {
 					MONITOR.endTask();
 				}
-				
+
 				MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
 				boolean shouldMerge = false;
 				if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
-					if (mergeCandidate.getSecondShape().getLetter().length()==0||mergeCandidate.getSecondShape().getLetter().endsWith("|"))
+					if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
 						shouldMerge = true;
 				} else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
-					if(mergeCandidate.getFirstShape().getLetter().length()==0)
+					if (mergeCandidate.getFirstShape().getLetter().length() == 0)
 						shouldMerge = true;
 				}
 				if (shouldMerge)
 					outcome = MergeOutcome.DO_MERGE;
-				
+
 				if (outcome.equals(MergeOutcome.DO_MERGE))
 					yesCount++;
 				else
 					noCount++;
-	
+
 				LOG.debug("Outcome: " + outcome);
-				event = this.machineLearningService.getClassificationEvent(featureResults, outcome.name());
-	
+				event = new ClassificationEvent(featureResults, outcome.name());
+
 				// set mergeCandidate to null so that hasNext can retrieve the next one.
 				this.mergeCandidate = null;
 			}
@@ -142,16 +147,16 @@ class JochreMergeEventStream implements ClassificationEventStream {
 		MONITOR.startTask("hasNext");
 		try {
 			this.initialiseStream();
-			
-			while (mergeCandidate==null && group!=null) {
-				if (shapeIndex < group.getShapes().size()-1) {
+
+			while (mergeCandidate == null && group != null) {
+				if (shapeIndex < group.getShapes().size() - 1) {
 					Shape shape1 = group.getShapes().get(shapeIndex);
-					Shape shape2 = group.getShapes().get(shapeIndex+1);
-	
-					ShapePair shapePair = this.boundaryService.getShapePair(shape1, shape2);
+					Shape shape2 = group.getShapes().get(shapeIndex + 1);
+
+					ShapePair shapePair = new ShapePair(shape1, shape2);
 					double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
 					double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
-					if (widthRatio<=maxWidthRatio&&distanceRatio<=maxDistanceRatio) {
+					if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
 						belowRatioCount++;
 						mergeCandidate = shapePair;
 					} else {
@@ -166,44 +171,28 @@ class JochreMergeEventStream implements ClassificationEventStream {
 						group = groupReader.next();
 				}
 			}
-	
-			if (mergeCandidate==null) {
-				
+
+			if (mergeCandidate == null) {
+
 				LOG.debug("aboveRatioCount: " + aboveRatioCount);
 				LOG.debug("belowRatioCount: " + belowRatioCount);
 				LOG.debug("yesCount: " + yesCount);
 				LOG.debug("noCount: " + noCount);
 			}
-			
-			return mergeCandidate!=null;
+
+			return mergeCandidate != null;
 		} finally {
 			MONITOR.endTask();
 		}
 	}
-	
+
 	void initialiseStream() {
-		if (groupReader==null) {
-			groupReader = this.graphicsService.getJochreCorpusGroupReader();
+		if (groupReader == null) {
+			groupReader = new JochreCorpusGroupReader(jochreSession);
 			groupReader.setSelectionCriteria(criteria);
 			if (groupReader.hasNext())
 				group = groupReader.next();
 		}
-	}
-
-	public GraphicsService getGraphicsService() {
-		return graphicsService;
-	}
-
-	public void setGraphicsService(GraphicsService graphicsService) {
-		this.graphicsService = graphicsService;
-	}
-
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public SplitCandidateFinder getSplitCandidateFinder() {
@@ -215,8 +204,8 @@ class JochreMergeEventStream implements ClassificationEventStream {
 	}
 
 	/**
-	 * The maximum ratio between the merged shape candidate's width & x-height
-	 * to even be considered for merging.
+	 * The maximum ratio between the merged shape candidate's width & x-height to
+	 * even be considered for merging.
 	 */
 	public double getMaxWidthRatio() {
 		return maxWidthRatio;
@@ -227,8 +216,8 @@ class JochreMergeEventStream implements ClassificationEventStream {
 	}
 
 	/**
-	 * The maximum ratio of the distance between the two inner shapes & the x-height
-	 * to even be considered for merging.
+	 * The maximum ratio of the distance between the two inner shapes & the
+	 * x-height to even be considered for merging.
 	 */
 	public double getMaxDistanceRatio() {
 		return maxDistanceRatio;
@@ -240,39 +229,17 @@ class JochreMergeEventStream implements ClassificationEventStream {
 
 	@Override
 	public Map<String, String> getAttributes() {
-		Map<String,String> attributes = new LinkedHashMap<String, String>();
-		attributes.put("eventStream", this.getClass().getSimpleName());				
-		attributes.put("maxDistanceRatio", "" + maxDistanceRatio);		
+		Map<String, String> attributes = new LinkedHashMap<String, String>();
+		attributes.put("eventStream", this.getClass().getSimpleName());
+		attributes.put("maxDistanceRatio", "" + maxDistanceRatio);
 		attributes.put("maxWidthRatio", "" + maxWidthRatio);
 		attributes.putAll(this.criteria.getAttributes());
-		
+
 		return attributes;
-	}
-
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
 	}
 
 	public CorpusSelectionCriteria getCriteria() {
 		return criteria;
 	}
 
-	public void setCriteria(CorpusSelectionCriteria criteria) {
-		this.criteria = criteria;
-	}
-
-	public FeatureService getFeatureService() {
-		return featureService;
-	}
-
-	public void setFeatureService(FeatureService featureService) {
-		this.featureService = featureService;
-	}
-
-	
 }

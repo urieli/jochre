@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics.features;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.talismane.machineLearning.features.BooleanFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
@@ -34,7 +34,7 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  *
  */
 public class UpperLefthandOpeningFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-	private static final Log LOG = LogFactory.getLog(UpperLefthandOpeningFeature.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UpperLefthandOpeningFeature.class);
 
 	@Override
 	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {

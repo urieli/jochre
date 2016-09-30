@@ -26,36 +26,36 @@ import java.util.Properties;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * Any properties read from the config file.
+ * 
  * @author Assaf Urieli
  *
  */
 public class JochreSearchProperties {
-	private static final Log LOG = LogFactory.getLog(JochreSearchProperties.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreSearchProperties.class);
 	private static JochreSearchProperties instance;
 	private Properties properties;
 	private ServletContext servletContext;
 	private Locale locale;
-	
+
 	public static JochreSearchProperties getInstance(ServletContext servletContext) {
-		if (instance==null) {
+		if (instance == null) {
 			instance = new JochreSearchProperties(servletContext);
 		}
 		return instance;
 	}
-	
+
 	public static void purgeInstance() {
 		LOG.debug("purgeInstance");
 		instance = null;
 	}
-	
+
 	private JochreSearchProperties(ServletContext servletContext) {
 		try {
 			this.servletContext = servletContext;
@@ -69,55 +69,54 @@ public class JochreSearchProperties {
 				String key = (String) keyObj;
 				LOG.info(key + "=" + properties.getProperty(key));
 			}
-		
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to construct" + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
-	
+
 	}
 
 	public Properties getProperties() {
 		return properties;
 	}
-	
+
 	public String getIndexDirPath() {
-		String indexDirPath = this.properties.getProperty("index.dir");	
-		if (indexDirPath==null)
+		String indexDirPath = this.properties.getProperty("index.dir");
+		if (indexDirPath == null)
 			throw new JochreException("Missing property: index.dir");
 		return indexDirPath;
 	}
-	
+
 	public String getContentDirPath() {
-		String contentDirPath = this.properties.getProperty("content.dir");	
-		if (contentDirPath==null)
+		String contentDirPath = this.properties.getProperty("content.dir");
+		if (contentDirPath == null)
 			throw new JochreException("Missing property: content.dir");
 		return contentDirPath;
 	}
-	
+
 	/**
-	 * Return a path to the database properties, if the file exists,
-	 * otherwise null.
+	 * Return a path to the database properties, if the file exists, otherwise
+	 * null.
 	 */
 	public String getDatabasePropertiesPath() {
 		String jdbcPropertiesPath = "/WEB-INF/jdbc.properties";
 		String realPath = servletContext.getRealPath(jdbcPropertiesPath);
-		
+
 		File dataSourcePropsFile = new File(realPath);
 		if (!dataSourcePropsFile.exists())
 			return null;
 
 		return realPath;
 	}
-	
+
 	public String getLexiconPath() {
-		return this.properties.getProperty("lexicon");	
+		return this.properties.getProperty("lexicon");
 	}
 
 	public Locale getLocale() {
-		if (locale==null) {
+		if (locale == null) {
 			String language = this.properties.getProperty("language");
-			if (language==null)
+			if (language == null)
 				throw new JochreException("Missing property: language");
 			locale = Locale.forLanguageTag(language);
 		}

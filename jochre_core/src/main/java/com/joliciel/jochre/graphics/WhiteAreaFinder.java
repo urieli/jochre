@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.ArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Finds white areas of a certain minimum vertical and horizontal dimension
@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
  *
  */
 class WhiteAreaFinder {
-	private static final Log LOG = LogFactory.getLog(WhiteAreaFinder.class);
+	private static final Logger LOG = LoggerFactory.getLogger(WhiteAreaFinder.class);
 	public List<Rectangle> getWhiteAreas(ImageGrid imageGrid, int blackThreshold, int left, int top, int right, int bottom,
 			double minWhiteAreaWidth, double minWhiteAreaHeight) {
 		return this.getWhiteAreas(imageGrid, blackThreshold, null, left, top, right, bottom, minWhiteAreaWidth, minWhiteAreaHeight);

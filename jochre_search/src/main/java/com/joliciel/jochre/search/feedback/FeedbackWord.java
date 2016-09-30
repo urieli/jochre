@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * A word for which a user has given feedback.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -31,36 +32,41 @@ public interface FeedbackWord {
 	 * The unique internal id for this word.
 	 */
 	public int getId();
-	
+
 	/**
 	 * The row on which this word is found.
 	 */
 	public FeedbackRow getRow();
+
 	public int getRowId();
-	
+
 	/**
 	 * The word's rectangle within the page containing it.
 	 */
 	public Rectangle getRectangle();
-	
+
 	/**
 	 * The row containing the second half of a hyphenated word.
 	 */
 	public FeedbackRow getSecondRow();
+
 	public int getSecondRowId();
-	
+
 	/**
-	 * The rectangle containing the 2nd half of a hyphenated word, within the page containing it.
+	 * The rectangle containing the 2nd half of a hyphenated word, within the
+	 * page containing it.
 	 */
 	public Rectangle getSecondRectangle();
-	
+
 	/**
 	 * The initial guess for this word.
 	 */
 	public String getInitialGuess();
-	
+
 	/**
-	 * This word's image.
+	 * This word's image - in the case of a hyphenated word, this combines both
+	 * halves. If separate images are required, they can be acquired via the row
+	 * images and rectangles.
 	 */
 	public BufferedImage getImage();
 }

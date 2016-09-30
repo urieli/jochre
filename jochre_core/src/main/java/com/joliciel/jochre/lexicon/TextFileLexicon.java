@@ -28,10 +28,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.Writer;
-import java.util.ArrayList;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -39,39 +38,37 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
- * Constructs a lexicon from a tab-separated text file resource,
- * organised as:
- * word tab frequency.
- * If there is no tab and frequency, the word will be assumed to have a frequency of 1.
- * Lines starting with a # will be ignored.
+ * Constructs a lexicon from a tab-separated text file resource, organised as:
+ * word tab frequency. If there is no tab and frequency, the word will be
+ * assumed to have a frequency of 1. Lines starting with a # will be ignored.
+ * 
  * @author Assaf Urieli
  *
  */
 public class TextFileLexicon implements Lexicon, Serializable {
 
 	private static final long serialVersionUID = 1278484873657866572L;
-	private static final Log LOG = LogFactory.getLog(TextFileLexicon.class);
-	private Map<String,Integer> entries = new HashMap<String, Integer>();
+	private static final Logger LOG = LoggerFactory.getLogger(TextFileLexicon.class);
+	private Map<String, Integer> entries = new HashMap<String, Integer>();
 
 	public TextFileLexicon() {
 	}
-	
-	public TextFileLexicon(Map<String,Integer> entries) {
+
+	public TextFileLexicon(Map<String, Integer> entries) {
 		this.entries = entries;
 	}
 
 	public TextFileLexicon(File textFile) {
-		this(textFile, null);
+		this(textFile, Charset.defaultCharset());
 	}
-	
-	public TextFileLexicon(File textFile, String charset) {
+
+	public TextFileLexicon(File textFile, Charset charset) {
 		Scanner scanner;
 		try {
 			scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(textFile), charset)));
@@ -81,17 +78,17 @@ public class TextFileLexicon implements Lexicon, Serializable {
 					String line = scanner.nextLine();
 					if (!line.startsWith("#")) {
 						String[] parts = line.split("\t");
-						
-						if (parts.length>0) {
+
+						if (parts.length > 0) {
 							String word = parts[0];
 							int frequency = 1;
-							if (parts.length>1)
+							if (parts.length > 1)
 								frequency = Integer.parseInt(parts[1]);
 							entries.put(word, frequency);
 						}
-							
+
 					}
-					
+
 				}
 			} finally {
 				scanner.close();
@@ -100,7 +97,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			throw new JochreException(e);
 		}
 	}
-	
+
 	public void writeFile(Writer writer) {
 		for (Entry<String, Integer> entry : entries.entrySet()) {
 			try {
@@ -110,37 +107,27 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			}
 		}
 	}
+
 	public void incrementEntry(String word) {
 		Integer freqObj = entries.get(word);
-		if (freqObj==null)
+		if (freqObj == null)
 			entries.put(word, 1);
 		else
-			entries.put(word, freqObj.intValue()+1);
+			entries.put(word, freqObj.intValue() + 1);
 	}
-	
+
 	public void setEntry(String word, int frequency) {
 		entries.put(word, frequency);
 	}
-	
+
 	@Override
 	public int getFrequency(String word) {
 		Integer freqObj = entries.get(word);
-		if (freqObj!=null)
+		if (freqObj != null)
 			return freqObj.intValue();
 		else
 			return 0;
 	}
-
-	@Override
-	public List<CountedOutcome<String>> getFrequencies(String word) {
-		int frequency = this.getFrequency(word);
-		List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
-		if (frequency>0) {
-			results.add(new CountedOutcome<String>(word, frequency));
-		}
-		return results;
-	}
-	
 
 	public void serialize(File memoryBaseFile) {
 		LOG.debug("serialize");
@@ -151,8 +138,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 		FileOutputStream fos = null;
 		ObjectOutputStream out = null;
 		ZipOutputStream zos = null;
-		try
-		{
+		try {
 			fos = new FileOutputStream(memoryBaseFile);
 			if (isZip) {
 				zos = new ZipOutputStream(fos);
@@ -161,18 +147,18 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			} else {
 				out = new ObjectOutputStream(fos);
 			}
-			
+
 			try {
 				out.writeObject(this);
 			} finally {
 				out.flush();
 				out.close();
 			}
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			throw new JochreException(ioe);
 		}
 	}
-	
+
 	public static TextFileLexicon deserialize(ZipInputStream zis) {
 		TextFileLexicon memoryBase = null;
 		try {
@@ -192,10 +178,10 @@ public class TextFileLexicon implements Lexicon, Serializable {
 		} catch (ClassNotFoundException cnfe) {
 			throw new JochreException(cnfe);
 		}
-		
+
 		return memoryBase;
 	}
-	
+
 	public static TextFileLexicon deserialize(File memoryBaseFile) {
 		LOG.debug("deserializeMemoryBase");
 		boolean isZip = false;
@@ -206,7 +192,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 		ZipInputStream zis = null;
 		FileInputStream fis = null;
 		ObjectInputStream in = null;
-	
+
 		try {
 			fis = new FileInputStream(memoryBaseFile);
 			if (isZip) {
@@ -215,9 +201,9 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			} else {
 				in = new ObjectInputStream(fis);
 				try {
-					memoryBase = (TextFileLexicon)in.readObject();
+					memoryBase = (TextFileLexicon) in.readObject();
 				} finally {
-					in.close();					
+					in.close();
 				}
 			}
 		} catch (IOException ioe) {
@@ -225,7 +211,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 		} catch (ClassNotFoundException cnfe) {
 			throw new JochreException(cnfe);
 		}
-		
+
 		return memoryBase;
 	}
 

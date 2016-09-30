@@ -18,23 +18,25 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
+import com.joliciel.jochre.boundaries.ShapeInSequence;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.jochre.boundaries.ShapeInSequence;
 
 /**
- * Returns shape index counting from the end of the group containing it,
- * but only for the last and next-to-last shape.
+ * Returns shape index counting from the end of the group containing it, but
+ * only for the last and next-to-last shape.
+ * 
  * @author Assaf Urieli
  *
  */
-public final class ShapeReverseIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequence> {
+public final class ShapeReverseIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequenceWrapper> {
 	@Override
-	public FeatureResult<Integer> checkInternal(ShapeInSequence shapeInSequence, RuntimeEnvironment env) {
+	public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
 		FeatureResult<Integer> outcome = null;
-		int reverseIndex = shapeInSequence.getShapeSequence().size() - (shapeInSequence.getIndex()+1);
-		if (reverseIndex<=1) {
+		int reverseIndex = shapeInSequence.getShapeSequence().size() - (shapeInSequence.getIndex() + 1);
+		if (reverseIndex <= 1) {
 			outcome = this.generateResult(reverseIndex);
 		}
 		return outcome;

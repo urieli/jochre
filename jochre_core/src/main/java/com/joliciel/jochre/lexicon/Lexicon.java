@@ -19,32 +19,23 @@
 package com.joliciel.jochre.lexicon;
 
 import java.util.Iterator;
-import java.util.List;
-
-import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
- * An interface giving a frequency of occurrence for each word.
- * If it's a corpus-based lexicon, it can give a real occurrence frequency.
- * If it's a dictionary-based lexicon, it can give 0 or 1.
+ * An interface giving a frequency of occurrence for each word. If it's a
+ * corpus-based lexicon, it can give a real occurrence frequency. If it's a
+ * dictionary-based lexicon, it can give 0 or 1.
+ * 
  * @author Assaf Urieli
  *
  */
 public interface Lexicon {
 	/**
-	 * Frequency of occurrence for a given word.
-	 * If the word break certain locale-specific constraints (e.g. letters of a certain type at impossible places),
-	 * can return a frequency of -1.
+	 * Frequency of occurrence for a given word. If the word break certain
+	 * locale-specific constraints (e.g. letters of a certain type at impossible
+	 * places), can return a frequency of -1.
 	 */
 	public int getFrequency(String word);
-	
-	/**
-	 * For a given word (not necessarily in standard spelling for the lexicon),
-	 * returns a list of any equivalent words found in the lexicon (in their standard spelling)
-	 * with the associated frequencies.
-	 */
-	public List<CountedOutcome<String>> getFrequencies(String word);
-	
+
 	/**
 	 * Return all words in this lexicon.
 	 */

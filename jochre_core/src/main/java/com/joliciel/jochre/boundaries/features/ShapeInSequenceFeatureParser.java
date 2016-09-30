@@ -1,38 +1,59 @@
-///////////////////////////////////////////////////////////////////////////////
-//Copyright (C) 2012 Assaf Urieli
-//
-//This file is part of Jochre.
-//
-//Jochre is free software: you can redistribute it and/or modify
-//it under the terms of the GNU Affero General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
-//
-//Jochre is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU Affero General Public License for more details.
-//
-//You should have received a copy of the GNU Affero General Public License
-//along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
-//////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
 import java.util.List;
 
 import com.joliciel.jochre.boundaries.ShapeInSequence;
+import com.joliciel.talismane.machineLearning.features.AbstractFeatureParser;
+import com.joliciel.talismane.machineLearning.features.Feature;
 import com.joliciel.talismane.machineLearning.features.FeatureClassContainer;
-import com.joliciel.talismane.machineLearning.features.FeatureParserInternal;
 import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
 
 /**
  * A parser for ShapeInSequenceFeatures.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface ShapeInSequenceFeatureParser extends FeatureParserInternal<ShapeInSequence> {
-	public void addFeatureClasses(FeatureClassContainer container);
+public class ShapeInSequenceFeatureParser extends AbstractFeatureParser<ShapeInSequence> {
+	FeatureClassContainer container;
 
-	public List<FunctionDescriptor> getModifiedDescriptors(
-			FunctionDescriptor functionDescriptor);
+	public ShapeInSequenceFeatureParser() {
+		super();
+	}
+
+	@Override
+	public void addFeatureClasses(FeatureClassContainer container) {
+		container.addFeatureClass("LastShapeInRow", LastShapeInRowFeature.class);
+		container.addFeatureClass("LastShapeInSequence", LastShapeInSequenceFeature.class);
+		container.addFeatureClass("ShapeIndex", ShapeIndexFeature.class);
+		container.addFeatureClass("ShapeReverseIndex", ShapeReverseIndexFeature.class);
+
+		this.container = container;
+	}
+
+	@Override
+	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
+		return null;
+	}
+
+	@Override
+	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+		// no dependencies to inject
+	}
+
+	@Override
+	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
+		return false;
+	}
+
+	@Override
+	protected Feature<ShapeInSequence, ?> convertArgument(Class<?> parameterType, Feature<ShapeInSequence, ?> originalArgument) {
+		return null;
+	}
+
+	@Override
+	public Feature<ShapeInSequence, ?> convertFeatureCustomType(Feature<ShapeInSequence, ?> feature) {
+		return null;
+	}
+
 }

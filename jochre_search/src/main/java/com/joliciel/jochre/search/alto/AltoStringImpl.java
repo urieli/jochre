@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import com.joliciel.jochre.search.JochreSearchConstants;
+
 class AltoStringImpl implements AltoString {
 	private static Pattern whiteSpacePattern = Pattern.compile("[\\s\ufeff]+", Pattern.UNICODE_CHARACTER_CLASS);
 	private static Pattern punctuationPattern = Pattern.compile("\\p{Punct}+", Pattern.UNICODE_CHARACTER_CLASS);
@@ -224,7 +226,7 @@ class AltoStringImpl implements AltoString {
 	public List<String> getContentStrings() {
 		if (contentStrings == null) {
 			contentStrings = new ArrayList<String>();
-			contentStrings.add(this.content);
+			contentStrings.add(this.content.replace(JochreSearchConstants.INDEX_NEWLINE, ""));
 			this.alternatives.remove(this.content);
 			contentStrings.addAll(this.alternatives);
 		}
@@ -241,6 +243,8 @@ class AltoStringImpl implements AltoString {
 		AltoString nextString = null;
 		AltoTextLine nextRow = null;
 		boolean endOfRowHyphen = false;
+
+		// remove any whitespace immediately following this string
 		while (this.index < this.textLine.getStrings().size() - 1) {
 			nextString = this.textLine.getStrings().get(this.index + 1);
 			this.textLine.getStrings().remove(this.index + 1);
@@ -249,6 +253,9 @@ class AltoStringImpl implements AltoString {
 		}
 		if (nextString != null && nextString.isWhiteSpace())
 			nextString = null;
+
+		// if it's the last word in the line, find the first word in the next
+		// line
 		if (nextString == null && index == this.textLine.getStrings().size() - 1
 				&& this.textLine.getIndex() + 1 < this.getTextLine().getTextBlock().getPage().getTextLines().size()) {
 			nextRow = this.getTextLine().getTextBlock().getPage().getTextLines().get(this.textLine.getIndex() + 1);
@@ -267,6 +274,7 @@ class AltoStringImpl implements AltoString {
 		if (nextString == null)
 			return false;
 
+		// we now have the two strings to merge
 		// merge the rectangles
 		if (nextString.getRowIndex() == this.getRowIndex()) {
 			this.getRectangle().add(nextString.getRectangle());
@@ -294,11 +302,7 @@ class AltoStringImpl implements AltoString {
 		}
 
 		if (endOfRowHyphen) {
-			AltoStringFixer altoStringFixer = this.altoService.getAltoStringFixer();
-			if (altoStringFixer != null)
-				this.setContent(altoStringFixer.getHyphenatedContent(this.getContent(), nextString.getContent()));
-			else
-				this.setContent(this.getContent().substring(0, this.getContent().length() - 1) + nextString.getContent());
+			this.setContent(this.getContent() + JochreSearchConstants.INDEX_NEWLINE + nextString.getContent());
 		} else
 			this.setContent(this.getContent() + nextString.getContent());
 

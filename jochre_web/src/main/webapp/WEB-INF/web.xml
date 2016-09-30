@@ -9,26 +9,14 @@
 		<param-name>webAppRootKey</param-name>
 		<param-value>jochre.root</param-value>
 	</context-param>
-	<!--
-	  - Location of the Log4J config file, for initialization and refresh checks.
-	  - Applied by Log4jConfigListener.
-	  -->
-	<context-param>
-		<param-name>log4jConfigLocation</param-name>
-		<param-value>/WEB-INF/log4j.properties</param-value>
-	</context-param>
-	<context-param>
-		<param-name>log4jRefreshInterval</param-name>
-		<param-value>20000</param-value>
-	</context-param>
+	<listener>
+		<listener-class>com.joliciel.jochre.web.Slf4jListener</listener-class>
+	</listener>
 	<listener>
 		<description>
 		Used to cleanup when a session is destroyed</description>
 		<display-name>ZK Session cleaner</display-name>
 		<listener-class>org.zkoss.zk.ui.http.HttpSessionListener</listener-class>
-	</listener>
-	<listener>
-		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
 	</listener>
 	<servlet>
 		<description>

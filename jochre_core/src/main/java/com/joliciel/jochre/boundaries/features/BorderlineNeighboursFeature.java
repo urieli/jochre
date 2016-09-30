@@ -21,8 +21,8 @@ package com.joliciel.jochre.boundaries.features;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.talismane.machineLearning.features.DoubleFeature;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
@@ -39,7 +39,7 @@ import com.joliciel.jochre.graphics.Shape;
  *
  */
 public class BorderlineNeighboursFeature extends AbstractMergeFeature<Double> implements DoubleFeature<ShapePair> {
-	private static final Log LOG = LogFactory.getLog(BorderlineNeighboursFeature.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BorderlineNeighboursFeature.class);
 	private IntegerFeature<ShapePair> verticalToleranceFeature;
 	private IntegerFeature<ShapePair> horizontalToleranceFeature;
 	

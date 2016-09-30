@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 
+import com.joliciel.jochre.utils.Either;
+
 public interface HighlightManager {
 	/**
 	 * Write a JSON output of terms to highlight for a given set of docIds.
@@ -38,7 +40,8 @@ public interface HighlightManager {
 	public void highlight(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out);
 
 	/**
-	 * Find highlight snippets for a set of documents.
+	 * Find highlight snippets for a set of documents. Each document either
+	 * returns a list of snippets or an exception.
 	 * 
 	 * @param docIds
 	 *            The documents to highlight and snip.
@@ -49,8 +52,8 @@ public interface HighlightManager {
 	 * @param snippetSize
 	 *            The approximate size of each snippet, in characters.
 	 */
-	public Map<Integer, List<Snippet>> findSnippets(Set<Integer> docIds, Set<String> fields, Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets,
-			int snippetSize);
+	public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds, Set<String> fields,
+			Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets, int snippetSize);
 
 	/**
 	 * Write a JSON output of snippets for a given set of docIds.

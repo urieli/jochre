@@ -22,21 +22,20 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochrePayload;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 /**
  * A single highlighted term within a document.
+ * 
  * @author Assaf Urieli
  *
  */
 public class HighlightTerm implements Comparable<HighlightTerm> {
-	private static final Log LOG = LogFactory.getLog(HighlightTerm.class);
+	private static final Logger LOG = LoggerFactory.getLogger(HighlightTerm.class);
 	private int startOffset;
 	private int endOffset;
 	private double weight;
@@ -61,7 +60,7 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	public int getDocId() {
 		return docId;
 	}
-	
+
 	/**
 	 * The field containing this term.
 	 */
@@ -75,14 +74,14 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	public int getStartOffset() {
 		return startOffset;
 	}
-	
+
 	/**
 	 * The end offset of this term.
 	 */
 	public int getEndOffset() {
 		return endOffset;
 	}
-	
+
 	/**
 	 * This term's weight.
 	 */
@@ -96,29 +95,28 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 
 	@Override
 	public int compareTo(HighlightTerm o) {
-		if (this==o)
+		if (this == o)
 			return 0;
-		
-		if (this.getDocId()!=o.getDocId())
+
+		if (this.getDocId() != o.getDocId())
 			return this.getDocId() - o.getDocId();
-		
+
 		if (!this.getField().equals(o.getField()))
 			return this.getField().compareTo(o.getField());
 
-		if (this.startOffset!=o.getStartOffset())
+		if (this.startOffset != o.getStartOffset())
 			return this.startOffset - o.getStartOffset();
-		
-		if (this.endOffset!=o.getEndOffset())
+
+		if (this.endOffset != o.getEndOffset())
 			return this.endOffset - o.getEndOffset();
-		
+
 		return 0;
 	}
 
 	@Override
 	public String toString() {
-		return "HighlightTerm [startOffset=" + startOffset + ", endOffset="
-				+ endOffset + ", weight=" + weight + ", docId=" + docId
-				+ ", field=" + field + ", position=" + position + "]";
+		return "HighlightTerm [startOffset=" + startOffset + ", endOffset=" + endOffset + ", weight=" + weight + ", docId=" + docId + ", field=" + field
+				+ ", position=" + position + "]";
 	}
 
 	public void toJson(JsonGenerator jsonGen, DecimalFormat df) {
@@ -133,7 +131,7 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			jsonGen.writeNumberField("width", rect.width);
 			jsonGen.writeNumberField("height", rect.height);
 			Rectangle secondaryRect = this.getPayload().getSecondaryRectangle();
-			if (secondaryRect!=null) {
+			if (secondaryRect != null) {
 				jsonGen.writeNumberField("left2", secondaryRect.x);
 				jsonGen.writeNumberField("top2", secondaryRect.y);
 				jsonGen.writeNumberField("width2", secondaryRect.width);
@@ -148,11 +146,11 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 
 			jsonGen.flush();
 		} catch (java.text.ParseException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+			LOG.error("Failed write highlightTerm to JSON in docId " + docId, e);
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			LOG.error("Failed write highlightTerm to JSON in docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -161,8 +159,8 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	}
 
 	/**
-	 * The term's position within the search index,
-	 * starts at 0 for each document field.
+	 * The term's position within the search index, starts at 0 for each
+	 * document field.
 	 */
 	public int getPosition() {
 		return position;
@@ -171,10 +169,10 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	public void setPosition(int position) {
 		this.position = position;
 	}
-	
+
 	/**
-	 * Is the current highlight term inside a phrase,
-	 * that is, between quotes in the search query.
+	 * Is the current highlight term inside a phrase, that is, between quotes in
+	 * the search query.
 	 */
 	public boolean isInPhrase() {
 		return inPhrase;
@@ -188,9 +186,9 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	 * Do the two terms overlap on any character indexes.
 	 */
 	public boolean hasOverlap(HighlightTerm otherTerm) {
-		// note: if this.startOffset==otherTerm.endOffset, there's no overlap, since the end offset is AFTER the term.
-		return this.getDocId()==otherTerm.getDocId()
-				&& ((this.startOffset<otherTerm.getEndOffset() && this.endOffset>otherTerm.getStartOffset())
-						|| (otherTerm.getStartOffset()<this.endOffset && otherTerm.getEndOffset()>this.startOffset));
+		// note: if this.startOffset==otherTerm.endOffset, there's no overlap,
+		// since the end offset is AFTER the term.
+		return this.getDocId() == otherTerm.getDocId() && ((this.startOffset < otherTerm.getEndOffset() && this.endOffset > otherTerm.getStartOffset())
+				|| (otherTerm.getStartOffset() < this.endOffset && otherTerm.getEndOffset() > this.startOffset));
 	}
 }

@@ -14,15 +14,13 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;
@@ -32,17 +30,18 @@ import freemarker.template.TemplateException;
 import freemarker.template.Version;
 
 /**
-* Outputs to Jochre's lossless XML format on a page-by-page basis, along with the image.
-**/
-class JochrePageByPageExporter implements DocumentObserver {
-	private static final Log LOG = LogFactory.getLog(JochrePageByPageExporter.class);
+ * Outputs to Jochre's lossless XML format on a page-by-page basis, along with
+ * the image.
+ **/
+public class JochrePageByPageExporter implements DocumentObserver {
+	private static final Logger LOG = LoggerFactory.getLogger(JochrePageByPageExporter.class);
 	private Template template;
 	private String baseName;
 	private ZipOutputStream zos;
 	private Writer zipWriter;
 
 	JochreImage jochreImage = null;
-	
+
 	public JochrePageByPageExporter(File zipFile, String baseName) {
 		super();
 		try {
@@ -50,18 +49,18 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 
 			this.baseName = baseName;
-			Configuration cfg = new Configuration(new Version(2,3,23));
+			Configuration cfg = new Configuration(new Version(2, 3, 23));
 			cfg.setCacheStorage(new NullCacheStorage());
-			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2,3,23)).build());
-	
+			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
+
 			Reader templateReader = new BufferedReader(new InputStreamReader(JochrePageByPageExporter.class.getResourceAsStream("jochre.ftl")));
 			this.template = new Template("freemarkerTemplate", templateReader, cfg);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to JochrePageByPageExporter", e);
+			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@Override
 	public void onImageStart(JochreImage jochreImage) {
 		this.jochreImage = jochreImage;
@@ -79,26 +78,25 @@ class JochrePageByPageExporter implements DocumentObserver {
 	public void onImageComplete(JochreImage jochreImage) {
 		try {
 			zos.putNextEntry(new ZipEntry(this.getImageBaseName(jochreImage) + ".xml"));
-			Map<String,Object> model = new HashMap<String, Object>();
+			Map<String, Object> model = new HashMap<String, Object>();
 			model.put("image", jochreImage);
 			template.process(model, zipWriter);
 			zipWriter.flush();
-		} catch (TemplateException te) {
-			LogUtils.logError(LOG, te);
-			throw new JochreException(te);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (TemplateException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
-	
+
 	String getImageBaseName(JochreImage jochreImage) {
 		String imageBaseName = baseName + "_" + String.format("%04d", jochreImage.getPage().getIndex());
-		if (jochreImage.getPage().getImages().size()>1)
+		if (jochreImage.getPage().getImages().size() > 1)
 			imageBaseName += "_" + String.format("%02d", jochreImage.getIndex());
 		return imageBaseName;
 	}
-
 
 	@Override
 	public void onPageComplete(JochrePage jochrePage) {
@@ -110,9 +108,9 @@ class JochrePageByPageExporter implements DocumentObserver {
 			zipWriter.flush();
 			zos.flush();
 			zos.close();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 }

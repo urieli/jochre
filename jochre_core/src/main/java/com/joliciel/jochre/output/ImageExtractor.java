@@ -5,18 +5,16 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class ImageExtractor implements DocumentObserver {
-	private static final Log LOG = LogFactory.getLog(ImageExtractor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ImageExtractor.class);
 	private static String SUFFIX = "png";
 	private File outDir;
 	private String baseName;
@@ -40,16 +38,16 @@ public class ImageExtractor implements DocumentObserver {
 		File outputFile = new File(outDir, this.getImageBaseName(jochreImage) + "." + SUFFIX);
 		try {
 			outputFile.delete();
-			ImageIO.write(jochreImage.getOriginalImage(),SUFFIX,outputFile);
+			ImageIO.write(jochreImage.getOriginalImage(), SUFFIX, outputFile);
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 
 	String getImageBaseName(JochreImage jochreImage) {
 		String imageBaseName = baseName + "_" + String.format("%04d", jochreImage.getPage().getIndex());
-		if (jochreImage.getPage().getImages().size()>1)
+		if (jochreImage.getPage().getImages().size() > 1)
 			imageBaseName += "_" + String.format("%02d", jochreImage.getIndex());
 		return imageBaseName;
 	}

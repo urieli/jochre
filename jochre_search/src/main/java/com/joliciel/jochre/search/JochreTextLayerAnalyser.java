@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
@@ -38,7 +38,7 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  *
  */
 class JochreTextLayerAnalyser extends Analyzer {
-	private static final Log LOG = LogFactory.getLog(JochreTextLayerAnalyser.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreTextLayerAnalyser.class);
 	private TokenExtractor tokenExtractor;
 	private TextNormaliser textNormaliser;
 

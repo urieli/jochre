@@ -8,14 +8,14 @@ import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.SortedMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.JochreIndexTermLister.JochreTerm;
 import com.joliciel.jochre.utils.JochreException;
 
 class JochreIndexWordImpl implements JochreIndexWord {
-	private static final Log LOG = LogFactory.getLog(JochreIndexWordImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexWordImpl.class);
 	private int startOffset;
 	private JochreIndexDocument doc;
 	private Rectangle rectangle;
@@ -33,23 +33,20 @@ class JochreIndexWordImpl implements JochreIndexWord {
 	public JochreIndexWordImpl(JochreIndexDocument doc, int startOffset) {
 		this.doc = doc;
 		JochreIndexTermLister termLister = doc.getTermLister();
-		NavigableMap<Integer, JochreTerm> termMap = termLister
-				.getTextTermByOffset();
+		NavigableMap<Integer, JochreTerm> termMap = termLister.getTextTermByOffset();
 
 		jochreTerm = termMap.floorEntry(startOffset).getValue();
 		if (jochreTerm == null)
-			throw new JochreException("No term found at startoffset "
-					+ startOffset + ", in doc " + doc.getName() + ", section "
-					+ doc.getSectionNumber());
+			throw new JochreException("No term found at startoffset " + startOffset + ", in doc " + doc.getName() + ", section " + doc.getSectionNumber());
 
 		if (LOG.isTraceEnabled()) {
-			SortedMap<Integer, JochreTerm> ascendingMap = termMap
-					.tailMap(startOffset);
+			LOG.trace(jochreTerm.toString());
+			SortedMap<Integer, JochreTerm> ascendingMap = termMap.tailMap(startOffset);
 			Iterator<Integer> ascendingKeys = ascendingMap.keySet().iterator();
 			for (int i = 0; i < 5; i++) {
 				if (ascendingKeys.hasNext()) {
 					int key = ascendingKeys.next();
-					LOG.trace(termMap.get(key));
+					LOG.trace(termMap.get(key).toString());
 				}
 			}
 		}
@@ -83,8 +80,7 @@ class JochreIndexWordImpl implements JochreIndexWord {
 	@Override
 	public String getText() {
 		if (this.text == null)
-			text = doc.getContents()
-					.substring(jochreTerm.start, jochreTerm.end);
+			text = doc.getContents().substring(jochreTerm.start, jochreTerm.end);
 		return text;
 	}
 
@@ -97,8 +93,7 @@ class JochreIndexWordImpl implements JochreIndexWord {
 	@Override
 	public Rectangle getRowRectangle() {
 		if (rowRectangle == null) {
-			rowRectangle = doc.getRowRectangle(jochreTerm.getPayload()
-					.getPageIndex(), jochreTerm.getPayload().getRowIndex());
+			rowRectangle = doc.getRowRectangle(jochreTerm.getPayload().getPageIndex(), jochreTerm.getPayload().getRowIndex());
 		}
 		return rowRectangle;
 	}
@@ -113,9 +108,7 @@ class JochreIndexWordImpl implements JochreIndexWord {
 	public Rectangle getSecondRowRectangle() {
 		if (secondRowRectangle == null) {
 			if (jochreTerm.getPayload().getSecondaryRectangle() != null) {
-				secondRowRectangle = doc.getRowRectangle(jochreTerm
-						.getPayload().getPageIndex(), jochreTerm.getPayload()
-						.getRowIndex() + 1);
+				secondRowRectangle = doc.getRowRectangle(jochreTerm.getPayload().getPageIndex(), jochreTerm.getPayload().getRowIndex() + 1);
 			}
 		}
 		return secondRowRectangle;
@@ -132,15 +125,11 @@ class JochreIndexWordImpl implements JochreIndexWord {
 			int pageIndex = jochreTerm.getPayload().getPageIndex();
 			BufferedImage originalImage = doc.getImage(pageIndex);
 			Rectangle rect = jochreTerm.getPayload().getRectangle();
-			image = originalImage.getSubimage(rect.x, rect.y, rect.width,
-					rect.height);
+			image = originalImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
 
-			Rectangle secondaryRect = jochreTerm.getPayload()
-					.getSecondaryRectangle();
+			Rectangle secondaryRect = jochreTerm.getPayload().getSecondaryRectangle();
 			if (secondaryRect != null) {
-				BufferedImage secondSnippet = originalImage.getSubimage(
-						secondaryRect.x, secondaryRect.y, secondaryRect.width,
-						secondaryRect.height);
+				BufferedImage secondSnippet = originalImage.getSubimage(secondaryRect.x, secondaryRect.y, secondaryRect.width, secondaryRect.height);
 				if (searchService.isLeftToRight())
 					image = joinBufferedImage(image, secondSnippet);
 				else
@@ -148,14 +137,11 @@ class JochreIndexWordImpl implements JochreIndexWord {
 			}
 
 			Rectangle rowRect = this.getRowRectangle();
-			rowImage = originalImage.getSubimage(rowRect.x, rowRect.y,
-					rowRect.width, rowRect.height);
+			rowImage = originalImage.getSubimage(rowRect.x, rowRect.y, rowRect.width, rowRect.height);
 
 			Rectangle secondRowRect = this.getSecondRectangle();
 			if (secondRowRect != null) {
-				secondRowImage = originalImage.getSubimage(secondRowRect.x,
-						secondRowRect.y, secondRowRect.width,
-						secondRowRect.height);
+				secondRowImage = originalImage.getSubimage(secondRowRect.x, secondRowRect.y, secondRowRect.width, secondRowRect.height);
 			}
 		}
 	}
@@ -169,15 +155,13 @@ class JochreIndexWordImpl implements JochreIndexWord {
 	 * From http://stackoverflow.com/questions/20826216/copy-two-buffered-image-
 	 * into-one-image-side-by-side
 	 */
-	public static BufferedImage joinBufferedImage(BufferedImage img1,
-			BufferedImage img2) {
+	public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
 		// do some calculations first
 		int offset = 5;
 		int wid = img1.getWidth() + img2.getWidth() + offset;
 		int height = Math.max(img1.getHeight(), img2.getHeight()) + offset;
 		// create a new buffer and draw two images into the new image
-		BufferedImage newImage = new BufferedImage(wid, height,
-				BufferedImage.TYPE_INT_ARGB);
+		BufferedImage newImage = new BufferedImage(wid, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2 = newImage.createGraphics();
 		Color oldColor = g2.getColor();
 		// fill background

@@ -18,10 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
-class ImageMirror implements WritableImageGrid {
+/**
+ * A mirror of a given image grid, used to store pixels that have already been
+ * processed.
+ */
+public class ImageMirror implements WritableImageGrid {
 	private ImageGrid imageGrid;
 	private boolean[] pixels;
-	
+
 	public ImageMirror(ImageGrid imageGrid) {
 		this.imageGrid = imageGrid;
 		pixels = new boolean[imageGrid.getWidth() * imageGrid.getHeight()];
@@ -29,12 +33,12 @@ class ImageMirror implements WritableImageGrid {
 
 	@Override
 	public void setPixel(int x, int y, int value) {
-		pixels[y * imageGrid.getWidth() + x] = (value!=0);
+		pixels[y * imageGrid.getWidth() + x] = (value != 0);
 	}
 
 	@Override
 	public int getAbsolutePixel(int x, int y) {
-		if (x<0 || y<0 || x>=this.getWidth() || y >= this.getHeight())
+		if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
 			return 0;
 		return pixels[y * imageGrid.getWidth() + x] ? 1 : 0;
 	}
@@ -48,15 +52,11 @@ class ImageMirror implements WritableImageGrid {
 	public int getPixel(int x, int y) {
 		return this.getAbsolutePixel(x, y);
 	}
-	
-	
 
 	@Override
 	public int getRawPixel(int x, int y) {
 		return this.getAbsolutePixel(x, y);
 	}
-	
-	
 
 	@Override
 	public int getRawAbsolutePixel(int x, int y) {
@@ -72,11 +72,10 @@ class ImageMirror implements WritableImageGrid {
 	public boolean isPixelBlack(int x, int y, int threshold) {
 		if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
 			return false;
-		if (this.getPixel(x, y)==1)
+		if (this.getPixel(x, y) == 1)
 			return true;
 		else
 			return false;
 	}
 
-	
 }

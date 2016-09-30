@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics.features;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 
 import com.joliciel.jochre.graphics.Shape;
@@ -35,7 +35,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class EmptySectorsBinaryFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-    private static final Log LOG = LogFactory.getLog(EmptySectorsBinaryFeature.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EmptySectorsBinaryFeature.class);
 	private static final double THRESHOLD = 3.0;
 	private boolean[][] testSectors;
 

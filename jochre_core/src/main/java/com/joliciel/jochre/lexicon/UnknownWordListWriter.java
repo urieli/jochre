@@ -21,8 +21,8 @@ package com.joliciel.jochre.lexicon;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
@@ -31,19 +31,19 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Paragraph;
 import com.joliciel.jochre.graphics.RowOfShapes;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.jochre.letterGuesser.LetterSequence;
 import com.joliciel.talismane.utils.CountedOutcome;
 
 /**
  * Lists all unknown words.
+ * 
  * @author Assaf Urieli
  *
  */
 public class UnknownWordListWriter implements DocumentObserver {
-	private static final Log LOG = LogFactory.getLog(UnknownWordListWriter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UnknownWordListWriter.class);
 	private Writer writer;
-	
+
 	public UnknownWordListWriter(Writer writer) {
 		this.writer = writer;
 	}
@@ -58,9 +58,9 @@ public class UnknownWordListWriter implements DocumentObserver {
 		try {
 			writer.write("#### Page " + jochrePage.getIndex() + "\n");
 			writer.flush();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to write to UnknownWordListWriter", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -75,11 +75,13 @@ public class UnknownWordListWriter implements DocumentObserver {
 				if (!paragraph.isJunk()) {
 					for (RowOfShapes row : paragraph.getRows()) {
 						for (GroupOfShapes group : row.getGroups()) {
-							if (group.getBestLetterSequence()!=null) {
-								for (CountedOutcome<String> wordFrequency : group.getBestLetterSequence().getWordFrequencies()) {
-									if (wordFrequency.getCount()==0) {
-										writer.write(wordFrequency.getOutcome() + "\n");
-										writer.flush();
+							if (group.getBestLetterSequence() != null) {
+								for (LetterSequence subsequence : group.getBestLetterSequence().getSubsequences()) {
+									for (CountedOutcome<String> wordFrequency : subsequence.getWordFrequencies()) {
+										if (wordFrequency.getCount() == 0) {
+											writer.write(wordFrequency.getOutcome() + "\n");
+											writer.flush();
+										}
 									}
 								}
 							}
@@ -87,9 +89,9 @@ public class UnknownWordListWriter implements DocumentObserver {
 					}
 				}
 			}
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to write to UnknownWordListWriter", e);
+			throw new RuntimeException(e);
 		}
 	}
 

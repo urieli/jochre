@@ -2,12 +2,12 @@ package com.joliciel.jochre.search.highlight;
 
 import static org.junit.Assert.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 public class SnippetTest {
-	private static final Log LOG = LogFactory.getLog(SnippetTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SnippetTest.class);
 
 	@Test
 	public void testSnippetString() {

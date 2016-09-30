@@ -37,19 +37,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -69,12 +67,17 @@ import com.joliciel.jochre.search.lexicon.LexiconService;
 import com.joliciel.jochre.search.lexicon.LexiconServiceLocator;
 import com.joliciel.jochre.search.lexicon.RegexLexicalEntryReader;
 import com.joliciel.jochre.search.lexicon.TextFileLexicon;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
+import com.joliciel.jochre.utils.JochreLogUtils;
 import com.joliciel.talismane.utils.StringUtils;
 
+/**
+ * Command-line entry point into Jochre Search.
+ * 
+ * @author Assaf Urieli
+ *
+ */
 public class JochreSearch {
-	private static final Log LOG = LogFactory.getLog(JochreSearch.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreSearch.class);
 
 	public enum Command {
 		updateIndex, search, highlight, snippets, view, list, wordImage, suggest, serializeLexicon, deserializeLexicon
@@ -84,6 +87,7 @@ public class JochreSearch {
 	 */
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
+		Command command = null;
 		try {
 			Map<String, String> argMap = new HashMap<String, String>();
 
@@ -94,16 +98,12 @@ public class JochreSearch {
 				argMap.put(argName, argValue);
 			}
 
-			Command command = Command.valueOf(argMap.get("command"));
+			command = Command.valueOf(argMap.get("command"));
 			argMap.remove("command");
 
 			String logConfigPath = argMap.get("logConfigFile");
-			if (logConfigPath != null) {
-				argMap.remove("logConfigFile");
-				Properties props = new Properties();
-				props.load(new FileInputStream(logConfigPath));
-				PropertyConfigurator.configure(props);
-			}
+			argMap.remove("logConfigFile");
+			JochreLogUtils.configureLogging(logConfigPath);
 
 			LOG.debug("##### Arguments:");
 			for (Entry<String, String> arg : argMap.entrySet()) {
@@ -207,8 +207,7 @@ public class JochreSearch {
 				contentDir = new File(contentDirPath);
 			}
 
-			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language), indexDir,
-					contentDir);
+			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language), indexDir, contentDir);
 			SearchService searchService = locator.getSearchService();
 			LexiconServiceLocator lexiconServiceLocator = LexiconServiceLocator.getInstance(locator);
 			LexiconService lexiconService = lexiconServiceLocator.getLexiconService();
@@ -272,9 +271,8 @@ public class JochreSearch {
 					out.write("\n");
 
 					ObjectMapper mapper = new ObjectMapper();
-					List<Map<String, Object>> result = mapper.readValue(stringWriter.toString(),
-							new TypeReference<ArrayList<Map<String, Object>>>() {
-							});
+					List<Map<String, Object>> result = mapper.readValue(stringWriter.toString(), new TypeReference<ArrayList<Map<String, Object>>>() {
+					});
 					out.write(result.toString());
 					out.write("\n");
 
@@ -302,9 +300,8 @@ public class JochreSearch {
 						LOG.debug("### Next document");
 						Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
 						for (IndexableField field : doc.getFields()) {
-							if (!field.name().equals(JochreIndexField.text.name()) && !field.name().startsWith("rect")
-									&& !field.name().startsWith("start"))
-								LOG.debug(field);
+							if (!field.name().equals(JochreIndexField.text.name()) && !field.name().startsWith("rect") && !field.name().startsWith("start"))
+								LOG.debug(field.toString());
 						}
 					}
 					Set<String> fields = new HashSet<String>();
@@ -321,7 +318,7 @@ public class JochreSearch {
 					if (snippetSize > 0)
 						highlightManager.setSnippetSize(snippetSize);
 
-					if (command.equals("highlight")) {
+					if (command == Command.highlight) {
 						highlightManager.highlight(highlighter, docIds, fields, out);
 					} else {
 						highlightManager.findSnippets(highlighter, docIds, fields, out);
@@ -335,8 +332,7 @@ public class JochreSearch {
 			}
 			case view: {
 				if (docId < 0 && docIndex < 0)
-					throw new RuntimeException("For command " + command
-							+ " either docName and docIndex, or docId are required");
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
 				if (docId < 0) {
 					if (docName == null)
 						throw new RuntimeException("For command " + command + " docName is required");
@@ -370,8 +366,7 @@ public class JochreSearch {
 			}
 			case list: {
 				if (docId < 0 && docIndex < 0)
-					throw new RuntimeException("For command " + command
-							+ " either docName and docIndex, or docId are required");
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
 				if (docId < 0) {
 					if (docName == null)
 						throw new RuntimeException("For command " + command + " docName is required");
@@ -393,8 +388,7 @@ public class JochreSearch {
 			}
 			case wordImage: {
 				if (docId < 0 && docIndex < 0)
-					throw new RuntimeException("For command " + command
-							+ " either docName and docIndex, or docId are required");
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
 				if (docId < 0) {
 					if (docName == null)
 						throw new RuntimeException("For command " + command + " docName is required");
@@ -412,6 +406,7 @@ public class JochreSearch {
 				}
 				JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(searcher, docId);
 				JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
+				LOG.debug("jochreDoc: " + jochreDoc.getPath());
 				LOG.debug("word: " + jochreWord.getText());
 				LOG.debug("startOffset: " + jochreWord.getStartOffset());
 				BufferedImage wordImage = jochreWord.getImage();
@@ -426,8 +421,7 @@ public class JochreSearch {
 				if (databasePropertiesPath == null)
 					throw new RuntimeException("For command " + command + " databaseProperties is required");
 				if (docId < 0 && docIndex < 0)
-					throw new RuntimeException("For command " + command
-							+ " either docName and docIndex, or docId are required");
+					throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
 				if (docId < 0) {
 					if (docName == null)
 						throw new RuntimeException("For command " + command + " docName is required");
@@ -452,8 +446,7 @@ public class JochreSearch {
 				}
 
 				FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
-				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, username, "1.2.3.4", fontCode,
-						languageCode);
+				feedbackService.makeSuggestion(searcher, docId, startOffset, suggestion, username, "1.2.3.4", fontCode, languageCode);
 				break;
 			}
 			case serializeLexicon: {
@@ -469,8 +462,7 @@ public class JochreSearch {
 				TextFileLexicon lexicon = lexiconService.getTextFileLexicon(searchService.getLocale());
 
 				File regexFile = new File(lexiconRegexPath);
-				Scanner regexScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(
-						regexFile), "UTF-8")));
+				Scanner regexScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(regexFile), "UTF-8")));
 				LexicalEntryReader lexicalEntryReader = new RegexLexicalEntryReader(regexScanner);
 
 				for (File file : lexiconFiles) {
@@ -505,11 +497,11 @@ public class JochreSearch {
 			}
 			}
 		} catch (RuntimeException e) {
-			LogUtils.logError(LOG, e);
+			LOG.error("Failed to run command " + command, e);
 			throw e;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to run command " + command, e);
+			throw new RuntimeException(e);
 		} finally {
 			long endTime = System.currentTimeMillis();
 			LOG.info("Completed in " + (endTime - startTime) + " ms");

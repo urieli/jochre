@@ -8,28 +8,25 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class MetaDataExporter implements DocumentObserver {
-	private static final Log LOG = LogFactory.getLog(MetaDataExporter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MetaDataExporter.class);
 
 	private File outDir;
 	private String baseName;
-	
+
 	public MetaDataExporter(File outDir, String baseName) {
 		super();
 		this.outDir = outDir;
 		this.baseName = baseName;
 	}
-	
 
 	@Override
 	public void onDocumentStart(JochreDocument jochreDocument) {
@@ -55,15 +52,15 @@ public class MetaDataExporter implements DocumentObserver {
 	public void onDocumentComplete(JochreDocument jochreDocument) {
 		try {
 			File metaDataFile = new File(outDir, baseName + "_metadata.txt");
-			Writer metaWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaDataFile, false),"UTF8"));
+			Writer metaWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaDataFile, false), "UTF8"));
 			for (Entry<String, String> field : jochreDocument.getFields().entrySet()) {
 				metaWriter.write(field.getKey() + "\t" + field.getValue() + "\n");
 				metaWriter.flush();
 			}
 			metaWriter.close();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 }

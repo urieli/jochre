@@ -10,24 +10,20 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class LexiconServiceImpl implements LexiconService {
-	private static final Log LOG = LogFactory.getLog(LexiconServiceImpl.class);
-	
-	private Map<Locale,TextNormaliser> textNormaliserMap = new HashMap<Locale, TextNormaliser>();
-	
+	private static final Logger LOG = LoggerFactory.getLogger(LexiconServiceImpl.class);
+
+	private Map<Locale, TextNormaliser> textNormaliserMap = new HashMap<Locale, TextNormaliser>();
+
 	@Override
 	public TextNormaliser getTextNormaliser(Locale locale) {
 		TextNormaliser textNormaliser = null;
-		if (locale.getLanguage().equals("yi")||
-				locale.getLanguage().equals("ji")) {
+		if (locale.getLanguage().equals("yi") || locale.getLanguage().equals("ji")) {
 			textNormaliser = textNormaliserMap.get(locale);
-			if (textNormaliser==null) {
+			if (textNormaliser == null) {
 				textNormaliser = new YiddishTextNormaliser();
 				textNormaliserMap.put(locale, textNormaliser);
 			}
@@ -49,25 +45,25 @@ class LexiconServiceImpl implements LexiconService {
 			FileInputStream fis = new FileInputStream(lexiconFile);
 			ZipInputStream zis = new ZipInputStream(fis);
 			ZipEntry ze = null;
-		    while ((ze = zis.getNextEntry()) != null) {
-		    	LOG.debug(ze.getName());
-		    	if (ze.getName().endsWith(".obj")) {
-		    		LOG.debug("deserializing " + ze.getName());
+			while ((ze = zis.getNextEntry()) != null) {
+				LOG.debug(ze.getName());
+				if (ze.getName().endsWith(".obj")) {
+					LOG.debug("deserializing " + ze.getName());
 					@SuppressWarnings("resource")
 					ObjectInputStream in = new ObjectInputStream(zis);
 					lexicon = (TextFileLexiconImpl) in.readObject();
 					break;
-		    	}
-		    }
-		    zis.close();
-		    lexicon.setLexiconService(this);
-		    return lexicon;
+				}
+			}
+			zis.close();
+			lexicon.setLexiconService(this);
+			return lexicon;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
+			throw new RuntimeException(e);
 		} catch (ClassNotFoundException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
+			throw new RuntimeException(e);
 		}
 	}
 }

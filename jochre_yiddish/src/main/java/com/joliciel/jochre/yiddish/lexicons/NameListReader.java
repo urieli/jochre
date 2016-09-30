@@ -31,13 +31,13 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class NameListReader {
-    private static final Log LOG = LogFactory.getLog(NameListReader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NameListReader.class);
 
     private Set<NameLexicalEntry> allVariants = new TreeSet<NameListReader.NameLexicalEntry>();
     private Set<String> entries = new TreeSet<String>();

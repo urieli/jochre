@@ -22,18 +22,75 @@ import com.joliciel.jochre.graphics.Shape;
 
 /**
  * A pair of consecutive shapes.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface ShapePair {
-	public Shape getFirstShape();
-	public Shape getSecondShape();
-	public abstract int getXHeight();
-	public abstract int getRight();
-	public abstract int getLeft();
-	public int getTop();
-	public int getBottom();
-	public int getWidth();
-	public int getHeight();
-	public int getInnerDistance();
+public class ShapePair {
+	private final Shape firstShape;
+	private final Shape secondShape;
+
+	public ShapePair(Shape firstShape, Shape secondShape) {
+		this.firstShape = firstShape;
+		this.secondShape = secondShape;
+	}
+
+	public Shape getFirstShape() {
+		return firstShape;
+	}
+
+	public Shape getSecondShape() {
+		return secondShape;
+	}
+
+	public int getLeft() {
+		int left = firstShape.getLeft() < secondShape.getLeft() ? firstShape.getLeft() : secondShape.getLeft();
+		return left;
+	}
+
+	public int getRight() {
+		int right = firstShape.getRight() > secondShape.getRight() ? firstShape.getRight() : secondShape.getRight();
+		return right;
+	}
+
+	public int getTop() {
+		int top = firstShape.getTop() < secondShape.getTop() ? firstShape.getTop() : secondShape.getTop();
+		return top;
+	}
+
+	public int getBottom() {
+		int bottom = firstShape.getBottom() > secondShape.getBottom() ? firstShape.getBottom() : secondShape.getBottom();
+		return bottom;
+	}
+
+	public int getXHeight() {
+		int xHeight = firstShape.getXHeight() > secondShape.getXHeight() ? firstShape.getXHeight() : secondShape.getXHeight();
+		if (xHeight <= 0)
+			xHeight = 1;
+		return xHeight;
+	}
+
+	public int getWidth() {
+		return this.getRight() - this.getLeft() + 1;
+	}
+
+	public int getHeight() {
+		return this.getBottom() - this.getTop() + 1;
+	}
+
+	public int getInnerDistance() {
+		int distance = 0;
+		if (this.getFirstShape().getLeft() < this.getSecondShape().getLeft()) {
+			distance = this.getSecondShape().getLeft() - this.getFirstShape().getRight() - 1;
+		} else {
+			distance = this.getFirstShape().getLeft() - this.getSecondShape().getRight() - 1;
+		}
+		return distance;
+	}
+
+	@Override
+	public String toString() {
+		return "ShapePair [firstShape=" + firstShape + ", secondShape=" + secondShape + "]";
+	}
+
 }

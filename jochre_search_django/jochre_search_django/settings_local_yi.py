@@ -28,7 +28,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 JOCHRE_TITLE="יאָוקער אױף ייִדיש"
 JOCHRE_CREDITS="""Texts scanned by the <a href="http://www.yiddishbookcenter.org/" target="_blank">Yiddish Book Center</a><br/>
 Texts OCR'd and indexed by Assaf Urieli, <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a><br/>
-Lexicon by the Yitskhok Niborski and the <a href="http://yiddishweb.com/" target="_blank">Medem Bibliothèque</a>"""
+Lexicon by Yitskhok Niborski and the <a href="http://yiddishweb.com/" target="_blank">Medem Bibliothèque</a>"""
 
 JOCHRE_LEFT_TO_RIGHT=False
 JOCHRE_READ_ONLINE=True

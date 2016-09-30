@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReader;
@@ -24,14 +22,14 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 public class JochreIndexTermLister {
-	private static final Log LOG = LogFactory.getLog(JochreIndexTermLister.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexTermLister.class);
 
 	private int docId;
 	private IndexSearcher indexSearcher;
@@ -94,8 +92,8 @@ public class JochreIndexTermLister {
 
 			return fieldTermMap;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to list terms for docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -139,17 +137,16 @@ public class JochreIndexTermLister {
 			jsonGen.writeEndArray();
 			jsonGen.flush();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to list terms for docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 
-	private void findTerms(Map<String, Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum,
-			LeafReaderContext subContext, int luceneId) throws IOException {
+	private void findTerms(Map<String, Set<JochreTerm>> textFeatureMap, String field, TermsEnum termsEnum, LeafReaderContext subContext, int luceneId)
+			throws IOException {
 		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
 
-		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS
-				| PostingsEnum.PAYLOADS);
+		PostingsEnum docPosEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
 		int relativeId = docPosEnum.nextDoc();
 		while (relativeId != PostingsEnum.NO_MORE_DOCS) {
 			int nextId = subContext.docBase + relativeId;
@@ -158,8 +155,7 @@ public class JochreIndexTermLister {
 				int freq = docPosEnum.freq();
 
 				if (LOG.isTraceEnabled())
-					LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId
-							+ ", docId " + docId + ", field " + field);
+					LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + nextId + ", docId " + docId + ", field " + field);
 
 				for (int i = 0; i < freq; i++) {
 					int position = docPosEnum.nextPosition();
@@ -167,8 +163,7 @@ public class JochreIndexTermLister {
 					int end = docPosEnum.endOffset();
 
 					if (LOG.isTraceEnabled())
-						LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start="
-								+ start + ", end=" + end);
+						LOG.trace("Found match " + position + " at luceneId " + nextId + ", field " + field + " start=" + start + ", end=" + end);
 
 					BytesRef bytesRef = docPosEnum.getPayload();
 					JochrePayload payload = null;
@@ -195,7 +190,7 @@ public class JochreIndexTermLister {
 		public JochreTerm(String name, int position, int start, int end, JochrePayload payload) {
 			super();
 			this.name = name;
-			if (this.name.startsWith("※"))
+			if (this.name.startsWith(JochreSearchConstants.INDEX_PUNCT_PREFIX))
 				this.name = this.name.substring(1);
 			this.position = position;
 			this.start = start;

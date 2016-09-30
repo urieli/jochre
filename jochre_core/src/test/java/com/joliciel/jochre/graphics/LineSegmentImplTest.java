@@ -18,180 +18,186 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.ArrayList;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 public class LineSegmentImplTest {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(LineSegmentImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LineSegmentImplTest.class);
 
 	@Test
 	public void testGetEnclosingRectangle(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		LineDefinition lineDef = new LineDefinition(0, 0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
-		
+
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        
-		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 1, 3);
-		lineSegment.setLength(4);
-		
-		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
-		
-    	int[] bitsetPixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 1, 1, 0, 0,
-		  0, 1, 1, 1, 1, 1, 0, 0,
-		  0, 1, 1, 1, 1, 1, 0, 0,
-		  0, 1, 1, 1, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
 		};
-    	
-    	for (int x = 0; x < 8; x++)
-    		for (int y = 0; y < 8; y++) {
-    			assertEquals("x = " + x + ", y = " + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
-    		}
-    	
-    	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
-    }
-	
+
+		LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 1, 3);
+		lineSegment.setLength(4);
+
+		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
+
+		int[] bitsetPixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 1, 1, 0, 0, // row
+				0, 1, 1, 1, 1, 1, 0, 0, // row
+				0, 1, 1, 1, 1, 1, 0, 0, // row
+				0, 1, 1, 1, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
+		};
+
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++) {
+				assertEquals("x = " + x + ", y = " + y, bitsetPixels[y * 8 + x] == 1, rectangle.get(y * 8 + x));
+			}
+
+		assertEquals(3 * (lineSegment.getLength() + 1), rectangle.cardinality());
+	}
+
 	@Test
 	public void testGetEnclosingRectangleDiagonal(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		LineDefinition lineDef = new LineDefinition(0, 0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(1);
 		steps.add(2);
 		lineDef.setSteps(steps);
-		
+
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        
-		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 1, 5);
-		lineSegment.setLength(4);
-		
-		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
-		
-    	int[] bitsetPixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 1, 0, 0,
-		  0, 0, 0, 1, 1, 1, 0, 0,
-		  0, 0, 1, 1, 1, 1, 0, 0,
-		  0, 1, 1, 1, 1, 0, 0, 0,
-		  0, 1, 1, 0, 0, 0, 0, 0,
-		  0, 1, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
 		};
-    	
+
+		LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 1, 5);
+		lineSegment.setLength(4);
+
+		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
+
+		int[] bitsetPixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 1, 0, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 1, 1, 1, 1, 0, 0, // row
+				0, 1, 1, 1, 1, 0, 0, 0, // row
+				0, 1, 1, 0, 0, 0, 0, 0, // row
+				0, 1, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
+		};
+
 		for (int y = 0; y < 8; y++) {
 			for (int x = 0; x < 8; x++) {
-    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
-    		}
+				assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y * 8 + x] == 1, rectangle.get(y * 8 + x));
+			}
 		}
-       	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
-    }
-	
+		assertEquals(3 * (lineSegment.getLength() + 1), rectangle.cardinality());
+	}
+
 	@Test
 	public void testGetEnclosingRectangleDoubleDiagonal(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(1,0);
+		LineDefinition lineDef = new LineDefinition(1, 0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
 		lineDef.setSteps(steps);
-		
+
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        
-		LineSegmentImpl lineSegment = new LineSegmentImpl(shape, lineDef, 5, 2, 3, 6);
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
+		};
+
+		LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 3, 6);
 
 		lineSegment.setLength(4);
-		
+
 		BitSet rectangle = lineSegment.getEnclosingRectangle(1);
-		
-    	int[] bitsetPixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 1, 1, 1, 0,
-		  0, 0, 0, 1, 1, 1, 0, 0,
-		  0, 0, 0, 1, 1, 1, 0, 0,
-		  0, 0, 1, 1, 1, 0, 0, 0,
-		  0, 0, 1, 1, 1, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+
+		int[] bitsetPixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 1, 1, 1, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 1, 1, 1, 0, 0, 0, // row
+				0, 0, 1, 1, 1, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
 		};
-    	
-    	for (int x = 0; x < 8; x++)
-    		for (int y = 0; y < 8; y++) {
-    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, rectangle.get(y*8 + x));
-    		}
-       	assertEquals(3*(lineSegment.getLength()+1), rectangle.cardinality());
-    }
+
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++) {
+				assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y * 8 + x] == 1, rectangle.get(y * 8 + x));
+			}
+		assertEquals(3 * (lineSegment.getLength() + 1), rectangle.cardinality());
+	}
 
 	@Test
 	public void testGetEnclosingRectangleIntersection(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef1 = new LineDefinitionImpl(0,0);
+		LineDefinition lineDef1 = new LineDefinition(0, 0);
 		List<Integer> steps1 = new ArrayList<Integer>();
 		steps1.add(2);
 		steps1.add(3);
 		lineDef1.setSteps(steps1);
-		
+
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        
-		LineSegmentImpl lineSegement1 = new LineSegmentImpl(shape, lineDef1, 5, 2, 1, 3);
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
+		};
+
+		LineSegment lineSegement1 = new LineSegment(shape, lineDef1, 5, 2, 1, 3);
 		lineSegement1.setLength(4);
-		
-		LineDefinitionImpl lineDef2 = new LineDefinitionImpl(1,0);
+
+		LineDefinition lineDef2 = new LineDefinition(1, 0);
 		List<Integer> steps2 = new ArrayList<Integer>();
 		steps2.add(2);
 		lineDef2.setSteps(steps2);
-		
-        
-		LineSegmentImpl lineSegment2 = new LineSegmentImpl(shape, lineDef2, 5, 2, 3, 6);
+
+		LineSegment lineSegment2 = new LineSegment(shape, lineDef2, 5, 2, 3, 6);
 		lineSegment2.setLength(4);
-		
-		BitSet intersection = lineSegement1.getEnclosingRectangleIntersection(lineSegment2,1);
-		
-    	int[] bitsetPixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 1, 1, 0, 0,
-		  0, 0, 0, 1, 1, 1, 0, 0,
-		  0, 0, 0, 1, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+
+		BitSet intersection = lineSegement1.getEnclosingRectangleIntersection(lineSegment2, 1);
+
+		int[] bitsetPixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 1, 1, 0, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 0, 1, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
 		};
-    	
-    	
-    	for (int x = 0; x < 8; x++)
-    		for (int y = 0; y < 8; y++) {
-    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y*8 + x]==1, intersection.get(y*8 + x));
-    		}
+
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++) {
+				assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels[y * 8 + x] == 1, intersection.get(y * 8 + x));
+			}
 	}
 
 }

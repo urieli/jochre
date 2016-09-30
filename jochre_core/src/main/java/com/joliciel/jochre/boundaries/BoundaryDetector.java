@@ -24,8 +24,8 @@ import com.joliciel.jochre.graphics.GroupOfShapes;
 
 public interface BoundaryDetector {
 	/**
-	 * Find the n most likely shape sequences forming this group of shapes,
-	 * after splitting and merging have been attempted.
+	 * Find the n most likely shape sequences forming this group of shapes, after
+	 * splitting and merging have been attempted.
 	 */
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group);
 
@@ -40,8 +40,4 @@ public interface BoundaryDetector {
 	public abstract void setMinWidthRatioForSplit(double minWidthRatioForSplit);
 
 	public abstract double getMinWidthRatioForSplit();
-
-	public abstract void setMinHeightRatioForSplit(double minHeightRatioForSplit);
-
-	public abstract double getMinHeightRatioForSplit();
 }

@@ -18,8 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries.features;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 import com.joliciel.jochre.boundaries.Split;
@@ -47,7 +47,7 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class SlopeDifferenceFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
-	private static final Log LOG = LogFactory.getLog(SlopeDifferenceFeature.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SlopeDifferenceFeature.class);
 	private IntegerFeature<Split> contourDistanceFeature;
 
 	/**

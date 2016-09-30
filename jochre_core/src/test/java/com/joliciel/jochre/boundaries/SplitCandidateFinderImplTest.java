@@ -18,7 +18,8 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
@@ -26,54 +27,56 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import mockit.Mocked;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.JochreServiceLocator;
+import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.graphics.GraphicsService;
 import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.jochre.graphics.SourceImage;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import mockit.Mocked;
 
 public class SplitCandidateFinderImplTest {
-	private static final Log LOG = LogFactory.getLog(SplitCandidateFinderImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImplTest.class);
 
 	@Test
 	public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {
-		JochreServiceLocator locator = JochreServiceLocator.getInstance();
-		
-		GraphicsService graphicsService = locator.getGraphicsServiceLocator().getGraphicsService();
-		BoundaryServiceInternal boundaryService = (BoundaryServiceInternal) locator.getBoundaryServiceLocator().getBoundaryService();
-        InputStream imageFileStream = getClass().getResourceAsStream("shape_370454.png"); 
-        assertNotNull(imageFileStream);
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
+		InputStream imageFileStream = getClass().getResourceAsStream("shape_370454.png");
+		assertNotNull(imageFileStream);
 		BufferedImage image = ImageIO.read(imageFileStream);
-		
-		JochreImage jochreImage = graphicsService.getSourceImage(page, "name", image);
-		Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth()-1, jochreImage.getHeight()-1);
-		
-		SplitCandidateFinderImpl splitCandidateFinder = new SplitCandidateFinderImpl();
-		splitCandidateFinder.setBoundaryServiceInternal(boundaryService);
+
+		JochreImage jochreImage = new SourceImage(page, "name", image, jochreSession);
+		Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth() - 1, jochreImage.getHeight() - 1);
+
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 		List<Split> splits = splitCandidateFinder.findSplitCandidates(shape);
-		
-		int[] trueSplitPositions = new int[] {38, 59, 82};
-		boolean[] foundSplit = new boolean[] {false, false, false};
+
+		int[] trueSplitPositions = new int[] { 38, 59, 82 };
+		boolean[] foundSplit = new boolean[] { false, false, false };
 		for (Split splitCandidate : splits) {
 			LOG.debug("Split candidate at " + splitCandidate.getPosition());
-			for (int i = 0; i<trueSplitPositions.length; i++) {
+			for (int i = 0; i < trueSplitPositions.length; i++) {
 				int truePos = trueSplitPositions[i];
 				int distance = splitCandidate.getPosition() - truePos;
-				if (distance<0) distance = 0-distance;
-				if (distance<splitCandidateFinder.getMinDistanceBetweenSplits()) {
+				if (distance < 0)
+					distance = 0 - distance;
+				if (distance < splitCandidateFinder.getMinDistanceBetweenSplits()) {
 					foundSplit[i] = true;
 					LOG.debug("Found split: " + truePos + ", distance " + distance);
 				}
 			}
 		}
-		
-		for (int i = 0; i<trueSplitPositions.length; i++) {
+
+		for (int i = 0; i < trueSplitPositions.length; i++) {
 			assertTrue("didn't find split " + trueSplitPositions[i], foundSplit[i]);
 		}
 	}

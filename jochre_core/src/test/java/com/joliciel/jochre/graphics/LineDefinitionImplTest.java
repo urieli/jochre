@@ -18,120 +18,132 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.ArrayList;
+
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.JochreSession;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 public class LineDefinitionImplTest {
 	@SuppressWarnings("unused")
-	private static final Log LOG = LogFactory.getLog(LineDefinitionImplTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LineDefinitionImplTest.class);
 
 	@Test
 	public void testTrace(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		LineDefinition lineDef = new LineDefinition(0, 0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
-	
+
 		new NonStrictExpectations() {
 			{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        BitSet bitset = new BitSet(shape.getHeight() * shape.getWidth());
-        lineDef.trace(bitset, shape, 5, 2, 8, 0);
-        
-    	int[] bitsetPixels =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 1, 1, 0, 0,
-		  0, 1, 1, 1, 0, 0, 0, 0,
-		  1, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
 		};
-    	
-    	for (int x = 0; x < 8; x++)
-    		for (int y = 0; y < 8; y++) {
-    			assertEquals(bitsetPixels[y*8 + x]==1, bitset.get(y*8 + x));
-    		}
-    	
-    	bitset = new BitSet(shape.getHeight() * shape.getWidth());
-        lineDef.trace(bitset, shape, 1, 1, 4, 2);
-        
-    	int[] bitsetPixels2 =
-		{ 0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 1, 0, 0, 0, 0, 0, 0,
-		  0, 1, 0, 0, 0, 0, 0, 0,
-		  0, 0, 1, 0, 0, 0, 0, 0,
-		  0, 0, 1, 0, 0, 0, 0, 0,
-		  0, 0, 1, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0,
-		  0, 0, 0, 0, 0, 0, 0, 0
+		BitSet bitset = new BitSet(shape.getHeight() * shape.getWidth());
+		lineDef.trace(bitset, shape, 5, 2, 8, 0);
+
+		int[] bitsetPixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 1, 1, 0, 0, // row
+				0, 1, 1, 1, 0, 0, 0, 0, // row
+				1, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
 		};
-    	
-    	for (int x = 0; x < 8; x++)
-    		for (int y = 0; y < 8; y++) {
-    			assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels2[y*8 + x]==1, bitset.get(y*8 + x));
-    		}
+
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++) {
+				assertEquals(bitsetPixels[y * 8 + x] == 1, bitset.get(y * 8 + x));
+			}
+
+		bitset = new BitSet(shape.getHeight() * shape.getWidth());
+		lineDef.trace(bitset, shape, 1, 1, 4, 2);
+
+		int[] bitsetPixels2 = { 0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 1, 0, 0, 0, 0, 0, 0, // row
+				0, 1, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 1, 0, 0, 0, 0, 0, // row
+				0, 0, 1, 0, 0, 0, 0, 0, // row
+				0, 0, 1, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0, // row
+				0, 0, 0, 0, 0, 0, 0, 0 // row
+		};
+
+		for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++) {
+				assertEquals("failure at x=" + x + ",y=" + y, bitsetPixels2[y * 8 + x] == 1, bitset.get(y * 8 + x));
+			}
 	}
 
 	@Test
 	public void testFollow(@Mocked final Shape shape) {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
+		LineDefinition lineDef = new LineDefinition(0, 0);
 		List<Integer> steps = new ArrayList<Integer>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
-		
-		new NonStrictExpectations() {
-		{
-        	shape.getHeight(); returns(8);
-        	shape.getWidth(); returns(8);
-        }};
-        
-        int[] endPoint = lineDef.follow(shape, 5, 2, 4, 0);
-        
-        assertEquals(1, endPoint[0]);
-        assertEquals(3, endPoint[1]);
-  	}
 
-	@Test
-	public void testFollowInShape() {
-		LineDefinitionImpl lineDef = new LineDefinitionImpl(0,0);
-		List<Integer> steps = new ArrayList<Integer>();
-		steps.add(2);
-		steps.add(3);
-		lineDef.setSteps(steps);
-		
-      	int[] pixels =
-		{ 0, 1, 1, 0, 0, 1, 1, 1,
-		  0, 1, 1, 1, 0, 1, 1, 1,
-		  0, 0, 1, 1, 0, 0, 1, 1,
-		  0, 0, 1, 1, 0, 1, 1, 0,
-		  0, 0, 0, 1, 1, 1, 1, 0,
-		  0, 0, 0, 1, 1, 1, 0, 0,
-		  0, 0, 1, 1, 1, 0, 0, 0,
-		  1, 1, 1, 1, 1, 0, 0, 0
+		new NonStrictExpectations() {
+			{
+				shape.getHeight();
+				returns(8);
+				shape.getWidth();
+				returns(8);
+			}
 		};
 
-		ShapeInternal shape = new ShapeMock(pixels, 8, 8);
-        
-        int[] endPoint = lineDef.followInShape(shape, 5, 5, 0, 100, 0);
-        
-        assertEquals(2, endPoint[0]);
-        assertEquals(6, endPoint[1]);
-        assertEquals(3, endPoint[2]); //the length
+		int[] endPoint = lineDef.follow(shape, 5, 2, 4, 0);
+
+		assertEquals(1, endPoint[0]);
+		assertEquals(3, endPoint[1]);
+	}
+
+	@Test
+	public void testFollowInShape() throws Exception {
+		System.setProperty("config.file", "src/test/resources/test.conf");
+		ConfigFactory.invalidateCaches();
+		Config config = ConfigFactory.load();
+		JochreSession jochreSession = new JochreSession(config);
+
+		LineDefinition lineDef = new LineDefinition(0, 0);
+		List<Integer> steps = new ArrayList<Integer>();
+		steps.add(2);
+		steps.add(3);
+		lineDef.setSteps(steps);
+
+		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+				0, 1, 1, 1, 0, 1, 1, 1, // row
+				0, 0, 1, 1, 0, 0, 1, 1, // row
+				0, 0, 1, 1, 0, 1, 1, 0, // row
+				0, 0, 0, 1, 1, 1, 1, 0, // row
+				0, 0, 0, 1, 1, 1, 0, 0, // row
+				0, 0, 1, 1, 1, 0, 0, 0, // row
+				1, 1, 1, 1, 1, 0, 0, 0 // row
+		};
+
+		Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
+
+		int[] endPoint = lineDef.followInShape(shape, 5, 5, 0, 100, 0);
+
+		assertEquals(2, endPoint[0]);
+		assertEquals(6, endPoint[1]);
+		assertEquals(3, endPoint[2]); // the length
 	}
 }

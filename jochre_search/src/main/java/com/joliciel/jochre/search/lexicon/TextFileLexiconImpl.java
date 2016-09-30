@@ -1,8 +1,5 @@
 package com.joliciel.jochre.search.lexicon;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.hash.THashSet;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,55 +16,59 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 
 class TextFileLexiconImpl implements TextFileLexicon {
 	private static final long serialVersionUID = 1L;
-	private static final Log LOG = LogFactory.getLog(TextFileLexiconImpl.class);
-	public Map<String,Set<String>> wordToLemmaMap = new THashMap<>();
-	public Map<String,Set<String>> lemmaToWordMap = new THashMap<>();
-	
+	private static final Logger LOG = LoggerFactory.getLogger(TextFileLexiconImpl.class);
+	public Map<String, Set<String>> wordToLemmaMap = new THashMap<>();
+	public Map<String, Set<String>> lemmaToWordMap = new THashMap<>();
+
 	private Locale locale;
 	private transient LexiconService lexiconService;
-	
+
 	public TextFileLexiconImpl(Locale locale) {
 		this.locale = locale;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.joliciel.jochre.search.lexicon.TextFileLexicon#addLexiconFile(java.io.File, com.joliciel.jochre.search.lexicon.LexicalEntryReader)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.joliciel.jochre.search.lexicon.TextFileLexicon#addLexiconFile(java.io
+	 * .File, com.joliciel.jochre.search.lexicon.LexicalEntryReader)
 	 */
 	@Override
 	public void addLexiconFile(File lexiconFile, LexicalEntryReader lexicalEntryReader) {
 		try {
 			String fileName = lexiconFile.getName();
 			Scanner lexiconScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(lexiconFile), "UTF-8")));
-			
+
 			TextNormaliser textNormaliser = lexiconService.getTextNormaliser(locale);
-			
+
 			while (lexiconScanner.hasNextLine()) {
 				String line = lexiconScanner.nextLine();
-				if (line.trim().length()>0 && !line.startsWith("#")) {
+				if (line.trim().length() > 0 && !line.startsWith("#")) {
 					LexicalEntry lexicalEntry = lexicalEntryReader.readEntry(line);
 					lexicalEntry.setLexiconName(fileName);
-					
-					if (textNormaliser!=null) {
+
+					if (textNormaliser != null) {
 						lexicalEntry.setWord(textNormaliser.normalise(lexicalEntry.getWord()));
 					}
-					
-					if (lexicalEntry.getLemma().length()>0) {
+
+					if (lexicalEntry.getLemma().length() > 0) {
 						Set<String> lemmaSet = wordToLemmaMap.get(lexicalEntry.getWord());
-						if (lemmaSet==null) {
+						if (lemmaSet == null) {
 							lemmaSet = new THashSet<>();
 							wordToLemmaMap.put(lexicalEntry.getWord(), lemmaSet);
 						}
 						lemmaSet.add(lexicalEntry.getLemma());
 						Set<String> wordSet = lemmaToWordMap.get(lexicalEntry.getLemma());
-						if (wordSet==null) {
+						if (wordSet == null) {
 							wordSet = new THashSet<>();
 							lemmaToWordMap.put(lexicalEntry.getLemma(), wordSet);
 						}
@@ -75,19 +76,23 @@ class TextFileLexiconImpl implements TextFileLexicon {
 					}
 				}
 			}
-			
+
 			lexiconScanner.close();
 		} catch (UnsupportedEncodingException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to add lexicon " + lexiconFile.getAbsolutePath(), e);
+			throw new RuntimeException(e);
 		} catch (FileNotFoundException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to add lexicon " + lexiconFile.getAbsolutePath(), e);
+			throw new RuntimeException(e);
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.joliciel.jochre.search.lexicon.TextFileLexicon#serialize(java.io.File)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.joliciel.jochre.search.lexicon.TextFileLexicon#serialize(java.io.
+	 * File)
 	 */
 	@Override
 	public void serialize(File outFile) {
@@ -106,11 +111,11 @@ class TextFileLexiconImpl implements TextFileLexicon {
 			zos.flush();
 			zos.close();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to serialize to " + outFile.getAbsolutePath(), e);
+			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@Override
 	public Set<String> getLemmas(String word) {
 		return this.wordToLemmaMap.get(word);
@@ -130,4 +135,3 @@ class TextFileLexiconImpl implements TextFileLexicon {
 	}
 
 }
- 

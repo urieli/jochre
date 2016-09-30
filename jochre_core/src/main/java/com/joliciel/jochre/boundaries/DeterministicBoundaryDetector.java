@@ -18,44 +18,88 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.boundaries;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import com.joliciel.jochre.JochreSession;
+import com.joliciel.jochre.boundaries.features.MergeFeature;
+import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
+import com.joliciel.jochre.boundaries.features.SplitFeature;
+import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 import com.joliciel.jochre.graphics.Shape;
+import com.joliciel.talismane.machineLearning.ClassificationModel;
 import com.joliciel.talismane.machineLearning.Decision;
-import com.joliciel.talismane.machineLearning.MachineLearningService;
+import com.typesafe.config.Config;
 
 /**
- * Returns a single "most likely" shape boundary guess,
- * regardless of the original boundaries.
+ * Returns a single "most likely" shape boundary guess, regardless of the
+ * original boundaries.
+ * 
  * @author Assaf Urieli
  *
  */
-class DeterministicBoundaryDetector implements BoundaryDetector {
-	private BoundaryServiceInternal boundaryService;
-	private MachineLearningService machineLearningService;
-	
-	private ShapeSplitter shapeSplitter;
-	private ShapeMerger shapeMerger;
-	private double minWidthRatioForSplit = 1.1;
-	private double minHeightRatioForSplit = 1.0;
-	private double maxWidthRatioForMerge = 1.2;
-	private double maxDistanceRatioForMerge = 0.15;
-	private double minProbabilityForDecision = 0.5;
-	
+public class DeterministicBoundaryDetector implements BoundaryDetector {
+	private final ShapeSplitter shapeSplitter;
+	private final ShapeMerger shapeMerger;
+	private double minWidthRatioForSplit;
+	private double minHeightRatioForSplit;
+	private double maxWidthRatioForMerge;
+	private double maxDistanceRatioForMerge;
+	private double minProbabilityForDecision;
+
+	private void configure(JochreSession jochreSession) {
+		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+		minWidthRatioForSplit = splitterConfig.getDouble("min-width-ratio");
+		minHeightRatioForSplit = splitterConfig.getDouble("min-height-ratio");
+
+		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+		maxWidthRatioForMerge = mergerConfig.getDouble("max-width-ratio");
+		maxDistanceRatioForMerge = mergerConfig.getDouble("max-distance-ratio");
+
+		Config boundaryConfig = jochreSession.getConfig().getConfig("jochre.boundaries");
+		minProbabilityForDecision = boundaryConfig.getDouble("min-prob-for-decision");
+	}
+
+	public DeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
+		this.shapeSplitter = shapeSplitter;
+		this.shapeMerger = shapeMerger;
+		this.configure(jochreSession);
+	}
+
+	public DeterministicBoundaryDetector(ClassificationModel splitModel, ClassificationModel mergeModel, JochreSession jochreSession) throws IOException {
+		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
+
+		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
+		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
+		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
+
+		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
+		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
+		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+
+		this.shapeSplitter = shapeSplitter;
+		this.shapeMerger = shapeMerger;
+
+		this.configure(jochreSession);
+	}
+
 	@Override
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
 		// find the possible shape sequences that make up this group
-		ShapeSequence bestSequence = boundaryService.getEmptyShapeSequence();
+		ShapeSequence bestSequence = new ShapeSequence();
 		for (Shape shape : group.getShapes()) {
-			// check if shape is wide enough to bother with		
+			// check if shape is wide enough to bother with
 			double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
 			double heightRatio = (double) shape.getHeight() / (double) shape.getXHeight();
 
 			// Splitting/merging shapes as required
 			ShapeSequence bestSplitSequence = null;
-			if (this.shapeSplitter!=null && widthRatio>=minWidthRatioForSplit && heightRatio>=minHeightRatioForSplit) {
+			if (this.shapeSplitter != null && widthRatio >= minWidthRatioForSplit && heightRatio >= minHeightRatioForSplit) {
 				List<ShapeSequence> splitSequences = shapeSplitter.split(shape);
 				double bestProb = 0;
 				for (ShapeSequence splitSequence : splitSequences) {
@@ -66,44 +110,44 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 				}
 				if (bestProb < minProbabilityForDecision) {
 					// create a sequence containing only this shape
-					ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
+					ShapeSequence singleShapeSequence = new ShapeSequence();
 					singleShapeSequence.addShape(shape);
 					bestSplitSequence = singleShapeSequence;
 				}
 			} else {
 				// create a sequence containing only this shape
-				ShapeSequence singleShapeSequence = boundaryService.getEmptyShapeSequence();
+				ShapeSequence singleShapeSequence = new ShapeSequence();
 				singleShapeSequence.addShape(shape);
 				bestSplitSequence = singleShapeSequence;
 			}
-			
+
 			ShapeInSequence previousShapeInSequence = null;
 			Shape previousShape = null;
-			if (bestSequence.size()>0) {
-				previousShapeInSequence = bestSequence.get(bestSequence.size()-1);
+			if (bestSequence.size() > 0) {
+				previousShapeInSequence = bestSequence.get(bestSequence.size() - 1);
 				previousShape = previousShapeInSequence.getShape();
 			}
-			
+
 			ShapeInSequence firstShapeInSequence = bestSplitSequence.get(0);
 			Shape firstShape = firstShapeInSequence.getShape();
-			
+
 			double mergeProb = 0;
-			if (this.shapeMerger!=null && previousShape!=null) {
-				ShapePair mergeCandidate = boundaryService.getShapePair(previousShape, shape);
+			if (this.shapeMerger != null && previousShape != null) {
+				ShapePair mergeCandidate = new ShapePair(previousShape, shape);
 				double mergeCandidateWidthRatio = 0;
 				double mergeCandidateDistanceRatio = 0;
-				
+
 				mergeCandidateWidthRatio = (double) mergeCandidate.getWidth() / (double) mergeCandidate.getXHeight();
 				mergeCandidateDistanceRatio = (double) mergeCandidate.getInnerDistance() / (double) mergeCandidate.getXHeight();
-				
+
 				if (mergeCandidateWidthRatio <= maxWidthRatioForMerge && mergeCandidateDistanceRatio <= maxDistanceRatioForMerge) {
 					mergeProb = shapeMerger.checkMerge(previousShape, firstShape);
 				}
 			}
 			if (mergeProb > minProbabilityForDecision) {
 				Shape mergedShape = shapeMerger.merge(previousShape, firstShape);
-				bestSequence.remove(bestSequence.size()-1);
-				
+				bestSequence.remove(bestSequence.size() - 1);
+
 				List<Shape> originalShapesForMerge = new ArrayList<Shape>();
 				originalShapesForMerge.addAll(previousShapeInSequence.getOriginalShapes());
 				originalShapesForMerge.addAll(firstShapeInSequence.getOriginalShapes());
@@ -114,53 +158,37 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 						bestSequence.add(splitShape);
 					isFirstShape = false;
 				}
-				
-				Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_MERGE.name(), mergeProb);
+
+				Decision mergeDecision = new Decision(MergeOutcome.DO_MERGE.name(), mergeProb);
 				bestSequence.addDecision(mergeDecision);
 				for (Decision splitDecision : bestSplitSequence.getDecisions())
 					bestSequence.addDecision(splitDecision);
 			} else {
-				if (mergeProb>0) {
-					Decision mergeDecision = machineLearningService.createDecision(MergeOutcome.DO_NOT_MERGE.name(), 1-mergeProb);
+				if (mergeProb > 0) {
+					Decision mergeDecision = new Decision(MergeOutcome.DO_NOT_MERGE.name(), 1 - mergeProb);
 					bestSequence.addDecision(mergeDecision);
 				}
 				for (Decision splitDecision : bestSplitSequence.getDecisions())
 					bestSequence.addDecision(splitDecision);
-				
+
 				for (ShapeInSequence splitShape : bestSplitSequence) {
 					bestSequence.add(splitShape);
 				}
 			}
 		} // next shape in group
-		
+
 		List<ShapeSequence> result = new ArrayList<ShapeSequence>();
 		result.add(bestSequence);
-		
+
 		return result;
-	}
-
-	public BoundaryServiceInternal getBoundaryService() {
-		return boundaryService;
-	}
-
-	public void setBoundaryService(BoundaryServiceInternal boundaryService) {
-		this.boundaryService = boundaryService;
 	}
 
 	public ShapeSplitter getShapeSplitter() {
 		return shapeSplitter;
 	}
 
-	public void setShapeSplitter(ShapeSplitter shapeSplitter) {
-		this.shapeSplitter = shapeSplitter;
-	}
-
 	public ShapeMerger getShapeMerger() {
 		return shapeMerger;
-	}
-
-	public void setShapeMerger(ShapeMerger shapeMerger) {
-		this.shapeMerger = shapeMerger;
 	}
 
 	@Override
@@ -193,31 +221,8 @@ class DeterministicBoundaryDetector implements BoundaryDetector {
 		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
 	}
 
-	@Override
-	public double getMinHeightRatioForSplit() {
-		return minHeightRatioForSplit;
-	}
-
-	@Override
-	public void setMinHeightRatioForSplit(double minHeightRatioForSplit) {
-		this.minHeightRatioForSplit = minHeightRatioForSplit;
-	}
-
 	public double getMinProbabilityForDecision() {
 		return minProbabilityForDecision;
-	}
-
-	public void setMinProbabilityForDecision(double minProbabilityForDecision) {
-		this.minProbabilityForDecision = minProbabilityForDecision;
-	}
-
-	public MachineLearningService getMachineLearningService() {
-		return machineLearningService;
-	}
-
-	public void setMachineLearningService(
-			MachineLearningService machineLearningService) {
-		this.machineLearningService = machineLearningService;
 	}
 
 }

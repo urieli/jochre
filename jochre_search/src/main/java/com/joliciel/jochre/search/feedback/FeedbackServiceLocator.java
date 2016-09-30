@@ -26,18 +26,16 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.SearchServiceLocator;
 import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-
 public class FeedbackServiceLocator {
-	private static final Log LOG = LogFactory.getLog(FeedbackServiceLocator.class);
-	
+	private static final Logger LOG = LoggerFactory.getLogger(FeedbackServiceLocator.class);
+
 	private static FeedbackServiceLocator instance;
 	private FeedbackServiceImpl feedbackService;
 	private SearchServiceLocator searchServiceLocator;
@@ -51,16 +49,16 @@ public class FeedbackServiceLocator {
 	public void setDataSource(DataSource dataSource) {
 		this.feedbackDAO = new FeedbackDAO(dataSource);
 		this.dataSource = dataSource;
-		if (this.feedbackService!=null)
+		if (this.feedbackService != null)
 			this.feedbackService.setFeedbackDAO(feedbackDAO);
 	}
-	
+
 	public DataSource getDataSource() {
 		return dataSource;
 	}
 
 	public void setDatabasePropertiesPath(String databasePropertiesPath) {
-		if (this.dataSource==null) {
+		if (this.dataSource == null) {
 			try {
 				File dataSourcePropsFile = new File(databasePropertiesPath);
 				if (!dataSourcePropsFile.exists())
@@ -70,52 +68,52 @@ public class FeedbackServiceLocator {
 				dataSourceProperties.load(dataSourceInputStream);
 				this.setDataSourceProperties(dataSourceProperties);
 			} catch (IOException e) {
-				LogUtils.logError(LOG, e);
+				LOG.error("Failed to load properties from: " + databasePropertiesPath, e);
 				throw new RuntimeException(e);
 			}
 		}
 	}
 
 	public void setDataSourceProperties(Properties dataSourceProperties) {
-		if (this.dataSource==null) {
+		if (this.dataSource == null) {
 			ComboPooledDataSource dataSource = new ComboPooledDataSource();
-	        try {
-	            dataSource.setDriverClass(dataSourceProperties.getProperty("jdbc.driverClassName"));
-	        } catch (PropertyVetoException e) {
-	             e.printStackTrace();
-	             throw new RuntimeException(e);
-	        }
-	        
-	        dataSource.setJdbcUrl(dataSourceProperties.getProperty("jdbc.url"));
-	        dataSource.setUser(dataSourceProperties.getProperty("jdbc.username"));
-	        dataSource.setPassword(dataSourceProperties.getProperty("jdbc.password"));
-	        if (dataSourceProperties.containsKey("jdbc.checkoutTimeout"))
-	        	dataSource.setCheckoutTimeout(Integer.parseInt(dataSourceProperties.getProperty("jdbc.checkoutTimeout")));
-	        if (dataSourceProperties.containsKey("jdbc.maxPoolSize"))
-	        	dataSource.setMaxPoolSize(Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxPoolSize")));
-	        if (dataSourceProperties.containsKey("jdbc.minPoolSize"))
-	        	dataSource.setMinPoolSize(Integer.parseInt(dataSourceProperties.getProperty("jdbc.minPoolSize")));
-	        if (dataSourceProperties.containsKey("jdbc.maxIdleTime"))
-	        	dataSource.setMaxIdleTime(Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxIdleTime")));
-	        
-	        int maxIdleTimeExcessConnections = 600;
-	        if (dataSourceProperties.containsKey("jdbc.maxIdleTimeExcessConnections"))
-	        	maxIdleTimeExcessConnections = Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxIdleTimeExcessConnections"));
-	        dataSource.setMaxIdleTimeExcessConnections(maxIdleTimeExcessConnections);
-	        
-	        this.setDataSource(dataSource);
+			try {
+				dataSource.setDriverClass(dataSourceProperties.getProperty("jdbc.driverClassName"));
+			} catch (PropertyVetoException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+
+			dataSource.setJdbcUrl(dataSourceProperties.getProperty("jdbc.url"));
+			dataSource.setUser(dataSourceProperties.getProperty("jdbc.username"));
+			dataSource.setPassword(dataSourceProperties.getProperty("jdbc.password"));
+			if (dataSourceProperties.containsKey("jdbc.checkoutTimeout"))
+				dataSource.setCheckoutTimeout(Integer.parseInt(dataSourceProperties.getProperty("jdbc.checkoutTimeout")));
+			if (dataSourceProperties.containsKey("jdbc.maxPoolSize"))
+				dataSource.setMaxPoolSize(Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxPoolSize")));
+			if (dataSourceProperties.containsKey("jdbc.minPoolSize"))
+				dataSource.setMinPoolSize(Integer.parseInt(dataSourceProperties.getProperty("jdbc.minPoolSize")));
+			if (dataSourceProperties.containsKey("jdbc.maxIdleTime"))
+				dataSource.setMaxIdleTime(Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxIdleTime")));
+
+			int maxIdleTimeExcessConnections = 600;
+			if (dataSourceProperties.containsKey("jdbc.maxIdleTimeExcessConnections"))
+				maxIdleTimeExcessConnections = Integer.parseInt(dataSourceProperties.getProperty("jdbc.maxIdleTimeExcessConnections"));
+			dataSource.setMaxIdleTimeExcessConnections(maxIdleTimeExcessConnections);
+
+			this.setDataSource(dataSource);
 		}
 	}
-	
+
 	public static FeedbackServiceLocator getInstance(SearchServiceLocator searchServiceLocator) {
-		if (instance==null) {
+		if (instance == null) {
 			instance = new FeedbackServiceLocator(searchServiceLocator);
 		}
 		return instance;
 	}
-	
+
 	public FeedbackService getFeedbackService() {
-		if (feedbackService==null) {
+		if (feedbackService == null) {
 			feedbackService = new FeedbackServiceImpl();
 			feedbackService.setSearchService(searchServiceLocator.getSearchService());
 			feedbackService.setFeedbackDAO(feedbackDAO);

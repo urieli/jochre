@@ -29,8 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
@@ -47,6 +46,8 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.SearchStatusHolder.SearchStatus;
 import com.joliciel.jochre.search.alto.AltoDocument;
@@ -60,26 +61,24 @@ import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.jochre.search.feedback.FeedbackService;
 import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
 
 class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
-	private static final Log LOG = LogFactory.getLog(JochreIndexBuilderImpl.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilderImpl.class);
 	private File indexDir;
 	private File contentDir;
 	private boolean forceUpdate = false;
-	
-	private int wordsPerDoc=3000;
+
+	private int wordsPerDoc = 3000;
 	private IndexWriter indexWriter;
 	private IndexReader indexReader;
 	private IndexSearcher indexSearcher;
 
-	private List<JochreToken> currentStrings = null;		
-	
+	private List<JochreToken> currentStrings = null;
+
 	private SearchServiceInternal searchService;
 	private AltoService altoService;
 	private FeedbackService feedbackService;
-	
+
 	public JochreIndexBuilderImpl(File indexDir, File contentDir) {
 		super();
 		this.indexDir = indexDir;
@@ -87,12 +86,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 	}
 
 	private void initialise() {
-		if (this.indexWriter==null) {
+		if (this.indexWriter == null) {
 			try {
 				Path path = this.indexDir.toPath();
 				Directory directory = FSDirectory.open(path);
-				
-				Map<String,Analyzer> analyzerPerField = new HashMap<>();
+
+				Map<String, Analyzer> analyzerPerField = new HashMap<>();
 				analyzerPerField.put(JochreIndexField.text.name(), searchService.getJochreTextLayerAnalyzer(this));
 
 				PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(), analyzerPerField);
@@ -102,87 +101,87 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 
 				try {
 					indexReader = DirectoryReader.open(directory);
-					
+
 					indexSearcher = new IndexSearcher(indexReader);
 				} catch (IndexNotFoundException e) {
 					LOG.info("No index at : " + indexDir.getAbsolutePath());
 				}
 			} catch (IOException ioe) {
-				LogUtils.logError(LOG, ioe);
-				throw new JochreException(ioe);
+				LOG.error("Unable to initialise indexWriter or indexReader", ioe);
+				throw new RuntimeException(ioe);
 			}
 		}
 	}
-	
 
 	@Override
 	public void run() {
 		SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
-		
-		if (searchStatusHolder.getStatus()!=SearchStatus.WAITING) {
+
+		if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
 			throw new JochreSearchException("Search index construction already underway. Try again later.");
 		}
-		
+
 		this.updateIndex(forceUpdate);
 	}
 
+	@Override
 	public void updateIndex(boolean forceUpdate) {
 		long startTime = System.currentTimeMillis();
 		SearchStatusHolder searchStatusHolder = searchService.getSearchStatusHolder();
 		try {
 			searchStatusHolder.setStatus(SearchStatus.PREPARING);
-			
+
 			this.initialise();
 			File[] subdirs = contentDir.listFiles(new FileFilter() {
-				
+
 				@Override
 				public boolean accept(File pathname) {
 					return pathname.isDirectory();
 				}
 			});
-			
+
 			Arrays.sort(subdirs);
-			
+
 			searchStatusHolder.setStatus(SearchStatus.BUSY);
 			searchStatusHolder.setTotalCount(subdirs.length);
-			
+
 			List<FeedbackSuggestion> suggestionList = feedbackService.findUnappliedSuggestions();
-			Map<String,Map<Integer,List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
+			Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
 			for (FeedbackSuggestion suggestion : suggestionList) {
 				String docPath = suggestion.getWord().getRow().getDocument().getPath();
 				int pageIndex = suggestion.getWord().getRow().getPageIndex();
-				Map<Integer,List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
-				if (docSuggestions==null) {
+				Map<Integer, List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
+				if (docSuggestions == null) {
 					docSuggestions = new HashMap<>();
 					unappliedSuggestions.put(docPath, docSuggestions);
 				}
 				List<FeedbackSuggestion> pageSuggestions = docSuggestions.get(pageIndex);
-				if (pageSuggestions==null) {
+				if (pageSuggestions == null) {
 					pageSuggestions = new ArrayList<>();
 					docSuggestions.put(pageIndex, pageSuggestions);
 				}
 				pageSuggestions.add(suggestion);
 			}
-			
+
 			for (File subdir : subdirs) {
 				try {
 					searchStatusHolder.setAction("Indexing " + subdir.getName());
 					this.processDocument(subdir, forceUpdate, unappliedSuggestions);
 					searchStatusHolder.incrementSuccessCount(1);
 				} catch (Exception e) {
-					LogUtils.logError(LOG, e);
+					LOG.error("Failed to index " + subdir.getName(), e);
 					searchStatusHolder.incrementFailureCount(1);
 				}
 			}
-			
+
 			searchStatusHolder.setStatus(SearchStatus.COMMITING);
 			indexWriter.commit();
 			indexWriter.close();
 			searchService.purgeSearcher();
 
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to commit indexWriter", e);
+			throw new RuntimeException(e);
 		} finally {
 			searchStatusHolder.setStatus(SearchStatus.WAITING);
 			long endTime = System.currentTimeMillis();
@@ -202,8 +201,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			indexWriter.close();
 			searchService.purgeSearcher();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to commit indexWriter", e);
+			throw new RuntimeException(e);
 		} finally {
 			long endTime = System.currentTimeMillis();
 			long totalTime = endTime - startTime;
@@ -211,6 +210,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 
+	@Override
 	public void deleteDocument(File documentDir) {
 		try {
 			this.initialise();
@@ -220,15 +220,16 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			indexWriter.close();
 			searchService.purgeSearcher();
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to commit indexWriter", e);
+			throw new RuntimeException(e);
+
 		}
 	}
-	
-	private void processDocument(File documentDir, boolean forceUpdate, Map<String,Map<Integer,List<FeedbackSuggestion>>> unappliedSuggestions) {
+
+	private void processDocument(File documentDir, boolean forceUpdate, Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
 		try {
 			boolean updateIndex = false;
-			
+
 			JochreIndexDirectory jochreIndexDirectory = this.searchService.getJochreIndexDirectory(documentDir);
 			switch (jochreIndexDirectory.getInstructions()) {
 			case Delete:
@@ -242,68 +243,68 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				// do nothing
 				break;
 			}
-	
+
 			if (forceUpdate)
 				updateIndex = true;
-			
+
 			if (!updateIndex) {
 				if (unappliedSuggestions.containsKey(jochreIndexDirectory.getPath()))
 					updateIndex = true;
 			}
-			
+
 			if (!updateIndex) {
 				long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
-				if (jochreIndexDirectory.getMetaDataFile()!=null) {
+				if (jochreIndexDirectory.getMetaDataFile() != null) {
 					long metaDate = jochreIndexDirectory.getMetaDataFile().lastModified();
-					if (metaDate>ocrDate)
+					if (metaDate > ocrDate)
 						ocrDate = metaDate;
 				}
 				long lastIndexDate = Long.MIN_VALUE;
-				
-				if (indexSearcher!=null) {
+
+				if (indexSearcher != null) {
 					Term term = new Term(JochreIndexField.name.name(), jochreIndexDirectory.getName());
 					Query termQuery = new TermQuery(term);
 					TopDocs topDocs = indexSearcher.search(termQuery, 1);
-					if (topDocs.scoreDocs.length>0) {
+					if (topDocs.scoreDocs.length > 0) {
 						Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
 						lastIndexDate = Long.parseLong(doc.get(JochreIndexField.indexTime.name()));
 					}
 				}
-				
+
 				LOG.debug("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
-				if (ocrDate>lastIndexDate)
+				if (ocrDate > lastIndexDate)
 					updateIndex = true;
 			}
-			
+
 			if (updateIndex) {
 				this.updateDocumentInternal(jochreIndexDirectory, -1, -1);
 			} else {
 				LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
 			} // should update index?
-			
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+
+		} catch (IOException e) {
+			LOG.error("Failed to process " + documentDir.getName(), e);
+			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory, int startPage, int endPage) {
 		try {
 			LOG.info("Updating index for " + jochreIndexDirectory.getName());
-			
+
 			this.deleteDocumentInternal(jochreIndexDirectory);
-			
+
 			AltoDocument altoDoc = this.altoService.newDocument(jochreIndexDirectory.getName());
 			AltoReader reader = this.altoService.getAltoReader(altoDoc);
 			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory, startPage, endPage);
 			reader.addConsumer(altoPageIndexer);
-			
+
 			UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
 			reader.parseFile(uis, jochreIndexDirectory.getName());
 			uis.reallyClose();
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to update jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -318,10 +319,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private int startPage = -1;
 		private int endPage = -1;
 		private AltoStringFixer altoStringFixer;
-		
+
 		private JochreIndexDirectory directory;
-		private Map<Integer,List<FeedbackSuggestion>> pageSuggestionMap;
-		
+		private Map<Integer, List<FeedbackSuggestion>> pageSuggestionMap;
+
 		public AltoPageIndexer(JochreIndexBuilderImpl parent, JochreIndexDirectory directory, int startPage, int endPage) {
 			super();
 			this.parent = parent;
@@ -334,41 +335,41 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 
 		@Override
 		public void onNextPage(AltoPage page) {
-			if (startPage>=0 && page.getIndex()<startPage)
+			if (startPage >= 0 && page.getIndex() < startPage)
 				return;
-			if (endPage>=0 && page.getIndex()>endPage)
+			if (endPage >= 0 && page.getIndex() > endPage)
 				return;
 			LOG.debug("Processing page: " + page.getIndex());
 			currentPages.add(page);
-			
+
 			List<FeedbackSuggestion> suggestions = pageSuggestionMap.get(page.getIndex());
-			
-			Map<Rectangle,List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
-			if (suggestions!=null) {
+
+			Map<Rectangle, List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
+			if (suggestions != null) {
 				for (FeedbackSuggestion suggestion : suggestions) {
 					Rectangle rectangle = suggestion.getWord().getRectangle();
 					List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
-					if (wordSuggestions==null) {
+					if (wordSuggestions == null) {
 						wordSuggestions = new ArrayList<>();
 						suggestionMap.put(rectangle, wordSuggestions);
 					}
 					wordSuggestions.add(suggestion);
 				}
 			}
-			
+
 			for (AltoTextBlock textBlock : page.getTextBlocks()) {
 				textBlock.joinHyphens();
-				if (this.altoStringFixer!=null)
+				if (this.altoStringFixer != null)
 					this.altoStringFixer.fix(textBlock);
-				
+
 				for (AltoTextLine textLine : textBlock.getTextLines()) {
 					for (AltoString string : textLine.getStrings()) {
 						if (string.isWhiteSpace())
 							continue;
-						
+
 						List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(string.getRectangle());
-						if (wordSuggestions!=null) {
-							FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size()-1);
+						if (wordSuggestions != null) {
+							FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size() - 1);
 							LOG.debug("Applying suggestion: " + lastSuggestion.getText() + " instead of " + string.getContent());
 							string.setContent(lastSuggestion.getText());
 							for (FeedbackSuggestion suggestion : wordSuggestions) {
@@ -382,12 +383,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 					}
 				}
 			}
-			
+
 			int wordCount = page.wordCount();
 			cumulWordCount += wordCount;
 			LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount);
-			if (parent.getWordsPerDoc()>0 && cumulWordCount >= parent.getWordsPerDoc()) {
-				if (previousPages.size()>0) {
+			if (parent.getWordsPerDoc() > 0 && cumulWordCount >= parent.getWordsPerDoc()) {
+				if (previousPages.size() > 0) {
 					parent.setCurrentStrings(previousStrings);
 					LOG.debug("Creating new index doc: " + docCount);
 					JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
@@ -397,7 +398,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 
 				previousPages = currentPages;
 				previousStrings = currentStrings;
-				
+
 				cumulWordCount = 0;
 				parent.setCurrentStrings(new ArrayList<JochreToken>());
 				currentPages = new ArrayList<AltoPage>();
@@ -410,7 +411,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 			previousPages.addAll(currentPages);
 			previousStrings.addAll(currentStrings);
 			parent.setCurrentStrings(previousStrings);
-			if (previousPages.size()>0) {
+			if (previousPages.size() > 0) {
 				LOG.debug("Creating new index doc: " + docCount);
 				JochreIndexDocument indexDoc = parent.getSearchService().newJochreIndexDocument(directory, docCount, previousPages);
 				indexDoc.save(parent.getIndexWriter());
@@ -419,17 +420,16 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		}
 	}
 
-	
 	private void deleteDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
 		try {
 			Term term = new Term(JochreIndexField.path.name(), jochreIndexDirectory.getPath());
 			indexWriter.deleteDocuments(term);
-		} catch (IOException ioe) {
-			LogUtils.logError(LOG, ioe);
-			throw new JochreException(ioe);
+		} catch (IOException e) {
+			LOG.error("Failed to delete jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
+			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public SearchServiceInternal getSearchService() {
 		return searchService;
 	}
@@ -438,10 +438,12 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		this.searchService = searchService;
 	}
 
+	@Override
 	public int getWordsPerDoc() {
 		return wordsPerDoc;
 	}
 
+	@Override
 	public void setWordsPerDoc(int wordsPerDoc) {
 		this.wordsPerDoc = wordsPerDoc;
 	}

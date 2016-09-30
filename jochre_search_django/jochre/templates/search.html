@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Jochre Search</title>
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 <link rel="stylesheet" href="{% static 'jquery-ui.css' %}">
 <script src="{% static 'jquery-1.11.3.min.js' %}"></script>
@@ -154,6 +155,9 @@ function transformKeyPress(textfield, evt) {
     var val = textfield.value;
     evt = evt || window.event;
 
+	if (evt.ctrlKey)
+		return true;
+	
     // Ensure we only handle printable keys, excluding enter and space
     var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
     if (charCode && charCode > 32) {
@@ -254,6 +258,10 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 			</table>
 			</td></tr>
 			<tr><td>
+			{% if result.snippetError %}
+			   <p style="color:red;">{{ result.snippetError.message }}</p>
+			   <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
+			{% else %}
 			{% for snippet in result.snippets %}
 				<table width="100%" border="0">
 				<tr>
@@ -290,17 +298,21 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
 					var wordOffset = globalOffset + localOffset;
 					
+					//alert("localOffset: " + localOffset + ", globalOffset: " + globalOffset + ", wordOffset: " + wordOffset);
 					var target = $(this);
 				    var dialog, form;
 
 					function applyFix() {
 						document.getElementById("imgWordLoading").style.display="inline";
-						
+
 						var suggestion = document.getElementById("txtSuggestion").value;
+						var suggestion2 = document.getElementById("txtSuggestion2").value;
+						
 						var selFont = document.getElementById("selFont");
 						var fontCode = selFont.options[selFont.selectedIndex].value;
+
 						var selLang = document.getElementById("selLang");
-						var languageCode = selLang.options[selFont.selectedIndex].value;
+						var languageCode = selLang.options[selLang.selectedIndex].value;						
 						
 						$.ajax({
 							  url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
@@ -309,6 +321,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 									+ "&user={{ request.user.username }}"
 									+ "&ip={{ ip }}"
 									+ "&suggestion=" + encodeURIComponent(suggestion)
+									+ "&suggestion2=" + encodeURIComponent(suggestion2)
 									+ "&fontCode=" + encodeURIComponent(fontCode)
 									+ "&languageCode=" + encodeURIComponent(languageCode),
 							  dataType: 'json',
@@ -352,6 +365,8 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				    document.getElementById("imgFixWord").src="";
 				    document.getElementById("imgWordLoading").style.display="inline";
 					document.getElementById("txtSuggestion").value="";
+					document.getElementById("txtSuggestion2").value="";
+					document.getElementById("txtSuggestion2").style.display="none";
 					document.getElementById("imgFixWord").src='{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset;
 					
 					var selFont = document.getElementById("selFont");
@@ -363,7 +378,12 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 					
 					$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
 						  $.each( data, function( key, val ) {
-							  document.getElementById("txtSuggestion").value=val;
+							if (key=="word") {
+								document.getElementById("txtSuggestion").value=val;
+							} else if (key=="word2") {
+								document.getElementById("txtSuggestion2").value=val;
+								document.getElementById("txtSuggestion2").style.display="inline";
+							}
 						  });
 						});
 					
@@ -373,6 +393,7 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				{% endif %}
 				</script>
 			{% endfor %}
+			{% endif %}
 			</td></tr>
 			<tr><td height="10px"></td></tr>
         {% endfor %}
@@ -470,7 +491,14 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
       <td>
       <table>
       <tr><td><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></td>
-      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" {% if RTL %} class="yiddish" {% endif %}></td></tr>
+	  {% if RTL %}
+      <td><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none;">
+	  <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish"></td>
+	  {% else %}
+      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="">
+	  <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none;"></td>
+	  {% endif %}
+	  </tr>
       <tr><td><label for="selFont">{{ Strings.fixWordFont }}</label></td>
       <td><select id="selFont" name="selFont">
       {% for fontCode in JOCHRE_FONT_LIST %}
@@ -500,6 +528,9 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 <script>
 {% if RTL %}
 document.getElementById("txtSuggestion").onkeypress = function(evt) {
+    return transformKeyPress(this, evt);
+};
+document.getElementById("txtSuggestion2").onkeypress = function(evt) {
     return transformKeyPress(this, evt);
 };
 {% endif %}

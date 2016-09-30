@@ -21,8 +21,8 @@ package com.joliciel.jochre.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
@@ -38,7 +38,7 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
  *
  */
 class JochreTokeniser extends Tokenizer {
-	private static final Log LOG = LogFactory.getLog(JochreTokeniser.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JochreTokeniser.class);
 
 	private SearchServiceInternal searchService;
 
@@ -60,9 +60,8 @@ class JochreTokeniser extends Tokenizer {
 	 * Constructor including the tokenExtractor, the current fieldName being
 	 * analysed (for Lucene fields) and a Reader containing the input.
 	 * 
-	 *            a place to get the tokens
-	 *            the text field contents, ignored since we've already analysed
-	 *            them
+	 * a place to get the tokens the text field contents, ignored since we've
+	 * already analysed them
 	 */
 	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
 		super();
@@ -98,7 +97,7 @@ class JochreTokeniser extends Tokenizer {
 
 			// add the term itself
 			if (currentToken.isPunctuation())
-				content = "※" + content;
+				content = JochreSearchConstants.INDEX_PUNCT_PREFIX + content;
 			termAtt.append(content);
 
 			posLengthAtt.setPositionLength(1);
@@ -125,9 +124,8 @@ class JochreTokeniser extends Tokenizer {
 			payloadAtt.setPayload(payload.getBytesRef());
 
 			if (LOG.isTraceEnabled()) {
-				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength()
-						+ ", increment: " + posIncrAtt.getPositionIncrement() + ", offset: " + offsetAtt.startOffset()
-						+ "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
+				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength() + ", increment: " + posIncrAtt.getPositionIncrement()
+						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
 						+ currentIndex);
 			}
 

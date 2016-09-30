@@ -29,24 +29,26 @@ import com.joliciel.jochre.letterGuesser.LetterValidator;
 import com.joliciel.jochre.stats.FScoreCalculator;
 
 /**
- * Calculates the f-score based on the letter already assigned to the shape provided,
- * and the best guess.
+ * Calculates the f-score based on the letter already assigned to the shape
+ * provided, and the best guess.
+ * 
  * @author Assaf Urieli
  *
  */
 public class SimpleLetterFScoreObserver implements FScoreObserver {
-	FScoreCalculator<String> fScoreCalculator;
-	LetterValidator letterValidator;
+	private final FScoreCalculator<String> fScoreCalculator;
+	private final LetterValidator letterValidator;
+	private final JochreSession jochreSession;
 
 	boolean hasError = false;
 	boolean stillValid = true;
 	boolean currentImageWritten = false;
 	JochreImage currentImage = null;
-	
-	public SimpleLetterFScoreObserver(LetterValidator letterValidator) {
-		super();
+
+	public SimpleLetterFScoreObserver(LetterValidator letterValidator, JochreSession jochreSession) {
+		this.jochreSession = jochreSession;
 		this.letterValidator = letterValidator;
-		fScoreCalculator = new FScoreCalculator<String>();
+		this.fScoreCalculator = new FScoreCalculator<String>();
 	}
 
 	@Override
@@ -61,23 +63,23 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 			Shape shape = shapeInSequence.getShape();
 			String realLetter = shape.getLetter();
 			if (letterValidator.validate(realLetter)) {
-				
-				if (realLetter.length()==0)
+
+				if (realLetter.length() == 0)
 					realLetter = "■";
-				else if (!JochreSession.getInstance().getLinguistics().getValidLetters().contains(realLetter)) {
+				else if (!jochreSession.getLinguistics().getValidLetters().contains(realLetter)) {
 					if (realLetter.contains("|"))
 						realLetter = "□" + realLetter;
 					else
 						realLetter = "■" + realLetter;
 				}
-				if (bestGuess.length()==0)
+				if (bestGuess.length() == 0)
 					bestGuess = "■";
-				else if (!JochreSession.getInstance().getLinguistics().getValidLetters().contains(bestGuess))
+				else if (!jochreSession.getLinguistics().getValidLetters().contains(bestGuess))
 					if (bestGuess.contains("|"))
 						bestGuess = "□" + bestGuess;
 					else
 						bestGuess = "■" + bestGuess;
-				
+
 				fScoreCalculator.increment(realLetter, bestGuess);
 				if (!realLetter.equals(bestGuess))
 					hasError = true;
@@ -87,6 +89,7 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 		}
 	}
 
+	@Override
 	public FScoreCalculator<String> getFScoreCalculator() {
 		return fScoreCalculator;
 	}
@@ -111,9 +114,7 @@ public class SimpleLetterFScoreObserver implements FScoreObserver {
 	}
 
 	@Override
-	public void onBeamSearchEnd(LetterSequence bestSequence,
-			List<LetterSequence> finalSequences,
-			List<LetterSequence> holdoverSequences) {
+	public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences) {
 	}
 
 }

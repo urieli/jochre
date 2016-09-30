@@ -24,72 +24,70 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.joliciel.jochre.search.JochreIndexDocument;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.SearchService;
-import com.joliciel.jochre.utils.JochreException;
-import com.joliciel.talismane.utils.LogUtils;
-
 
 class FixedSizeSnippetFinder implements SnippetFinder {
-	private static final Log LOG = LogFactory.getLog(FixedSizeSnippetFinder.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FixedSizeSnippetFinder.class);
 	private JochreIndexSearcher indexSearcher;
 	private int snippetSize = 100;
-	
+
 	private SearchService searchService;
-	
+
 	public FixedSizeSnippetFinder(JochreIndexSearcher indexSearcher) {
 		super();
 		this.indexSearcher = indexSearcher;
 	}
-
 
 	@Override
 	public List<Snippet> findSnippets(int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets) {
 		try {
 			Document doc = indexSearcher.getIndexSearcher().doc(docId);
 			JochreIndexDocument jochreDoc = searchService.getJochreIndexDocument(indexSearcher, docId);
-			// find best snippet for each term		
+			// find best snippet for each term
 			PriorityQueue<Snippet> heap = new PriorityQueue<Snippet>();
-			
-			int i=-1;
+
+			int i = -1;
 			for (HighlightTerm term : highlightTerms) {
 				i++;
 				String content = jochreDoc.getContents();
-				if (term.getStartOffset()>=content.length()) {
+				if (term.getStartOffset() >= content.length()) {
 					String title = doc.get(JochreIndexField.title.name());
 					String startPage = doc.get(JochreIndexField.startPage.name());
 					String endPage = doc.get(JochreIndexField.endPage.name());
 					LOG.debug("Content: " + content);
-					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage + ", length: " + content.length());
+					throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage
+							+ ", length: " + content.length());
 				}
 				List<HighlightTerm> snippetTerms = new ArrayList<HighlightTerm>();
 				snippetTerms.add(term);
-				int j=-1;
+				int j = -1;
 				boolean foundPage = false;
 				for (HighlightTerm otherTerm : highlightTerms) {
 					j++;
-					if (j<=i)
+					if (j <= i)
 						continue;
-					if (otherTerm.getPayload().getPageIndex()!=term.getPayload().getPageIndex()) {
+					if (otherTerm.getPayload().getPageIndex() != term.getPayload().getPageIndex()) {
 						if (foundPage)
 							break;
 						else
 							continue;
 					}
 					foundPage = true;
-					
-					if (otherTerm.getStartOffset()<term.getStartOffset()+snippetSize) {
+
+					if (otherTerm.getStartOffset() < term.getStartOffset() + snippetSize) {
 						snippetTerms.add(otherTerm);
 					} else {
 						break;
 					}
 				}
-				HighlightTerm lastTerm = snippetTerms.get(snippetTerms.size()-1);
+				HighlightTerm lastTerm = snippetTerms.get(snippetTerms.size() - 1);
 				int middle = (term.getStartOffset() + lastTerm.getEndOffset()) / 2;
 				int start = middle - (snippetSize / 2);
 				int end = middle + (snippetSize / 2);
@@ -98,38 +96,39 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				if (end < lastTerm.getEndOffset())
 					end = lastTerm.getEndOffset();
 
-				if (start<0)
-					start=0;
+				if (start < 0)
+					start = 0;
 				if (end > content.length())
 					end = content.length();
-				
-				for (int k=start; k>=0; k--) {
+
+				for (int k = start; k >= 0; k--) {
 					if (Character.isWhitespace(content.charAt(k))) {
-						start = k+1;
+						start = k + 1;
 						break;
 					}
 				}
-				for (int k=end; k<content.length(); k++) {
+				for (int k = end; k < content.length(); k++) {
 					if (Character.isWhitespace(content.charAt(k))) {
 						end = k;
 						break;
 					}
 				}
-				
-				if (start<0)
+
+				if (start < 0)
 					start = 0;
-				
+
 				Snippet snippet = new Snippet(docId, term.getField(), start, end, term.getPayload().getPageIndex());
 				snippet.setHighlightTerms(snippetTerms);
 				heap.add(snippet);
 			}
-			
+
 			// if we have no snippets, add one per field type
 			if (heap.isEmpty()) {
 				String content = jochreDoc.getContents();
 				int end = snippetSize * maxSnippets;
-				if (end>content.length()) end = content.length();
-				for (int k=end; k<content.length(); k++) {
+				if (end > content.length())
+					end = content.length();
+				for (int k = end; k < content.length(); k++) {
 					if (Character.isWhitespace(content.charAt(k))) {
 						end = k;
 						break;
@@ -140,9 +139,9 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 					LOG.trace("Snippet candidate: " + snippet);
 				heap.add(snippet);
 			}
-			
+
 			List<Snippet> snippets = new ArrayList<Snippet>(maxSnippets);
-			while (snippets.size()<maxSnippets && !heap.isEmpty()) {
+			while (snippets.size() < maxSnippets && !heap.isEmpty()) {
 				Snippet snippet = heap.poll();
 				boolean hasOverlap = false;
 				for (Snippet otherSnippet : snippets) {
@@ -152,14 +151,14 @@ class FixedSizeSnippetFinder implements SnippetFinder {
 				if (!hasOverlap)
 					snippets.add(snippet);
 			}
-			
+
 			for (Snippet snippet : snippets) {
 				LOG.debug("Added snippet: " + snippet.toJson());
 			}
 			return snippets;
 		} catch (IOException e) {
-			LogUtils.logError(LOG, e);
-			throw new JochreException(e);
+			LOG.error("Failed to find snippets for docId " + docId, e);
+			throw new RuntimeException(e);
 		}
 	}
 

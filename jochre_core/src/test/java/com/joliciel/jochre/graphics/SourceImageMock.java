@@ -1,9 +1,12 @@
 package com.joliciel.jochre.graphics;
 
-public class SourceImageMock extends SourceImageImpl {
+import com.joliciel.jochre.JochreSession;
+
+public class SourceImageMock extends SourceImage {
 	private int[] pixels;
 
-	public SourceImageMock(int[] pixels, int height, int width) {
+	public SourceImageMock(int[] pixels, int height, int width, JochreSession jochreSession) {
+		super(jochreSession);
 		this.pixels = pixels;
 		this.setHeight(height);
 		this.setWidth(width);
@@ -12,7 +15,7 @@ public class SourceImageMock extends SourceImageImpl {
 	@Override
 	public boolean isPixelBlack(int x, int y, int threshold) {
 		if (x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight())
-			return pixels[y*this.getWidth() + x]==1;
+			return pixels[y * this.getWidth() + x] == 1;
 		else
 			return false;
 	}
@@ -34,6 +37,5 @@ public class SourceImageMock extends SourceImageImpl {
 	public int getPixel(int x, int y) {
 		return this.getAbsolutePixel(x, y);
 	}
-	
-	
+
 }

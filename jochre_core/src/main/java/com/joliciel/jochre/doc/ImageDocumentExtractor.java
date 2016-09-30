@@ -18,21 +18,116 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.doc;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FilenameFilter;
+
+import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.joliciel.talismane.utils.Monitorable;
+import com.joliciel.talismane.utils.MultiTaskProgressMonitor;
+import com.joliciel.talismane.utils.ProgressMonitor;
 
 /**
- * An interface for extracting a JochreDocument from an image File (jpeg, gif or png).
+ * An interface for extracting a JochreDocument from an image File (jpeg, gif or
+ * png).
+ * 
  * @author Assaf Urieli
  *
  */
-public interface ImageDocumentExtractor extends Monitorable, Runnable {
+public class ImageDocumentExtractor implements Monitorable, Runnable {
+	private static final Logger LOG = LoggerFactory.getLogger(ImageDocumentExtractor.class);
+	private final SourceFileProcessor documentProcessor;
+	private MultiTaskProgressMonitor currentMonitor;
+	private final File imageFile;
+	private int pageNumber = 1;
 
-	public abstract JochreDocument extractDocument();
+	public ImageDocumentExtractor(File imageFile, SourceFileProcessor documentProcessor) {
+		this.documentProcessor = documentProcessor;
+		this.imageFile = imageFile;
+	}
+
+	@Override
+	public void run() {
+		this.extractDocument();
+	}
+
+	public JochreDocument extractDocument() {
+		LOG.debug("ImageDocumentExtractorImpl.extractDocument");
+		try {
+			File[] files = new File[1];
+
+			if (imageFile.isDirectory()) {
+				files = imageFile.listFiles(new FilenameFilter() {
+
+					@Override
+					public boolean accept(File dir, String name) {
+						return (name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg")
+								|| name.toLowerCase().endsWith(".gif"));
+					}
+				});
+			} else {
+				files[0] = imageFile;
+			}
+
+			JochreDocument doc = this.documentProcessor.onDocumentStart();
+			doc.setTotalPageCount(files.length);
+
+			int currentPageNumber = this.pageNumber;
+			for (File file : files) {
+				JochrePage page = this.documentProcessor.onPageStart(currentPageNumber++);
+
+				BufferedImage image = ImageIO.read(file);
+				String imageName = file.getName();
+
+				if (currentMonitor != null && documentProcessor instanceof Monitorable) {
+					ProgressMonitor monitor = ((Monitorable) documentProcessor).monitorTask();
+					double percentAllotted = (1 / (double) (files.length));
+					currentMonitor.startTask(monitor, percentAllotted);
+				}
+
+				documentProcessor.onImageFound(page, image, imageName, 0);
+				if (currentMonitor != null && documentProcessor instanceof Monitorable) {
+					currentMonitor.endTask();
+				}
+
+				this.documentProcessor.onPageComplete(page);
+			}
+			this.documentProcessor.onDocumentComplete(doc);
+
+			if (currentMonitor != null)
+				currentMonitor.setFinished(true);
+			return doc;
+		} catch (Exception e) {
+			LOG.debug("Exception occurred. Have monitor? " + currentMonitor);
+			if (currentMonitor != null)
+				currentMonitor.setException(e);
+			LOG.error("Exception while processing document", e);
+			throw new RuntimeException(e);
+		} finally {
+			LOG.debug("Exit ImageDocumentExtractorImpl.extractDocument");
+		}
+	}
+
+	@Override
+	public ProgressMonitor monitorTask() {
+		currentMonitor = new MultiTaskProgressMonitor();
+
+		return currentMonitor;
+	}
 
 	/**
 	 * The page number to assign to this image.
 	 */
-	public abstract void setPageNumber(int pageNumber);
-	public abstract int getPageNumber();
+	public int getPageNumber() {
+		return pageNumber;
+	}
+
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
+	}
 
 }
