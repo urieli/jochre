@@ -11,8 +11,8 @@
 <panel border="normal" title="${c:l('docs.documents.title')}" id="treePanel" width="300px" height="500px">
 	<panelchildren>
 	<vlayout>
-	   	<tree id="docTree" zclass="z-filetree" model="@{winJochreHome$composer.documentTree}"
-	   		vflex="true" width="100%" height="420px">
+	   	<tree id="docTree" zclass="z-filetree"
+	   		vflex="true" width="100%">
 			<treecols sizable="true">
 				<treecol label="${c:l('docs.documents.name')}" />
 			</treecols>
@@ -45,10 +45,6 @@
 				<cell sclass="labelCell"><label sclass="labelCell" value="${c:l('docs.documentDetails.authors')}"/></cell>
 				<cell>
 			        <listbox id="lstAuthors" rows="3" vflex="true">
-				        <listitem self="@{each=Author}">
-			                <listcell label="@{Author.fullName}" />
-			                <listcell label="@{Author.fullNameLocal}" />
-			            </listitem>
 					</listbox>
 				</cell>
 			</row>
@@ -136,10 +132,6 @@
 					<cell>
 			        <listbox id="lstAuthors" rows="3"
 			            vflex="true">
-				        <listitem self="@{each=author}" value="@{author}">
-			                <listcell label="@{author.fullName}" />
-			                <listcell label="@{author.fullNameLocal}" />
-			            </listitem>
 					</listbox>
 					</cell>
 					<cell>

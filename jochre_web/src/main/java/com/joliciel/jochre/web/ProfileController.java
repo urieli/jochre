@@ -9,7 +9,6 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Constraint;
-import org.zkoss.zul.Div;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.SimpleConstraint;
@@ -18,7 +17,7 @@ import org.zkoss.zul.Window;
 
 import com.joliciel.jochre.security.User;
 
-public class ProfileController extends GenericForwardComposer<Div> {
+public class ProfileController extends GenericForwardComposer<Window> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
@@ -35,9 +34,9 @@ public class ProfileController extends GenericForwardComposer<Div> {
 	}
 
 	@Override
-	public void doAfterCompose(Div div) throws Exception {
-		super.doAfterCompose(div);
-		div.setAttribute("controller", this);
+	public void doAfterCompose(Window window) throws Exception {
+		LOG.debug("doAfterCompose");
+		super.doAfterCompose(window);
 		String pageTitle = Labels.getLabel("profile.title");
 		winProfile.getPage().setTitle(pageTitle);
 

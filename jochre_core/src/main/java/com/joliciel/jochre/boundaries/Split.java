@@ -55,6 +55,7 @@ public class Split implements Entity, ShapeWrapper {
 	public Split(Shape shape, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
 		this.shape = shape;
+		this.shapeId = shape.getId();
 	}
 
 	public int getShapeId() {
