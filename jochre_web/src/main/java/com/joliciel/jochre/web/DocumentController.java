@@ -1,14 +1,9 @@
 package com.joliciel.jochre.web;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -21,14 +16,18 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
-import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
-import org.zkoss.zkplus.databind.BindingListModelArray;
-import org.zkoss.zkplus.databind.BindingListModelList;
+import org.zkoss.zk.ui.select.SelectorComposer;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zul.AbstractTreeModel;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Label;
+import org.zkoss.zul.ListModelArray;
+import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Listbox;
+import org.zkoss.zul.Listcell;
+import org.zkoss.zul.Listitem;
+import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Tree;
 import org.zkoss.zul.TreeModel;
@@ -39,16 +38,13 @@ import org.zkoss.zul.Window;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.Author;
 import com.joliciel.jochre.doc.DocumentDao;
-import com.joliciel.jochre.doc.DocumentObserver;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.output.TextGetter;
-import com.joliciel.jochre.output.TextGetter.TextFormat;
 import com.joliciel.jochre.security.User;
 import com.joliciel.jochre.security.UserRole;
 
-public class DocumentController extends GenericForwardComposer<Window> {
+public class DocumentController extends SelectorComposer<Window> {
 	private static final Logger LOG = LoggerFactory.getLogger(DocumentController.class);
 
 	private static final long serialVersionUID = 1L;
@@ -60,36 +56,55 @@ public class DocumentController extends GenericForwardComposer<Window> {
 	private JochreImage currentImage;
 	private User currentUser;
 
-	AnnotateDataBinder binder;
-
+	@Wire
 	Window winJochreHome;
+	@Wire
 	Tree docTree;
+	@Wire
 	Button btnLoadImage;
+	@Wire
 	Button btnDownloadImageText;
+	@Wire
 	Button btnDownloadDocText;
+	@Wire
 	Button btnUpdateDoc;
+	@Wire
 	Button btnAddPages;
+	@Wire
 	Button btnNewDoc;
+	@Wire
 	Button btnAnalyseDoc;
+	@Wire
 	Button btnDeleteImage;
+	@Wire
 	Label lblDocName;
+	@Wire
 	Label lblImageIndex;
+	@Wire
 	Label lblDocId;
+	@Wire
 	Label lblImageId;
+	@Wire
 	Label lblDocNameLocal;
+	@Wire
 	Label lblPublisher;
+	@Wire
 	Label lblCity;
+	@Wire
 	Label lblYear;
+	@Wire
 	Label lblFileName;
+	@Wire
 	Label lblImageStatus;
+	@Wire
 	Label lblReference;
+	@Wire
 	Label lblImageOwner;
+	@Wire
 	Listbox lstAuthors;
 
 	int docId = 0;
 	int imageId = 0;
-
-	Properties jochreProperties = null;
 
 	public DocumentController() throws ReflectiveOperationException {
 		jochreSession = JochreProperties.getInstance().getJochreSession();
@@ -97,6 +112,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 
 	@Override
 	public void doAfterCompose(Window window) throws Exception {
+		LOG.debug("doAfterCompose");
 		super.doAfterCompose(window);
 		String pageTitle = Labels.getLabel("docs.title");
 		winJochreHome.getPage().setTitle(pageTitle);
@@ -114,12 +130,9 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		if (imageIdStr != null)
 			imageId = Integer.parseInt(imageIdStr);
 
-		String jochrePropertiesPath = "/jochre.properties";
-		jochreProperties = new Properties();
-		jochreProperties.load(this.getClass().getResourceAsStream(jochrePropertiesPath));
-
-		binder = new AnnotateDataBinder(window);
-		binder.loadAll();
+		docTree.setModel(this.getDocumentTree());
+		lstAuthors.setModel(new ListModelArray<Author>(new Author[] {}, true));
+		lstAuthors.setItemRenderer(new AuthorListItemRenderer());
 	}
 
 	public List<JochreDocument> getAllDocuments() {
@@ -131,6 +144,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 	}
 
 	public TreeModel<DocumentTreeNode> getDocumentTree() {
+		LOG.debug("getDocumentTree");
 		DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
 		List<JochreDocument> docs = documentDao.findDocuments();
 		DocumentTreeModel documentTree = new DocumentTreeModel(docs);
@@ -311,7 +325,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onSelect$docTree(Event event) {
+	@Listen("onSelect = #docTree")
+	public void onSelect$docTree() {
 		try {
 			LOG.debug("onSelect$docTree");
 			Treeitem treeItem = docTree.getSelectedItem();
@@ -388,7 +403,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 			btnDownloadDocText.setDisabled(true);
 			btnUpdateDoc.setDisabled(true);
 			btnAddPages.setDisabled(true);
-			lstAuthors.setModel(new BindingListModelArray<Author>(new Author[] {}, true));
+			lstAuthors.setModel(new ListModelArray<Author>(new Author[] {}, true));
 		} else {
 			lblDocName.setValue(currentDoc.getName());
 			lblDocId.setValue("" + currentDoc.getId());
@@ -401,11 +416,12 @@ public class DocumentController extends GenericForwardComposer<Window> {
 			btnDownloadDocText.setDisabled(false);
 			btnUpdateDoc.setDisabled(false);
 			btnAddPages.setDisabled(false);
-			lstAuthors.setModel(new BindingListModelList<Author>(currentDoc.getAuthors(), true));
+			lstAuthors.setModel(new ListModelList<Author>(currentDoc.getAuthors(), true));
 		}
 	}
 
-	public void onClick$btnLoadImage(Event event) {
+	@Listen("onClick = #btnLoadImage")
+	public void onClick$btnLoadImage() {
 		try {
 			LOG.debug("onClick$btnLoadImage");
 
@@ -417,32 +433,7 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnDownloadImageTextOld(Event event) {
-		LOG.debug("onClick$btnDownloadImageText");
-		try {
-			if (currentImage != null) {
-				ServletContext servletContext = Sessions.getCurrent().getWebApp().getServletContext();
-				String realPath = servletContext.getRealPath("/temp/");
-				File directory = new File(realPath);
-				LOG.debug(realPath);
-				File file = File.createTempFile("text", ".txt", directory);
-				LOG.debug(file.getName());
-				OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-
-				DocumentObserver textGetter = new TextGetter(out, TextFormat.PLAIN);
-				textGetter.onImageComplete(currentImage);
-				out.flush();
-				out.close();
-
-				Executions.sendRedirect("/temp/" + file.getName());
-			}
-
-		} catch (Exception e) {
-			LOG.error("Failure in onClick$btnDownloadImageTextOld", e);
-			throw new RuntimeException(e);
-		}
-	}
-
+	@Listen("onClick = #btnAnalyseDoc")
 	public void onClick$btnAnalyseDoc(Event event) {
 		LOG.debug("onClick$btnAnalyseDoc");
 		try {
@@ -455,7 +446,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnDownloadDocText(Event event) {
+	@Listen("onClick = #btnDownloadDocText")
+	public void onClick$btnDownloadDocText() {
 		LOG.debug("onClick$btnDownloadDocText");
 		try {
 			if (currentDoc != null) {
@@ -469,7 +461,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnAddPages(Event event) {
+	@Listen("onClick = #btnAddPages")
+	public void onClick$btnAddPages() {
 		LOG.debug("onClick$btnAddPages");
 		try {
 			if (currentDoc != null) {
@@ -483,7 +476,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnDownloadImageText(Event event) {
+	@Listen("onClick = #btnDownloadImageText")
+	public void onClick$btnDownloadImageText() {
 		LOG.debug("onClick$btnDownloadImageText");
 		try {
 			if (currentImage != null) {
@@ -497,7 +491,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnDeleteImage(Event event) {
+	@Listen("onClick = #btnDeleteImage")
+	public void onClick$btnDeleteImage() {
 		LOG.debug("onClick$btnDeleteImage");
 		try {
 			if (currentDoc != null && currentImage != null) {
@@ -538,7 +533,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnUpdateDoc(Event event) {
+	@Listen("onClick = #btnUpdateDoc")
+	public void onClick$btnUpdateDoc() {
 		try {
 			LOG.debug("onClick$btnUpdateDoc");
 			Window winUpdateDoc = (Window) Path.getComponent("//pgDocs/winUpdateDocument");
@@ -557,7 +553,8 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
-	public void onClick$btnNewDoc(Event event) {
+	@Listen("onClick = #btnNewDoc")
+	public void onClick$btnNewDoc() {
 		try {
 			LOG.debug("onClick$btnNewDoc");
 			Window winUpdateDoc = (Window) Path.getComponent("//pgDocs/winUpdateDocument");
@@ -600,4 +597,15 @@ public class DocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	public static final class AuthorListItemRenderer implements ListitemRenderer<Author> {
+
+		@Override
+		public void render(Listitem item, Author author, int index) throws Exception {
+			Listcell listcell1 = new Listcell(author.getFullName());
+			Listcell listcell2 = new Listcell(author.getFullNameLocal());
+			item.getChildren().add(listcell1);
+			item.getChildren().add(listcell2);
+		}
+
+	}
 }

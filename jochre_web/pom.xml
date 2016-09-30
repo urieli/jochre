@@ -92,32 +92,27 @@
 		<dependency>
 			<groupId>org.zkoss.zk</groupId>
 			<artifactId>zk</artifactId>
-			<version>6.0.2.1</version>
+			<version>8.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.zkoss.zk</groupId>
 			<artifactId>zkplus</artifactId>
-			<version>6.0.2.1</version>
+			<version>8.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.zkoss.zk</groupId>
 			<artifactId>zul</artifactId>
-			<version>6.0.2.1</version>
+			<version>8.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.zkoss.zk</groupId>
 			<artifactId>zhtml</artifactId>
-			<version>6.0.2.1</version>
+			<version>8.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.zkoss.theme</groupId>
-			<artifactId>breeze</artifactId>
-			<version>5.0.11</version>
-		</dependency>
-		<dependency>
-			<groupId>org.zkoss.zkforge</groupId>
-			<artifactId>bwcaptcha</artifactId>
-			<version>1.0</version>
+			<artifactId>zktheme</artifactId>
+			<version>8.0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.joliciel.jochre</groupId>
