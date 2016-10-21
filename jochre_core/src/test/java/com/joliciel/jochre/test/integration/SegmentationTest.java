@@ -176,11 +176,13 @@ public class SegmentationTest {
 			}
 
 			Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
-			segmenter.setDrawSegmentation(true);
 			segmenter.segment();
 
-			BufferedImage segmentedImage = segmenter.getSegmentedImage();
-			ImageIO.write(segmentedImage, "PNG", new File("data/" + imageName + "_seg.png"));
+			if (segmenter.isDrawSegmentation()) {
+				BufferedImage segmentedImage = segmenter.getSegmentedImage();
+				File tempDir = new File(System.getProperty("java.io.tmpdir"));
+				ImageIO.write(segmentedImage, "PNG", new File(tempDir, imageName + "_seg.png"));
+			}
 
 			JochreImage jochreImage = sourceImage;
 			int i = 0;
