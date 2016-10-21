@@ -50,6 +50,7 @@ import com.joliciel.jochre.stats.MeanAbsoluteDeviation;
 import com.joliciel.talismane.utils.Monitorable;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
+import com.typesafe.config.Config;
 
 /**
  * Takes a SourceImage and converts it into an JochreImage, segmented into
@@ -73,6 +74,8 @@ public class Segmenter implements Monitorable {
 	public Segmenter(SourceImage sourceImage, JochreSession jochreSession) {
 		this.sourceImage = sourceImage;
 		this.jochreSession = jochreSession;
+		Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
+		drawSegmentation = segmenterConfig.getBoolean("draw-segmented-image");
 	}
 
 	/**
