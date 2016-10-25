@@ -55,7 +55,8 @@ public class DefaultLinguistics implements Linguistics {
 			if (punct.length() != 1)
 				throw new RuntimeException("valid-character: " + punct + " longer than 1 character");
 			punctuation.add(punct.charAt(0));
-			validCharacters.add(punct.charAt(0));
+			if (validCharacters.size() > 0)
+				validCharacters.add(punct.charAt(0));
 		}
 
 		validLetters = new TreeSet<>();

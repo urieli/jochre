@@ -35,7 +35,8 @@ public class FullLetterValidator implements LetterValidator {
 
 	@Override
 	public boolean validate(String letter) {
-		return (letter.length() == 0 || jochreSession.getLinguistics().getValidLetters().contains(letter));
+		return (letter.length() == 0 || (jochreSession.getLinguistics().getValidCharacters().size()>0
+				&& jochreSession.getLinguistics().getValidLetters().contains(letter)));
 	}
 
 }
