@@ -228,7 +228,7 @@ public class Jochre {
 			argMap.put(argName, argValue);
 		}
 
-		Jochre jochre = new Jochre();
+		Jochre jochre = new Jochre(ConfigFactory.load(), argMap);
 		jochre.execute(argMap);
 	}
 
