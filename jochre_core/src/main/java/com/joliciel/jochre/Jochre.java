@@ -422,6 +422,8 @@ public class Jochre {
 				criteria.setDocumentId(docId);
 				criteria.setDocumentIds(documentSet);
 			}
+			if (LOG.isDebugEnabled())
+				LOG.debug(criteria.getAttributes().toString());
 
 			if (docGroupPath != null) {
 				File docGroupFile = new File(docGroupPath);

@@ -22,12 +22,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 
 public abstract class JochreCorpusReader {
+	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusReader.class);
+
 	private List<JochreImage> images = null;
 
 	private CorpusSelectionCriteria selectionCriteria = null;
@@ -84,6 +89,13 @@ public abstract class JochreCorpusReader {
 						}
 					}
 					images.add(image);
+				}
+			}
+			
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Added images: ");
+				for (JochreImage image : images) {
+					LOG.debug("Image " + image.getId() + ", page " + image.getPageId() + ", doc " + image.getPage().getDocumentId() + ", status: " + image.getImageStatus().name());
 				}
 			}
 		}
