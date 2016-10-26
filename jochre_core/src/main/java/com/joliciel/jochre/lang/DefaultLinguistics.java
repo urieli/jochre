@@ -29,6 +29,7 @@ public class DefaultLinguistics implements Linguistics {
 
 	private boolean leftToRight = false;
 	private boolean leftToRightChecked = false;
+	private boolean characterValidationActive = false;
 	private JochreSession jochreSession;
 
 	public DefaultLinguistics() {
@@ -48,6 +49,8 @@ public class DefaultLinguistics implements Linguistics {
 				throw new RuntimeException("valid-character: " + validCharacter + " longer than 1 character");
 			validCharacters.add(validCharacter.charAt(0));
 		}
+		if (validCharacters.size()>0)
+			characterValidationActive = true;
 
 		List<String> punctuationList = linguisticsConfig.getStringList("punctuation");
 		punctuation = new TreeSet<>();
@@ -64,6 +67,11 @@ public class DefaultLinguistics implements Linguistics {
 		if (validCharacters.size() > 0)
 			validLetters.addAll(linguisticsConfig.getStringList("punctuation"));
 		validLetters.addAll(dualCharacterLetters);
+		
+		LOG.debug("characterValidationActive: " + characterValidationActive);
+		LOG.debug("validLetters: " + validLetters.toString());
+		LOG.debug("validCharacters: " + validCharacters.toString());
+		LOG.debug("dualCharacterLetters: " + dualCharacterLetters.toString());
 	}
 
 	@Override
@@ -84,6 +92,11 @@ public class DefaultLinguistics implements Linguistics {
 	@Override
 	public Set<Character> getPunctuation() {
 		return punctuation;
+	}
+
+	@Override
+	public boolean isCharacterValidationActive() {
+		return characterValidationActive;
 	}
 
 	@Override
