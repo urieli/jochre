@@ -102,4 +102,9 @@ public class UnknownWordListWriter implements DocumentObserver {
 	@Override
 	public void onDocumentComplete(JochreDocument jochreDocument) {
 	}
+
+	@Override
+	public void onAnalysisComplete() {
+	}
+
 }

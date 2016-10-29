@@ -70,4 +70,6 @@ public interface SourceFileProcessor {
 	 * */
 	public JochreImage onImageFound(JochrePage jochrePage, BufferedImage image, String imageName,
 			int imageIndex);
+	
+	public void onAnalysisComplete();
 }

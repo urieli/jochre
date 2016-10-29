@@ -63,5 +63,9 @@ public abstract class AbstractExporter implements DocumentObserver {
 	}
 
 	protected abstract void onDocumentCompleteInternal(JochreDocument jochreDocument);
+	
+	@Override
+	public void onAnalysisComplete() {
+	}
 
 }

@@ -113,4 +113,9 @@ public class JochrePageByPageExporter implements DocumentObserver {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Override
+	public void onAnalysisComplete() {
+	}
+	
 }

@@ -148,6 +148,12 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			observer.onDocumentComplete(doc);
 	}
 
+	public void onAnalysisComplete() {
+		LOG.debug("JochreDocumentGeneratorImpl.onAnalysisComplete");
+		for (DocumentObserver observer : documentObservers)
+			observer.onAnalysisComplete();
+	}
+	
 	@Override
 	public JochreDocument getDocument() {
 		return this.doc;

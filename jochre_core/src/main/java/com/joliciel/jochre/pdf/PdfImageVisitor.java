@@ -75,6 +75,7 @@ public class PdfImageVisitor extends AbstractPdfImageVisitor implements Runnable
 			}
 
 			this.documentProcessor.onDocumentComplete(jochreDocument);
+			this.documentProcessor.onAnalysisComplete();
 			if (this.currentMonitor != null) {
 				currentMonitor.setFinished(true);
 			}

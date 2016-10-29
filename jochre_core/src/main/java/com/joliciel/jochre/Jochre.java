@@ -1323,6 +1323,11 @@ public class Jochre {
 		public void onDocumentComplete(JochreDocument doc) {
 			// nothing to do here
 		}
+		
+		@Override
+		public void onAnalysisComplete() {
+			// nothing to do here
+		}
 
 		@Override
 		public JochreDocument getDocument() {

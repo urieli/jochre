@@ -130,4 +130,5 @@ public class AbbyyFineReader8Exporter extends AbstractExporter implements Docume
 			throw new RuntimeException(e);
 		}
 	}
+	
 }
