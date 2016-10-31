@@ -1,4 +1,5 @@
-jochre
-======
+![Jochre Logo](https://raw.githubusercontent.com/wiki/urieli/jochre/images/jochreLogo300px.png)
 
-Java Optical CHaracter Recognition (with default implementation available for Yiddish)
+Jochre is an OCR package based on supervised machine learning techniques. It has been applied to several languages, including Yiddish, Occitan and Alsacien.
+
+More information can be found on the [wiki](https://github.com/urieli/jochre/wiki).
