@@ -14,8 +14,9 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.MouseEvent;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Div;
@@ -45,12 +46,15 @@ public class SplitController extends GenericForwardComposer<Window> {
 
 	private User currentUser;
 
-	AnnotateDataBinder binder;
-
+	@Wire
 	Window winSplits;
+	@Wire
 	Grid splitGrid;
+	@Wire
 	Rows splitGridRows;
+	@Wire
 	Button btnSave;
+	@Wire
 	Button btnDone;
 	List<Shape> shapesToSplit = null;
 
@@ -68,9 +72,6 @@ public class SplitController extends GenericForwardComposer<Window> {
 		currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
 		if (currentUser == null)
 			Executions.sendRedirect("login.zul");
-
-		binder = new AnnotateDataBinder(window);
-		binder.loadAll();
 
 		GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
 		shapesToSplit = graphicsDao.findShapesToSplit(jochreSession.getLocale());
@@ -204,6 +205,7 @@ public class SplitController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onClick = #btnSave")
 	public void onClick$btnSave(Event event) {
 		try {
 			LOG.debug("onClick$btnSave");
@@ -218,6 +220,7 @@ public class SplitController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnDone")
 	public void onClick$btnDone(Event event) {
 		try {
 			LOG.debug("onClick$btnDone");

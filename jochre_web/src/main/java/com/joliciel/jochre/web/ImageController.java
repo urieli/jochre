@@ -19,8 +19,9 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.MouseEvent;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Cell;
 import org.zkoss.zul.Checkbox;
@@ -70,19 +71,29 @@ public class ImageController extends GenericForwardComposer<Window> {
 	private boolean currentImageOwner;
 	private Map<RowOfShapes, Textbox> currentTextBoxes;
 
-	AnnotateDataBinder binder;
-
+	@Wire
 	Window winJochreImage;
+	@Wire
 	Tree docTree;
+	@Wire
 	Grid rowGrid;
+	@Wire
 	Button btnSave;
+	@Wire
 	Button btnSave2;
+	@Wire
 	Button btnSaveAndExit;
+	@Wire
 	Button btnSaveAndExit2;
+	@Wire
 	Script hebrewAccentsSpan;
+	@Wire
 	Combobox cmbStatus;
+	@Wire
 	Label lblImageStatus;
+	@Wire
 	Combobox cmbOwner;
+	@Wire
 	Label lblOwner;
 
 	public ImageController() throws ReflectiveOperationException {
@@ -185,9 +196,6 @@ public class ImageController extends GenericForwardComposer<Window> {
 		lblImageStatus.setValue(Labels.getLabel("ImageStatus." + currentImage.getImageStatus().getCode()));
 
 		reloadRowGrid();
-
-		binder = new AnnotateDataBinder(window);
-		binder.loadAll();
 	}
 
 	void reloadRowGrid() {
@@ -564,6 +572,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onClick = #btnSaveAndExit")
 	public void onClick$btnSaveAndExit(Event event) {
 		try {
 			LOG.debug("onClick$btnExitWithoutSave");
@@ -575,10 +584,12 @@ public class ImageController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnSaveAndExit2")
 	public void onClick$btnSaveAndExit2(Event event) {
 		this.onClick$btnSaveAndExit(event);
 	}
 
+	@Listen("onClick = #btnSave")
 	public void onClick$btnSave(Event event) {
 		LOG.debug("onClick$btnSave");
 		this.save();
@@ -645,10 +656,12 @@ public class ImageController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnSave2")
 	public void onClick$btnSave2(Event event) {
 		this.onClick$btnSave(event);
 	}
 
+	@Listen("onClick = #btnExitWithoutSave")
 	public void onClick$btnExitWithoutSave(Event event) {
 		try {
 			LOG.debug("onClick$btnExitWithoutSave");
@@ -659,6 +672,7 @@ public class ImageController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnExitWithoutSave2")
 	public void onClick$btnExitWithoutSave2(Event event) {
 		this.onClick$btnExitWithoutSave(event);
 	}

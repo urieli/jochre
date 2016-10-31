@@ -11,6 +11,8 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Label;
@@ -31,10 +33,15 @@ public class LoginController extends GenericForwardComposer<Window> {
 
 	private final JochreSession jochreSession;
 
+	@Wire
 	Window winLogin;
+	@Wire
 	Button btnLogin;
+	@Wire
 	Textbox txtUserName;
+	@Wire
 	Textbox txtPassword;
+	@Wire
 	Label lblError;
 
 	public LoginController() throws ReflectiveOperationException {
@@ -65,6 +72,7 @@ public class LoginController extends GenericForwardComposer<Window> {
 		LOG.debug("time since last failed login: " + diff);
 	}
 
+	@Listen("onClick = #btnLogin")
 	public void onClick$btnLogin(Event event) {
 		try {
 			LOG.debug("onClick$btnLogin");

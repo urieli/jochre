@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Html;
@@ -14,8 +16,11 @@ public class HomeController extends GenericForwardComposer<Window> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(HomeController.class);
 
+	@Wire
 	Window winJochreHome;
+	@Wire
 	Button btnLogin;
+	@Wire
 	Html htmlContent;
 
 	public HomeController() {
@@ -28,6 +33,7 @@ public class HomeController extends GenericForwardComposer<Window> {
 		htmlContent.setContent(JochreProperties.getWelcomeText());
 	}
 
+	@Listen("onClick = #btnLogin")
 	public void onClick$btnLogin(Event event) {
 		try {
 			LOG.debug("onClick$btnLogin");
