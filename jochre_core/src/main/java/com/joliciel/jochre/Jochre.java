@@ -43,8 +43,6 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -291,6 +289,7 @@ public class Jochre {
 		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
 		String docSelectionPath = null;
 		List<String> featureDescriptors = null;
+		boolean includeDate = false;
 
 		for (Entry<String, String> argMapEntry : argMap.entrySet()) {
 			String argName = argMapEntry.getKey();
@@ -394,6 +393,8 @@ public class Jochre {
 						LOG.debug(descriptor);
 					}
 				}
+			} else if (argName.equals("includeDate")) {
+				includeDate = argValue.equalsIgnoreCase("true");
 			} else {
 				throw new RuntimeException("Unknown argument: " + argName);
 			}
@@ -469,7 +470,7 @@ public class Jochre {
 					baseName = this.getBaseName(inFile);
 				}
 
-				observers = this.getObservers(outputFormats, baseName, outputDir);
+				observers = this.getObservers(outputFormats, baseName, outputDir, includeDate);
 			}
 
 			if (userFriendlyName.length() == 0)
@@ -555,7 +556,7 @@ public class Jochre {
 						String baseName = this.getBaseName(pdfFile);
 						File analysisDir = new File(inDir, baseName);
 						analysisDir.mkdirs();
-						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir);
+						List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, includeDate);
 
 						this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, pdfObservers);
 
@@ -1369,101 +1370,48 @@ public class Jochre {
 		this.userId = userId;
 	}
 
-	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir) {
+	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir, boolean includeDate) {
 		try {
 			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 
 			for (OutputFormat outputFormat : outputFormats) {
 				switch (outputFormat) {
 				case AbbyyFineReader8: {
-					Writer analysisFileWriter = null;
-					String outputFileName = baseName + "_abbyy8.xml";
-					File analysisFile = new File(outputDir, outputFileName);
-					analysisFile.delete();
-					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
-
-					DocumentObserver observer = new AbbyyFineReader8Exporter(analysisFileWriter);
+					AbbyyFineReader8Exporter observer = new AbbyyFineReader8Exporter(outputDir);
+					observer.setBaseName(baseName);
+					observer.setIncludeDate(includeDate);
 					observers.add(observer);
 					break;
 				}
-				case Alto3: {
-					if (baseName != null) {
-						Writer analysisFileWriter = null;
-						String outputFileName = baseName + "_alto3.xml";
-						File analysisFile = new File(outputDir, outputFileName);
-						analysisFile.delete();
-						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
-
-						DocumentObserver observer = new AltoXMLExporter(analysisFileWriter);
-						observers.add(observer);
-					} else {
-						DocumentObserver observer = new AltoXMLExporter(outputDir);
-						observers.add(observer);
-					}
-					break;
-				}
+				case Alto3:
 				case Alto3zip: {
-					String outputFileName = baseName + ".zip";
-					File zipFile = new File(outputDir, outputFileName);
-					zipFile.delete();
-
-					ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile, false));
-					ZipEntry zipEntry = new ZipEntry(baseName + "_alto3.xml");
-					zos.putNextEntry(zipEntry);
-					Writer zipWriter = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
-
-					DocumentObserver observer = new AltoXMLExporter(zipWriter);
+					boolean zipped = (outputFormat == OutputFormat.Alto3zip);
+					AltoXMLExporter observer = new AltoXMLExporter(outputDir, zipped);
+					observer.setBaseName(baseName);
+					observer.setIncludeDate(includeDate);
 					observers.add(observer);
 					break;
 				}
 				case HTML: {
-					if (baseName != null) {
-						Writer htmlWriter = null;
-						String htmlFileName = baseName + ".html";
-
-						File htmlFile = new File(outputDir, htmlFileName);
-						htmlFile.delete();
-						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
-
-						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.XHTML, jochreSession.getLexicon());
-						observers.add(textGetter);
-					} else {
-						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.XHTML, jochreSession.getLexicon());
-						observers.add(textGetter);
-					}
+					TextGetter textGetter = new TextGetter(outputDir, TextFormat.XHTML, jochreSession.getLexicon());
+					textGetter.setBaseName(baseName);
+					textGetter.setIncludeDate(includeDate);
+					observers.add(textGetter);
+					
 					break;
 				}
 				case Text: {
-					if (baseName != null) {
-						Writer htmlWriter = null;
-						String htmlFileName = baseName + ".txt";
-
-						File htmlFile = new File(outputDir, htmlFileName);
-						htmlFile.delete();
-						htmlWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(htmlFile, true), "UTF8"));
-
-						DocumentObserver textGetter = new TextGetter(htmlWriter, TextFormat.PLAIN, jochreSession.getLexicon());
-						observers.add(textGetter);
-					} else {
-						DocumentObserver textGetter = new TextGetter(outputDir, TextFormat.PLAIN, jochreSession.getLexicon());
-						observers.add(textGetter);
-					}
+					TextGetter textGetter = new TextGetter(outputDir, TextFormat.PLAIN, jochreSession.getLexicon());
+					textGetter.setBaseName(baseName);
+					textGetter.setIncludeDate(includeDate);
+					observers.add(textGetter);
 					break;
 				}
 				case GuessText: {
-					if (baseName != null) {
-						Writer analysisFileWriter = null;
-						String outputFileName = baseName + "_guess.txt";
-						File analysisFile = new File(outputDir, outputFileName);
-						analysisFile.delete();
-						analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
-
-						DocumentObserver observer = new TextExporter(analysisFileWriter);
-						observers.add(observer);
-					} else {
-						DocumentObserver observer = new TextExporter(outputDir);
-						observers.add(observer);
-					}
+					TextExporter observer = new TextExporter(outputDir);
+					observer.setBaseName(baseName);
+					observer.setIncludeDate(includeDate);
+					observers.add(observer);
 					break;
 				}
 				case ImageExtractor: {
@@ -1472,13 +1420,9 @@ public class Jochre {
 					break;
 				}
 				case Jochre: {
-					Writer analysisFileWriter = null;
-					String outputFileName = baseName + ".xml";
-					File analysisFile = new File(outputDir, outputFileName);
-					analysisFile.delete();
-					analysisFileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(analysisFile, true), "UTF8"));
-
-					DocumentObserver observer = new JochreXMLExporter(analysisFileWriter);
+					JochreXMLExporter observer = new JochreXMLExporter(outputDir);
+					observer.setBaseName(baseName);
+					observer.setIncludeDate(includeDate);
 					observers.add(observer);
 					break;
 				}

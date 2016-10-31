@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,13 +30,8 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
 	private static final Logger LOG = LoggerFactory.getLogger(AltoXMLExporter.class);
 	private Template template;
 
-	public AltoXMLExporter(File outDir) {
-		super(outDir, "_alto3.xml");
-		this.initialize();
-	}
-
-	public AltoXMLExporter(Writer writer) {
-		super(writer);
+	public AltoXMLExporter(File outDir, boolean zipped) {
+		super(outDir, zipped ? "_alto3.zip" : "_alto3.xml");
 		this.initialize();
 	}
 
