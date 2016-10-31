@@ -126,7 +126,6 @@ import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -254,8 +253,6 @@ public class Jochre {
 			JochreLogUtils.configureLogging(logConfigPath);
 		}
 
-		File performanceConfigFile = null;
-
 		String command = "";
 		String inFilePath = "";
 		String inDirPath = null;
@@ -364,8 +361,6 @@ public class Jochre {
 				docGroupPath = argValue;
 			else if (argName.equals("suffix"))
 				suffix = argValue;
-			else if (argName.equals("performanceConfigFile"))
-				performanceConfigFile = new File(argValue);
 			else if (argName.equals("includeBeam"))
 				includeBeam = argValue.equalsIgnoreCase("true");
 			else if (argName.equals("outputFormat")) {
@@ -394,7 +389,6 @@ public class Jochre {
 		}
 
 		long startTime = System.currentTimeMillis();
-		PerformanceMonitor.start(performanceConfigFile);
 		try {
 
 			this.setUserId(userId);
@@ -579,7 +573,6 @@ public class Jochre {
 			LOG.error("An error occurred while running Jochre", e);
 			throw e;
 		} finally {
-			PerformanceMonitor.end();
 			long duration = System.currentTimeMillis() - startTime;
 			LOG.info("Duration (ms):" + duration);
 		}

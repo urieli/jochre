@@ -40,11 +40,9 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class SplitFeatureParser extends AbstractFeatureParser<Split> {
 	private static final Logger LOG = LoggerFactory.getLogger(SplitFeatureParser.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(SplitFeatureParser.class);
 
 	public SplitFeatureParser() {
 		super();
@@ -83,34 +81,29 @@ public class SplitFeatureParser extends AbstractFeatureParser<Split> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<SplitFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
-		MONITOR.startTask("parseDescriptor");
-		try {
-			List<Feature<Split, ?>> mergeFeatures = this.parse(functionDescriptor);
-			List<SplitFeature<?>> wrappedFeatures = new ArrayList<SplitFeature<?>>();
-			for (Feature<Split, ?> mergeFeature : mergeFeatures) {
-				SplitFeature<?> wrappedFeature = null;
-				if (mergeFeature instanceof SplitFeature) {
-					wrappedFeature = (SplitFeature<?>) mergeFeature;
-				} else if (mergeFeature instanceof BooleanFeature) {
-					wrappedFeature = new SplitBooleanFeatureWrapper((Feature<Split, Boolean>) mergeFeature);
-				} else if (mergeFeature instanceof StringFeature) {
-					wrappedFeature = new SplitStringFeatureWrapper((Feature<Split, String>) mergeFeature);
-				} else if (mergeFeature instanceof IntegerFeature) {
-					wrappedFeature = new SplitIntegerFeatureWrapper((Feature<Split, Integer>) mergeFeature);
-				} else if (mergeFeature instanceof DoubleFeature) {
-					wrappedFeature = new SplitDoubleFeatureWrapper((Feature<Split, Double>) mergeFeature);
-				} else {
-					wrappedFeature = new SplitFeatureWrapper(mergeFeature);
-				}
-				wrappedFeatures.add(wrappedFeature);
+		List<Feature<Split, ?>> mergeFeatures = this.parse(functionDescriptor);
+		List<SplitFeature<?>> wrappedFeatures = new ArrayList<SplitFeature<?>>();
+		for (Feature<Split, ?> mergeFeature : mergeFeatures) {
+			SplitFeature<?> wrappedFeature = null;
+			if (mergeFeature instanceof SplitFeature) {
+				wrappedFeature = (SplitFeature<?>) mergeFeature;
+			} else if (mergeFeature instanceof BooleanFeature) {
+				wrappedFeature = new SplitBooleanFeatureWrapper((Feature<Split, Boolean>) mergeFeature);
+			} else if (mergeFeature instanceof StringFeature) {
+				wrappedFeature = new SplitStringFeatureWrapper((Feature<Split, String>) mergeFeature);
+			} else if (mergeFeature instanceof IntegerFeature) {
+				wrappedFeature = new SplitIntegerFeatureWrapper((Feature<Split, Integer>) mergeFeature);
+			} else if (mergeFeature instanceof DoubleFeature) {
+				wrappedFeature = new SplitDoubleFeatureWrapper((Feature<Split, Double>) mergeFeature);
+			} else {
+				wrappedFeature = new SplitFeatureWrapper(mergeFeature);
 			}
-			return wrappedFeatures;
-		} finally {
-			MONITOR.endTask();
+			wrappedFeatures.add(wrappedFeature);
 		}
+		return wrappedFeatures;
 	}
 
-	private static class SplitFeatureWrapper<T> extends AbstractFeature<Split, T> implements SplitFeature<T>, FeatureWrapper<Split, T> {
+	private static class SplitFeatureWrapper<T> extends AbstractFeature<Split, T>implements SplitFeature<T>, FeatureWrapper<Split, T> {
 		private Feature<Split, T> wrappedFeature = null;
 
 		public SplitFeatureWrapper(Feature<Split, T> wrappedFeature) {
@@ -136,25 +129,25 @@ public class SplitFeatureParser extends AbstractFeatureParser<Split> {
 		}
 	}
 
-	private class SplitBooleanFeatureWrapper extends SplitFeatureWrapper<Boolean> implements BooleanFeature<Split> {
+	private class SplitBooleanFeatureWrapper extends SplitFeatureWrapper<Boolean>implements BooleanFeature<Split> {
 		public SplitBooleanFeatureWrapper(Feature<Split, Boolean> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class SplitStringFeatureWrapper extends SplitFeatureWrapper<String> implements StringFeature<Split> {
+	private class SplitStringFeatureWrapper extends SplitFeatureWrapper<String>implements StringFeature<Split> {
 		public SplitStringFeatureWrapper(Feature<Split, String> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class SplitDoubleFeatureWrapper extends SplitFeatureWrapper<Double> implements DoubleFeature<Split> {
+	private class SplitDoubleFeatureWrapper extends SplitFeatureWrapper<Double>implements DoubleFeature<Split> {
 		public SplitDoubleFeatureWrapper(Feature<Split, Double> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class SplitIntegerFeatureWrapper extends SplitFeatureWrapper<Integer> implements IntegerFeature<Split> {
+	private class SplitIntegerFeatureWrapper extends SplitFeatureWrapper<Integer>implements IntegerFeature<Split> {
 		public SplitIntegerFeatureWrapper(Feature<Split, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}

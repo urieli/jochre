@@ -40,11 +40,9 @@ import com.joliciel.talismane.machineLearning.ClassificationEvent;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class JochreLetterEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreLetterEventStream.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreLetterEventStream.class);
 
 	private final BoundaryDetector boundaryDetector;
 
@@ -85,88 +83,69 @@ public class JochreLetterEventStream implements ClassificationEventStream {
 
 	@Override
 	public ClassificationEvent next() {
-		MONITOR.startTask("next");
-		try {
-			ClassificationEvent event = null;
-			if (this.hasNext()) {
-				Shape shape = shapeInSequence.getShape();
-				LOG.debug("next event, shape: " + shape);
-				LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
+		ClassificationEvent event = null;
+		if (this.hasNext()) {
+			Shape shape = shapeInSequence.getShape();
+			LOG.debug("next event, shape: " + shape);
+			LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
 
-				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
-				MONITOR.startTask("analyse features");
-				try {
-					for (LetterFeature<?> feature : features) {
-						MONITOR.startTask(feature.getName());
-						try {
-							RuntimeEnvironment env = new RuntimeEnvironment();
-							FeatureResult<?> featureResult = feature.check(context, env);
-							if (featureResult != null) {
-								featureResults.add(featureResult);
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(featureResult.toString());
-								}
-							}
-						} finally {
-							MONITOR.endTask();
-						}
+			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+			// analyse features
+			for (LetterFeature<?> feature : features) {
+				RuntimeEnvironment env = new RuntimeEnvironment();
+				FeatureResult<?> featureResult = feature.check(context, env);
+				if (featureResult != null) {
+					featureResults.add(featureResult);
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(featureResult.toString());
 					}
-				} finally {
-					MONITOR.endTask();
 				}
-
-				String outcome = shape.getLetter();
-
-				event = new ClassificationEvent(featureResults, outcome);
-
-				history.getLetters().add(outcome);
-				// set shape to null so that hasNext can retrieve the next one.
-				this.shapeInSequence = null;
 			}
-			return event;
-		} finally {
-			MONITOR.endTask();
+
+			String outcome = shape.getLetter();
+
+			event = new ClassificationEvent(featureResults, outcome);
+
+			history.getLetters().add(outcome);
+			// set shape to null so that hasNext can retrieve the next one.
+			this.shapeInSequence = null;
 		}
+		return event;
 	}
 
 	@Override
 	public boolean hasNext() {
-		MONITOR.startTask("hasNext");
-		try {
-			this.initialiseStream();
+		this.initialiseStream();
 
-			while (shapeInSequence == null && shapeSequence != null) {
-				while (shapeInSequence == null && shapeIndex < shapeSequence.size()) {
-					shapeInSequence = shapeSequence.get(shapeIndex);
-					shapeIndex++;
+		while (shapeInSequence == null && shapeSequence != null) {
+			while (shapeInSequence == null && shapeIndex < shapeSequence.size()) {
+				shapeInSequence = shapeSequence.get(shapeIndex);
+				shapeIndex++;
 
-					Shape shape = shapeInSequence.getShape();
-					String letter = shape.getLetter();
-					if (!letterValidator.validate(letter)) {
-						// if there's an invalid letter, skip the rest of this
-						// group
-						// note we allow empty letters (which is how we indicate
-						// ink smudges
-						// in the text)
-						LOG.debug("Invalid letter for shape " + shapeInSequence.getOriginalShapes().get(0).getId() + ": " + letter);
-						invalidLetterCount++;
-						shapeInSequence = null;
-						break;
-					}
-				}
-
-				if (shapeInSequence == null) {
-					this.getNextGroup();
+				Shape shape = shapeInSequence.getShape();
+				String letter = shape.getLetter();
+				if (!letterValidator.validate(letter)) {
+					// if there's an invalid letter, skip the rest of this
+					// group
+					// note we allow empty letters (which is how we indicate
+					// ink smudges
+					// in the text)
+					LOG.debug("Invalid letter for shape " + shapeInSequence.getOriginalShapes().get(0).getId() + ": " + letter);
+					invalidLetterCount++;
+					shapeInSequence = null;
+					break;
 				}
 			}
 
 			if (shapeInSequence == null) {
-				LOG.debug("invalidLetterCount: " + invalidLetterCount);
+				this.getNextGroup();
 			}
-			return shapeInSequence != null;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		if (shapeInSequence == null) {
+			LOG.debug("invalidLetterCount: " + invalidLetterCount);
+		}
+		return shapeInSequence != null;
 	}
 
 	void getNextGroup() {

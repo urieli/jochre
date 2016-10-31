@@ -37,12 +37,10 @@ import com.joliciel.talismane.machineLearning.ClassificationEvent;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.typesafe.config.Config;
 
 public class JochreMergeEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreMergeEventStream.class);
 
 	private SplitCandidateFinder splitCandidateFinder;
 
@@ -84,106 +82,87 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 
 	@Override
 	public ClassificationEvent next() {
-		MONITOR.startTask("next");
-		try {
-			ClassificationEvent event = null;
-			if (this.hasNext()) {
-				LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
+		ClassificationEvent event = null;
+		if (this.hasNext()) {
+			LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
 
-				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-				MONITOR.startTask("analyse features");
-				try {
-					for (MergeFeature<?> feature : mergeFeatures) {
-						MONITOR.startTask(feature.getName());
-						try {
-							RuntimeEnvironment env = new RuntimeEnvironment();
-							FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-							if (featureResult != null) {
-								featureResults.add(featureResult);
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(featureResult.toString());
-								}
-							}
-						} finally {
-							MONITOR.endTask();
+			// analyse features
+			for (MergeFeature<?> feature : mergeFeatures) {
+					RuntimeEnvironment env = new RuntimeEnvironment();
+					FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
+					if (featureResult != null) {
+						featureResults.add(featureResult);
+						if (LOG.isTraceEnabled()) {
+							LOG.trace(featureResult.toString());
 						}
 					}
-				} finally {
-					MONITOR.endTask();
-				}
-
-				MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
-				boolean shouldMerge = false;
-				if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
-					if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
-						shouldMerge = true;
-				} else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
-					if (mergeCandidate.getFirstShape().getLetter().length() == 0)
-						shouldMerge = true;
-				}
-				if (shouldMerge)
-					outcome = MergeOutcome.DO_MERGE;
-
-				if (outcome.equals(MergeOutcome.DO_MERGE))
-					yesCount++;
-				else
-					noCount++;
-
-				LOG.debug("Outcome: " + outcome);
-				event = new ClassificationEvent(featureResults, outcome.name());
-
-				// set mergeCandidate to null so that hasNext can retrieve the next one.
-				this.mergeCandidate = null;
 			}
-			return event;
-		} finally {
-			MONITOR.endTask();
+
+			MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
+			boolean shouldMerge = false;
+			if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
+				if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
+					shouldMerge = true;
+			} else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
+				if (mergeCandidate.getFirstShape().getLetter().length() == 0)
+					shouldMerge = true;
+			}
+			if (shouldMerge)
+				outcome = MergeOutcome.DO_MERGE;
+
+			if (outcome.equals(MergeOutcome.DO_MERGE))
+				yesCount++;
+			else
+				noCount++;
+
+			LOG.debug("Outcome: " + outcome);
+			event = new ClassificationEvent(featureResults, outcome.name());
+
+			// set mergeCandidate to null so that hasNext can retrieve the next one.
+			this.mergeCandidate = null;
 		}
+		return event;
 	}
 
 	@Override
 	public boolean hasNext() {
-		MONITOR.startTask("hasNext");
-		try {
-			this.initialiseStream();
+		this.initialiseStream();
 
-			while (mergeCandidate == null && group != null) {
-				if (shapeIndex < group.getShapes().size() - 1) {
-					Shape shape1 = group.getShapes().get(shapeIndex);
-					Shape shape2 = group.getShapes().get(shapeIndex + 1);
+		while (mergeCandidate == null && group != null) {
+			if (shapeIndex < group.getShapes().size() - 1) {
+				Shape shape1 = group.getShapes().get(shapeIndex);
+				Shape shape2 = group.getShapes().get(shapeIndex + 1);
 
-					ShapePair shapePair = new ShapePair(shape1, shape2);
-					double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
-					double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
-					if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
-						belowRatioCount++;
-						mergeCandidate = shapePair;
-					} else {
-						aboveRatioCount++;
-						mergeCandidate = null;
-					}
-					shapeIndex++;
+				ShapePair shapePair = new ShapePair(shape1, shape2);
+				double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
+				double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
+				if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
+					belowRatioCount++;
+					mergeCandidate = shapePair;
 				} else {
-					group = null;
-					shapeIndex = 0;
-					if (groupReader.hasNext())
-						group = groupReader.next();
+					aboveRatioCount++;
+					mergeCandidate = null;
 				}
+				shapeIndex++;
+			} else {
+				group = null;
+				shapeIndex = 0;
+				if (groupReader.hasNext())
+					group = groupReader.next();
 			}
-
-			if (mergeCandidate == null) {
-
-				LOG.debug("aboveRatioCount: " + aboveRatioCount);
-				LOG.debug("belowRatioCount: " + belowRatioCount);
-				LOG.debug("yesCount: " + yesCount);
-				LOG.debug("noCount: " + noCount);
-			}
-
-			return mergeCandidate != null;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		if (mergeCandidate == null) {
+
+			LOG.debug("aboveRatioCount: " + aboveRatioCount);
+			LOG.debug("belowRatioCount: " + belowRatioCount);
+			LOG.debug("yesCount: " + yesCount);
+			LOG.debug("noCount: " + noCount);
+		}
+
+		return mergeCandidate != null;
 	}
 
 	void initialiseStream() {

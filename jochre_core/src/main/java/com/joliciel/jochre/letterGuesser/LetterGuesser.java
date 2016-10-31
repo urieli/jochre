@@ -32,7 +32,6 @@ import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 /**
  * Guesses the letters for a given shape.
@@ -42,7 +41,6 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  */
 public class LetterGuesser {
 	private static final Logger LOG = LoggerFactory.getLogger(LetterGuesser.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterGuesser.class);
 
 	private static final double MIN_PROB_TO_STORE = 0.001;
 
@@ -66,70 +64,46 @@ public class LetterGuesser {
 	 * @return the best outcome for this shape.
 	 */
 	public String guessLetter(ShapeInSequence shapeInSequence, LetterSequence history) {
-		MONITOR.startTask("guessLetter");
-		try {
-			Shape shape = shapeInSequence.getShape();
-			if (LOG.isTraceEnabled())
-				LOG.trace("guessLetter, shape: " + shape);
+		Shape shape = shapeInSequence.getShape();
+		if (LOG.isTraceEnabled())
+			LOG.trace("guessLetter, shape: " + shape);
 
-			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-			MONITOR.startTask("analyse features");
-			try {
-				for (LetterFeature<?> feature : features) {
-					MONITOR.startTask(feature.getName());
-					try {
-						LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
-						RuntimeEnvironment env = new RuntimeEnvironment();
-						FeatureResult<?> featureResult = feature.check(context, env);
-						if (featureResult != null) {
-							featureResults.add(featureResult);
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(featureResult.toString());
-							}
-						}
-					} finally {
-						MONITOR.endTask();
-					}
+		// analyse features
+		for (LetterFeature<?> feature : features) {
+			LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
+			RuntimeEnvironment env = new RuntimeEnvironment();
+			FeatureResult<?> featureResult = feature.check(context, env);
+			if (featureResult != null) {
+				featureResults.add(featureResult);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(featureResult.toString());
 				}
-			} finally {
-				MONITOR.endTask();
 			}
-
-			List<Decision> letterGuesses = null;
-			MONITOR.startTask("decision maker");
-			try {
-				letterGuesses = decisionMaker.decide(featureResults);
-			} finally {
-				MONITOR.endTask();
-			}
-
-			String bestOutcome = null;
-			MONITOR.startTask("store outcomes");
-			try {
-				shape.getLetterGuesses().clear();
-
-				for (Decision letterGuess : letterGuesses) {
-					if (letterGuess.getProbability() >= MIN_PROB_TO_STORE) {
-						shape.getLetterGuesses().add(letterGuess);
-					}
-				}
-
-				bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
-			} finally {
-				MONITOR.endTask();
-			}
-
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Shape: " + shape);
-				LOG.trace("Letter: " + shape.getLetter());
-				LOG.trace("Best outcome: " + bestOutcome);
-			}
-
-			return bestOutcome;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		List<Decision> letterGuesses = decisionMaker.decide(featureResults);
+
+		// store outcomes
+		String bestOutcome = null;
+		shape.getLetterGuesses().clear();
+
+		for (Decision letterGuess : letterGuesses) {
+			if (letterGuess.getProbability() >= MIN_PROB_TO_STORE) {
+				shape.getLetterGuesses().add(letterGuess);
+			}
+		}
+
+		bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("Shape: " + shape);
+			LOG.trace("Letter: " + shape.getLetter());
+			LOG.trace("Best outcome: " + bestOutcome);
+		}
+
+		return bestOutcome;
 	}
 
 }

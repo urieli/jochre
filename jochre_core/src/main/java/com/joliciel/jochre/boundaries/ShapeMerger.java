@@ -31,7 +31,6 @@ import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 /**
  * Decides whether or not to merge two shapes into a single shape.
@@ -41,7 +40,6 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  */
 public class ShapeMerger {
 	private static final Logger LOG = LoggerFactory.getLogger(ShapeMerger.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
 	private final DecisionMaker decisionMaker;
 	private final Set<MergeFeature<?>> mergeFeatures;
@@ -55,58 +53,38 @@ public class ShapeMerger {
 	 * Given two sequential shape, returns the probability of a merge.
 	 */
 	public double checkMerge(Shape shape1, Shape shape2) {
-		MONITOR.startTask("checkMerge");
-		try {
-			ShapePair mergeCandidate = new ShapePair(shape1, shape2);
-			if (LOG.isTraceEnabled())
-				LOG.trace("mergeCandidate: " + mergeCandidate);
+		ShapePair mergeCandidate = new ShapePair(shape1, shape2);
+		if (LOG.isTraceEnabled())
+			LOG.trace("mergeCandidate: " + mergeCandidate);
 
-			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-			MONITOR.startTask("analyse features");
-			try {
-				for (MergeFeature<?> feature : mergeFeatures) {
-					MONITOR.startTask(feature.getName());
-					try {
-						RuntimeEnvironment env = new RuntimeEnvironment();
-						FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-						if (featureResult != null) {
-							featureResults.add(featureResult);
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(featureResult.toString());
-							}
-						}
-					} finally {
-						MONITOR.endTask();
-					}
-				}
-			} finally {
-				MONITOR.endTask();
-			}
-
-			List<Decision> decisions = null;
-			MONITOR.startTask("decision maker");
-			try {
-				decisions = decisionMaker.decide(featureResults);
-			} finally {
-				MONITOR.endTask();
-			}
-
-			double yesProb = 0.0;
-			for (Decision decision : decisions) {
-				if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
-					yesProb = decision.getProbability();
-					break;
+		// analyse features
+		for (MergeFeature<?> feature : mergeFeatures) {
+			RuntimeEnvironment env = new RuntimeEnvironment();
+			FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
+			if (featureResult != null) {
+				featureResults.add(featureResult);
+				if (LOG.isTraceEnabled()) {
+					LOG.trace(featureResult.toString());
 				}
 			}
-
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("yesProb: " + yesProb);
-			}
-			return yesProb;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		List<Decision> decisions = decisionMaker.decide(featureResults);
+
+		double yesProb = 0.0;
+		for (Decision decision : decisions) {
+			if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
+				yesProb = decision.getProbability();
+				break;
+			}
+		}
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("yesProb: " + yesProb);
+		}
+		return yesProb;
 	}
 
 	/**
