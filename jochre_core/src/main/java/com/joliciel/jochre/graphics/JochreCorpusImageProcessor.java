@@ -107,6 +107,10 @@ public class JochreCorpusImageProcessor extends JochreCorpusReader {
 			}
 			LOG.debug("completed doc: " + currentDoc);
 		}
+		
+		for (DocumentObserver observer : observers) {
+			observer.onAnalysisComplete();
+		}
 	}
 
 	public List<DocumentObserver> getObservers() {

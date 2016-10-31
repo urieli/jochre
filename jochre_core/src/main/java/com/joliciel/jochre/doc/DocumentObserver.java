@@ -27,4 +27,5 @@ public interface DocumentObserver {
 	public void onImageComplete(JochreImage jochreImage);
 	public void onPageComplete(JochrePage jochrePage);
 	public void onDocumentComplete(JochreDocument jochreDocument);
+	public void onAnalysisComplete();
 }

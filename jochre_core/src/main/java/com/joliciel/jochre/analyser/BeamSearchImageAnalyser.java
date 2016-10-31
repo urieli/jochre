@@ -378,8 +378,14 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	@Override
 	public void onDocumentComplete(JochreDocument jochreDocument) {
+	}
+
+	@Override
+	public void onAnalysisComplete() {
 		for (LetterGuessObserver observer : observers) {
 			observer.onFinish();
 		}
 	}
+	
+	
 }

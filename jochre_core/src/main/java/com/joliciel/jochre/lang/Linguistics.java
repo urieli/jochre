@@ -40,6 +40,12 @@ public interface Linguistics {
 	 * standard spelling) with the associated frequencies.
 	 */
 	public List<CountedOutcome<String>> getFrequencies(String word);
+	
+	/**
+	 * Is character validation active for the current configuration.
+	 * @return
+	 */
+	public boolean isCharacterValidationActive();
 
 	public Set<String> getValidLetters();
 

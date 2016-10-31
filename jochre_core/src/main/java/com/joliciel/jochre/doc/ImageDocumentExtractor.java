@@ -97,6 +97,7 @@ public class ImageDocumentExtractor implements Monitorable, Runnable {
 				this.documentProcessor.onPageComplete(page);
 			}
 			this.documentProcessor.onDocumentComplete(doc);
+			this.documentProcessor.onAnalysisComplete();
 
 			if (currentMonitor != null)
 				currentMonitor.setFinished(true);
