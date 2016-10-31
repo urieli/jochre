@@ -38,11 +38,11 @@ import com.typesafe.config.Config;
 public class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	private final ShapeSplitter shapeSplitter;
 	private final ShapeMerger shapeMerger;
-	private int beamWidth = 10;
-	private double minWidthRatioForSplit = 1.1;
-	private double minHeightRatioForSplit = 1.0;
-	private double maxWidthRatioForMerge = 1.2;
-	private double maxDistanceRatioForMerge = 0.15;
+	private final int beamWidth;
+	private final double minWidthRatioForSplit;
+	private final double minHeightRatioForSplit;
+	private final double maxWidthRatioForMerge;
+	private final double maxDistanceRatioForMerge;
 
 	public LetterByLetterBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
 		this.shapeSplitter = shapeSplitter;
@@ -174,43 +174,4 @@ public class LetterByLetterBoundaryDetector implements BoundaryDetector {
 	public ShapeMerger getShapeMerger() {
 		return shapeMerger;
 	}
-
-	public int getBeamWidth() {
-		return beamWidth;
-	}
-
-	public void setBeamWidth(int beamWidth) {
-		this.beamWidth = beamWidth;
-	}
-
-	@Override
-	public double getMinWidthRatioForSplit() {
-		return minWidthRatioForSplit;
-	}
-
-	@Override
-	public void setMinWidthRatioForSplit(double minWidthRatioForSplit) {
-		this.minWidthRatioForSplit = minWidthRatioForSplit;
-	}
-
-	@Override
-	public double getMaxWidthRatioForMerge() {
-		return maxWidthRatioForMerge;
-	}
-
-	@Override
-	public void setMaxWidthRatioForMerge(double maxWidthRatioForMerge) {
-		this.maxWidthRatioForMerge = maxWidthRatioForMerge;
-	}
-
-	@Override
-	public double getMaxDistanceRatioForMerge() {
-		return maxDistanceRatioForMerge;
-	}
-
-	@Override
-	public void setMaxDistanceRatioForMerge(double maxDistanceRatioForMerge) {
-		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
-	}
-
 }
