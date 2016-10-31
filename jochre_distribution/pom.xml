@@ -53,10 +53,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.joliciel.jochre</groupId>
-			<artifactId>jochre-occitan</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.joliciel.jochre</groupId>
 			<artifactId>jochre-yiddish</artifactId>
 		</dependency>
 	</dependencies>
