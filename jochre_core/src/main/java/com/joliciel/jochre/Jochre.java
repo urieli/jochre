@@ -566,6 +566,12 @@ public class Jochre {
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);
 				this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, observers);
+			} else if (command.equals("findSplits")) {
+				GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+				List<Shape> shapesToSplit = graphicsDao.findShapesToSplit(jochreSession.getLocale());
+				for (Shape shape : shapesToSplit) {
+					LOG.info(shape.toString());
+				}
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}

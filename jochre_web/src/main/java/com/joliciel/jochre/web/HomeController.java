@@ -30,7 +30,7 @@ public class HomeController extends GenericForwardComposer<Window> {
 	public void doAfterCompose(Window comp) throws Exception {
 		LOG.debug("HomeController.doAfterCompose");
 		super.doAfterCompose(comp);
-		htmlContent.setContent(JochreProperties.getWelcomeText());
+		htmlContent.setContent(JochreProperties.getInstance().getJochreSession().getConfig().getConfig("jochre.web").getString("welcome-text"));
 	}
 
 	@Listen("onClick = #btnLogin")

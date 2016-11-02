@@ -209,6 +209,7 @@ public class DocumentController extends SelectorComposer<Window> {
 
 		@Override
 		public DocumentTreeNode getChild(DocumentTreeNode parent, int index) {
+			LOG.debug(parent.toString());
 			if (parent instanceof DocumentTreeNodeRoot) {
 				return docNodes.get(index);
 			}
@@ -262,8 +263,10 @@ public class DocumentController extends SelectorComposer<Window> {
 
 		public List<DocumentTreeNodeImage> getChildren() {
 			if (imageNodes == null) {
+				LOG.debug("DocumentTreeNodeDoc.getChildren");
 				imageNodes = new ArrayList<DocumentTreeNodeImage>();
 				for (JochrePage page : doc.getPages()) {
+					LOG.debug("page " + page.getIndex());
 					if (page.getImages().size() == 0) {
 						DocumentTreeNodeImage imageNode = new DocumentTreeNodeImage(page);
 						imageNodes.add(imageNode);

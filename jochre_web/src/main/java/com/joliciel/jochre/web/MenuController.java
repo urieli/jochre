@@ -45,7 +45,7 @@ public class MenuController extends GenericForwardComposer<Panel> {
 			lblName.setValue("");
 			toolbar1.setVisible(false);
 		}
-		lblCorpusName.setValue(JochreProperties.getInstance().getProperties().getProperty("corpusName"));
+		lblCorpusName.setValue(JochreProperties.getInstance().getJochreSession().getConfig().getConfig("jochre.web").getString("corpus-name"));
 	}
 
 	@Listen("onClick = #btnLogout")

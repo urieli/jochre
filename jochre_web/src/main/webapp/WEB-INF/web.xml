@@ -10,9 +10,6 @@
 		<param-value>jochre.root</param-value>
 	</context-param>
 	<listener>
-		<listener-class>com.joliciel.jochre.web.Slf4jListener</listener-class>
-	</listener>
-	<listener>
 		<description>
 		Used to cleanup when a session is destroyed</description>
 		<display-name>ZK Session cleaner</display-name>
