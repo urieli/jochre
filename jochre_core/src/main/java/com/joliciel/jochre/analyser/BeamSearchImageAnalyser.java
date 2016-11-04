@@ -44,7 +44,6 @@ import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.Monitorable;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.talismane.utils.ProgressMonitor;
 import com.joliciel.talismane.utils.SimpleProgressMonitor;
 import com.typesafe.config.Config;
@@ -57,7 +56,6 @@ import com.typesafe.config.Config;
  */
 public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	private static final Logger LOG = LoggerFactory.getLogger(BeamSearchImageAnalyser.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(BeamSearchImageAnalyser.class);
 
 	private final MostLikelyWordChooser mostLikelyWordChooser;
 	private final BoundaryDetector boundaryDetector;
@@ -98,15 +96,10 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	@Override
 	public void analyse(JochreImage image) {
-		MONITOR.startTask("analyse");
-		try {
-			this.analyseInternal(image);
+		this.analyseInternal(image);
 
-			for (LetterGuessObserver observer : observers) {
-				observer.onFinish();
-			}
-		} finally {
-			MONITOR.endTask();
+		for (LetterGuessObserver observer : observers) {
+			observer.onFinish();
 		}
 	}
 
@@ -198,125 +191,109 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 								heaps.put(position, heap);
 							}
 
-							MONITOR.startTask("guess letter");
-							try {
-								letterGuesser.guessLetter(shapeInSequence, history);
-							} finally {
-								MONITOR.endTask();
-							}
+							letterGuesser.guessLetter(shapeInSequence, history);
 
-							MONITOR.startTask("heap sort");
-							try {
-								for (Decision letterGuess : shape.getLetterGuesses()) {
-									// leave out very low probability outcomes
-									if (letterGuess.getProbability() > this.minOutcomeWeight) {
-										LetterSequence sequence = new LetterSequence(history);
-										sequence.getLetters().add(letterGuess.getOutcome());
-										sequence.addDecision(letterGuess);
-										heap.add(sequence);
-									} // weight big enough to include
-								} // next letter guess for this shape
-							} finally {
-								MONITOR.endTask();
-							}
+							// heap sort
+							for (Decision letterGuess : shape.getLetterGuesses()) {
+								// leave out very low probability outcomes
+								if (letterGuess.getProbability() > this.minOutcomeWeight) {
+									LetterSequence sequence = new LetterSequence(history);
+									sequence.getLetters().add(letterGuess.getOutcome());
+									sequence.addDecision(letterGuess);
+									heap.add(sequence);
+								} // weight big enough to include
+							} // next letter guess for this shape
+
 						} // next history in heap
 					} // any more heaps?
 
+					// find best sequence
 					LetterSequence bestSequence = null;
 					boolean isHoldover = false;
-					MONITOR.startTask("best sequence");
-					try {
-						List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
-						for (int i = 0; i < this.beamWidth; i++) {
-							if (finalHeap.isEmpty())
-								break;
-							finalSequences.add(finalHeap.poll());
-						}
-
-						if (this.mostLikelyWordChooser == null) {
-							// most likely sequence is on top of the last heap
-							bestSequence = finalSequences.get(0);
-						} else {
-							// get most likely sequence using lexicon
-							if (holdoverSequences != null) {
-								// we have a holdover from the previous row
-								// ending with a dash
-								bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
-							} else {
-								// check if this is the last group on the row
-								// and could end with
-								// a dash
-								boolean shouldBeHeldOver = false;
-								if (group.getIndex() == row.getGroups().size() - 1 && row.getIndex() < paragraph.getRows().size() - 1) {
-									for (LetterSequence letterSequence : finalSequences) {
-										if (letterSequence.toString().endsWith("-")) {
-											shouldBeHeldOver = true;
-											break;
-										}
-									}
-								}
-								if (shouldBeHeldOver) {
-									holdoverSequences = finalSequences;
-									holdoverGroup = group;
-									isHoldover = true;
-								} else {
-									// simplest case: no holdover
-									bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, this.beamWidth);
-								}
-							} // have we holdover sequences?
-						} // have we a most likely word chooser?
-
-						if (!isHoldover) {
-							for (LetterGuessObserver observer : observers) {
-								observer.onBeamSearchEnd(bestSequence, finalSequences, holdoverSequences);
-							}
-						}
-					} finally {
-						MONITOR.endTask();
+					List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
+					for (int i = 0; i < this.beamWidth; i++) {
+						if (finalHeap.isEmpty())
+							break;
+						finalSequences.add(finalHeap.poll());
 					}
 
-					MONITOR.startTask("assign letter");
-					try {
-						if (!isHoldover) {
-							for (LetterGuessObserver observer : observers) {
-								observer.onStartSequence(bestSequence);
-							}
-
-							if (holdoverGroup == null) {
-								group.setBestLetterSequence(bestSequence);
-							} else {
-								// split bestSequence by group
-								List<LetterSequence> sequencesByGroup = bestSequence.splitByGroup();
-								for (LetterSequence sequenceByGroup : sequencesByGroup) {
-									if (sequenceByGroup.getGroups().get(0).equals(holdoverGroup))
-										holdoverGroup.setBestLetterSequence(sequenceByGroup);
-									else if (sequenceByGroup.getGroups().get(0).equals(group))
-										group.setBestLetterSequence(sequenceByGroup);
+					if (this.mostLikelyWordChooser == null) {
+						// most likely sequence is on top of the last heap
+						bestSequence = finalSequences.get(0);
+					} else {
+						// get most likely sequence using lexicon
+						if (holdoverSequences != null) {
+							// we have a holdover from the previous row
+							// ending with a dash
+							bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, holdoverSequences, this.beamWidth);
+						} else {
+							// check if this is the last group on the row
+							// and could end with
+							// a dash
+							boolean shouldBeHeldOver = false;
+							if (group.getIndex() == row.getGroups().size() - 1 && row.getIndex() < paragraph.getRows().size() - 1) {
+								for (LetterSequence letterSequence : finalSequences) {
+									if (letterSequence.toString().endsWith("-")) {
+										shouldBeHeldOver = true;
+										break;
+									}
 								}
-								holdoverSequences = null;
-								holdoverGroup = null;
 							}
-
-							int i = 0;
-							for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
-								String bestOutcome = bestSequence.getLetters().get(i);
-								this.assignLetter(shapeInSequence, bestOutcome);
-								i++;
-							} // next shape
-
-							for (LetterGuessObserver observer : observers) {
-								observer.onGuessSequence(bestSequence);
+							if (shouldBeHeldOver) {
+								holdoverSequences = finalSequences;
+								holdoverGroup = group;
+								isHoldover = true;
+							} else {
+								// simplest case: no holdover
+								bestSequence = this.mostLikelyWordChooser.chooseMostLikelyWord(finalSequences, this.beamWidth);
 							}
+						} // have we holdover sequences?
+					} // have we a most likely word chooser?
+
+					if (!isHoldover) {
+						for (LetterGuessObserver observer : observers) {
+							observer.onBeamSearchEnd(bestSequence, finalSequences, holdoverSequences);
+						}
+					}
+
+					// assign letter
+					if (!isHoldover) {
+						for (LetterGuessObserver observer : observers) {
+							observer.onStartSequence(bestSequence);
 						}
 
-						this.shapeCount += group.getShapes().size();
-						if (this.currentMonitor != null) {
-							double progress = (double) shapeCount / (double) totalShapeCount;
-							LOG.debug("progress: " + progress);
-							currentMonitor.setPercentComplete(progress);
+						if (holdoverGroup == null) {
+							group.setBestLetterSequence(bestSequence);
+						} else {
+							// split bestSequence by group
+							List<LetterSequence> sequencesByGroup = bestSequence.splitByGroup();
+							for (LetterSequence sequenceByGroup : sequencesByGroup) {
+								if (sequenceByGroup.getGroups().get(0).equals(holdoverGroup))
+									holdoverGroup.setBestLetterSequence(sequenceByGroup);
+								else if (sequenceByGroup.getGroups().get(0).equals(group))
+									group.setBestLetterSequence(sequenceByGroup);
+							}
+							holdoverSequences = null;
+							holdoverGroup = null;
 						}
-					} finally {
-						MONITOR.endTask();
+
+						int i = 0;
+						for (ShapeInSequence shapeInSequence : bestSequence.getUnderlyingShapeSequence()) {
+							String bestOutcome = bestSequence.getLetters().get(i);
+							this.assignLetter(shapeInSequence, bestOutcome);
+							i++;
+						} // next shape
+
+						for (LetterGuessObserver observer : observers) {
+							observer.onGuessSequence(bestSequence);
+						}
+					}
+
+					this.shapeCount += group.getShapes().size();
+					if (this.currentMonitor != null) {
+						double progress = (double) shapeCount / (double) totalShapeCount;
+						LOG.debug("progress: " + progress);
+						currentMonitor.setPercentComplete(progress);
 					}
 				} // next group
 			} // next row

@@ -20,8 +20,9 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.ForwardEvent;
 import org.zkoss.zk.ui.event.UploadEvent;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Div;
 import org.zkoss.zul.Fileupload;
@@ -70,29 +71,49 @@ public class TextController extends GenericForwardComposer<Window> {
 
 	private int currentHtmlIndex = 0;
 
-	AnnotateDataBinder binder;
-
+	@Wire
 	Window winJochreText;
+	@Wire
 	Grid documentGrid;
+	@Wire
 	Grid gridPages;
+	@Wire
 	Label lblDocName;
+	@Wire
 	Div htmlContent;
+	@Wire
 	Timer startRenderTimer;
+	@Wire
 	Progressmeter progressMeter1;
+	@Wire
 	Hlayout progressBox;
+	@Wire
 	Panel uploadPanel;
+	@Wire
 	Fileupload fileUpload1;
+	@Wire
 	Textbox txtStartPage;
+	@Wire
 	Textbox txtEndPage;
+	@Wire
 	Button btnAnalyse;
+	@Wire
 	Button btnDone;
+	@Wire
 	Button btnInterrupt;
+	@Wire
 	Button btnUpload;
+	@Wire
 	Label lblAwaitingFile;
+	@Wire
 	Label lblFileName;
+	@Wire
 	Label lblCurrentAction;
+	@Wire
 	Timer progressTimer;
+	@Wire
 	Groupbox errorBox;
+	@Wire
 	Label lblErrorMessage;
 
 	Thread currentThread = null;
@@ -147,15 +168,13 @@ public class TextController extends GenericForwardComposer<Window> {
 				documentGrid.setVisible(true);
 				lblDocName.setValue(currentDoc.getName());
 			}
-
-			binder = new AnnotateDataBinder(window);
-			binder.loadAll();
 		} catch (Exception e) {
 			LOG.error("Failure in TextController$doAfterCompose", e);
 			throw new RuntimeException(e);
 		}
 	}
 
+	@Listen("onTimer = #startRenderTimer")
 	public void onTimer$startRenderTimer(Event event) {
 		try {
 			progressBox.setVisible(true);
@@ -198,6 +217,7 @@ public class TextController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onUpload = #btnUpload")
 	public void onUpload$btnUpload(Event event) {
 		try {
 			LOG.debug("onUpload$btnUpload");
@@ -232,6 +252,7 @@ public class TextController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnAnalyse")
 	public void onClick$btnAnalyse(Event event) {
 		try {
 			LOG.debug("onClick$btnAnalyse");
@@ -294,6 +315,7 @@ public class TextController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onTimer = #progressTimer")
 	public void onTimer$progressTimer(Event event) {
 		if (this.progressMonitor != null) {
 			if (this.documentGenerator != null) {
@@ -337,6 +359,7 @@ public class TextController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onClick = #btnInterrupt")
 	public void onClick$btnInterrupt(Event event) {
 		try {
 			LOG.debug("onClick$btnInterrupt");
@@ -356,6 +379,7 @@ public class TextController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnDone")
 	public void onClick$btnDone(Event event) {
 		try {
 			LOG.debug("onClick$btnDone");

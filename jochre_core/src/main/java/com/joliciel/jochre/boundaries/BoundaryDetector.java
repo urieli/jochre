@@ -28,16 +28,4 @@ public interface BoundaryDetector {
 	 * splitting and merging have been attempted.
 	 */
 	public List<ShapeSequence> findBoundaries(GroupOfShapes group);
-
-	public abstract void setMaxDistanceRatioForMerge(double maxDistanceRatioForMerge);
-
-	public abstract double getMaxDistanceRatioForMerge();
-
-	public abstract void setMaxWidthRatioForMerge(double maxWidthRatioForMerge);
-
-	public abstract double getMaxWidthRatioForMerge();
-
-	public abstract void setMinWidthRatioForSplit(double minWidthRatioForSplit);
-
-	public abstract double getMinWidthRatioForSplit();
 }

@@ -42,11 +42,9 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptorParser;
 import com.joliciel.talismane.machineLearning.features.IntegerFeature;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 public class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
 	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureParser.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(LetterFeatureParser.class);
 
 	private final ShapeFeatureParser shapeFeatureParser;
 	private final ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
@@ -83,31 +81,26 @@ public class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserCont
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<LetterFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
-		MONITOR.startTask("parseDescriptor");
-		try {
-			List<Feature<LetterGuesserContext, ?>> letterFeatures = this.parse(functionDescriptor);
-			List<LetterFeature<?>> wrappedFeatures = new ArrayList<LetterFeature<?>>();
-			for (Feature<LetterGuesserContext, ?> letterFeature : letterFeatures) {
-				LetterFeature<?> wrappedFeature = null;
-				if (letterFeature instanceof LetterFeature) {
-					wrappedFeature = (LetterFeature<?>) letterFeature;
-				} else if (letterFeature instanceof BooleanFeature) {
-					wrappedFeature = new LetterBooleanFeatureWrapper((Feature<LetterGuesserContext, Boolean>) letterFeature);
-				} else if (letterFeature instanceof StringFeature) {
-					wrappedFeature = new LetterStringFeatureWrapper((Feature<LetterGuesserContext, String>) letterFeature);
-				} else if (letterFeature instanceof IntegerFeature) {
-					wrappedFeature = new LetterIntegerFeatureWrapper((Feature<LetterGuesserContext, Integer>) letterFeature);
-				} else if (letterFeature instanceof DoubleFeature) {
-					wrappedFeature = new LetterDoubleFeatureWrapper((Feature<LetterGuesserContext, Double>) letterFeature);
-				} else {
-					wrappedFeature = new LetterFeatureWrapper(letterFeature);
-				}
-				wrappedFeatures.add(wrappedFeature);
+		List<Feature<LetterGuesserContext, ?>> letterFeatures = this.parse(functionDescriptor);
+		List<LetterFeature<?>> wrappedFeatures = new ArrayList<LetterFeature<?>>();
+		for (Feature<LetterGuesserContext, ?> letterFeature : letterFeatures) {
+			LetterFeature<?> wrappedFeature = null;
+			if (letterFeature instanceof LetterFeature) {
+				wrappedFeature = (LetterFeature<?>) letterFeature;
+			} else if (letterFeature instanceof BooleanFeature) {
+				wrappedFeature = new LetterBooleanFeatureWrapper((Feature<LetterGuesserContext, Boolean>) letterFeature);
+			} else if (letterFeature instanceof StringFeature) {
+				wrappedFeature = new LetterStringFeatureWrapper((Feature<LetterGuesserContext, String>) letterFeature);
+			} else if (letterFeature instanceof IntegerFeature) {
+				wrappedFeature = new LetterIntegerFeatureWrapper((Feature<LetterGuesserContext, Integer>) letterFeature);
+			} else if (letterFeature instanceof DoubleFeature) {
+				wrappedFeature = new LetterDoubleFeatureWrapper((Feature<LetterGuesserContext, Double>) letterFeature);
+			} else {
+				wrappedFeature = new LetterFeatureWrapper(letterFeature);
 			}
-			return wrappedFeatures;
-		} finally {
-			MONITOR.endTask();
+			wrappedFeatures.add(wrappedFeature);
 		}
+		return wrappedFeatures;
 	}
 
 	@Override
@@ -145,25 +138,25 @@ public class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserCont
 		}
 	}
 
-	private class LetterBooleanFeatureWrapper extends LetterFeatureWrapper<Boolean> implements BooleanFeature<LetterGuesserContext> {
+	private class LetterBooleanFeatureWrapper extends LetterFeatureWrapper<Boolean>implements BooleanFeature<LetterGuesserContext> {
 		public LetterBooleanFeatureWrapper(Feature<LetterGuesserContext, Boolean> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class LetterStringFeatureWrapper extends LetterFeatureWrapper<String> implements StringFeature<LetterGuesserContext> {
+	private class LetterStringFeatureWrapper extends LetterFeatureWrapper<String>implements StringFeature<LetterGuesserContext> {
 		public LetterStringFeatureWrapper(Feature<LetterGuesserContext, String> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class LetterDoubleFeatureWrapper extends LetterFeatureWrapper<Double> implements DoubleFeature<LetterGuesserContext> {
+	private class LetterDoubleFeatureWrapper extends LetterFeatureWrapper<Double>implements DoubleFeature<LetterGuesserContext> {
 		public LetterDoubleFeatureWrapper(Feature<LetterGuesserContext, Double> wrappedFeature) {
 			super(wrappedFeature);
 		}
 	}
 
-	private class LetterIntegerFeatureWrapper extends LetterFeatureWrapper<Integer> implements IntegerFeature<LetterGuesserContext> {
+	private class LetterIntegerFeatureWrapper extends LetterFeatureWrapper<Integer>implements IntegerFeature<LetterGuesserContext> {
 		public LetterIntegerFeatureWrapper(Feature<LetterGuesserContext, Integer> wrappedFeature) {
 			super(wrappedFeature);
 		}

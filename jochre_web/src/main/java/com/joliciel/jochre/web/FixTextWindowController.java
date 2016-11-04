@@ -6,8 +6,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Checkbox;
 import org.zkoss.zul.Row;
@@ -29,15 +30,23 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
 	static final String ATTR_GROUP = "GroupAttribute";
 	static final String ROW_TEXT_PLACE_HOLDER = "[[[xxxxxxx]]]";
 
-	AnnotateDataBinder binder;
+	@Wire
 	Window winFixText;
+	@Wire
 	Button btnOK;
+	@Wire
 	Button btnCancel;
+	@Wire
 	Row shapeRow;
+	@Wire
 	Row letterBoxRow;
+	@Wire
 	Checkbox chkSkip;
+	@Wire
 	Checkbox chkHardHyphen;
+	@Wire
 	Checkbox chkBrokenWord;
+	@Wire
 	Checkbox chkSegmentProblem;
 
 	public FixTextWindowController() {
@@ -46,15 +55,12 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
 	@Override
 	public void doAfterCompose(Window window) throws Exception {
 		super.doAfterCompose(window);
-
-		binder = new AnnotateDataBinder(window);
-		binder.loadAll();
 	}
 
+	@Listen("onClick = #btnOK")
 	public void onClick$btnOK(Event event) {
 		// TODO: replacing all occurrences of the same word on the line instead
-		// of
-		// just the current one
+		// of just the current one
 		LOG.debug("onClick$btnOK");
 		winFixText.setVisible(false);
 		String rowText = (String) winFixText.getAttribute(FixTextWindowController.ATTR_ROW_TEXT);
@@ -91,6 +97,7 @@ public class FixTextWindowController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onClick = #btnCancel")
 	public void onClick$btnCancel(Event event) {
 		winFixText.setVisible(false);
 	}

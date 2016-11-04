@@ -11,12 +11,18 @@
 <panel border="normal" title="${c:l('docs.documents.title')}" id="treePanel" width="300px" height="500px">
 	<panelchildren>
 	<vlayout>
-	   	<tree id="docTree" zclass="z-filetree"
-	   		vflex="true" width="100%">
-			<treecols sizable="true">
-				<treecol label="${c:l('docs.documents.name')}" />
+		<tree id="docTree" hflex="1">
+			<treecols>
+				<treecol hflex="1" label="${c:l('docs.documents.name')}" />
 			</treecols>
-	   	</tree>
+			<template name="model">
+		        <treeitem>
+		            <treerow>
+		                <treecell label="${each.data.description}"/>
+		            </treerow>
+		        </treeitem>
+	    	</template>
+		</tree>
 		<hlayout>
 			<button id="btnNewDoc" label="${c:l('docs.documents.newDoc')}" />
 			<button id="btnAnalyseDoc" label="${c:l('docs.documents.analyseDoc')}" />

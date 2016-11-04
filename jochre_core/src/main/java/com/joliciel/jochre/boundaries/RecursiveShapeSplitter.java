@@ -33,7 +33,6 @@ import com.joliciel.talismane.machineLearning.Decision;
 import com.joliciel.talismane.machineLearning.DecisionMaker;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.joliciel.talismane.utils.WeightedOutcome;
 import com.typesafe.config.Config;
 
@@ -67,7 +66,6 @@ import com.typesafe.config.Config;
  */
 public class RecursiveShapeSplitter implements ShapeSplitter {
 	private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitter.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 
 	private final SplitCandidateFinder splitCandidateFinder;
 
@@ -276,57 +274,36 @@ public class RecursiveShapeSplitter implements ShapeSplitter {
 	}
 
 	public double shouldSplit(Split splitCandidate) {
-		MONITOR.startTask("shouldSplit");
-		try {
+		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
-
-			MONITOR.startTask("analyse features");
-			try {
-				for (SplitFeature<?> feature : splitFeatures) {
-					MONITOR.startTask(feature.getName());
-					try {
-						RuntimeEnvironment env = new RuntimeEnvironment();
-						FeatureResult<?> featureResult = feature.check(splitCandidate, env);
-						if (featureResult != null) {
-							featureResults.add(featureResult);
-							if (LOG.isTraceEnabled()) {
-								LOG.trace(featureResult.toString());
-							}
+		// analyse features
+			for (SplitFeature<?> feature : splitFeatures) {
+					RuntimeEnvironment env = new RuntimeEnvironment();
+					FeatureResult<?> featureResult = feature.check(splitCandidate, env);
+					if (featureResult != null) {
+						featureResults.add(featureResult);
+						if (LOG.isTraceEnabled()) {
+							LOG.trace(featureResult.toString());
 						}
-					} finally {
-						MONITOR.endTask();
 					}
-				}
-			} finally {
-				MONITOR.endTask();
 			}
 
-			List<Decision> decisions = null;
-			MONITOR.startTask("decision maker");
-			try {
-				decisions = decisionMaker.decide(featureResults);
-			} finally {
-				MONITOR.endTask();
-			}
+		List<Decision> decisions = decisionMaker.decide(featureResults);
 
-			double yesProb = 0.0;
-			for (Decision decision : decisions) {
-				if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT.name())) {
-					yesProb = decision.getProbability();
-					break;
-				}
+		double yesProb = 0.0;
+		for (Decision decision : decisions) {
+			if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT.name())) {
+				yesProb = decision.getProbability();
+				break;
 			}
-
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition());
-				LOG.trace("yesProb: " + yesProb);
-			}
-
-			return yesProb;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition());
+			LOG.trace("yesProb: " + yesProb);
+		}
+
+		return yesProb;
 	}
 
 	public SplitCandidateFinder getSplitCandidateFinder() {

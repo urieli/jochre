@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 
 /**
  * An interface for reading shape groups out of a Jochre corpus.
@@ -32,7 +31,6 @@ import com.joliciel.talismane.utils.PerformanceMonitor;
  */
 public class JochreCorpusGroupReader extends JochreCorpusReader {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusGroupReader.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreCorpusGroupReader.class);
 
 	private int imageIndex = 0;
 	private int paragraphIndex = 0;
@@ -57,45 +55,40 @@ public class JochreCorpusGroupReader extends JochreCorpusReader {
 	}
 
 	public boolean hasNext() {
-		MONITOR.startTask("hasNext");
-		try {
-			this.initialiseStream();
-			while (group == null && imageIndex < this.getImages().size()) {
-				JochreImage image = this.getImages().get(imageIndex);
-				while (group == null && paragraphIndex < image.getParagraphs().size()) {
-					Paragraph paragraph = image.getParagraphs().get(paragraphIndex);
-					while (group == null && rowIndex < paragraph.getRows().size()) {
-						RowOfShapes row = paragraph.getRows().get(rowIndex);
-						while (group == null && groupIndex < row.getGroups().size()) {
-							group = row.getGroups().get(groupIndex);
-							if (group.isSkip())
-								group = null;
-							groupIndex++;
-						}
-						if (group == null) {
-							rowIndex++;
-							groupIndex = 0;
-						}
+		this.initialiseStream();
+		while (group == null && imageIndex < this.getImages().size()) {
+			JochreImage image = this.getImages().get(imageIndex);
+			while (group == null && paragraphIndex < image.getParagraphs().size()) {
+				Paragraph paragraph = image.getParagraphs().get(paragraphIndex);
+				while (group == null && rowIndex < paragraph.getRows().size()) {
+					RowOfShapes row = paragraph.getRows().get(rowIndex);
+					while (group == null && groupIndex < row.getGroups().size()) {
+						group = row.getGroups().get(groupIndex);
+						if (group.isSkip())
+							group = null;
+						groupIndex++;
 					}
 					if (group == null) {
-						paragraphIndex++;
-						rowIndex = 0;
+						rowIndex++;
 						groupIndex = 0;
 					}
 				}
 				if (group == null) {
-					image.clearMemory();
-					imageIndex++;
-					paragraphIndex = 0;
+					paragraphIndex++;
 					rowIndex = 0;
 					groupIndex = 0;
 				}
 			}
-
-			return group != null;
-		} finally {
-			MONITOR.endTask();
+			if (group == null) {
+				image.clearMemory();
+				imageIndex++;
+				paragraphIndex = 0;
+				rowIndex = 0;
+				groupIndex = 0;
+			}
 		}
+
+		return group != null;
 	}
 
 }

@@ -7,6 +7,8 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Constraint;
 import org.zkoss.zul.Label;
@@ -22,12 +24,19 @@ public class ProfileController extends GenericForwardComposer<Window> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
 
+	@Wire
 	Window winProfile;
+	@Wire
 	Label lblUsername;
+	@Wire
 	Textbox txtPassword;
+	@Wire
 	Textbox txtPassword2;
+	@Wire
 	Textbox txtFirstName;
+	@Wire
 	Textbox txtLastName;
+	@Wire
 	Label lblPwdError;
 
 	public ProfileController() {
@@ -53,6 +62,7 @@ public class ProfileController extends GenericForwardComposer<Window> {
 
 	}
 
+	@Listen("onClick = #btnSave")
 	public void onClick$btnSave(Event event) {
 		LOG.debug("onClick$btnsave");
 		try {

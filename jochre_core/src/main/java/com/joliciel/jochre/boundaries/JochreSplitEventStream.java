@@ -36,12 +36,10 @@ import com.joliciel.talismane.machineLearning.ClassificationEvent;
 import com.joliciel.talismane.machineLearning.ClassificationEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.typesafe.config.Config;
 
 public class JochreSplitEventStream implements ClassificationEventStream {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreSplitEventStream.class);
-	private static final PerformanceMonitor MONITOR = PerformanceMonitor.getMonitor(JochreSplitEventStream.class);
 	private SplitCandidateFinder splitCandidateFinder;
 
 	private final Set<SplitFeature<?>> splitFeatures;
@@ -83,97 +81,78 @@ public class JochreSplitEventStream implements ClassificationEventStream {
 
 	@Override
 	public ClassificationEvent next() {
-		MONITOR.startTask("next");
-		try {
-			ClassificationEvent event = null;
-			if (this.hasNext()) {
-				LOG.debug("next event, " + splitCandidate.getShape() + ", split: " + splitCandidate.getPosition());
+		ClassificationEvent event = null;
+		if (this.hasNext()) {
+			LOG.debug("next event, " + splitCandidate.getShape() + ", split: " + splitCandidate.getPosition());
 
-				List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-				MONITOR.startTask("analyse features");
-				try {
-					for (SplitFeature<?> feature : splitFeatures) {
-						MONITOR.startTask(feature.getName());
-						try {
-							RuntimeEnvironment env = new RuntimeEnvironment();
-							FeatureResult<?> featureResult = feature.check(splitCandidate, env);
-							if (featureResult != null) {
-								featureResults.add(featureResult);
-								if (LOG.isTraceEnabled()) {
-									LOG.trace(featureResult.toString());
-								}
-							}
-						} finally {
-							MONITOR.endTask();
-						}
-					}
-				} finally {
-					MONITOR.endTask();
-				}
-
-				SplitOutcome outcome = SplitOutcome.DO_NOT_SPLIT;
-				for (Split split : splitCandidate.getShape().getSplits()) {
-					int distance = splitCandidate.getPosition() - split.getPosition();
-					if (distance < 0)
-						distance = 0 - distance;
-					// Note: making the distance to the split the same as the min distance
-					// between splits
-					// is somewhat arbitrary, and obviously allows for ambiguity, where 2
-					// split candidates
-					// both return "YES" for the same split
-					// Ideally, we'd have a minDistanceBetweenSplits = n (where n is odd)
-					// and than calculate this distance as n / 2 (e.g. 9 and 4).
-					// But this reduces recall too much, and what we care about here is
-					// recall
-					if (distance < splitCandidateFinder.getMinDistanceBetweenSplits()) {
-						outcome = SplitOutcome.DO_SPLIT;
-						break;
+			// analyse features
+			for (SplitFeature<?> feature : splitFeatures) {
+				RuntimeEnvironment env = new RuntimeEnvironment();
+				FeatureResult<?> featureResult = feature.check(splitCandidate, env);
+				if (featureResult != null) {
+					featureResults.add(featureResult);
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(featureResult.toString());
 					}
 				}
-				if (outcome.equals(SplitOutcome.DO_SPLIT))
-					yesCount++;
-				else
-					noCount++;
-
-				LOG.debug("Outcome: " + outcome);
-				event = new ClassificationEvent(featureResults, outcome.name());
-
-				// set splitCandidate to null so that hasNext can retrieve the next one.
-				this.splitCandidate = null;
 			}
-			return event;
-		} finally {
-			MONITOR.endTask();
+
+			SplitOutcome outcome = SplitOutcome.DO_NOT_SPLIT;
+			for (Split split : splitCandidate.getShape().getSplits()) {
+				int distance = splitCandidate.getPosition() - split.getPosition();
+				if (distance < 0)
+					distance = 0 - distance;
+				// Note: making the distance to the split the same as the min distance
+				// between splits
+				// is somewhat arbitrary, and obviously allows for ambiguity, where 2
+				// split candidates
+				// both return "YES" for the same split
+				// Ideally, we'd have a minDistanceBetweenSplits = n (where n is odd)
+				// and than calculate this distance as n / 2 (e.g. 9 and 4).
+				// But this reduces recall too much, and what we care about here is
+				// recall
+				if (distance < splitCandidateFinder.getMinDistanceBetweenSplits()) {
+					outcome = SplitOutcome.DO_SPLIT;
+					break;
+				}
+			}
+			if (outcome.equals(SplitOutcome.DO_SPLIT))
+				yesCount++;
+			else
+				noCount++;
+
+			LOG.debug("Outcome: " + outcome);
+			event = new ClassificationEvent(featureResults, outcome.name());
+
+			// set splitCandidate to null so that hasNext can retrieve the next one.
+			this.splitCandidate = null;
 		}
+		return event;
 	}
 
 	@Override
 	public boolean hasNext() {
-		MONITOR.startTask("hasNext");
-		try {
-			this.initialiseStream();
+		this.initialiseStream();
 
-			while (splitCandidate == null && shape != null) {
-				if (splitCandidateIndex < splitCandidates.size()) {
-					splitCandidate = splitCandidates.get(splitCandidateIndex);
-					splitCandidateIndex++;
-				} else {
-					this.getNextShape();
-				}
+		while (splitCandidate == null && shape != null) {
+			if (splitCandidateIndex < splitCandidates.size()) {
+				splitCandidate = splitCandidates.get(splitCandidateIndex);
+				splitCandidateIndex++;
+			} else {
+				this.getNextShape();
 			}
-
-			if (splitCandidate == null) {
-				LOG.debug("aboveRatioCount: " + aboveRatioCount);
-				LOG.debug("belowRatioCount: " + belowRatioCount);
-				LOG.debug("yesCount: " + yesCount);
-				LOG.debug("noCount: " + noCount);
-			}
-
-			return splitCandidate != null;
-		} finally {
-			MONITOR.endTask();
 		}
+
+		if (splitCandidate == null) {
+			LOG.debug("aboveRatioCount: " + aboveRatioCount);
+			LOG.debug("belowRatioCount: " + belowRatioCount);
+			LOG.debug("yesCount: " + yesCount);
+			LOG.debug("noCount: " + noCount);
+		}
+
+		return splitCandidate != null;
 	}
 
 	void getNextShape() {

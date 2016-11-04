@@ -6,6 +6,8 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.Panel;
@@ -18,9 +20,13 @@ public class MenuController extends GenericForwardComposer<Panel> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MenuController.class);
 
+	@Wire
 	Panel panelMenu;
+	@Wire
 	Label lblName;
+	@Wire
 	Label lblCorpusName;
+	@Wire
 	Toolbar toolbar1;
 
 	public MenuController() {
@@ -39,9 +45,10 @@ public class MenuController extends GenericForwardComposer<Panel> {
 			lblName.setValue("");
 			toolbar1.setVisible(false);
 		}
-		lblCorpusName.setValue(JochreProperties.getInstance().getProperties().getProperty("corpusName"));
+		lblCorpusName.setValue(JochreProperties.getInstance().getJochreSession().getConfig().getConfig("jochre.web").getString("corpus-name"));
 	}
 
+	@Listen("onClick = #btnLogout")
 	public void onClick$btnLogout(Event event) {
 		LOG.debug("onClick$btnLogout");
 		Session session = Sessions.getCurrent();

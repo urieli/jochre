@@ -13,7 +13,6 @@
 			<useAllReactorProjects>true</useAllReactorProjects>
 			<includes>
 				<include>com.joliciel.jochre:jochre-core</include>
-				<include>com.joliciel.jochre:jochre-occitan</include>
 				<include>com.joliciel.jochre:jochre-search</include>
 				<include>com.joliciel.jochre:jochre-search-webapp</include>
 				<include>com.joliciel.jochre:jochre-utils</include>

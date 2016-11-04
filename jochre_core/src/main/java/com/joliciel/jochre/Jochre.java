@@ -126,7 +126,6 @@ import com.joliciel.talismane.machineLearning.ModelTrainerFactory;
 import com.joliciel.talismane.machineLearning.OutcomeEqualiserEventStream;
 import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
-import com.joliciel.talismane.utils.PerformanceMonitor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -194,6 +193,8 @@ public class Jochre {
 					values.put("jochre.image-analyser.split-model", argValue);
 				} else if (argName.equals("mergeModel")) {
 					values.put("jochre.image-analyser.merge-model", argValue);
+				} else if (argName.equals("junkThreshold")) {
+					values.put("jochre.image-analyser.junk-threshold", Double.parseDouble(argValue));
 				} else if (argName.equals("unknownWordFactor")) {
 					values.put("jochre.word-chooser.unknown-word-factor", Double.parseDouble(argValue));
 				} else if (argName.equals("beamWidth")) {
@@ -242,12 +243,7 @@ public class Jochre {
 	 */
 	public void execute(Map<String, String> argMap) throws Exception {
 		if (argMap.size() == 0) {
-			System.out.println("Usage (* indicates optional):");
-			System.out.println(
-					"Jochre command=load file=[filename] name=[userFriendlyName] lang=[isoLanguageCode] first=[firstPage]* last=[lastPage]* outputDir=[outputDirectory]* showSeg=[true/false]");
-			System.out.println("Jochre command=extract file=[filename] outputDir=[outputDirectory] first=[firstPage]* last=[lastPage]*");
-			System.out.println("Jochre command=analyse");
-			System.out.println("Jochre command=train file=[filename] outputDir=[outputDirectory] iterations=[iterations] cutoff=[cutoff]");
+			System.out.println("See jochre wiki for usage");
 			return;
 		}
 
@@ -256,8 +252,6 @@ public class Jochre {
 			argMap.remove("logConfigFile");
 			JochreLogUtils.configureLogging(logConfigPath);
 		}
-
-		File performanceConfigFile = null;
 
 		String command = "";
 		String inFilePath = "";
@@ -276,8 +270,6 @@ public class Jochre {
 		boolean save = false;
 		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
 		boolean reconstructLetters = false;
-		double minProbForDecision = 0.5;
-		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.LetterByLetter;
 		int excludeImageId = 0;
 		int crossValidationSize = -1;
 		int includeIndex = -1;
@@ -348,8 +340,6 @@ public class Jochre {
 				}
 			} else if (argName.equals("reconstructLetters"))
 				reconstructLetters = (argValue.equals("true"));
-			else if (argName.equals("boundaryDetector"))
-				boundaryDetectorType = BoundaryDetectorType.valueOf(argValue);
 			else if (argName.equals("excludeImageId"))
 				excludeImageId = Integer.parseInt(argValue);
 			else if (argName.equals("crossValidationSize"))
@@ -371,8 +361,6 @@ public class Jochre {
 				docGroupPath = argValue;
 			else if (argName.equals("suffix"))
 				suffix = argValue;
-			else if (argName.equals("performanceConfigFile"))
-				performanceConfigFile = new File(argValue);
 			else if (argName.equals("includeBeam"))
 				includeBeam = argValue.equalsIgnoreCase("true");
 			else if (argName.equals("outputFormat")) {
@@ -401,7 +389,6 @@ public class Jochre {
 		}
 
 		long startTime = System.currentTimeMillis();
-		PerformanceMonitor.start(performanceConfigFile);
 		try {
 
 			this.setUserId(userId);
@@ -489,17 +476,17 @@ public class Jochre {
 			} else if (command.equals("evaluate") || command.equals("evaluateComplex")) {
 				this.doCommandEvaluate(criteria, outputDirPath, wordChooser, reconstructLetters, save, suffix, includeBeam, observers);
 			} else if (command.equals("evaluateFull")) {
-				this.doCommandEvaluateFull(criteria, save, outputDirPath, wordChooser, boundaryDetectorType, minProbForDecision, suffix, observers);
+				this.doCommandEvaluateFull(criteria, save, outputDirPath, wordChooser, suffix, observers);
 			} else if (command.equals("analyse")) {
 				this.doCommandAnalyse(criteria, wordChooser, observers);
 			} else if (command.equals("trainSplits")) {
 				this.doCommandTrainSplits(featureDescriptors, criteria);
 			} else if (command.equals("evaluateSplits")) {
-				this.doCommandEvaluateSplits(criteria, minProbForDecision);
+				this.doCommandEvaluateSplits(criteria);
 			} else if (command.equals("trainMerge")) {
 				this.doCommandTrainMerge(featureDescriptors, multiplier, criteria);
 			} else if (command.equals("evaluateMerge")) {
-				this.doCommandEvaluateMerge(criteria, minProbForDecision);
+				this.doCommandEvaluateMerge(criteria);
 			} else if (command.equals("logImage")) {
 				this.doCommandLogImage(shapeId);
 			} else if (command.equals("testFeature")) {
@@ -579,6 +566,12 @@ public class Jochre {
 			} else if (command.equals("analyseFile")) {
 				File pdfFile = new File(inFilePath);
 				this.doCommandAnalyse(pdfFile, wordChooser, firstPage, lastPage, observers);
+			} else if (command.equals("findSplits")) {
+				GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+				List<Shape> shapesToSplit = graphicsDao.findShapesToSplit(jochreSession.getLocale());
+				for (Shape shape : shapesToSplit) {
+					LOG.info(shape.toString());
+				}
 			} else {
 				throw new RuntimeException("Unknown command: " + command);
 			}
@@ -586,7 +579,6 @@ public class Jochre {
 			LOG.error("An error occurred while running Jochre", e);
 			throw e;
 		} finally {
-			PerformanceMonitor.end();
 			long duration = System.currentTimeMillis() - startTime;
 			LOG.info("Duration (ms):" + duration);
 		}
@@ -729,11 +721,8 @@ public class Jochre {
 	 *            the path of the model to be evaluated.
 	 * @param criteria
 	 *            for selecting the portion of the corpus to evaluate
-	 * @param minProbForDecision
-	 *            at which probability should a merge be made. If &lt; 0, 0.5 is
-	 *            assumed.
 	 */
-	public void doCommandEvaluateMerge(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+	public void doCommandEvaluateMerge(CorpusSelectionCriteria criteria) throws IOException {
 		ClassificationModel mergeModel = jochreSession.getMergeModel();
 		if (mergeModel == null)
 			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.merge-model");
@@ -748,8 +737,6 @@ public class Jochre {
 
 		ShapeMerger merger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 		MergeEvaluator evaluator = new MergeEvaluator(jochreSession);
-		if (minProbForDecision >= 0)
-			evaluator.setMinProbabilityForDecision(minProbForDecision);
 		FScoreCalculator<String> fScoreCalculator = evaluator.evaluate(groupReader, merger);
 		LOG.debug("" + fScoreCalculator.getTotalFScore());
 	}
@@ -796,7 +783,7 @@ public class Jochre {
 	 *            at which probability should a split be made. If &lt; 0, 0.5 is
 	 *            assumed.
 	 */
-	public void doCommandEvaluateSplits(CorpusSelectionCriteria criteria, double minProbForDecision) throws IOException {
+	public void doCommandEvaluateSplits(CorpusSelectionCriteria criteria) throws IOException {
 		ClassificationModel splitModel = jochreSession.getSplitModel();
 		if (splitModel == null)
 			throw new IllegalArgumentException("Missing parameter: jochre.image-analyser.split-model");
@@ -814,8 +801,6 @@ public class Jochre {
 		shapeReader.setSelectionCriteria(criteria);
 
 		SplitEvaluator splitEvaluator = new SplitEvaluator(jochreSession);
-		if (minProbForDecision >= 0)
-			splitEvaluator.setMinProbabilityForDecision(minProbForDecision);
 
 		FScoreCalculator<String> fScoreCalculator = splitEvaluator.evaluate(shapeReader, shapeSplitter);
 		LOG.debug("" + fScoreCalculator.getTotalFScore());
@@ -901,9 +886,6 @@ public class Jochre {
 			ShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
 			ShapeMerger merger = new TrainingCorpusShapeMerger();
 			boundaryDetector = new LetterByLetterBoundaryDetector(splitter, merger, jochreSession);
-			boundaryDetector.setMinWidthRatioForSplit(0.0);
-			boundaryDetector.setMaxWidthRatioForMerge(100.0);
-			boundaryDetector.setMaxDistanceRatioForMerge(100.0);
 		} else {
 			boundaryDetector = new OriginalBoundaryDetector();
 		}
@@ -1091,7 +1073,7 @@ public class Jochre {
 	 *            the output directory where we write the evaluation results
 	 */
 	public void doCommandEvaluateFull(CorpusSelectionCriteria criteria, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser,
-			BoundaryDetectorType boundaryDetectorType, double minProbForDecision, String suffix, List<DocumentObserver> observers) throws IOException {
+			String suffix, List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
@@ -1132,6 +1114,8 @@ public class Jochre {
 		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
 		BoundaryDetector boundaryDetector = null;
+		String boundaryDetectorTypeName = jochreSession.getConfig().getConfig("jochre.boundaries").getString("boundary-detector-type");
+		BoundaryDetectorType boundaryDetectorType = BoundaryDetectorType.valueOf(boundaryDetectorTypeName);
 		switch (boundaryDetectorType) {
 		case LetterByLetter:
 			boundaryDetector = new LetterByLetterBoundaryDetector(shapeSplitter, shapeMerger, jochreSession);

@@ -191,36 +191,6 @@ public class DeterministicBoundaryDetector implements BoundaryDetector {
 		return shapeMerger;
 	}
 
-	@Override
-	public double getMinWidthRatioForSplit() {
-		return minWidthRatioForSplit;
-	}
-
-	@Override
-	public void setMinWidthRatioForSplit(double minWidthRatioForSplit) {
-		this.minWidthRatioForSplit = minWidthRatioForSplit;
-	}
-
-	@Override
-	public double getMaxWidthRatioForMerge() {
-		return maxWidthRatioForMerge;
-	}
-
-	@Override
-	public void setMaxWidthRatioForMerge(double maxWidthRatioForMerge) {
-		this.maxWidthRatioForMerge = maxWidthRatioForMerge;
-	}
-
-	@Override
-	public double getMaxDistanceRatioForMerge() {
-		return maxDistanceRatioForMerge;
-	}
-
-	@Override
-	public void setMaxDistanceRatioForMerge(double maxDistanceRatioForMerge) {
-		this.maxDistanceRatioForMerge = maxDistanceRatioForMerge;
-	}
-
 	public double getMinProbabilityForDecision() {
 		return minProbabilityForDecision;
 	}

@@ -10,12 +10,13 @@ import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
+import org.zkoss.zk.ui.select.annotation.Listen;
+import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zkplus.databind.AnnotateDataBinder;
-import org.zkoss.zkplus.databind.BindingListModelList;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Combobox;
 import org.zkoss.zul.Comboitem;
+import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Listbox;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Textbox;
@@ -39,25 +40,40 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 	private JochreDocument currentDoc;
 	private Author currentAuthor;
 
-	AnnotateDataBinder binder;
-
+	@Wire
 	Window winUpdateDocument;
+	@Wire
 	Textbox txtDocName;
+	@Wire
 	Textbox txtDocNameLocal;
+	@Wire
 	Textbox txtPublisher;
+	@Wire
 	Textbox txtCity;
+	@Wire
 	Textbox txtYear;
+	@Wire
 	Textbox txtReference;
+	@Wire
 	Textbox txtAuthorFirstName;
+	@Wire
 	Textbox txtAuthorLastName;
+	@Wire
 	Textbox txtAuthorFirstNameLocal;
+	@Wire
 	Textbox txtAuthorLastNameLocal;
+	@Wire
 	Button btnAddNewAuthor;
+	@Wire
 	Button btnSave;
+	@Wire
 	Button btnCancel;
+	@Wire
 	Button btnAddAuthor;
 
+	@Wire
 	Listbox lstAuthors;
+	@Wire
 	Combobox cmbAuthors;
 
 	public UpdateDocumentController() throws ReflectiveOperationException {
@@ -85,13 +101,10 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 
 		lstAuthors.setItemRenderer(new AuthorListItemRenderer());
 
-		// comp.setVariable(comp.getId() + "Ctrl", this, true);
-		binder = new AnnotateDataBinder(window);
-		binder.loadAll();
-
 		winUpdateDocument.addEventListener("onModalOpen", new UpdateDocumentControllerModalListener());
 	}
 
+	@Listen("onClick = #btnAddAuthor")
 	public void onClick$btnAddAuthor(Event event) {
 		LOG.debug("onClick$btnAddAuthor");
 		try {
@@ -107,7 +120,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 				if (!this.currentDoc.getAuthors().contains(author)) {
 					this.currentDoc.getAuthors().add(author);
 
-					BindingListModelList<Author> model = new BindingListModelList<Author>(this.currentDoc.getAuthors(), true);
+					ListModelList<Author> model = new ListModelList<Author>(this.currentDoc.getAuthors(), true);
 					lstAuthors.setModel(model);
 				}
 			}
@@ -117,6 +130,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnCancelAuthor")
 	public void onClick$btnCancelAuthor(Event event) {
 		LOG.debug("onClick$btnCancelAuthor()");
 		try {
@@ -133,6 +147,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnUpdateAuthor")
 	public void onClick$btnUpdateAuthor(Event event) {
 		LOG.debug("onClick$btnUpdateAuthor()");
 		try {
@@ -152,6 +167,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnDeleteAuthor")
 	public void onClick$btnDeleteAuthor(Event event) {
 		LOG.debug("onClick$btnDeleteAuthor()");
 		try {
@@ -161,7 +177,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			Author author = (Author) lstAuthors.getSelectedItem().getValue();
 			this.currentDoc.getAuthors().remove(author);
 
-			BindingListModelList<Author> model = new BindingListModelList<Author>(this.currentDoc.getAuthors(), true);
+			ListModelList<Author> model = new ListModelList<Author>(this.currentDoc.getAuthors(), true);
 			lstAuthors.setModel(model);
 
 		} catch (Exception e) {
@@ -170,6 +186,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnAddNewAuthor")
 	public void onClick$btnAddNewAuthor(Event event) {
 		LOG.debug("onClick$btnAddNewAuthor");
 		try {
@@ -206,7 +223,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 						cmbAuthors.setSelectedItem(item);
 				}
 			} else {
-				BindingListModelList<Author> model = new BindingListModelList<Author>(this.currentDoc.getAuthors(), true);
+				ListModelList<Author> model = new ListModelList<Author>(this.currentDoc.getAuthors(), true);
 				lstAuthors.setModel(model);
 			}
 
@@ -216,6 +233,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnSave")
 	public void onClick$btnSave(Event event) {
 		LOG.debug("onClick$btnSave");
 		try {
@@ -244,6 +262,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 		}
 	}
 
+	@Listen("onClick = #btnCancel")
 	public void onClick$btnCancel(Event event) {
 		winUpdateDocument.setVisible(false);
 	}
@@ -263,7 +282,7 @@ public class UpdateDocumentController extends GenericForwardComposer<Window> {
 			txtCity.setValue(currentDoc.getCity());
 			txtYear.setValue("" + currentDoc.getYear());
 			txtReference.setValue(currentDoc.getReference());
-			lstAuthors.setModel(new BindingListModelList<Author>(currentDoc.getAuthors(), true));
+			lstAuthors.setModel(new ListModelList<Author>(currentDoc.getAuthors(), true));
 		}
 
 	}
