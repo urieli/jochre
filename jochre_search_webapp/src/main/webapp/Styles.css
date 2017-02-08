@@ -15,7 +15,7 @@ INPUT { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 16px;
 INPUT[type="text"] { color: #660033; font-family: "Times New Roman", Times, serif; font-size: 16px; text-align: right; direction: rtl;  }
 INPUT[type="button"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Verdana, Helvetica, Arial; font-size: 13px; FONT-WEIGHT: bold; }
 INPUT[type="submit"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Narkisim, "Times New Roman", Times; font-size: 18px; FONT-WEIGHT: bold; }
-TEXTAREA { color: #660033; font-family: Arial, Helvetica; font-size: 12px; }
+TEXTAREA { color: #660033; "Times New Roman", Times, serif; font-size: 16px; text-align: right; direction: rtl; }
 P { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
 LI { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
 SELECT { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }

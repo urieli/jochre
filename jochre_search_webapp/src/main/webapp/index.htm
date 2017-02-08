@@ -1,18 +1,17 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="Styles.css">
 </head>
 <body>
 <form action="search">
 <table>
 <tr><td>command:</td><td><select name="command"><option value="search" selected="true">search</option><option value="highlight">highlight</option><option value="snippets">snippets</option></select>
-<tr><td>language:</td><td><select name="lang"><option value="en" selected="true">en</option><option value="fr">fr</option></select></td></tr>
 <tr><td>query:</td><td><textarea rows="5" cols="40" name="query"></textarea></td></tr>
 <tr><td>maxDocs:</td><td><input type="text" name="maxDocs" value="20" /></td></tr>
 <tr><td>decimalPlaces:</td><td><input type="text" name="decimalPlaces" value="4" /></td></tr>
-<tr><td>filter:</td><td><textarea rows="5" cols="40" name="filter"></textarea></td></tr>
-<tr><td>filterField:</td><td><input type="text" name="filterField" value="" /></td></tr>
 <tr><td>docIds:</td><td><input type="text" name="docIds" value="" /></td></tr>
+<tr><td>snippetCount:</td><td><input type="text" name="snippetCount" value="10" /></td></tr>
 </table>
 <p><input type="submit" /></p>
 <a href="imageSnippet.htm">imageSnippet</a>
