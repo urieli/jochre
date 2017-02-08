@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -101,6 +100,10 @@ public class JochreSearchServlet extends HttpServlet {
 			response.addHeader("Access-Control-Allow-Origin", "*");
 			response.setCharacterEncoding("UTF-8");
 
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(getURI(req));
+			}
+
 			JochreSearchProperties props = JochreSearchProperties.getInstance(this.getServletContext());
 
 			String command = req.getParameter("command");
@@ -158,7 +161,6 @@ public class JochreSearchServlet extends HttpServlet {
 			for (Entry<String, String> argEntry : argMap.entrySet()) {
 				String argName = argEntry.getKey();
 				String argValue = argEntry.getValue();
-				argValue = URLDecoder.decode(argValue, "UTF-8");
 				LOG.debug(argName + ": " + argValue);
 
 				if (argName.equals("minWeight")) {
@@ -527,5 +529,14 @@ public class JochreSearchServlet extends HttpServlet {
 			long duration = System.currentTimeMillis() - startTime;
 			LOG.info("User:" + user + " " + req.getRequestURI() + "?" + req.getQueryString() + " Duration:" + duration);
 		}
+	}
+
+	public static String getURI(HttpServletRequest request) {
+		String uri = request.getScheme() + "://" + request.getServerName()
+				+ ("http".equals(request.getScheme()) && request.getServerPort() == 80 || "https".equals(request.getScheme()) && request.getServerPort() == 443
+						? "" : ":" + request.getServerPort())
+				+ request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
+
+		return uri;
 	}
 }
