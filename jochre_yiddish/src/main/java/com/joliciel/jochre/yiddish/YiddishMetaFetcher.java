@@ -150,8 +150,7 @@ public class YiddishMetaFetcher {
 
 		for (Map<String, String> myMeta : metaMap.values()) {
 			writer.write("<table border=\"1\">");
-			writer.write("<tr><td><b>id</b></td><td>" + myMeta.get("id") + "</td></tr>");
-			writer.write("<tr><td><b>bookUrl</b></td><td>" + myMeta.get("bookUrl") + "</td></tr>");
+			writer.write("<tr><td><b>id</b></td><td><a href=\"" + myMeta.get("bookUrl") + "\">" + myMeta.get("id") + "</a></td></tr>");
 			writer.write("<tr><td><b>title</b></td><td>" + myMeta.get("title") + "</td></tr>");
 			writer.write("<tr><td><b>author</b></td><td>" + myMeta.get("author") + "</td></tr>");
 			writer.write("<tr><td><b>publisher</b></td><td>" + myMeta.get("publisher") + "</td></tr>");
@@ -205,7 +204,8 @@ public class YiddishMetaFetcher {
 			myMeta.put("titleLang", titleLang);
 
 			LOG.info(myMeta.toString());
-			metaMap.put(id, myMeta);
+			String key = authorLang == null || authorLang.length() == 0 ? author + title + id : authorLang + titleLang + id;
+			metaMap.put(key, myMeta);
 		}
 
 		File[] subdirs = dir.listFiles(new FileFilter() {
