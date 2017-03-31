@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -132,6 +134,93 @@ public class YiddishMetaFetcher {
 		writer.write("  <imagecount>" + pageCount + "</imagecount>\n");
 		writer.write("</metadata>\n");
 		writer.flush();
+	}
+
+	public void buildBookHtml(File dir, Writer writer) throws Exception {
+		Map<String, Map<String, String>> metaMap = new TreeMap<>();
+		this.collectBookMeta(dir, metaMap);
+
+		writer.write("<html>");
+		writer.write("<head>");
+		writer.write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
+		writer.write("<title>Jochre Book List</title>");
+		writer.write("</head>");
+		writer.write("<body>");
+		writer.write("<h1>Jochre Book List</h1>");
+
+		for (Map<String, String> myMeta : metaMap.values()) {
+			writer.write("<table border=\"1\">");
+			writer.write("<tr><td><b>id</b></td><td>" + myMeta.get("id") + "</td></tr>");
+			writer.write("<tr><td><b>bookUrl</b></td><td>" + myMeta.get("bookUrl") + "</td></tr>");
+			writer.write("<tr><td><b>title</b></td><td>" + myMeta.get("title") + "</td></tr>");
+			writer.write("<tr><td><b>author</b></td><td>" + myMeta.get("author") + "</td></tr>");
+			writer.write("<tr><td><b>publisher</b></td><td>" + myMeta.get("publisher") + "</td></tr>");
+			writer.write("<tr><td><b>date</b></td><td>" + myMeta.get("date") + "</td></tr>");
+			writer.write("<tr><td><b>authorLang</b></td><td>" + myMeta.get("authorLang") + "</td></tr>");
+			writer.write("<tr><td><b>titleLang</b></td><td>" + myMeta.get("titleLang") + "</td></tr>");
+			writer.write("</table><br/>");
+			writer.flush();
+		}
+		writer.write("</body>");
+		writer.flush();
+	}
+
+	public void collectBookMeta(File dir, Map<String, Map<String, String>> metaMap) throws Exception {
+		File[] metaFiles = dir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.getName().toLowerCase().endsWith("_meta.xml");
+			}
+		});
+
+		Arrays.sort(metaFiles);
+
+		for (File metaFile : metaFiles) {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document dom = db.parse(metaFile);
+			Element docElement = dom.getDocumentElement();
+
+			XPathFactory xpf = XPathFactory.newInstance();
+			XPath xp = xpf.newXPath();
+
+			String id = xp.evaluate("/metadata/identifier/text()", docElement);
+			String bookUrl = xp.evaluate("/metadata/identifier-access/text()", docElement);
+			String title = xp.evaluate("/metadata/title/text()", docElement);
+			String author = xp.evaluate("/metadata/creator/text()", docElement);
+			String publisher = xp.evaluate("/metadata/publisher/text()", docElement);
+			String date = xp.evaluate("/metadata/date/text()", docElement);
+			String authorLang = xp.evaluate("/metadata/creator-alt-script/text()", docElement);
+			String titleLang = xp.evaluate("/metadata/title-alt-script/text()", docElement);
+
+			Map<String, String> myMeta = new HashMap<>();
+			myMeta.put("id", id);
+			myMeta.put("bookUrl", bookUrl);
+			myMeta.put("title", title);
+			myMeta.put("author", author);
+			myMeta.put("publisher", publisher);
+			myMeta.put("date", date);
+			myMeta.put("authorLang", authorLang);
+			myMeta.put("titleLang", titleLang);
+
+			LOG.info(myMeta.toString());
+			metaMap.put(id, myMeta);
+		}
+
+		File[] subdirs = dir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.isDirectory();
+			}
+		});
+
+		Arrays.sort(subdirs);
+
+		for (File subdir : subdirs) {
+			this.collectBookMeta(subdir, metaMap);
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
