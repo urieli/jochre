@@ -144,21 +144,28 @@ public class YiddishMetaFetcher {
 		writer.write("<head>");
 		writer.write("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
 		writer.write("<title>Jochre Book List</title>");
+		writer.write("<style>");
+		writer.write("table, th, td {");
+		writer.write("  border: 1px solid black;");
+		writer.write("}");
+		writer.write("</style>");
 		writer.write("</head>");
 		writer.write("<body>");
 		writer.write("<h1>Jochre Book List</h1>");
-
+		int i = 1;
 		for (Map<String, String> myMeta : metaMap.values()) {
-			writer.write("<table border=\"1\">");
-			writer.write("<tr><td><b>id</b></td><td><a href=\"" + myMeta.get("bookUrl") + "\">" + myMeta.get("id") + "</a></td></tr>");
+			writer.write("<table style=\"width: 600px;\">");
+			writer.write("<tr><td style=\"width: 150px;\"><b>id " + i + "</b></td><td><a href=\"" + myMeta.get("bookUrl") + "\">" + myMeta.get("id")
+					+ "</a></td></tr>");
 			writer.write("<tr><td><b>title</b></td><td>" + myMeta.get("title") + "</td></tr>");
 			writer.write("<tr><td><b>author</b></td><td>" + myMeta.get("author") + "</td></tr>");
 			writer.write("<tr><td><b>publisher</b></td><td>" + myMeta.get("publisher") + "</td></tr>");
 			writer.write("<tr><td><b>date</b></td><td>" + myMeta.get("date") + "</td></tr>");
-			writer.write("<tr><td><b>authorLang</b></td><td>" + myMeta.get("authorLang") + "</td></tr>");
-			writer.write("<tr><td><b>titleLang</b></td><td>" + myMeta.get("titleLang") + "</td></tr>");
+			writer.write("<tr><td><b>authorLang</b></td><td style=\"direction: rtl;\">" + myMeta.get("authorLang") + "</td></tr>");
+			writer.write("<tr><td><b>titleLang</b></td><td style=\"direction: rtl;\">" + myMeta.get("titleLang") + "</td></tr>");
 			writer.write("</table><br/>");
 			writer.flush();
+			i++;
 		}
 		writer.write("</body>");
 		writer.flush();
