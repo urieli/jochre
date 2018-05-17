@@ -2,12 +2,30 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{% block head_title %}{% endblock %}</title>
+    <title>Jochre - {% block head_title %}{% endblock %}</title>
     {% block extra_head %}
     {% endblock %}
 	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
   </head>
   <body>
+  <table style="width:740px;">
+<tr>
+<td width="170px"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></td>
+<td>
+    <div>
+      <ul>
+	{% if user.is_authenticated %}
+	<li><a href="{% url 'account_email' %}">Change E-mail</a></li>
+	<li><a href="{% url 'account_logout' %}">Sign Out</a></li>
+	{% else %}
+	<li><a href="{% url 'account_login' %}">Sign In</a></li>
+	<li><a href="{% url 'account_signup' %}">Sign Up</a></li>
+	{% endif %}
+      </ul>
+    </div>
+</td>
+  </tr>
+  </table>
     {% block body %}
 
     {% if messages %}
@@ -21,18 +39,7 @@
     </div>
     {% endif %}
 
-    <div>
-      <strong>Menu:</strong>
-      <ul>
-	{% if user.is_authenticated %}
-	<li><a href="{% url 'account_email' %}">Change E-mail</a></li>
-	<li><a href="{% url 'account_logout' %}">Sign Out</a></li>
-	{% else %}
-	<li><a href="{% url 'account_login' %}">Sign In</a></li>
-	<li><a href="{% url 'account_signup' %}">Sign Up</a></li>
-	{% endif %}
-      </ul>
-    </div>
+
     {% block content %}
     {% endblock %}
     {% endblock %}

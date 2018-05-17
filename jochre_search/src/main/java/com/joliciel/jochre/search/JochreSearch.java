@@ -80,7 +80,16 @@ public class JochreSearch {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreSearch.class);
 
 	public enum Command {
-		updateIndex, search, highlight, snippets, view, list, wordImage, suggest, serializeLexicon, deserializeLexicon
+		updateIndex,
+		search,
+		highlight,
+		snippets,
+		view,
+		list,
+		wordImage,
+		suggest,
+		serializeLexicon,
+		deserializeLexicon
 	}
 
 	/**
@@ -203,8 +212,14 @@ public class JochreSearch {
 					throw new RuntimeException("for command " + command + ", contentDir is required");
 
 				indexDir = new File(indexDirPath);
-				indexDir.mkdirs();
+				if (command == Command.updateIndex)
+					indexDir.mkdirs();
+				else if (!indexDir.exists() || !indexDir.isDirectory())
+					throw new IllegalArgumentException("for command " + command + ", indexDir must exist and must be a directory: " + indexDirPath);
+
 				contentDir = new File(contentDirPath);
+				if (!contentDir.exists() || !contentDir.isDirectory())
+					throw new IllegalArgumentException("for command " + command + ", contentDir must exist and must be a directory: " + contentDirPath);
 			}
 
 			SearchServiceLocator locator = SearchServiceLocator.getInstance(Locale.forLanguageTag(language), indexDir, contentDir);

@@ -140,6 +140,9 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 				}
 			});
 
+			if (subdirs.length == 0)
+				throw new IllegalArgumentException("content dir is empty: " + contentDir.getPath());
+
 			Arrays.sort(subdirs);
 
 			searchStatusHolder.setStatus(SearchStatus.BUSY);

@@ -491,13 +491,13 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
       <td>
       <table>
       <tr><td><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></td>
-	  {% if RTL %}
-      <td><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none;">
-	  <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish"></td>
-	  {% else %}
-      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="">
-	  <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none;"></td>
-	  {% endif %}
+      {% if RTL %}
+      <td><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none; width:150px;">
+      <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish" style="width:150px;"></td>
+      {% else %}
+      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
+      <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none; width:150px;"></td>
+      {% endif %}
 	  </tr>
       <tr><td><label for="selFont">{{ Strings.fixWordFont }}</label></td>
       <td><select id="selFont" name="selFont">
