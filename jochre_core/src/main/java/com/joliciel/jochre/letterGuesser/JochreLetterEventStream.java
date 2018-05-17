@@ -67,10 +67,6 @@ public class JochreLetterEventStream implements ClassificationEventStream {
 	 * 
 	 * @param features
 	 *            the features to analyse when training
-	 * @param recalculateFeatures
-	 *            if true, features will be recalculated from scratch (slower,
-	 *            but doesn't require previous analysis & database storage
-	 *            space. If false, features will be loaded from the data store.
 	 */
 	public JochreLetterEventStream(Set<LetterFeature<?>> features, BoundaryDetector boundaryDetector, LetterValidator letterValidator,
 			CorpusSelectionCriteria criteria, JochreSession jochreSession) {
@@ -89,7 +85,7 @@ public class JochreLetterEventStream implements ClassificationEventStream {
 			LOG.debug("next event, shape: " + shape);
 			LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
 
-			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+			List<FeatureResult<?>> featureResults = new ArrayList<>();
 			// analyse features
 			for (LetterFeature<?> feature : features) {
 				RuntimeEnvironment env = new RuntimeEnvironment();
@@ -180,7 +176,7 @@ public class JochreLetterEventStream implements ClassificationEventStream {
 
 	@Override
 	public Map<String, String> getAttributes() {
-		Map<String, String> attributes = new LinkedHashMap<String, String>();
+		Map<String, String> attributes = new LinkedHashMap<>();
 		attributes.put("eventStream", this.getClass().getSimpleName());
 		attributes.putAll(this.criteria.getAttributes());
 
