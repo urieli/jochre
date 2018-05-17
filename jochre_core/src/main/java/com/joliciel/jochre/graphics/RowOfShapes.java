@@ -105,7 +105,7 @@ public class RowOfShapes implements Entity, Rectangle {
 	 */
 	public List<Shape> getShapes() {
 		if (shapes == null) {
-			shapes = new ArrayList<Shape>();
+			shapes = new ArrayList<>();
 			if (this.id != 0) {
 				for (GroupOfShapes group : this.getGroups()) {
 					shapes.addAll(group.getShapes());
@@ -116,8 +116,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Reorder the shapes in this row, to put them in the proper order again after
-	 * a new shape has been added.
+	 * Reorder the shapes in this row, to put them in the proper order again
+	 * after a new shape has been added.
 	 */
 	public void reorderShapes() {
 		Comparator<Shape> comparator = null;
@@ -127,7 +127,7 @@ public class RowOfShapes implements Entity, Rectangle {
 		else
 			comparator = new ShapeRightToLeftComparator();
 
-		TreeSet<Shape> shapeSet = new TreeSet<Shape>(comparator);
+		TreeSet<Shape> shapeSet = new TreeSet<>(comparator);
 		shapeSet.addAll(this.getShapes());
 
 		this.getShapes().clear();
@@ -159,7 +159,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Get the position of the shape in the shape collection, or -1 if not found.
+	 * Get the position of the shape in the shape collection, or -1 if not
+	 * found.
 	 */
 	public int getShapeIndex(Shape shape) {
 		int i = 0;
@@ -178,7 +179,7 @@ public class RowOfShapes implements Entity, Rectangle {
 	public List<GroupOfShapes> getGroups() {
 		if (groups == null) {
 			if (this.id == 0)
-				groups = new ArrayList<GroupOfShapes>();
+				groups = new ArrayList<>();
 			else {
 				groups = this.graphicsDao.findGroups(this);
 				// greedily add the shapes to avoid multiple SQL calls
@@ -269,8 +270,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * The y-coordinate middle point of the base line, based on the vertical line
-	 * splitting the image in two.
+	 * The y-coordinate middle point of the base line, based on the vertical
+	 * line splitting the image in two.
 	 */
 	public double getBaseLineMiddlePoint() {
 		double xMidPoint = (((double) this.getRight() + (double) this.getLeft()) / 2.0);
@@ -398,7 +399,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * The bottom-most y coordinate of this row (based on the shapes it contains).
+	 * The bottom-most y coordinate of this row (based on the shapes it
+	 * contains).
 	 */
 	@Override
 	public int getBottom() {
@@ -501,8 +503,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape width, to
-	 * return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape width,
+	 * to return only "average shapes".
 	 */
 	public double getAverageShapeWidthMargin() {
 		this.calculateShapeStatistics();
@@ -520,8 +522,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape height, to
-	 * return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape height,
+	 * to return only "average shapes".
 	 */
 	public double getAverageShapeHeightMargin() {
 		this.calculateShapeStatistics();
@@ -553,8 +555,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * The regression passes through the bottom of average shapes on this line. It
-	 * gives the line's slope, and intercept, for finding the baseline and
+	 * The regression passes through the bottom of average shapes on this line.
+	 * It gives the line's slope, and intercept, for finding the baseline and
 	 * meanline.
 	 */
 
@@ -655,7 +657,8 @@ public class RowOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Assign guidelines for a certain subset of shapes, and return the x-height.
+	 * Assign guidelines for a certain subset of shapes, and return the
+	 * x-height.
 	 */
 	int assignGuideLines(List<GroupOfShapes> groupsToAssign) {
 		LOG.debug("assignGuideLines internal");
@@ -672,7 +675,7 @@ public class RowOfShapes implements Entity, Rectangle {
 		// The notion of "groupsToAssign" is used to only assign guidelines
 		// to a subset of the groups on the line
 		// when the line contains two different font sizes
-		List<Shape> shapes = new ArrayList<Shape>();
+		List<Shape> shapes = new ArrayList<>();
 		if (groupsToAssign != null) {
 			for (GroupOfShapes group : groupsToAssign) {
 				shapes.addAll(group.getShapes());
@@ -718,7 +721,7 @@ public class RowOfShapes implements Entity, Rectangle {
 		// ends, relative to the y midline
 		int minTop = Integer.MAX_VALUE;
 		int maxBottom = Integer.MIN_VALUE;
-		List<Integer> rowYMidPoints = new ArrayList<Integer>(shapes.size());
+		List<Integer> rowYMidPoints = new ArrayList<>(shapes.size());
 		for (Shape shape : shapes) {
 			double shapeMidPointX = (shape.getLeft() + shape.getRight()) / 2.0;
 			int shapeMidPointY = (int) Math.round(rowMidPointY + (meanHorizontalSlope * (shapeMidPointX - rowMidPointX)));
@@ -924,8 +927,6 @@ public class RowOfShapes implements Entity, Rectangle {
 	 * If there are different font-sizes in the current row, calculate separate
 	 * guidelines for the separate font-sizes. Assumes groups have already been
 	 * assigned.
-	 * 
-	 * @return index of first group after split
 	 */
 
 	public void splitByFontSize() {
@@ -955,7 +956,7 @@ public class RowOfShapes implements Entity, Rectangle {
 
 		double lastRatio = 0;
 
-		List<int[]> bigAreas = new ArrayList<int[]>();
+		List<int[]> bigAreas = new ArrayList<>();
 		int bigAreaStart = 0;
 		int inBigArea = -1;
 		for (i = 0; i < this.getGroups().size(); i++) {
@@ -1036,8 +1037,8 @@ public class RowOfShapes implements Entity, Rectangle {
 			List<GroupOfShapes> littleGroups = null;
 
 			if (hasSplit) {
-				bigGroups = new ArrayList<GroupOfShapes>();
-				littleGroups = new ArrayList<GroupOfShapes>();
+				bigGroups = new ArrayList<>();
+				littleGroups = new ArrayList<>();
 				i = 0;
 				boolean lastGroupSingleShapeLittle = false;
 				boolean lastGroupBig = false;
@@ -1123,8 +1124,8 @@ public class RowOfShapes implements Entity, Rectangle {
 
 	/**
 	 * The adjustment to make to this row's x-coordinates to make it comparable
-	 * with other rows, in view of the row's y-coordinate and the page's scanning
-	 * slope.
+	 * with other rows, in view of the row's y-coordinate and the page's
+	 * scanning slope.
 	 */
 	public double getXAdjustment() {
 		if (!xAdjustmentCalculated) {

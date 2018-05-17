@@ -80,7 +80,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
 	private MultiTaskProgressMonitor currentMonitor;
 
-	private List<DocumentObserver> documentObservers = new ArrayList<DocumentObserver>();
+	private List<DocumentObserver> documentObservers = new ArrayList<>();
 
 	private final JochreSession jochreSession;
 
@@ -106,8 +106,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 	 *            name of the document (required if saving)
 	 * @param userFriendlyName
 	 *            user-friendly name for the document (required if saving)
-	 * @param locale
-	 *            document's locale
 	 */
 	public JochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
@@ -148,12 +146,13 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 			observer.onDocumentComplete(doc);
 	}
 
+	@Override
 	public void onAnalysisComplete() {
 		LOG.debug("JochreDocumentGeneratorImpl.onAnalysisComplete");
 		for (DocumentObserver observer : documentObservers)
 			observer.onAnalysisComplete();
 	}
-	
+
 	@Override
 	public JochreDocument getDocument() {
 		return this.doc;

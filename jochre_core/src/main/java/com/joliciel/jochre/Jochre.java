@@ -218,7 +218,7 @@ public class Jochre {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Map<String, String> argMap = new HashMap<String, String>();
+		Map<String, String> argMap = new HashMap<>();
 
 		for (String arg : args) {
 			int equalsPos = arg.indexOf('=');
@@ -278,7 +278,7 @@ public class Jochre {
 		String suffix = "";
 		String docGroupPath = null;
 		boolean includeBeam = false;
-		List<OutputFormat> outputFormats = new ArrayList<Jochre.OutputFormat>();
+		List<OutputFormat> outputFormats = new ArrayList<>();
 		String docSelectionPath = null;
 		List<String> featureDescriptors = null;
 		boolean includeDate = false;
@@ -350,7 +350,7 @@ public class Jochre {
 				excludeIndex = Integer.parseInt(argValue);
 			else if (argName.equals("docSet")) {
 				String[] docIdArray = argValue.split(",");
-				documentSet = new HashSet<Integer>();
+				documentSet = new HashSet<>();
 				for (String docIdString : docIdArray) {
 					int oneId = Integer.parseInt(docIdString);
 					documentSet.add(oneId);
@@ -364,7 +364,7 @@ public class Jochre {
 			else if (argName.equals("includeBeam"))
 				includeBeam = argValue.equalsIgnoreCase("true");
 			else if (argName.equals("outputFormat")) {
-				outputFormats = new ArrayList<Jochre.OutputFormat>();
+				outputFormats = new ArrayList<>();
 				String[] outputFormatStrings = argValue.split(",");
 				for (String outputFormatString : outputFormatStrings) {
 					outputFormats.add(OutputFormat.valueOf(outputFormatString));
@@ -422,7 +422,7 @@ public class Jochre {
 					int equalsPos = line.indexOf('=');
 					String groupName = line.substring(0, equalsPos);
 					String[] ids = line.substring(equalsPos + 1).split(",");
-					Set<Integer> idSet = new HashSet<Integer>();
+					Set<Integer> idSet = new HashSet<>();
 					for (String idString : ids) {
 						idSet.add(Integer.parseInt(idString));
 					}
@@ -614,7 +614,7 @@ public class Jochre {
 			// List<Integer> shapeIds =
 			// trainingService.findShapesForFeature("ג", feature, result);
 			List<Integer> shapeIds = graphicsDao.findShapeIds("—");
-			Map<Object, Integer> outcomeMap = new HashMap<Object, Integer>();
+			Map<Object, Integer> outcomeMap = new HashMap<>();
 			for (int oneShapeId : shapeIds) {
 				Shape shape = graphicsDao.loadShape(oneShapeId);
 				shape.writeImageToLog();
@@ -681,8 +681,6 @@ public class Jochre {
 	/**
 	 * Train the letter merging model.
 	 * 
-	 * @param mergeModelPath
-	 *            the path where the model should be saved
 	 * @param featureDescriptors
 	 *            feature descriptors for training
 	 * @param multiplier
@@ -717,8 +715,6 @@ public class Jochre {
 	/**
 	 * Evaluate the letter merging model on its own.
 	 * 
-	 * @param mergeModelPath
-	 *            the path of the model to be evaluated.
 	 * @param criteria
 	 *            for selecting the portion of the corpus to evaluate
 	 */
@@ -744,8 +740,6 @@ public class Jochre {
 	/**
 	 * Train the letter splitting model.
 	 * 
-	 * @param splitModelPath
-	 *            the path where the model should be saved
 	 * @param featureDescriptors
 	 *            the feature descriptors for training this model
 	 * @param criteria
@@ -775,13 +769,8 @@ public class Jochre {
 	/**
 	 * Evaluate the letter splitting model on its own.
 	 * 
-	 * @param splitModelPath
-	 *            the path of the model to be evaluated.
 	 * @param criteria
 	 *            the criteria used to select the evaluation corpus
-	 * @param minProbForDecision
-	 *            at which probability should a split be made. If &lt; 0, 0.5 is
-	 *            assumed.
 	 */
 	public void doCommandEvaluateSplits(CorpusSelectionCriteria criteria) throws IOException {
 		ClassificationModel splitModel = jochreSession.getSplitModel();
@@ -809,8 +798,6 @@ public class Jochre {
 	/**
 	 * Train a letter guessing model.
 	 * 
-	 * @param letterModelPath
-	 *            the path where the model should be saved
 	 * @param featureDescriptors
 	 *            the feature descriptors for training
 	 * @param criteria
@@ -854,8 +841,6 @@ public class Jochre {
 	/**
 	 * Evaluate a given letter guessing model.
 	 * 
-	 * @param letterModelPath
-	 *            the path to the model
 	 * @param criteria
 	 *            the criteria used to select the evaluation corpus
 	 * @param outputDirPath
@@ -927,7 +912,7 @@ public class Jochre {
 		lexiconErrorWriter.setIncludeBeam(includeBeam);
 
 		// find all document names (alphabetical ordering)
-		Set<String> documentNameSet = new TreeSet<String>();
+		Set<String> documentNameSet = new TreeSet<>();
 		JochreCorpusImageReader imageReader1 = new JochreCorpusImageReader(jochreSession);
 		CorpusSelectionCriteria docCriteria = new CorpusSelectionCriteria();
 		docCriteria.setImageStatusesToInclude(criteria.getImageStatusesToInclude());
@@ -943,7 +928,7 @@ public class Jochre {
 				documentNameSet.add(currentDoc.getName());
 			}
 		}
-		List<String> documentNames = new ArrayList<String>(documentNameSet);
+		List<String> documentNames = new ArrayList<>(documentNameSet);
 		lexiconErrorWriter.setDocumentNames(documentNames);
 
 		evaluator.addObserver(lexiconErrorWriter);
@@ -974,8 +959,6 @@ public class Jochre {
 	/**
 	 * Analyse a set of images based on a given letter-guessing model.
 	 * 
-	 * @param letterModelPath
-	 *            the path to the letter-guessing model.
 	 * @param criteria
 	 *            the criteria used to select the documents to be analysed
 	 * @param wordChooser
@@ -1072,8 +1055,8 @@ public class Jochre {
 	 * @param outputDirPath
 	 *            the output directory where we write the evaluation results
 	 */
-	public void doCommandEvaluateFull(CorpusSelectionCriteria criteria, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser,
-			String suffix, List<DocumentObserver> observers) throws IOException {
+	public void doCommandEvaluateFull(CorpusSelectionCriteria criteria, boolean save, String outputDirPath, MostLikelyWordChooser wordChooser, String suffix,
+			List<DocumentObserver> observers) throws IOException {
 		if (outputDirPath == null || outputDirPath.length() == 0)
 			throw new RuntimeException("Missing argument: outputDir");
 
@@ -1169,7 +1152,7 @@ public class Jochre {
 
 		LetterFeatureParser letterFeatureParser = new LetterFeatureParser();
 		Set<LetterFeature<?>> features = letterFeatureParser.getLetterFeatureSet(featureDescriptors);
-		Set<String> letters = new HashSet<String>();
+		Set<String> letters = new HashSet<>();
 
 		featureTester.applyFeatures(features, letters, imageId, shapeId);
 	}
@@ -1241,8 +1224,6 @@ public class Jochre {
 	 *            the path of the file to load
 	 * @param userFriendlyName
 	 *            a name to store against this file in the database
-	 * @param showSegmentation
-	 *            whether or not to output the graphical segmentation files
 	 * @param outputDirPath
 	 *            an output directory for the graphical segmentation files
 	 * @param save
@@ -1308,7 +1289,7 @@ public class Jochre {
 		public void onDocumentComplete(JochreDocument doc) {
 			// nothing to do here
 		}
-		
+
 		@Override
 		public void onAnalysisComplete() {
 			// nothing to do here
@@ -1356,7 +1337,7 @@ public class Jochre {
 
 	public List<DocumentObserver> getObservers(List<OutputFormat> outputFormats, String baseName, File outputDir, boolean includeDate) {
 		try {
-			List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
+			List<DocumentObserver> observers = new ArrayList<>();
 
 			for (OutputFormat outputFormat : outputFormats) {
 				switch (outputFormat) {
@@ -1381,7 +1362,7 @@ public class Jochre {
 					textGetter.setBaseName(baseName);
 					textGetter.setIncludeDate(includeDate);
 					observers.add(textGetter);
-					
+
 					break;
 				}
 				case Text: {

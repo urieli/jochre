@@ -69,7 +69,7 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 
 	private SimpleProgressMonitor currentMonitor;
 
-	private List<LetterGuessObserver> observers = new ArrayList<LetterGuessObserver>();
+	private List<LetterGuessObserver> observers = new ArrayList<>();
 
 	private final JochreSession jochreSession;
 
@@ -81,7 +81,6 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 	 *            cannot be null - used to guess letters
 	 * @param mostLikelyWordChooser
 	 *            if not null, adjusts the probabilities of the variou guesses
-	 * @param jochreSession
 	 */
 	public BeamSearchImageAnalyser(BoundaryDetector boundaryDetector, LetterGuesser letterGuesser, MostLikelyWordChooser mostLikelyWordChooser,
 			JochreSession jochreSession) {
@@ -134,7 +133,7 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 						shapeSequences = boundaryDetector.findBoundaries(group);
 					} else {
 						// simply add this groups shape's
-						shapeSequences = new ArrayList<ShapeSequence>();
+						shapeSequences = new ArrayList<>();
 						ShapeSequence shapeSequence = new ShapeSequence();
 						for (Shape shape : group.getShapes())
 							shapeSequence.addShape(shape);
@@ -144,12 +143,12 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					// Perform a beam search to guess the most likely sequence
 					// for this
 					// word
-					TreeMap<Integer, PriorityQueue<LetterSequence>> heaps = new TreeMap<Integer, PriorityQueue<LetterSequence>>();
+					TreeMap<Integer, PriorityQueue<LetterSequence>> heaps = new TreeMap<>();
 
 					// prime a starter heap with the n best shape boundary
 					// analyses for
 					// this group
-					PriorityQueue<LetterSequence> starterHeap = new PriorityQueue<LetterSequence>(1);
+					PriorityQueue<LetterSequence> starterHeap = new PriorityQueue<>(1);
 					for (ShapeSequence shapeSequence : shapeSequences) {
 						LetterSequence emptySequence = new LetterSequence(shapeSequence, jochreSession);
 						starterHeap.add(emptySequence);
@@ -187,7 +186,7 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 							}
 							PriorityQueue<LetterSequence> heap = heaps.get(position);
 							if (heap == null) {
-								heap = new PriorityQueue<LetterSequence>();
+								heap = new PriorityQueue<>();
 								heaps.put(position, heap);
 							}
 
@@ -210,7 +209,7 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 					// find best sequence
 					LetterSequence bestSequence = null;
 					boolean isHoldover = false;
-					List<LetterSequence> finalSequences = new ArrayList<LetterSequence>();
+					List<LetterSequence> finalSequences = new ArrayList<>();
 					for (int i = 0; i < this.beamWidth; i++) {
 						if (finalHeap.isEmpty())
 							break;
@@ -363,6 +362,5 @@ public class BeamSearchImageAnalyser implements ImageAnalyser, Monitorable {
 			observer.onFinish();
 		}
 	}
-	
-	
+
 }

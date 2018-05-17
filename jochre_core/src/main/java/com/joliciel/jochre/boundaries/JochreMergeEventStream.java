@@ -68,7 +68,7 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 	 * Constructor.
 	 * 
 	 * @param mergeFeatures
-	 *          the features to analyse when training
+	 *            the features to analyse when training
 	 */
 	public JochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
@@ -86,18 +86,18 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 		if (this.hasNext()) {
 			LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
 
-			List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+			List<FeatureResult<?>> featureResults = new ArrayList<>();
 
 			// analyse features
 			for (MergeFeature<?> feature : mergeFeatures) {
-					RuntimeEnvironment env = new RuntimeEnvironment();
-					FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-					if (featureResult != null) {
-						featureResults.add(featureResult);
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(featureResult.toString());
-						}
+				RuntimeEnvironment env = new RuntimeEnvironment();
+				FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
+				if (featureResult != null) {
+					featureResults.add(featureResult);
+					if (LOG.isTraceEnabled()) {
+						LOG.trace(featureResult.toString());
 					}
+				}
 			}
 
 			MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
@@ -120,7 +120,8 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 			LOG.debug("Outcome: " + outcome);
 			event = new ClassificationEvent(featureResults, outcome.name());
 
-			// set mergeCandidate to null so that hasNext can retrieve the next one.
+			// set mergeCandidate to null so that hasNext can retrieve the next
+			// one.
 			this.mergeCandidate = null;
 		}
 		return event;
@@ -183,8 +184,8 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 	}
 
 	/**
-	 * The maximum ratio between the merged shape candidate's width & x-height to
-	 * even be considered for merging.
+	 * The maximum ratio between the merged shape candidate's width and x-height
+	 * to even be considered for merging.
 	 */
 	public double getMaxWidthRatio() {
 		return maxWidthRatio;
@@ -195,7 +196,7 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 	}
 
 	/**
-	 * The maximum ratio of the distance between the two inner shapes & the
+	 * The maximum ratio of the distance between the two inner shapes and the
 	 * x-height to even be considered for merging.
 	 */
 	public double getMaxDistanceRatio() {
@@ -208,7 +209,7 @@ public class JochreMergeEventStream implements ClassificationEventStream {
 
 	@Override
 	public Map<String, String> getAttributes() {
-		Map<String, String> attributes = new LinkedHashMap<String, String>();
+		Map<String, String> attributes = new LinkedHashMap<>();
 		attributes.put("eventStream", this.getClass().getSimpleName());
 		attributes.put("maxDistanceRatio", "" + maxDistanceRatio);
 		attributes.put("maxWidthRatio", "" + maxWidthRatio);

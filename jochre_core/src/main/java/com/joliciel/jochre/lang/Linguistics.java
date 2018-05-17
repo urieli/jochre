@@ -40,10 +40,9 @@ public interface Linguistics {
 	 * standard spelling) with the associated frequencies.
 	 */
 	public List<CountedOutcome<String>> getFrequencies(String word);
-	
+
 	/**
 	 * Is character validation active for the current configuration.
-	 * @return
 	 */
 	public boolean isCharacterValidationActive();
 
@@ -71,9 +70,6 @@ public interface Linguistics {
 	/**
 	 * Returns possible spelling variants of the original word. If null is
 	 * returned, assumes there are no other possible spelling variants.
-	 * 
-	 * @param originalWord
-	 * @return
 	 */
 	public Set<String> findVariants(String originalWord);
 }

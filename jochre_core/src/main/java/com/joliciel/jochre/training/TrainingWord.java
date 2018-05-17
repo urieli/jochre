@@ -67,8 +67,6 @@ public interface TrainingWord {
 
 	/**
 	 * The text for the second half in the case of a hyphenated word.
-	 * 
-	 * @return
 	 */
 	String getSecondText();
 }

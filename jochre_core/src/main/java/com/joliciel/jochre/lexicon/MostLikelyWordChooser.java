@@ -51,11 +51,11 @@ public class MostLikelyWordChooser {
 	private double frequencyLogBase;
 	private boolean frequencyAdjusted;
 
-	private final Map<Integer, Double> frequencyLogs = new HashMap<Integer, Double>();
+	private final Map<Integer, Double> frequencyLogs = new HashMap<>();
 	private final Linguistics linguistics;
-	private Set<String> midWordPunctuation = new HashSet<String>();
-	private Set<String> startWordPunctuation = new HashSet<String>();
-	private Set<String> endWordPunctuation = new HashSet<String>(Arrays.asList("'"));
+	private Set<String> midWordPunctuation = new HashSet<>();
+	private Set<String> startWordPunctuation = new HashSet<>();
+	private Set<String> endWordPunctuation = new HashSet<>(Arrays.asList("'"));
 
 	public MostLikelyWordChooser(JochreSession jochreSession) {
 		this.linguistics = jochreSession.getLinguistics();
@@ -84,8 +84,8 @@ public class MostLikelyWordChooser {
 	public LetterSequence chooseMostLikelyWord(List<LetterSequence> heap, List<LetterSequence> holdoverHeap, int n) {
 		LetterSequence bestSequence = null;
 
-		List<LetterSequence> holdoverWithDash = new ArrayList<LetterSequence>(n);
-		List<LetterSequence> holdoverWithoutDash = new ArrayList<LetterSequence>(n);
+		List<LetterSequence> holdoverWithDash = new ArrayList<>(n);
+		List<LetterSequence> holdoverWithoutDash = new ArrayList<>(n);
 
 		int i = 0;
 		for (LetterSequence holdoverSequence : holdoverHeap) {
@@ -98,7 +98,7 @@ public class MostLikelyWordChooser {
 			i++;
 		}
 
-		PriorityQueue<LetterSequence> combinedHeap = new PriorityQueue<LetterSequence>();
+		PriorityQueue<LetterSequence> combinedHeap = new PriorityQueue<>();
 		for (LetterSequence sequenceWithDash : holdoverWithDash) {
 			// find the dash that needs to be skipped at the end of sequence 1
 			for (int j = sequenceWithDash.getLetters().size() - 1; j >= 0; j--) {
@@ -114,7 +114,7 @@ public class MostLikelyWordChooser {
 			}
 		}
 
-		List<LetterSequence> combinedSequences = new ArrayList<LetterSequence>();
+		List<LetterSequence> combinedSequences = new ArrayList<>();
 		for (i = 0; i < n; i++) {
 			if (combinedHeap.isEmpty())
 				break;
@@ -190,7 +190,7 @@ public class MostLikelyWordChooser {
 		double bestScore = Double.NEGATIVE_INFINITY;
 		LetterSequence bestSequence = null;
 
-		List<LetterSequence> sequences = new ArrayList<LetterSequence>(n);
+		List<LetterSequence> sequences = new ArrayList<>(n);
 		for (LetterSequence sequence : heap) {
 			if (i >= n)
 				break;
@@ -272,7 +272,7 @@ public class MostLikelyWordChooser {
 	public int getFrequency(LetterSequence letterSequence, boolean guessedWord) {
 		int frequency = 0;
 		List<LetterSequence> subsequences = letterSequence.getSubsequences();
-		List<List<LetterSequence>> possibilities = new ArrayList<List<LetterSequence>>();
+		List<List<LetterSequence>> possibilities = new ArrayList<>();
 		possibilities.add(new ArrayList<LetterSequence>());
 
 		int lastIndex = -1;
@@ -285,7 +285,7 @@ public class MostLikelyWordChooser {
 			else
 				word = subsequence.getRealWord();
 
-			List<List<LetterSequence>> newPossibilities = new ArrayList<List<LetterSequence>>();
+			List<List<LetterSequence>> newPossibilities = new ArrayList<>();
 			for (List<LetterSequence> possibility : possibilities) {
 				if (possibility.size() > 0) {
 					// has this subsequence already been processed ?
@@ -310,35 +310,35 @@ public class MostLikelyWordChooser {
 							if (prevSequence == null && nextSequence == null) {
 								newPossibilities.add(possibility);
 							} else if (prevSequence == null) {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>();
+								List<LetterSequence> newPoss = new ArrayList<>();
 								newPoss.add(subsequence);
 								newPoss.add(nextSequence);
 								newPossibilities.add(newPoss);
-								newPoss = new ArrayList<LetterSequence>();
+								newPoss = new ArrayList<>();
 								newPoss.add(currentNextSequence);
 								newPossibilities.add(newPoss);
 							} else if (nextSequence == null) {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								List<LetterSequence> newPoss = new ArrayList<>(possibility);
 								newPoss.add(subsequence);
 								newPossibilities.add(newPoss);
-								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss = new ArrayList<>(possibility);
 								newPoss.remove(newPoss.size() - 1);
 								newPoss.add(prevCurrentSequence);
 								newPossibilities.add(newPoss);
 							} else {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								List<LetterSequence> newPoss = new ArrayList<>(possibility);
 								newPoss.add(subsequence);
 								newPoss.add(nextSequence);
 								newPossibilities.add(newPoss);
-								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss = new ArrayList<>(possibility);
 								newPoss.add(currentNextSequence);
 								newPossibilities.add(newPoss);
-								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss = new ArrayList<>(possibility);
 								newPoss.remove(newPoss.size() - 1);
 								newPoss.add(prevCurrentSequence);
 								newPoss.add(nextSequence);
 								newPossibilities.add(newPoss);
-								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss = new ArrayList<>(possibility);
 								newPoss.remove(newPoss.size() - 1);
 								newPoss.add(prevCurrentNextSequence);
 								newPossibilities.add(newPoss);
@@ -354,7 +354,7 @@ public class MostLikelyWordChooser {
 									prevNextSequence.setHyphenSubsequence(subsequence);
 									prevNextSequence.setSoftHyphen(true);
 
-									newPoss = new ArrayList<LetterSequence>(possibility);
+									newPoss = new ArrayList<>(possibility);
 									newPoss.remove(newPoss.size() - 1);
 									newPoss.add(prevNextSequence);
 
@@ -367,7 +367,7 @@ public class MostLikelyWordChooser {
 
 						if (midWordPunctuation.contains(word)) {
 							if (prevSequence != null && nextSequence != null) {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								List<LetterSequence> newPoss = new ArrayList<>(possibility);
 								newPoss.remove(newPoss.size() - 1);
 								newPoss.add(prevCurrentNextSequence);
 								newPossibilities.add(newPoss);
@@ -377,11 +377,11 @@ public class MostLikelyWordChooser {
 
 						if (startWordPunctuation.contains(word)) {
 							if (nextSequence != null && !subsequences.get(subsequences.size() - 1).getGuessedWord().equals(word)) {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								List<LetterSequence> newPoss = new ArrayList<>(possibility);
 								newPoss.add(currentNextSequence);
 								newPossibilities.add(newPoss);
 
-								newPoss = new ArrayList<LetterSequence>(possibility);
+								newPoss = new ArrayList<>(possibility);
 								newPoss.add(subsequence);
 								newPoss.add(nextSequence);
 								newPossibilities.add(newPoss);
@@ -391,7 +391,7 @@ public class MostLikelyWordChooser {
 
 						if (endWordPunctuation.contains(word) && !subsequences.get(0).getGuessedWord().equals(word)) {
 							if (prevSequence != null) {
-								List<LetterSequence> newPoss = new ArrayList<LetterSequence>(possibility);
+								List<LetterSequence> newPoss = new ArrayList<>(possibility);
 								newPoss.remove(newPoss.size() - 1);
 								newPoss.add(prevCurrentSequence);
 								newPossibilities.add(newPoss);
@@ -408,7 +408,7 @@ public class MostLikelyWordChooser {
 			possibilities = newPossibilities;
 		}
 
-		TreeMap<Integer, List<List<LetterSequence>>> freqPossibilityMap = new TreeMap<Integer, List<List<LetterSequence>>>();
+		TreeMap<Integer, List<List<LetterSequence>>> freqPossibilityMap = new TreeMap<>();
 
 		for (List<LetterSequence> possibility : possibilities) {
 			boolean hasWords = false;
@@ -427,7 +427,7 @@ public class MostLikelyWordChooser {
 				if (frequencies.size() == 0) {
 					// check whether word is impossible
 					if (!this.linguistics.isWordPossible(word)) {
-						frequencies.add(new CountedOutcome<String>(word, -1));
+						frequencies.add(new CountedOutcome<>(word, -1));
 					}
 				}
 
@@ -437,7 +437,7 @@ public class MostLikelyWordChooser {
 					freq = frequencies.get(0).getCount();
 				} else {
 					frequencies = new ArrayList<>();
-					frequencies.add(new CountedOutcome<String>(word, 0));
+					frequencies.add(new CountedOutcome<>(word, 0));
 					freq = 0;
 					subsequence.setWordFrequencies(frequencies);
 					letterSequence.getWordFrequencies().add(frequencies.get(0));
@@ -452,7 +452,7 @@ public class MostLikelyWordChooser {
 
 			List<List<LetterSequence>> possibilitiesAtFreq = freqPossibilityMap.get(minFreq);
 			if (possibilitiesAtFreq == null) {
-				possibilitiesAtFreq = new ArrayList<List<LetterSequence>>();
+				possibilitiesAtFreq = new ArrayList<>();
 				freqPossibilityMap.put(minFreq, possibilitiesAtFreq);
 			}
 			possibilitiesAtFreq.add(possibility);
@@ -538,8 +538,6 @@ public class MostLikelyWordChooser {
 	 * words<br/>
 	 * other values means the raw score for unknown words is multiplied by this
 	 * factor<br/>
-	 * 
-	 * @return
 	 */
 	public double getUnknownWordFactor() {
 		return unknownWordFactor;
