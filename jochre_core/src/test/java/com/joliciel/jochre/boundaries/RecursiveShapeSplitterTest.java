@@ -22,15 +22,15 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class RecursiveShapeSplitterTest {
 	private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitterTest.class);
 
 	/**
-	 * Make sure we get 5 equally weighted sequences in the case of a 50/50 prob
-	 * for splitting each time.
+	 * Make sure we get 5 equally weighted sequences in the case of a 50/50 prob for
+	 * splitting each time.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
@@ -53,42 +53,46 @@ public class RecursiveShapeSplitterTest {
 		shape2.setBaseLine(12);
 		shape2.setMeanLine(4);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				Split split = new Split(shape, jochreSession);
 				split.setPosition(31);
-				List<Split> splits = new ArrayList<Split>();
+				List<Split> splits = new ArrayList<>();
 				splits.add(split);
 				splitCandidateFinder.findSplitCandidates(shape);
-				returns(splits);
+				result = splits;
+				minTimes = 0;
 
 				Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.5);
 				Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.5);
-				List<Decision> decisions = new ArrayList<Decision>();
+				List<Decision> decisions = new ArrayList<>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 
 				decisionMaker.decide((List<FeatureResult<?>>) any);
-				returns(decisions);
+				result = decisions;
+				minTimes = 0;
 				maxTimes = 500;
 
 				Split split1 = new Split(shape1, jochreSession);
 				split1.setPosition(15);
-				List<Split> splits1 = new ArrayList<Split>();
+				List<Split> splits1 = new ArrayList<>();
 				splits1.add(split1);
 				splitCandidateFinder.findSplitCandidates(shape1);
-				returns(splits1);
+				result = splits1;
+				minTimes = 0;
 
 				Split split2 = new Split(shape2, jochreSession);
 				split2.setPosition(15);
-				List<Split> splits2 = new ArrayList<Split>();
+				List<Split> splits2 = new ArrayList<>();
 				splits2.add(split2);
 				splitCandidateFinder.findSplitCandidates(shape2);
-				returns(splits2);
+				result = splits2;
+				minTimes = 0;
 			}
 		};
 
-		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
+		Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker, jochreSession);
 		splitter.setBeamWidth(10);
@@ -125,42 +129,46 @@ public class RecursiveShapeSplitterTest {
 		shape2.setBaseLine(12);
 		shape2.setMeanLine(4);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				Split split = new Split(shape, jochreSession);
 				split.setPosition(31);
-				List<Split> splits = new ArrayList<Split>();
+				List<Split> splits = new ArrayList<>();
 				splits.add(split);
 				splitCandidateFinder.findSplitCandidates(shape);
-				returns(splits);
+				result = splits;
+				minTimes = 0;
 
 				Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.4);
 				Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.6);
-				List<Decision> decisions = new ArrayList<Decision>();
+				List<Decision> decisions = new ArrayList<>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 
 				decisionMaker.decide((List<FeatureResult<?>>) any);
-				returns(decisions);
+				result = decisions;
+				minTimes = 0;
 				maxTimes = 500;
 
 				Split split1 = new Split(shape1, jochreSession);
 				split1.setPosition(15);
-				List<Split> splits1 = new ArrayList<Split>();
+				List<Split> splits1 = new ArrayList<>();
 				splits1.add(split1);
 				splitCandidateFinder.findSplitCandidates(shape1);
-				returns(splits1);
+				result = splits1;
+				minTimes = 0;
 
 				Split split2 = new Split(shape2, jochreSession);
 				split2.setPosition(15);
-				List<Split> splits2 = new ArrayList<Split>();
+				List<Split> splits2 = new ArrayList<>();
 				splits2.add(split2);
 				splitCandidateFinder.findSplitCandidates(shape2);
-				returns(splits2);
+				result = splits2;
+				minTimes = 0;
 			}
 		};
 
-		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
+		Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker, jochreSession);
 
@@ -231,42 +239,46 @@ public class RecursiveShapeSplitterTest {
 		shape2.setBaseLine(12);
 		shape2.setMeanLine(4);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				Split split = new Split(shape, jochreSession);
 				split.setPosition(31);
-				List<Split> splits = new ArrayList<Split>();
+				List<Split> splits = new ArrayList<>();
 				splits.add(split);
 				splitCandidateFinder.findSplitCandidates(shape);
-				returns(splits);
+				result = splits;
+				minTimes = 0;
 
 				Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.6);
 				Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.4);
-				List<Decision> decisions = new ArrayList<Decision>();
+				List<Decision> decisions = new ArrayList<>();
 				decisions.add(yesDecision);
 				decisions.add(noDecision);
 
 				decisionMaker.decide((List<FeatureResult<?>>) any);
-				returns(decisions);
+				result = decisions;
+				minTimes = 0;
 				maxTimes = 500;
 
 				Split split1 = new Split(shape1, jochreSession);
 				split1.setPosition(15);
-				List<Split> splits1 = new ArrayList<Split>();
+				List<Split> splits1 = new ArrayList<>();
 				splits1.add(split1);
 				splitCandidateFinder.findSplitCandidates(shape1);
-				returns(splits1);
+				result = splits1;
+				minTimes = 0;
 
 				Split split2 = new Split(shape2, jochreSession);
 				split2.setPosition(15);
-				List<Split> splits2 = new ArrayList<Split>();
+				List<Split> splits2 = new ArrayList<>();
 				splits2.add(split2);
 				splitCandidateFinder.findSplitCandidates(shape2);
-				returns(splits2);
+				result = splits2;
+				minTimes = 0;
 			}
 		};
 
-		Set<SplitFeature<?>> splitFeatures = new TreeSet<SplitFeature<?>>();
+		Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 
 		RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker, jochreSession);
 		splitter.setBeamWidth(10);

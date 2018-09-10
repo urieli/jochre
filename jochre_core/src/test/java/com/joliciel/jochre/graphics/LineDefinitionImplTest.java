@@ -32,8 +32,8 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class LineDefinitionImplTest {
 	@SuppressWarnings("unused")
@@ -42,19 +42,22 @@ public class LineDefinitionImplTest {
 	@Test
 	public void testTrace(@Mocked final Shape shape) {
 		LineDefinition lineDef = new LineDefinition(0, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
+
 		BitSet bitset = new BitSet(shape.getHeight() * shape.getWidth());
 		lineDef.trace(bitset, shape, 5, 2, 8, 0);
 
@@ -95,17 +98,19 @@ public class LineDefinitionImplTest {
 	@Test
 	public void testFollow(@Mocked final Shape shape) {
 		LineDefinition lineDef = new LineDefinition(0, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
 
@@ -123,7 +128,7 @@ public class LineDefinitionImplTest {
 		JochreSession jochreSession = new JochreSession(config);
 
 		LineDefinition lineDef = new LineDefinition(0, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);

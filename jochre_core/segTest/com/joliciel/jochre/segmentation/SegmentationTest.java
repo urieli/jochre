@@ -27,8 +27,8 @@ import com.joliciel.jochre.graphics.SourceImage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 /**
  * In these rather resource-heavy tests, we analyse real images, and ensure that
@@ -64,7 +64,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(544, 824, 2432, 344);
 		Rectangle textPar2 = new Rectangle(552, 1176, 2512, 2112);
 		Rectangle textPar3 = new Rectangle(584, 3320, 2448, 344);
@@ -77,7 +77,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);
@@ -114,8 +114,8 @@ public class SegmentationTest {
 
 	/**
 	 * Pietrushka is a bit unusual in that it contains a column separator in the
-	 * middle. Given that it's in Yiddish, the columns need to be aligned from
-	 * right to left.
+	 * middle. Given that it's in Yiddish, the columns need to be aligned from right
+	 * to left.
 	 * 
 	 * @throws Exception
 	 */
@@ -136,7 +136,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(1832, 688, 1336, 1864);
 		Rectangle textPar2 = new Rectangle(1848, 2608, 1312, 2200);
 		Rectangle textPar3 = new Rectangle(1848, 4856, 1296, 94);
@@ -151,7 +151,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);
@@ -209,7 +209,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(1670, 920, 624, 182);
 		Rectangle textPar2 = new Rectangle(740, 1524, 2368, 96);
 		Rectangle textPar3 = new Rectangle(680, 1652, 2620, 192);
@@ -236,7 +236,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);
@@ -284,12 +284,14 @@ public class SegmentationTest {
 		Config config = ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.load());
 		JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochrePage.getDocument();
-				returns(jochreDoc);
+				result = jochreDoc;
+				minTimes = 0;
 				jochreDoc.isLeftToRight();
-				returns(true);
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -303,7 +305,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(715, 517, 462, 115);
 		// TODO: for now it's splitting this paragraph by row, since it's assuming
 		// paragraphs cannot be
@@ -325,7 +327,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);
@@ -373,12 +375,14 @@ public class SegmentationTest {
 		Config config = ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.load());
 		JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochrePage.getDocument();
-				returns(jochreDoc);
+				result = jochreDoc;
+				minTimes = 0;
 				jochreDoc.isLeftToRight();
-				returns(true);
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -392,7 +396,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(63, 81, 1059, 108);
 		Rectangle textPar2 = new Rectangle(66, 204, 1065, 294);
 		Rectangle textPar3 = new Rectangle(63, 516, 1068, 348);
@@ -407,7 +411,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);
@@ -458,12 +462,14 @@ public class SegmentationTest {
 		Config config = ConfigFactory.parseMap(configMap).withFallback(ConfigFactory.load());
 		JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochrePage.getDocument();
-				returns(jochreDoc);
+				result = jochreDoc;
+				minTimes = 0;
 				jochreDoc.isLeftToRight();
-				returns(true);
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -477,7 +483,7 @@ public class SegmentationTest {
 		Segmenter segmenter = new Segmenter(sourceImage, jochreSession);
 		segmenter.segment();
 
-		List<Rectangle> textPars = new ArrayList<Rectangle>();
+		List<Rectangle> textPars = new ArrayList<>();
 		Rectangle textPar1 = new Rectangle(712, 532, 556, 52);
 		Rectangle textPar2 = new Rectangle(324, 600, 1324, 128);
 		Rectangle textPar3 = new Rectangle(680, 730, 592, 50);
@@ -490,7 +496,7 @@ public class SegmentationTest {
 
 		int i = 0;
 		int j = 0;
-		List<Paragraph> textParagraphs = new ArrayList<Paragraph>();
+		List<Paragraph> textParagraphs = new ArrayList<>();
 		for (Paragraph par : sourceImage.getParagraphs()) {
 			Rectangle real = new Rectangle(par.getLeft(), par.getTop(), par.getRight() - par.getLeft(), par.getBottom() - par.getTop());
 			Rectangle expected = textPars.get(i);

@@ -31,8 +31,8 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class VectorizerImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
@@ -147,11 +147,11 @@ public class VectorizerImplTest {
 		shape.setOutline(outline);
 		shape.setJochreImage(image);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				image.getBlackThreshold();
-				returns(threshold);
-
+				result = threshold;
+				minTimes = 0;
 			}
 		};
 

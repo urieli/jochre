@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class LineSegmentImplTest {
 	@SuppressWarnings("unused")
@@ -38,17 +38,19 @@ public class LineSegmentImplTest {
 	@Test
 	public void testGetEnclosingRectangle(@Mocked final Shape shape) {
 		LineDefinition lineDef = new LineDefinition(0, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(2);
 		steps.add(3);
 		lineDef.setSteps(steps);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
 
@@ -78,17 +80,19 @@ public class LineSegmentImplTest {
 	@Test
 	public void testGetEnclosingRectangleDiagonal(@Mocked final Shape shape) {
 		LineDefinition lineDef = new LineDefinition(0, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(1);
 		steps.add(2);
 		lineDef.setSteps(steps);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
 
@@ -118,16 +122,18 @@ public class LineSegmentImplTest {
 	@Test
 	public void testGetEnclosingRectangleDoubleDiagonal(@Mocked final Shape shape) {
 		LineDefinition lineDef = new LineDefinition(1, 0);
-		List<Integer> steps = new ArrayList<Integer>();
+		List<Integer> steps = new ArrayList<>();
 		steps.add(2);
 		lineDef.setSteps(steps);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
 
@@ -157,17 +163,19 @@ public class LineSegmentImplTest {
 	@Test
 	public void testGetEnclosingRectangleIntersection(@Mocked final Shape shape) {
 		LineDefinition lineDef1 = new LineDefinition(0, 0);
-		List<Integer> steps1 = new ArrayList<Integer>();
+		List<Integer> steps1 = new ArrayList<>();
 		steps1.add(2);
 		steps1.add(3);
 		lineDef1.setSteps(steps1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getHeight();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 				shape.getWidth();
-				returns(8);
+				result = 8;
+				minTimes = 0;
 			}
 		};
 
@@ -175,7 +183,7 @@ public class LineSegmentImplTest {
 		lineSegement1.setLength(4);
 
 		LineDefinition lineDef2 = new LineDefinition(1, 0);
-		List<Integer> steps2 = new ArrayList<Integer>();
+		List<Integer> steps2 = new ArrayList<>();
 		steps2.add(2);
 		lineDef2.setSteps(steps2);
 
