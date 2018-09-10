@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +80,9 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	private Map<String, Shape> shapeMap = null;
 	SimpleProgressMonitor currentMonitor = null;
 	int shapesSaved = 0;
+
+	private boolean meanHorizontalSlopeCalculated = false;
+	private double meanHorizontalSlope = 0;
 
 	private final JochreSession jochreSession;
 	private final GraphicsDao graphicsDao;
@@ -188,7 +192,7 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 	public List<Paragraph> getParagraphs() {
 		if (paragraphs == null) {
 			if (this.id == 0)
-				paragraphs = new ArrayList<Paragraph>();
+				paragraphs = new ArrayList<>();
 			else
 				paragraphs = graphicsDao.findParagraphs(this);
 		}
@@ -454,7 +458,7 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 		String key = left + "," + top + "," + right + "," + bottom;
 
 		if (this.shapeMap == null)
-			this.shapeMap = new HashMap<String, Shape>();
+			this.shapeMap = new HashMap<>();
 		Shape shape = this.shapeMap.get(key);
 		if (shape == null) {
 			shape = new Shape(this, jochreSession);
@@ -575,4 +579,36 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
 		this.id = id;
 	}
 
+	/**
+	 * Calculate the mean horizontal slope of rows on this image.
+	 */
+	public double getMeanHorizontalSlope() {
+		if (!meanHorizontalSlopeCalculated) {
+			Mean meanForSlope = new Mean();
+			for (Paragraph par : this.getParagraphs()) {
+				for (RowOfShapes row : par.getRows()) {
+					if (row.getShapes().size() > 1) {
+						Shape shape1 = this.isLeftToRight() ? row.getShapes().get(0) : row.getShapes().get(row.getShapes().size() - 1);
+						Shape shape2 = this.isLeftToRight() ? row.getShapes().get(row.getShapes().size() - 1) : row.getShapes().get(0);
+						double slope = ((double) ((shape2.getTop() + shape2.getBaseLine()) - (shape1.getTop() + shape1.getBaseLine())))
+								/ ((double) (shape2.getRight() - shape1.getLeft()));
+						meanForSlope.increment(slope);
+					}
+				}
+			}
+			if (meanForSlope.getN() > 0)
+				meanHorizontalSlope = meanForSlope.getResult();
+			else
+				meanHorizontalSlope = 0;
+			meanHorizontalSlopeCalculated = true;
+		}
+		return meanHorizontalSlope;
+	}
+
+	/**
+	 * Mean horizontal slope in degrees.
+	 */
+	public double getMeanSlopeDegrees() {
+		return Math.toDegrees(Math.atan(0 - this.getMeanHorizontalSlope()));
+	}
 }

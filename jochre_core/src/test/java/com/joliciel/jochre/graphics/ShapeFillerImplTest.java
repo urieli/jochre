@@ -34,8 +34,8 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class ShapeFillerImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(ShapeFillerImplTest.class);
@@ -47,12 +47,14 @@ public class ShapeFillerImplTest {
 		Config config = ConfigFactory.load();
 		JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochreImage.normalize(255);
-				returns(255);
+				result = 255;
+				minTimes = 0;
 				jochreImage.normalize(0);
-				returns(0);
+				result = 0;
+				minTimes = 0;
 			}
 		};
 
@@ -89,12 +91,14 @@ public class ShapeFillerImplTest {
 		Config config = ConfigFactory.load();
 		JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochreImage.normalize(255);
-				returns(255);
+				result = 255;
+				minTimes = 0;
 				jochreImage.normalize(0);
-				returns(0);
+				result = 0;
+				minTimes = 0;
 			}
 		};
 

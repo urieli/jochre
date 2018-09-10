@@ -34,8 +34,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import mockit.Delegate;
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class ShapeImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(ShapeImplTest.class);
@@ -238,16 +238,20 @@ public class ShapeImplTest {
 				226, 225, 224, 223, 222 };
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -255,6 +259,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
+				image.isLeftToRight();
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -329,16 +337,20 @@ public class ShapeImplTest {
 				245, 245, 245, 245, 245, 245, };
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -346,6 +358,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
+				image.isLeftToRight();
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -417,16 +433,20 @@ public class ShapeImplTest {
 				245, 245, 245, 245, 245, 245, };
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -434,6 +454,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
+				image.isLeftToRight();
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -517,16 +541,20 @@ public class ShapeImplTest {
 		};
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -534,9 +562,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
 				image.isLeftToRight();
-				returns(true);
-
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -609,16 +638,20 @@ public class ShapeImplTest {
 		};
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -626,9 +659,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
 				image.isLeftToRight();
-				returns(true);
-
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -703,16 +737,20 @@ public class ShapeImplTest {
 		};
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -720,9 +758,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
 				image.isLeftToRight();
-				returns(true);
-
+				result = true;
+				minTimes = 0;
 			}
 		};
 
@@ -796,16 +835,21 @@ public class ShapeImplTest {
 				245, 245, 245, // row
 		};
 		ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
-		new NonStrictExpectations() {
+
+		new Expectations() {
 			{
 				group.getId();
-				returns(1);
+				result = 1;
+				minTimes = 0;
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(image);
+				result = image;
+				minTimes = 0;
 				image.normalize(anyInt);
 				result = new Delegate<Integer>() {
 					@SuppressWarnings("unused")
@@ -813,6 +857,10 @@ public class ShapeImplTest {
 						return i;
 					}
 				};
+				minTimes = 0;
+				image.isLeftToRight();
+				result = true;
+				minTimes = 0;
 			}
 		};
 

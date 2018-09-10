@@ -37,8 +37,8 @@ import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.output.TextGetter.TextFormat;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 public class TextGetterImplTest {
 	private static final Logger LOG = LoggerFactory.getLogger(TextGetterImplTest.class);
@@ -48,28 +48,34 @@ public class TextGetterImplTest {
 			@Mocked final Paragraph paragraph, @Mocked final RowOfShapes row, @Mocked final GroupOfShapes group, @Mocked final Shape shape1,
 			@Mocked final Shape shape2, @Mocked final Shape shape3, @Mocked final Shape shape4, @Mocked final Shape shape5, @Mocked final Shape shape6,
 			@Mocked final Shape shape7, @Mocked final Shape shape8, @Mocked final Shape shape9) {
-		final List<Paragraph> paragraphs = new ArrayList<Paragraph>();
+		final List<Paragraph> paragraphs = new ArrayList<>();
 		paragraphs.add(paragraph);
-		final List<RowOfShapes> rows = new ArrayList<RowOfShapes>();
+		final List<RowOfShapes> rows = new ArrayList<>();
 		rows.add(row);
-		final List<GroupOfShapes> groups = new ArrayList<GroupOfShapes>();
+		final List<GroupOfShapes> groups = new ArrayList<>();
 		groups.add(group);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochreImage.getPage();
-				returns(page);
+				result = page;
+				minTimes = 0;
 				page.getDocument();
-				returns(doc);
+				result = doc;
+				minTimes = 0;
 				doc.isLeftToRight();
-				returns(false);
+				result = false;
+				minTimes = 0;
 				jochreImage.getParagraphs();
-				returns(paragraphs);
+				result = paragraphs;
+				minTimes = 0;
 				paragraph.getRows();
-				returns(rows);
+				result = rows;
+				minTimes = 0;
 				row.getGroups();
-				returns(groups);
-				List<Shape> shapes = new ArrayList<Shape>();
+				result = groups;
+				minTimes = 0;
+				List<Shape> shapes = new ArrayList<>();
 				shapes.add(shape1);
 				shapes.add(shape2);
 				shapes.add(shape3);
@@ -81,27 +87,38 @@ public class TextGetterImplTest {
 				shapes.add(shape9);
 
 				group.getShapes();
-				returns(shapes);
+				result = shapes;
+				minTimes = 0;
 				group.getXHeight();
-				returns(10);
+				result = 10;
+				minTimes = 0;
 				shape1.getLetter();
-				returns(",");
+				result = ",";
+				minTimes = 0;
 				shape2.getLetter();
-				returns(",");
+				result = ",";
+				minTimes = 0;
 				shape3.getLetter();
-				returns("|אַ");
+				result = "|אַ";
+				minTimes = 0;
 				shape4.getLetter();
-				returns("אַ|");
+				result = "אַ|";
+				minTimes = 0;
 				shape5.getLetter();
-				returns("|m");
+				result = "|m";
+				minTimes = 0;
 				shape6.getLetter();
-				returns("m|");
+				result = "m|";
+				minTimes = 0;
 				shape7.getLetter();
-				returns("|ש");
+				result = "|ש";
+				minTimes = 0;
 				shape8.getLetter();
-				returns("ע|");
+				result = "ע|";
+				minTimes = 0;
 				shape9.getLetter();
-				returns(",");
+				result = ",";
+				minTimes = 0;
 
 			}
 		};
@@ -119,76 +136,98 @@ public class TextGetterImplTest {
 			@Mocked final Paragraph paragraph, @Mocked final RowOfShapes row, @Mocked final GroupOfShapes group1, @Mocked final GroupOfShapes group2,
 			@Mocked final GroupOfShapes group3, @Mocked final GroupOfShapes group4, @Mocked final Shape shape1, @Mocked final Shape shape2,
 			@Mocked final Shape shape3, @Mocked final Shape shape4) {
-		final List<Paragraph> paragraphs = new ArrayList<Paragraph>();
+		final List<Paragraph> paragraphs = new ArrayList<>();
 		paragraphs.add(paragraph);
-		final List<RowOfShapes> rows = new ArrayList<RowOfShapes>();
+		final List<RowOfShapes> rows = new ArrayList<>();
 		rows.add(row);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				jochreImage.getPage();
-				returns(page);
+				result = page;
+				minTimes = 0;
 				page.getDocument();
-				returns(doc);
+				result = doc;
+				minTimes = 0;
 				doc.isLeftToRight();
-				returns(true);
+				result = true;
+				minTimes = 0;
 				jochreImage.getParagraphs();
-				returns(paragraphs);
+				result = paragraphs;
+				minTimes = 0;
 				paragraph.getRows();
-				returns(rows);
-				List<GroupOfShapes> groups = new ArrayList<GroupOfShapes>();
+				result = rows;
+				minTimes = 0;
+				List<GroupOfShapes> groups = new ArrayList<>();
 				groups.add(group1);
 				groups.add(group2);
 				groups.add(group3);
 				groups.add(group4);
 
 				row.getGroups();
-				returns(groups);
+				result = groups;
+				minTimes = 0;
 
-				List<Shape> shapes1 = new ArrayList<Shape>();
+				List<Shape> shapes1 = new ArrayList<>();
 				shapes1.add(shape1);
 				group1.getShapes();
-				returns(shapes1);
+				result = shapes1;
+				minTimes = 0;
 
-				List<Shape> shapes2 = new ArrayList<Shape>();
+				List<Shape> shapes2 = new ArrayList<>();
 				shapes2.add(shape2);
 				group2.getShapes();
-				returns(shapes2);
+				result = shapes2;
+				minTimes = 0;
 
-				List<Shape> shapes3 = new ArrayList<Shape>();
+				List<Shape> shapes3 = new ArrayList<>();
 				shapes3.add(shape3);
 				group3.getShapes();
-				returns(shapes3);
+				result = shapes3;
+				minTimes = 0;
 
-				List<Shape> shapes4 = new ArrayList<Shape>();
+				List<Shape> shapes4 = new ArrayList<>();
 				shapes4.add(shape4);
 				group4.getShapes();
-				returns(shapes4);
+				result = shapes4;
+				minTimes = 0;
 				group1.getXHeight();
-				returns(10);
+				result = 10;
+				minTimes = 0;
 				group2.getXHeight();
-				returns(20);
+				result = 20;
+				minTimes = 0;
 				group3.getXHeight();
-				returns(10);
+				result = 10;
+				minTimes = 0;
 				group4.getXHeight();
-				returns(5);
+				result = 5;
+				minTimes = 0;
 
 				shape1.getLetter();
-				returns("A");
+				result = "A";
+				minTimes = 0;
 				shape2.getLetter();
-				returns("B");
+				result = "B";
+				minTimes = 0;
 				shape3.getLetter();
-				returns("C");
+				result = "C";
+				minTimes = 0;
 				shape4.getLetter();
-				returns("D");
+				result = "D";
+				minTimes = 0;
 				shape1.getXHeight();
-				returns(10);
+				result = 10;
+				minTimes = 0;
 				shape2.getXHeight();
-				returns(20);
+				result = 20;
+				minTimes = 0;
 				shape3.getXHeight();
-				returns(10);
+				result = 10;
+				minTimes = 0;
 				shape4.getXHeight();
-				returns(5);
+				result = 5;
+				minTimes = 0;
 			}
 		};
 

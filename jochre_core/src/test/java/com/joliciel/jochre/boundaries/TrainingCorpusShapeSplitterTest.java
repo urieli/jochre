@@ -38,8 +38,8 @@ import com.joliciel.jochre.graphics.Shape;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import mockit.Verifications;
 
 public class TrainingCorpusShapeSplitterTest {
@@ -57,41 +57,56 @@ public class TrainingCorpusShapeSplitterTest {
 		Config config = ConfigFactory.load();
 		final JochreSession jochreSession = new JochreSession(config);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				shape.getLetter();
-				returns("אָבּער");
+				result = "אָבּער";
+				minTimes = 0;
 				shape.getLeft();
-				returns(100);
+				result = 100;
+				minTimes = 0;
 				shape.getRight();
-				returns(200);
+				result = 200;
+				minTimes = 0;
 				shape.getTop();
-				returns(100);
+				result = 100;
+				minTimes = 0;
 				shape.getBottom();
-				returns(200);
+				result = 200;
+				minTimes = 0;
 
 				shape.getGroup();
-				returns(group);
+				result = group;
+				minTimes = 0;
 				shape.getJochreImage();
-				returns(jochreImage);
+				result = jochreImage;
+				minTimes = 0;
 
 				group.getRow();
-				returns(row);
+				result = row;
+				minTimes = 0;
 				row.getParagraph();
-				returns(paragraph);
+				result = paragraph;
+				minTimes = 0;
 				paragraph.getImage();
-				returns(jochreImage);
+				result = jochreImage;
+				minTimes = 0;
 				jochreImage.getPage();
-				returns(jochrePage);
+				result = jochrePage;
+				minTimes = 0;
 				jochrePage.getDocument();
-				returns(jochreDocument);
+				result = jochreDocument;
+				minTimes = 0;
 				jochreDocument.getLocale();
-				returns(jochreSession.getLocale());
+				result = jochreSession.getLocale();
+				minTimes = 0;
 
 				shape.getSplits();
-				returns(splits);
+				result = splits;
+				minTimes = 0;
 				splits.iterator();
-				returns(i);
+				result = i;
+				minTimes = 0;
 
 				i.hasNext();
 				returns(true, true, true, false);
@@ -99,20 +114,27 @@ public class TrainingCorpusShapeSplitterTest {
 				returns(split1, split2, split3);
 
 				split1.getPosition();
-				returns(35);
+				result = 35;
+				minTimes = 0;
 				split2.getPosition();
-				returns(59);
+				result = 59;
+				minTimes = 0;
 				split3.getPosition();
-				returns(82);
+				result = 82;
+				minTimes = 0;
 
 				jochreImage.getShape(100, 100, 135, 200);
-				returns(shape1);
+				result = shape1;
+				minTimes = 0;
 				jochreImage.getShape(136, 100, 159, 200);
-				returns(shape2);
+				result = shape2;
+				minTimes = 0;
 				jochreImage.getShape(160, 100, 182, 200);
-				returns(shape3);
+				result = shape3;
+				minTimes = 0;
 				jochreImage.getShape(183, 100, 200, 200);
-				returns(shape4);
+				result = shape4;
+				minTimes = 0;
 			}
 		};
 

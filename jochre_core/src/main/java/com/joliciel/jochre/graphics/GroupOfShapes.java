@@ -76,7 +76,7 @@ public class GroupOfShapes implements Entity, Rectangle {
 	public List<Shape> getShapes() {
 		if (shapes == null) {
 			if (this.id == 0)
-				shapes = new ArrayList<Shape>();
+				shapes = new ArrayList<>();
 			else {
 				shapes = this.graphicsDao.findShapes(this);
 				for (Shape shape : shapes) {
@@ -92,7 +92,7 @@ public class GroupOfShapes implements Entity, Rectangle {
 	 */
 	void addShapes(List<Shape> shapesToAdd) {
 		if (this.shapes == null) {
-			this.shapes = new ArrayList<Shape>();
+			this.shapes = new ArrayList<>();
 			for (Shape shape : shapesToAdd) {
 				if (shape.getGroupId() == this.getId()) {
 					this.shapes.add(shape);
@@ -173,7 +173,8 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * The leftmost x coordinate of this group (based on the shapes it contains).
+	 * The leftmost x coordinate of this group (based on the shapes it
+	 * contains).
 	 */
 	@Override
 	public int getLeft() {
@@ -191,7 +192,8 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * The rightmost x coordinate of this group (based on the shapes it contains).
+	 * The rightmost x coordinate of this group (based on the shapes it
+	 * contains).
 	 */
 	@Override
 	public int getRight() {
@@ -263,8 +265,8 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Recalculate the various statistical measurements for this group. Should be
-	 * called after the group has had any shapes added or removed.
+	 * Recalculate the various statistical measurements for this group. Should
+	 * be called after the group has had any shapes added or removed.
 	 */
 	public void recalculate() {
 		this.coordinatesFound = false;
@@ -331,10 +333,10 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * If the group is at the end of a row and ends with a hyphen, is this hyphen
-	 * a hard hyphen (would be in the word whether or not it was at the end of a
-	 * row) or a soft hyphen (would disappear if the word was in the middle of a
-	 * row).
+	 * If the group is at the end of a row and ends with a hyphen, is this
+	 * hyphen a hard hyphen (would be in the word whether or not it was at the
+	 * end of a row) or a soft hyphen (would disappear if the word was in the
+	 * middle of a row).
 	 */
 	public boolean isHardHyphen() {
 		return hardHyphen;
@@ -348,9 +350,9 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Set to true if this group represents a broken word, which is only partially
-	 * formed by the shapes visible on the page. Broken words will not be added to
-	 * the internal glossary.
+	 * Set to true if this group represents a broken word, which is only
+	 * partially formed by the shapes visible on the page. Broken words will not
+	 * be added to the internal glossary.
 	 */
 	public boolean isBrokenWord() {
 		return brokenWord;
@@ -410,8 +412,8 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * Whether or not the best letter sequence for this group is split across two
-	 * lines.
+	 * Whether or not the best letter sequence for this group is split across
+	 * two lines.
 	 */
 	public boolean isSplit() {
 		if (this.bestLetterSequence != null)
@@ -420,11 +422,12 @@ public class GroupOfShapes implements Entity, Rectangle {
 	}
 
 	/**
-	 * A list of shapes, as corrected for merged shapes, split shapes and specks.
+	 * A list of shapes, as corrected for merged shapes, split shapes and
+	 * specks.
 	 */
 	public List<Shape> getCorrectedShapes() {
 		if (this.correctedShapes == null) {
-			correctedShapes = new ArrayList<Shape>(shapes.size());
+			correctedShapes = new ArrayList<>(shapes.size());
 			List<Shape> splitShapes = null;
 			boolean haveSplitShape = false;
 			int mergedTop = 0;
@@ -470,7 +473,7 @@ public class GroupOfShapes implements Entity, Rectangle {
 					if (!haveSplitShape) {
 						// first shape in split
 						haveSplitShape = true;
-						splitShapes = new ArrayList<Shape>(2);
+						splitShapes = new ArrayList<>(2);
 						splitShapes.add(shape);
 						mergedTop = shape.getTop();
 						mergedBottom = shape.getBottom();
@@ -614,11 +617,13 @@ public class GroupOfShapes implements Entity, Rectangle {
 
 	@Override
 	public int getWidth() {
+		this.findCoordinates();
 		return right - left + 1;
 	}
 
 	@Override
 	public int getHeight() {
+		this.findCoordinates();
 		return bottom - top + 1;
 	}
 
@@ -646,7 +651,7 @@ public class GroupOfShapes implements Entity, Rectangle {
 	 */
 	public List<LetterSequence> getSubsequences() {
 		LetterSequence bestLetterSequence = this.getBestLetterSequence();
-		List<LetterSequence> subsequences = new ArrayList<LetterSequence>();
+		List<LetterSequence> subsequences = new ArrayList<>();
 		if (bestLetterSequence != null)
 			subsequences = bestLetterSequence.getSubsequences();
 		return subsequences;
