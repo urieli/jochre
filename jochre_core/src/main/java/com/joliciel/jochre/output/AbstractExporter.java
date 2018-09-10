@@ -43,20 +43,20 @@ public abstract class AbstractExporter implements DocumentObserver {
 		try {
 			if (this.outputDir != null) {
 				String fileName = baseName;
-				if (fileName==null)
+				if (fileName == null)
 					fileName = jochreDocument.getFileBase();
 				if (includeDate)
 					fileName += "_" + dateString;
 				fileName += suffix;
 				File file = new File(outputDir, fileName);
-				
+
 				if (suffix.endsWith(".zip")) {
 					ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(file, false));
 					ZipEntry zipEntry = new ZipEntry("contents.txt");
 					zos.putNextEntry(zipEntry);
 					this.writer = new BufferedWriter(new OutputStreamWriter(zos, "UTF-8"));
 				} else {
-					this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
+					this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), "UTF8"));
 				}
 			}
 			this.onDocumentStartInternal(jochreDocument);
@@ -81,7 +81,7 @@ public abstract class AbstractExporter implements DocumentObserver {
 	}
 
 	protected abstract void onDocumentCompleteInternal(JochreDocument jochreDocument);
-	
+
 	@Override
 	public void onAnalysisComplete() {
 	}

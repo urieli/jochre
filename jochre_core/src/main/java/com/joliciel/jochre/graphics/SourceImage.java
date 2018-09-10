@@ -293,7 +293,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	 */
 	public List<RowOfShapes> getRows() {
 		if (rows == null) {
-			rows = new ArrayList<RowOfShapes>();
+			rows = new ArrayList<>();
 		}
 		return rows;
 	}
@@ -332,7 +332,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 		if (rowClusters == null) {
 			Mean heightMean = new Mean();
 			StandardDeviation heightStdDev = new StandardDeviation();
-			List<double[]> rowHeights = new ArrayList<double[]>(this.getRows().size());
+			List<double[]> rowHeights = new ArrayList<>(this.getRows().size());
 			for (RowOfShapes row : this.getRows()) {
 				Shape shape = row.getShapes().iterator().next();
 				int height = shape.getBaseLine() - shape.getMeanLine();
@@ -342,8 +342,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 			}
 
 			double stdDevHeight = heightStdDev.getResult();
-			List<RowOfShapes> rows = new ArrayList<RowOfShapes>(this.getRows());
-			DBSCANClusterer<RowOfShapes> clusterer = new DBSCANClusterer<RowOfShapes>(rows, rowHeights);
+			List<RowOfShapes> rows = new ArrayList<>(this.getRows());
+			DBSCANClusterer<RowOfShapes> clusterer = new DBSCANClusterer<>(rows, rowHeights);
 			rowClusters = clusterer.cluster(stdDevHeight, 2, true);
 			LOG.debug("Found " + rowClusters.size() + " row clusters.");
 		}
@@ -513,7 +513,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 		LOG.debug("averageShapeWidth: " + averageShapeWidth);
 		LOG.debug("averageShapeHeight: " + averageShapeHeight);
 
-		List<Rectangle> whiteAreas = new ArrayList<Rectangle>();
+		List<Rectangle> whiteAreas = new ArrayList<>();
 
 		// Horizontal white areas
 		double minHorizontalWhiteAreaWidth = 40.0 * averageShapeWidth;
@@ -522,7 +522,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 		LOG.debug("minHorizontalWhiteAreaHeight: " + minHorizontalWhiteAreaHeight);
 
 		WhiteAreaFinder whiteAreaFinder = new WhiteAreaFinder();
-		List<Rectangle> blackAreas = new ArrayList<Rectangle>();
+		List<Rectangle> blackAreas = new ArrayList<>();
 		blackAreas.addAll(shapes);
 
 		List<Rectangle> horizontalWhiteAreas = whiteAreaFinder.getWhiteAreas(blackAreas, left, top, right, bottom, minHorizontalWhiteAreaWidth,
@@ -571,12 +571,13 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	/**
 	 * Calculate the mean horizontal slope of rows on this image.
 	 */
+	@Override
 	public double getMeanHorizontalSlope() {
 		if (!meanHorizontalSlopeCalculated) {
 			// Calculate the average regression to be used for analysis
 			Mean meanForSlope = new Mean();
 			StandardDeviation stdDevForSlope = new StandardDeviation();
-			List<SimpleRegression> regressions = new ArrayList<SimpleRegression>();
+			List<SimpleRegression> regressions = new ArrayList<>();
 			for (RowOfShapes row : this.getRows()) {
 				SimpleRegression regression = row.getRegression();
 				// only include rows for which regression was really calculated
@@ -629,12 +630,12 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 	public List<Shape> getLargeShapes() {
 		if (largeShapes == null)
-			largeShapes = new ArrayList<Shape>();
+			largeShapes = new ArrayList<>();
 		return largeShapes;
 	}
 
 	private List<Rectangle> getWhiteAreasAroundLargeShapes(Set<Shape> shapes) {
-		List<Rectangle> whiteAreas = new ArrayList<Rectangle>(this.getLargeShapes().size());
+		List<Rectangle> whiteAreas = new ArrayList<>(this.getLargeShapes().size());
 
 		for (Shape largeShape : this.getLargeShapes()) {
 			LOG.debug("Large shape: " + largeShape);
@@ -679,7 +680,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	public List<Rectangle> getWhiteAreasAroundLargeShapes() {
 		if (whiteAreasAroundLargeShapes == null) {
 			LOG.debug("getWhiteAreasAroundLargeShapes");
-			List<Rectangle> whiteAreas = new ArrayList<Rectangle>(this.getLargeShapes().size());
+			List<Rectangle> whiteAreas = new ArrayList<>(this.getLargeShapes().size());
 
 			for (Shape largeShape : this.getLargeShapes()) {
 				int nearestAbove = 0;
@@ -765,7 +766,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 			LOG.debug("maxEmptyRowCount: " + maxEmptyRowCount);
 
 			boolean inEmptyHorizontalRange = false;
-			List<int[]> emptyHorizontalRanges = new ArrayList<int[]>();
+			List<int[]> emptyHorizontalRanges = new ArrayList<>();
 			int emptyHorizontalRangeStart = 0;
 			for (int i = 0; i < this.getHeight(); i++) {
 				if (!inEmptyHorizontalRange && horizontalCounts[i] <= maxEmptyRowCount) {
@@ -884,7 +885,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 			LOG.debug("maxEmptyColumnCount: " + maxEmptyColumnCount);
 
 			boolean inEmptyVerticalRange = false;
-			List<int[]> emptyVerticalRanges = new ArrayList<int[]>();
+			List<int[]> emptyVerticalRanges = new ArrayList<>();
 			int emptyVerticalRangeStart = 0;
 			for (int i = 0; i < this.getWidth(); i++) {
 				if (!inEmptyVerticalRange && verticalCounts[i] <= maxEmptyColumnCount) {
@@ -904,7 +905,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 			double minVerticalBreak = rowXHeightStats.getPercentile(50) * 1.0;
 			LOG.debug("minVerticalBreak: " + minVerticalBreak);
 
-			List<int[]> columnBreaks = new ArrayList<int[]>();
+			List<int[]> columnBreaks = new ArrayList<>();
 			for (int[] emptyVerticalRange : emptyVerticalRanges) {
 				int width = emptyVerticalRange[1] - emptyVerticalRange[0];
 				LOG.trace("empty range: " + emptyVerticalRange[0] + ", " + emptyVerticalRange[1] + " = " + width);
@@ -915,7 +916,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 				}
 			}
 
-			columnSeparators = new ArrayList<Rectangle>();
+			columnSeparators = new ArrayList<>();
 			for (int[] columnBreak : columnBreaks) {
 				// reduce the column break to the thickest empty area if
 				// possible
@@ -924,7 +925,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 				maxEmptyColumnCount = 0;
 				while (bestColumnBreak == null && maxEmptyColumnCount <= originalCount) {
 					inEmptyVerticalRange = false;
-					emptyVerticalRanges = new ArrayList<int[]>();
+					emptyVerticalRanges = new ArrayList<>();
 					emptyVerticalRangeStart = columnBreak[0];
 					for (int i = columnBreak[0]; i <= columnBreak[1]; i++) {
 						if (!inEmptyVerticalRange && verticalCounts[i] <= maxEmptyColumnCount) {

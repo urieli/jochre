@@ -14,7 +14,8 @@ import java.util.TreeSet;
  *
  */
 public class CorpusSelectionCriteria {
-	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
+	private ImageStatus[] imageStatusesToInclude = new ImageStatus[] { ImageStatus.TRAINING_VALIDATED, ImageStatus.TRAINING_HELD_OUT,
+			ImageStatus.TRAINING_TEST };
 	private int imageCount = 0;
 	private int imageId = 0;
 
@@ -62,8 +63,8 @@ public class CorpusSelectionCriteria {
 
 	/**
 	 * If cross-validation evaluation, the index of the document we want to
-	 * evaluate, where this index goes from 0 to crossValidationSize-1. Should be
-	 * the same as the index excluded from training.
+	 * evaluate, where this index goes from 0 to crossValidationSize-1. Should
+	 * be the same as the index excluded from training.
 	 */
 	public int getIncludeIndex() {
 		return includeIndex;
@@ -74,8 +75,9 @@ public class CorpusSelectionCriteria {
 	}
 
 	/**
-	 * If cross-validation training, the index of the document we want to exclude
-	 * from training, where this index goes from 0 to crossValidationSize-1.
+	 * If cross-validation training, the index of the document we want to
+	 * exclude from training, where this index goes from 0 to
+	 * crossValidationSize-1.
 	 */
 	public int getExcludeIndex() {
 		return excludeIndex;
@@ -131,7 +133,7 @@ public class CorpusSelectionCriteria {
 	}
 
 	public Map<String, String> getAttributes() {
-		Map<String, String> attributes = new LinkedHashMap<String, String>();
+		Map<String, String> attributes = new LinkedHashMap<>();
 		attributes.put("imageCount", "" + imageCount);
 		attributes.put("imageStatusesToInclude", imageStatusesToInclude.toString());
 		attributes.put("imageId", "" + imageId);
@@ -160,7 +162,7 @@ public class CorpusSelectionCriteria {
 	 * </pre>
 	 */
 	public void loadSelection(Scanner scanner) {
-		documentSelections = new HashMap<String, Set<Integer>>();
+		documentSelections = new HashMap<>();
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine().trim();
 			if (line.length() > 0 && !line.startsWith("#")) {

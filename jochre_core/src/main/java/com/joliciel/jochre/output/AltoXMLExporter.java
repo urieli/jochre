@@ -29,9 +29,11 @@ import freemarker.template.Version;
 public class AltoXMLExporter extends AbstractExporter implements DocumentObserver {
 	private static final Logger LOG = LoggerFactory.getLogger(AltoXMLExporter.class);
 	private Template template;
+	private final int version;
 
-	public AltoXMLExporter(File outDir, boolean zipped) {
-		super(outDir, zipped ? "_alto3.zip" : "_alto3.xml");
+	public AltoXMLExporter(File outDir, boolean zipped, int version) {
+		super(outDir, zipped ? "_alto" + version + ".zip" : "_alto" + version + ".xml");
+		this.version = version;
 		this.initialize();
 	}
 
@@ -41,7 +43,7 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
 			cfg.setCacheStorage(new NullCacheStorage());
 			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_body_3_0.ftl")));
+			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_body_" + version + "_0.ftl")));
 			this.template = new Template("alto_body", templateReader, cfg);
 		} catch (IOException e) {
 			LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
@@ -60,8 +62,8 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
 			cfg.setCacheStorage(new NullCacheStorage());
 			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_header_3_0.ftl")));
-			Map<String, Object> model = new HashMap<String, Object>();
+			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_header_" + version + "_0.ftl")));
+			Map<String, Object> model = new HashMap<>();
 			model.put("document", jochreDocument);
 
 			String version = this.getClass().getPackage().getImplementationVersion();
@@ -90,7 +92,7 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
 	@Override
 	public void onImageComplete(JochreImage jochreImage) {
 		try {
-			Map<String, Object> model = new HashMap<String, Object>();
+			Map<String, Object> model = new HashMap<>();
 			model.put("image", jochreImage);
 			template.process(model, writer);
 			writer.flush();
@@ -114,8 +116,8 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
 			cfg.setCacheStorage(new NullCacheStorage());
 			cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_footer_3_0.ftl")));
-			Map<String, Object> model = new HashMap<String, Object>();
+			Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_footer_" + version + "_0.ftl")));
+			Map<String, Object> model = new HashMap<>();
 			model.put("document", jochreDocument);
 
 			Template template = new Template("alto_footer", templateReader, cfg);

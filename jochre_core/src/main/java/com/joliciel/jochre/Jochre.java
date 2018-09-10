@@ -149,6 +149,8 @@ public class Jochre {
 		JochrePageByPage,
 		Alto3,
 		Alto3zip,
+		Alto4,
+		Alto4zip,
 		AbbyyFineReader8,
 		HTML,
 		UnknownWords,
@@ -268,7 +270,7 @@ public class Jochre {
 		int imageCount = 0;
 		int multiplier = 0;
 		boolean save = false;
-		ImageStatus[] imageSet = new ImageStatus[] { ImageStatus.TRAINING_HELD_OUT };
+		ImageStatus[] imageSet = null;
 		boolean reconstructLetters = false;
 		int excludeImageId = 0;
 		int crossValidationSize = -1;
@@ -402,7 +404,8 @@ public class Jochre {
 			} else {
 				criteria.setImageId(imageId);
 				criteria.setImageCount(imageCount);
-				criteria.setImageStatusesToInclude(imageSet);
+				if (imageSet != null)
+					criteria.setImageStatusesToInclude(imageSet);
 				criteria.setExcludeImageId(excludeImageId);
 				criteria.setCrossValidationSize(crossValidationSize);
 				criteria.setIncludeIndex(includeIndex);
@@ -479,6 +482,8 @@ public class Jochre {
 				this.doCommandEvaluateFull(criteria, save, outputDirPath, wordChooser, suffix, observers);
 			} else if (command.equals("analyse")) {
 				this.doCommandAnalyse(criteria, wordChooser, observers);
+			} else if (command.equals("transform")) {
+				this.doCommandTransform(criteria, observers);
 			} else if (command.equals("trainSplits")) {
 				this.doCommandTrainSplits(featureDescriptors, criteria);
 			} else if (command.equals("evaluateSplits")) {
@@ -988,6 +993,22 @@ public class Jochre {
 	}
 
 	/**
+	 * Transform stuff in the corpus into a given output format.
+	 * 
+	 * @param criteria
+	 *            the criteria used to select the documents to be analysed
+	 * @param observers
+	 *            the observers, used to create analysis output
+	 */
+	public void doCommandTransform(CorpusSelectionCriteria criteria, List<DocumentObserver> observers) throws IOException {
+		JochreCorpusImageProcessor imageProcessor = new JochreCorpusImageProcessor(criteria, jochreSession);
+		for (DocumentObserver observer : observers)
+			imageProcessor.addObserver(observer);
+
+		imageProcessor.process();
+	}
+
+	/**
 	 * Full analysis, including merge, split and letter guessing.
 	 */
 	public void doCommandAnalyse(File sourceFile, MostLikelyWordChooser wordChooser, int firstPage, int lastPage, List<DocumentObserver> observers)
@@ -1351,7 +1372,16 @@ public class Jochre {
 				case Alto3:
 				case Alto3zip: {
 					boolean zipped = (outputFormat == OutputFormat.Alto3zip);
-					AltoXMLExporter observer = new AltoXMLExporter(outputDir, zipped);
+					AltoXMLExporter observer = new AltoXMLExporter(outputDir, zipped, 3);
+					observer.setBaseName(baseName);
+					observer.setIncludeDate(includeDate);
+					observers.add(observer);
+					break;
+				}
+				case Alto4:
+				case Alto4zip: {
+					boolean zipped = (outputFormat == OutputFormat.Alto3zip);
+					AltoXMLExporter observer = new AltoXMLExporter(outputDir, zipped, 4);
 					observer.setBaseName(baseName);
 					observer.setIncludeDate(includeDate);
 					observers.add(observer);
