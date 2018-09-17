@@ -221,7 +221,7 @@ CREATE TABLE joc_query (
     query_user_id integer NOT NULL,
     query_ip_id integer NOT NULL,
     query_date timestamp with time zone DEFAULT now() NOT NULL,
-    query_results smallint NOT NULL
+    query_results integer NOT NULL
 );
 
 
