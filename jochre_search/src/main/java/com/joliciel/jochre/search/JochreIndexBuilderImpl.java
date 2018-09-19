@@ -270,7 +270,7 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 					TopDocs topDocs = indexSearcher.search(termQuery, 1);
 					if (topDocs.scoreDocs.length > 0) {
 						Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
-						lastIndexDate = Long.parseLong(doc.get(JochreIndexField.indexTime.name()));
+						lastIndexDate = doc.getField(JochreIndexField.indexTime.name()).numericValue().longValue();
 					}
 				}
 
@@ -315,10 +315,10 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 		private JochreIndexBuilderImpl parent;
 		private int docCount = 0;
 		private int cumulWordCount = 0;
-		private List<AltoPage> currentPages = new ArrayList<AltoPage>();
-		private List<AltoPage> previousPages = new ArrayList<AltoPage>();
-		private List<JochreToken> previousStrings = new ArrayList<JochreToken>();
-		private List<JochreToken> currentStrings = new ArrayList<JochreToken>();
+		private List<AltoPage> currentPages = new ArrayList<>();
+		private List<AltoPage> previousPages = new ArrayList<>();
+		private List<JochreToken> previousStrings = new ArrayList<>();
+		private List<JochreToken> currentStrings = new ArrayList<>();
 		private int startPage = -1;
 		private int endPage = -1;
 		private AltoStringFixer altoStringFixer;
@@ -404,8 +404,8 @@ class JochreIndexBuilderImpl implements JochreIndexBuilder, TokenExtractor {
 
 				cumulWordCount = 0;
 				parent.setCurrentStrings(new ArrayList<JochreToken>());
-				currentPages = new ArrayList<AltoPage>();
-				currentStrings = new ArrayList<JochreToken>();
+				currentPages = new ArrayList<>();
+				currentStrings = new ArrayList<>();
 			}
 		}
 

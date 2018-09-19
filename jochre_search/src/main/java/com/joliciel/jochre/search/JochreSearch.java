@@ -98,7 +98,7 @@ public class JochreSearch {
 		long startTime = System.currentTimeMillis();
 		Command command = null;
 		try {
-			Map<String, String> argMap = new HashMap<String, String>();
+			Map<String, String> argMap = new HashMap<>();
 
 			for (String arg : args) {
 				int equalsPos = arg.indexOf('=');
@@ -281,7 +281,7 @@ public class JochreSearch {
 				switch (command) {
 				case search: {
 					StringWriter stringWriter = new StringWriter();
-					int resultCount = searcher.search(query, stringWriter);
+					long resultCount = searcher.search(query, stringWriter);
 					out.write(stringWriter.toString());
 					out.write("\n");
 
@@ -294,7 +294,7 @@ public class JochreSearch {
 					if (databasePropertiesPath != null) {
 						FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
 						FeedbackQuery feedbackQuery = feedbackService.getEmptyQuery(username, "1.2.3.4");
-						feedbackQuery.setResultCount(resultCount);
+						feedbackQuery.setResultCount((int) resultCount);
 						feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
 						if (query.getAuthorQueryString() != null && query.getAuthorQueryString().length() > 0)
 							feedbackQuery.addClause(FeedbackCriterion.author, query.getAuthorQueryString());
@@ -309,17 +309,18 @@ public class JochreSearch {
 				default: {
 					TopDocs topDocs = searcher.search(query);
 
-					Set<Integer> docIds = new LinkedHashSet<Integer>();
+					Set<Integer> docIds = new LinkedHashSet<>();
 					for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 						docIds.add(scoreDoc.doc);
 						LOG.debug("### Next document");
 						Document doc = searcher.getIndexSearcher().doc(scoreDoc.doc);
 						for (IndexableField field : doc.getFields()) {
-							if (!field.name().equals(JochreIndexField.text.name()) && !field.name().startsWith("rect") && !field.name().startsWith("start"))
+							if (!field.name().equals(JochreIndexField.text.name()) && !field.name().startsWith(JochreIndexField.rect.name())
+									&& !field.name().startsWith(JochreIndexField.start.name()))
 								LOG.debug(field.toString());
 						}
 					}
-					Set<String> fields = new HashSet<String>();
+					Set<String> fields = new HashSet<>();
 					fields.add(JochreIndexField.text.name());
 
 					Highlighter highlighter = highlightService.getHighlighter(query, searcher);

@@ -119,7 +119,7 @@ public class JochreSearchServlet extends HttpServlet {
 				return;
 			}
 
-			Map<String, String> argMap = new HashMap<String, String>();
+			Map<String, String> argMap = new HashMap<>();
 			@SuppressWarnings("rawtypes")
 			Enumeration params = req.getParameterNames();
 			while (params.hasMoreElements()) {
@@ -182,7 +182,7 @@ public class JochreSearchServlet extends HttpServlet {
 				} else if (argName.equalsIgnoreCase("docIds")) {
 					if (argValue.length() > 0) {
 						String[] idArray = argValue.split(",");
-						docIds = new HashSet<Integer>();
+						docIds = new HashSet<>();
 						for (String id : idArray)
 							docIds.add(Integer.parseInt(id));
 					}
@@ -261,7 +261,7 @@ public class JochreSearchServlet extends HttpServlet {
 
 				try {
 					if (command.equals("search")) {
-						int resultCount = searcher.search(query, out);
+						long resultCount = searcher.search(query, out);
 
 						String databasePropsPath = props.getDatabasePropertiesPath();
 						if (databasePropsPath != null) {
@@ -270,7 +270,7 @@ public class JochreSearchServlet extends HttpServlet {
 							feedbackServiceLocator.setDatabasePropertiesPath(props.getDatabasePropertiesPath());
 							FeedbackService feedbackService = feedbackServiceLocator.getFeedbackService();
 							FeedbackQuery feedbackQuery = feedbackService.getEmptyQuery(user, ip);
-							feedbackQuery.setResultCount(resultCount);
+							feedbackQuery.setResultCount((int) resultCount);
 							feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
 							if (query.getAuthorQueryString() != null && query.getAuthorQueryString().length() > 0)
 								feedbackQuery.addClause(FeedbackCriterion.author, query.getAuthorQueryString());
@@ -295,7 +295,7 @@ public class JochreSearchServlet extends HttpServlet {
 						highlightManager.setSnippetCount(snippetCount);
 						highlightManager.setSnippetSize(snippetSize);
 
-						Set<String> fields = new HashSet<String>();
+						Set<String> fields = new HashSet<>();
 						fields.add(JochreIndexField.text.name());
 
 						if (command.equals("highlight"))
@@ -534,7 +534,8 @@ public class JochreSearchServlet extends HttpServlet {
 	public static String getURI(HttpServletRequest request) {
 		String uri = request.getScheme() + "://" + request.getServerName()
 				+ ("http".equals(request.getScheme()) && request.getServerPort() == 80 || "https".equals(request.getScheme()) && request.getServerPort() == 443
-						? "" : ":" + request.getServerPort())
+						? ""
+						: ":" + request.getServerPort())
 				+ request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
 
 		return uri;

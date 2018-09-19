@@ -9,8 +9,7 @@ import java.util.List;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.IntField;
-import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
@@ -50,34 +49,16 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 
 	private SearchServiceInternal searchService;
 
-	/* Indexed, tokenized, not stored. */
-	public static final FieldType TYPE_NOT_STORED = new FieldType();
-
 	/* Indexed, tokenized, stored. */
 	public static final FieldType TYPE_STORED = new FieldType();
 
-	/* Not indexed, not tokenized, stored. */
-	public static final FieldType TYPE_NOT_INDEXED = new FieldType();
-
 	static {
-		TYPE_NOT_STORED.setTokenized(true);
-		TYPE_NOT_STORED.setStoreTermVectors(true);
-		TYPE_NOT_STORED.setStoreTermVectorPositions(true);
-		TYPE_NOT_STORED.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
-		TYPE_NOT_STORED.freeze();
-
 		TYPE_STORED.setTokenized(true);
 		TYPE_STORED.setStored(true);
 		TYPE_STORED.setStoreTermVectors(true);
 		TYPE_STORED.setStoreTermVectorPositions(true);
 		TYPE_STORED.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
 		TYPE_STORED.freeze();
-
-		TYPE_NOT_INDEXED.setTokenized(false);
-		TYPE_NOT_INDEXED.setStored(true);
-		TYPE_NOT_INDEXED.setStoreTermVectors(false);
-		TYPE_NOT_INDEXED.setStoreTermVectorPositions(false);
-		TYPE_NOT_INDEXED.freeze();
 	}
 
 	public JochreIndexDocumentImpl(JochreIndexSearcher indexSearcher, int docId) {
@@ -85,7 +66,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			this.docId = docId;
 			this.indexSearcher = indexSearcher;
 			this.doc = indexSearcher.getIndexSearcher().doc(docId);
-			this.sectionNumber = Integer.parseInt(this.doc.get(JochreIndexField.index.name()));
+			this.sectionNumber = Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue());
 			this.path = this.doc.get(JochreIndexField.path.name());
 			File dir = new File(indexSearcher.getContentDir(), this.path);
 			this.directory = new JochreIndexDirectoryImpl(indexSearcher.getContentDir(), dir);
@@ -103,8 +84,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		this.path = directory.getPath();
 
 		StringBuilder sb = new StringBuilder();
-		rectangles = new TIntObjectHashMap<TIntObjectMap<Rectangle>>();
-		startIndexes = new TIntObjectHashMap<TIntIntMap>();
+		rectangles = new TIntObjectHashMap<>();
+		startIndexes = new TIntObjectHashMap<>();
 		rowCounts = new TIntIntHashMap();
 		int lastSpanStart = 0;
 
@@ -115,7 +96,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			rowCounts.put(page.getIndex(), page.getTextLines().size());
 			TIntObjectMap<Rectangle> rowRectangles = rectangles.get(page.getIndex());
 			if (rowRectangles == null) {
-				rowRectangles = new TIntObjectHashMap<Rectangle>();
+				rowRectangles = new TIntObjectHashMap<>();
 				rectangles.put(page.getIndex(), rowRectangles);
 			}
 			TIntIntMap rowStartIndexes = startIndexes.get(page.getIndex());
@@ -197,12 +178,12 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			doc = new Document();
 			doc.add(new StringField(JochreIndexField.name.name(), directory.getName(), Field.Store.YES));
 			doc.add(new StringField(JochreIndexField.path.name(), this.path, Field.Store.YES));
-			doc.add(new Field(JochreIndexField.startPage.name(), "" + startPage, TYPE_NOT_INDEXED));
-			doc.add(new Field(JochreIndexField.endPage.name(), "" + endPage, TYPE_NOT_INDEXED));
-			doc.add(new IntField(JochreIndexField.index.name(), sectionNumber, Field.Store.YES));
+			doc.add(new StoredField(JochreIndexField.startPage.name(), startPage));
+			doc.add(new StoredField(JochreIndexField.endPage.name(), startPage));
+			doc.add(new StringField(JochreIndexField.sectionNumber.name(), "" + sectionNumber, Field.Store.YES));
 			doc.add(new Field(JochreIndexField.text.name(), contents, TYPE_STORED));
-			doc.add(new IntField(JochreIndexField.length.name(), length, Field.Store.YES));
-			doc.add(new LongField(JochreIndexField.indexTime.name(), System.currentTimeMillis(), Field.Store.YES));
+			doc.add(new StoredField(JochreIndexField.length.name(), length));
+			doc.add(new StoredField(JochreIndexField.indexTime.name(), System.currentTimeMillis()));
 
 			if (this.directory.getMetaData().containsKey(JochreIndexField.id.name()))
 				doc.add(new StringField(JochreIndexField.id.name(), this.directory.getMetaData().get(JochreIndexField.id.name()), Field.Store.YES));
@@ -228,8 +209,8 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 				TIntObjectMap<Rectangle> rowRectangles = rectangles.get(pageIndex);
 				for (int rowIndex : rowRectangles.keys()) {
 					Rectangle rect = rowRectangles.get(rowIndex);
-					String fieldName = "rect" + pageIndex + "_" + rowIndex;
-					doc.add(new Field(fieldName, this.rectToString(rect), TYPE_NOT_INDEXED));
+					String fieldName = JochreIndexField.rect.name() + pageIndex + "_" + rowIndex;
+					doc.add(new StoredField(fieldName, this.rectToString(rect)));
 				}
 			}
 
@@ -237,15 +218,15 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 				TIntIntMap rowStartIndexes = startIndexes.get(pageIndex);
 				for (int rowIndex : rowStartIndexes.keys()) {
 					int startIndex = rowStartIndexes.get(rowIndex);
-					String fieldName = "start" + pageIndex + "_" + rowIndex;
-					doc.add(new IntField(fieldName, startIndex, Field.Store.YES));
+					String fieldName = JochreIndexField.start.name() + pageIndex + "_" + rowIndex;
+					doc.add(new StoredField(fieldName, startIndex));
 				}
 			}
 
 			for (int pageIndex : rowCounts.keys()) {
 				int rowCount = rowCounts.get(pageIndex);
-				String fieldName = "rowCount" + pageIndex;
-				doc.add(new IntField(fieldName, rowCount, Field.Store.YES));
+				String fieldName = JochreIndexField.rowCount.name() + pageIndex;
+				doc.add(new StoredField(fieldName, rowCount));
 			}
 
 			indexWriter.addDocument(doc);
@@ -288,7 +269,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			if (rect == null)
 				throw new IndexFieldNotFoundException("No rectangles for pageIndex " + pageIndex + ", rowIndex " + rowIndex);
 		} else if (doc != null) {
-			String fieldName = "rect" + pageIndex + "_" + rowIndex;
+			String fieldName = JochreIndexField.rect.name() + pageIndex + "_" + rowIndex;
 			String rectString = this.doc.get(fieldName);
 			if (rectString == null) {
 				throw new IndexFieldNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
@@ -312,7 +293,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 			if (startIndex == -1)
 				throw new IndexFieldNotFoundException("No start index for pageIndex " + pageIndex + ", rowIndex " + rowIndex);
 		} else if (doc != null) {
-			String fieldName = "start" + pageIndex + "_" + rowIndex;
+			String fieldName = JochreIndexField.start.name() + pageIndex + "_" + rowIndex;
 			Number startIndexObj = null;
 			IndexableField field = this.doc.getField(fieldName);
 			if (field != null)
@@ -353,7 +334,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 		if (rowCounts != null) {
 			return rowCounts.get(pageIndex);
 		} else {
-			String fieldName = "rowCount" + pageIndex;
+			String fieldName = JochreIndexField.rowCount.name() + pageIndex;
 			Number rowCountObj = null;
 			IndexableField field = this.doc.getField(fieldName);
 			if (field != null)
@@ -370,7 +351,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	@Override
 	public int getStartPage() {
 		if (startPage < 0 && this.doc != null) {
-			startPage = Integer.parseInt(doc.get(JochreIndexField.startPage.name()));
+			startPage = doc.getField(JochreIndexField.startPage.name()).numericValue().intValue();
 		}
 		return startPage;
 	}
@@ -378,7 +359,7 @@ class JochreIndexDocumentImpl implements JochreIndexDocument {
 	@Override
 	public int getEndPage() {
 		if (endPage < 0 && this.doc != null) {
-			endPage = Integer.parseInt(doc.get(JochreIndexField.endPage.name()));
+			endPage = doc.getField(JochreIndexField.endPage.name()).numericValue().intValue();
 		}
 		return endPage;
 	}

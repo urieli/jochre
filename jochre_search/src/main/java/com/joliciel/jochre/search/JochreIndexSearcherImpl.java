@@ -21,7 +21,6 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
@@ -47,7 +46,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	private IndexReader indexReader;
 	private IndexSearcher indexSearcher;
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
-	private Map<Integer, DecimalFormat> decimalFormats = new HashMap<Integer, DecimalFormat>();
+	private Map<Integer, DecimalFormat> decimalFormats = new HashMap<>();
 	private SearchService searchService;
 
 	public JochreIndexSearcherImpl(File indexDir, File contentDir) {
@@ -99,7 +98,7 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 	}
 
 	@Override
-	public int search(JochreQuery jochreQuery, Writer out) {
+	public long search(JochreQuery jochreQuery, Writer out) {
 		try {
 			TopDocs topDocs = this.search(jochreQuery);
 			DecimalFormat df = this.getDecimalFormat(jochreQuery.getDecimalPlaces());
@@ -114,9 +113,10 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
 				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
-				jsonGen.writeNumberField(JochreIndexField.startPage.name(), Integer.parseInt(doc.get(JochreIndexField.startPage.name())));
-				jsonGen.writeNumberField(JochreIndexField.endPage.name(), Integer.parseInt(doc.get(JochreIndexField.endPage.name())));
-				jsonGen.writeNumberField(JochreIndexField.index.name(), Integer.parseInt(doc.get(JochreIndexField.index.name())));
+				jsonGen.writeNumberField(JochreIndexField.startPage.name(), doc.getField(JochreIndexField.startPage.name()).numericValue().intValue());
+				jsonGen.writeNumberField(JochreIndexField.endPage.name(), doc.getField(JochreIndexField.endPage.name()).numericValue().intValue());
+				jsonGen.writeNumberField(JochreIndexField.sectionNumber.name(),
+						Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue()));
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.id.name(), doc.get(JochreIndexField.id.name()));
 				String author = doc.get(JochreIndexField.author.name());
@@ -206,12 +206,12 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 
 	private Map<Integer, Document> findDocumentsInternal(String name, int index) {
 		try {
-			Map<Integer, Document> docs = new LinkedHashMap<Integer, Document>();
+			Map<Integer, Document> docs = new LinkedHashMap<>();
 			BooleanQuery.Builder builder = new Builder();
 			TermQuery termQuery = new TermQuery(new Term(JochreIndexField.name.name(), name));
 			builder.add(termQuery, Occur.MUST);
 			if (index >= 0) {
-				NumericRangeQuery<Integer> indexQuery = NumericRangeQuery.newIntRange(JochreIndexField.index.name(), index, index, true, true);
+				Query indexQuery = new TermQuery(new Term(JochreIndexField.sectionNumber.name(), "" + index));
 				builder.add(indexQuery, Occur.MUST);
 			}
 			Query query = builder.build();
@@ -220,8 +220,8 @@ class JochreIndexSearcherImpl implements JochreIndexSearcher {
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				docs.put(scoreDoc.doc, doc);
-				LOG.debug("Found doc " + scoreDoc.doc + ", name: " + doc.get(JochreIndexField.name.name()) + ", index: "
-						+ doc.get(JochreIndexField.index.name()));
+				LOG.debug("Found doc " + scoreDoc.doc + ", name: " + doc.get(JochreIndexField.name.name()) + ", section: "
+						+ doc.get(JochreIndexField.sectionNumber.name()));
 			}
 			return docs;
 		} catch (IOException e) {
