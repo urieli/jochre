@@ -49,7 +49,7 @@ public class SecurityDao {
 	public static Map<String, SecurityDao> instances = new HashMap<>();
 
 	public static SecurityDao getInstance(JochreSession jochreSession) {
-		String key = DaoConfig.getKey(jochreSession.getConfig());
+		String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
 		SecurityDao instance = instances.get(key);
 		if (instance == null) {
 			instance = new SecurityDao(jochreSession);
@@ -60,7 +60,7 @@ public class SecurityDao {
 
 	private SecurityDao(JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
 	}
 
 	private static final String SELECT_USER = "user_id, user_username, user_password"
@@ -167,8 +167,9 @@ public class SecurityDao {
 			int userId = jt.queryForObject(sql, paramSource, Integer.class);
 			paramSource.addValue("user_id", userId);
 
-			sql = "INSERT INTO ocr_user (user_id, user_username, user_password" + ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins) "
-					+ "VALUES (:user_id, :user_username, :user_password" + ", :user_first_name, :user_last_name, :user_role, :user_failed_logins, :user_logins)";
+			sql = "INSERT INTO ocr_user (user_id, user_username, user_password"
+					+ ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins) " + "VALUES (:user_id, :user_username, :user_password"
+					+ ", :user_first_name, :user_last_name, :user_role, :user_failed_logins, :user_logins)";
 
 			LOG.info(sql);
 			logParameters(paramSource);
@@ -179,8 +180,8 @@ public class SecurityDao {
 			paramSource.addValue("user_id", user.getId());
 
 			sql = "UPDATE ocr_user" + " SET user_username = :user_username" + ", user_password = :user_password" + ", user_first_name = :user_first_name"
-					+ ", user_last_name = :user_last_name" + ", user_role = :user_role" + ", user_failed_logins = :user_failed_logins" + ", user_logins = :user_logins"
-					+ " WHERE user_id = :user_id";
+					+ ", user_last_name = :user_last_name" + ", user_role = :user_role" + ", user_failed_logins = :user_failed_logins"
+					+ ", user_logins = :user_logins" + " WHERE user_id = :user_id";
 
 			LOG.info(sql);
 			logParameters(paramSource);

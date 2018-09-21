@@ -19,20 +19,65 @@
 package com.joliciel.jochre.search.feedback;
 
 /**
- * A representation of a document which has been indexed.
- * Although a document can be broken up into multiple sub-documents, these could potentially change from one index run to the next,
- * while the top-level path will not. Hence we don't store the document sub-index, only it's path.
+ * A representation of a document which has been indexed. Although a document
+ * can be broken up into multiple sub-documents, these could potentially change
+ * from one index run to the next, while the top-level path will not. Hence we
+ * don't store the document sub-index, only it's path.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface FeedbackDocument {
+public class FeedbackDocument {
+	private int id;
+	private String path;
+
+	private final FeedbackDAO feedbackDAO;
+
+	public static FeedbackDocument findOrCreateDocument(String path, FeedbackDAO feedbackDAO) {
+		FeedbackDocument doc = feedbackDAO.findDocument(path);
+		if (doc == null) {
+			doc = new FeedbackDocument(path, feedbackDAO);
+			doc.save();
+		}
+		return doc;
+	}
+
+	FeedbackDocument(String path, FeedbackDAO feedbackDAO) {
+		this(feedbackDAO);
+		this.setPath(path);
+	}
+
+	FeedbackDocument(FeedbackDAO feedbackDAO) {
+		this.feedbackDAO = feedbackDAO;
+	}
+
 	/**
 	 * The document's unique internal id.
 	 */
-	public int getId();
-	
+	public int getId() {
+		return id;
+	}
+
+	void setId(int id) {
+		this.id = id;
+	}
+
 	/**
 	 * The document's path, which identifies it outside of the index.
 	 */
-	public String getPath();
+	public String getPath() {
+		return path;
+	}
+
+	void setPath(String path) {
+		this.path = path;
+	}
+
+	boolean isNew() {
+		return id == 0;
+	}
+
+	void save() {
+		feedbackDAO.saveDocument(this);
+	}
 }

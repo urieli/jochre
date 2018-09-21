@@ -18,6 +18,38 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
+import java.lang.reflect.Constructor;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.search.JochreSearchConfig;
+
 public interface HighlightTermDecorator {
+	static final Logger LOG = LoggerFactory.getLogger(HighlightTermDecorator.class);
+	static Map<String, HighlightTermDecorator> instances = new HashMap<>();
+
 	public String decorate(String term);
+
+	public static HighlightTermDecorator getInstance(JochreSearchConfig config) {
+		HighlightTermDecorator instance = instances.get(config.getConfigId());
+		if (instance == null) {
+			try {
+				String className = config.getConfig().getString("highlighter.decorator-class");
+
+				@SuppressWarnings("unchecked")
+				Class<? extends HighlightTermDecorator> clazz = (Class<? extends HighlightTermDecorator>) Class.forName(className);
+				Constructor<? extends HighlightTermDecorator> cons = clazz.getConstructor(JochreSearchConfig.class);
+
+				instance = cons.newInstance(config);
+				instances.put(config.getConfigId(), instance);
+			} catch (ReflectiveOperationException e) {
+				LOG.error("Unable to construct HighlightTermDecorator", e);
+				throw new RuntimeException(e);
+			}
+		}
+		return instance;
+	}
 }

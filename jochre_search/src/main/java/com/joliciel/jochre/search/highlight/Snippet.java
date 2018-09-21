@@ -53,7 +53,7 @@ public class Snippet implements Comparable<Snippet> {
 	private int endOffset;
 	private boolean scoreCalculated = false;
 	private double score;
-	private List<HighlightTerm> highlightTerms = new ArrayList<HighlightTerm>();
+	private List<HighlightTerm> highlightTerms = new ArrayList<>();
 	private Rectangle rect = null;
 	private int pageIndex = -1;
 	private String text;
@@ -302,9 +302,9 @@ public class Snippet implements Comparable<Snippet> {
 		} else if (this.startOffset > otherSnippet.getStartOffset() && this.endOffset > otherSnippet.getEndOffset()) {
 			this.startOffset = otherSnippet.getStartOffset();
 		}
-		Set<HighlightTerm> newTerms = new TreeSet<HighlightTerm>(this.highlightTerms);
+		Set<HighlightTerm> newTerms = new TreeSet<>(this.highlightTerms);
 		newTerms.addAll(otherSnippet.getHighlightTerms());
-		this.highlightTerms = new ArrayList<HighlightTerm>(newTerms);
+		this.highlightTerms = new ArrayList<>(newTerms);
 		this.scoreCalculated = false;
 	}
 
@@ -405,7 +405,7 @@ public class Snippet implements Comparable<Snippet> {
 		this.text = text;
 	}
 
-	public void generateText(HighlightManager highlightManager) {
+	public void generateText(HighlightManager highlightManager) throws IOException {
 		this.text = highlightManager.displaySnippet(this);
 	}
 

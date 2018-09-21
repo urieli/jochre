@@ -54,7 +54,7 @@ public final class DocumentDao {
 	private static Map<String, DocumentDao> instances = new HashMap<>();
 
 	public static DocumentDao getInstance(JochreSession jochreSession) {
-		String key = DaoConfig.getKey(jochreSession.getConfig());
+		String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
 		DocumentDao instance = instances.get(key);
 		if (instance == null) {
 			instance = new DocumentDao(jochreSession);
@@ -65,7 +65,7 @@ public final class DocumentDao {
 
 	private DocumentDao(JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
 	}
 
 	public JochrePage loadJochrePage(int pageId) {

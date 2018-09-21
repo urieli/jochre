@@ -42,7 +42,7 @@ import com.joliciel.jochre.search.JochrePayload;
 import com.joliciel.jochre.search.JochreQuery;
 import com.joliciel.jochre.utils.JochreException;
 
-class LuceneQueryHighlighter implements Highlighter {
+public class LuceneQueryHighlighter implements Highlighter {
 	private static final Logger LOG = LoggerFactory.getLogger(LuceneQueryHighlighter.class);
 
 	JochreQuery jochreQuery;
@@ -61,21 +61,21 @@ class LuceneQueryHighlighter implements Highlighter {
 			IndexReaderContext readerContext = reader.getContext();
 			List<LeafReaderContext> leaves = readerContext.leaves();
 
-			Map<Integer, NavigableSet<HighlightTerm>> termMap = new HashMap<Integer, NavigableSet<HighlightTerm>>();
+			Map<Integer, NavigableSet<HighlightTerm>> termMap = new HashMap<>();
 
 			for (int docId : docIds) {
 				termMap.put(docId, new TreeSet<HighlightTerm>());
 			}
 
-			Map<Integer, Document> luceneIdToLuceneDocMap = new HashMap<Integer, Document>();
-			Map<Integer, Set<Integer>> myLeaves = new HashMap<Integer, Set<Integer>>();
+			Map<Integer, Document> luceneIdToLuceneDocMap = new HashMap<>();
+			Map<Integer, Set<Integer>> myLeaves = new HashMap<>();
 			for (int docId : docIds) {
 				Document luceneDoc = indexSearcher.doc(docId);
 				luceneIdToLuceneDocMap.put(docId, luceneDoc);
 				int leaf = ReaderUtil.subIndex(docId, leaves);
 				Set<Integer> docsPerLeaf = myLeaves.get(leaf);
 				if (docsPerLeaf == null) {
-					docsPerLeaf = new HashSet<Integer>();
+					docsPerLeaf = new HashSet<>();
 					myLeaves.put(leaf, docsPerLeaf);
 				}
 				docsPerLeaf.add(docId);
@@ -84,15 +84,15 @@ class LuceneQueryHighlighter implements Highlighter {
 
 			Query query = jochreQuery.getLuceneTextQuery();
 
-			Set<Term> terms = new HashSet<Term>();
-			Set<TermPhrase> phrases = new HashSet<TermPhrase>();
-			Set<Term> prefixes = new HashSet<Term>();
-			Set<Term> wildcardTerms = new HashSet<Term>();
-			List<CompiledAutomaton> automatons = new ArrayList<CompiledAutomaton>();
+			Set<Term> terms = new HashSet<>();
+			Set<TermPhrase> phrases = new HashSet<>();
+			Set<Term> prefixes = new HashSet<>();
+			Set<Term> wildcardTerms = new HashSet<>();
+			List<CompiledAutomaton> automatons = new ArrayList<>();
 
 			this.extractTerms(query, terms, phrases, prefixes, wildcardTerms);
 
-			Map<String, Set<Term>> fieldTerms = new HashMap<String, Set<Term>>();
+			Map<String, Set<Term>> fieldTerms = new HashMap<>();
 			for (String field : fields) {
 				fieldTerms.put(field, new HashSet<Term>());
 			}
@@ -131,7 +131,7 @@ class LuceneQueryHighlighter implements Highlighter {
 			}
 			double docCountLog = Math.log(docFieldCount + 1);
 
-			Map<Term, Set<HighlightTerm>> termHighlightMap = new HashMap<Term, Set<HighlightTerm>>();
+			Map<Term, Set<HighlightTerm>> termHighlightMap = new HashMap<>();
 			for (String field : fields) {
 				for (Term term : fieldTerms.get(field)) {
 					termHighlightMap.put(term, new TreeSet<HighlightTerm>());
@@ -142,9 +142,9 @@ class LuceneQueryHighlighter implements Highlighter {
 			// term
 			// so as not to weight the same term higher for certain fields than
 			// others
-			Map<BytesRef, Double> termLogs = new HashMap<BytesRef, Double>();
+			Map<BytesRef, Double> termLogs = new HashMap<>();
 
-			List<HighlightPassage> allHighlights = new ArrayList<HighlightPassage>();
+			List<HighlightPassage> allHighlights = new ArrayList<>();
 
 			for (int leaf : myLeaves.keySet()) {
 				if (LOG.isTraceEnabled())
@@ -236,7 +236,7 @@ class LuceneQueryHighlighter implements Highlighter {
 
 	private List<HighlightPassage> findHighlights(String field, TermsEnum termsEnum, LeafReaderContext subContext,
 			Map<Integer, Document> luceneIdToLuceneDocMap, Set<Integer> docsPerLeaf) throws IOException {
-		List<HighlightPassage> highlights = new ArrayList<HighlightPassage>();
+		List<HighlightPassage> highlights = new ArrayList<>();
 
 		Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
 
@@ -295,18 +295,18 @@ class LuceneQueryHighlighter implements Highlighter {
 	}
 
 	/**
-	 * For any terms found only in phrases, remove highlights where the sequence
-	 * of highlighted terms in a given text field doesn't match the phrase.
-	 * Additionally, assigns {@link HighlightTerm#isInPhrase()} for each
-	 * highlight term.
+	 * For any terms found only in phrases, remove highlights where the sequence of
+	 * highlighted terms in a given text field doesn't match the phrase.
+	 * Additionally, assigns {@link HighlightTerm#isInPhrase()} for each highlight
+	 * term.
 	 * 
 	 * @param fields
 	 *            all fields we care about here
 	 * @param fieldTerms
 	 *            all terms found in each field
 	 * @param terms
-	 *            a set of independent terms (that is, outside of phrases), got
-	 *            from a term query
+	 *            a set of independent terms (that is, outside of phrases), got from
+	 *            a term query
 	 * @param phrases
 	 *            a set of term phrases in the search query
 	 */
@@ -319,11 +319,11 @@ class LuceneQueryHighlighter implements Highlighter {
 		// remove any highlight terms that only exist in phrases, if they don't
 		// match the phrase
 		LOG.trace("Looking for independent terms only found in phrases");
-		Map<Term, Set<TermPhrase>> termsInPhrases = new HashMap<Term, Set<TermPhrase>>();
-		Set<Term> termsInPhrasesOnly = new HashSet<Term>();
+		Map<Term, Set<TermPhrase>> termsInPhrases = new HashMap<>();
+		Set<Term> termsInPhrasesOnly = new HashSet<>();
 		for (String field : fields) {
 			for (Term term : fieldTerms.get(field)) {
-				Set<TermPhrase> myPhrases = new HashSet<TermPhrase>();
+				Set<TermPhrase> myPhrases = new HashSet<>();
 				for (TermPhrase phrase : phrases) {
 					for (List<Term> termList : phrase.getTermLists()) {
 						for (Term phraseTerm : termList) {
@@ -349,8 +349,8 @@ class LuceneQueryHighlighter implements Highlighter {
 			}
 		}
 
-		Set<HighlightTerm> highlightsToRemove = new HashSet<HighlightTerm>();
-		Set<HighlightTerm> highlightsToKeep = new HashSet<HighlightTerm>();
+		Set<HighlightTerm> highlightsToRemove = new HashSet<>();
+		Set<HighlightTerm> highlightsToKeep = new HashSet<>();
 		for (Term term : termsInPhrases.keySet()) {
 			if (LOG.isTraceEnabled())
 				LOG.trace("Searching for matches on term: " + term);
@@ -393,7 +393,7 @@ class LuceneQueryHighlighter implements Highlighter {
 					}
 
 					// start from term and move to end
-					Set<HighlightTerm> matchedTerms = new HashSet<HighlightTerm>();
+					Set<HighlightTerm> matchedTerms = new HashSet<>();
 					matchedTerms.add(highlightTerm);
 					HighlightTerm baseTerm = highlightTerm;
 					int baseTermPos = termPos;
@@ -524,7 +524,7 @@ class LuceneQueryHighlighter implements Highlighter {
 					highlightsToRemove.add(highlightTerm);
 				}
 			} // next highlight term corresponding to a term only contained in
-			  // phrases
+				// phrases
 		} // next term only contained in phrases
 
 		// remove any highlights that were only in phrases and for which no
@@ -536,15 +536,15 @@ class LuceneQueryHighlighter implements Highlighter {
 	}
 
 	/**
-	 * Return all possible descending or ascending lists (depending on the
-	 * direction of the iterator) starting at a given highlight term (but
-	 * excluding it) and all having a given requiredSize. If we run across any
-	 * overlapping terms, we create multiple lists, one per overlap.
+	 * Return all possible descending or ascending lists (depending on the direction
+	 * of the iterator) starting at a given highlight term (but excluding it) and
+	 * all having a given requiredSize. If we run across any overlapping terms, we
+	 * create multiple lists, one per overlap.
 	 */
 	private List<List<HighlightTerm>> findHighlightNeighbors(HighlightTerm highlightTerm, Iterator<HighlightTerm> iHighlightTerms, int requiredSize) {
-		List<List<HighlightTerm>> descendingLists = new ArrayList<List<HighlightTerm>>();
+		List<List<HighlightTerm>> descendingLists = new ArrayList<>();
 		descendingLists.add(new ArrayList<HighlightTerm>());
-		List<List<HighlightTerm>> finalLists = new ArrayList<List<HighlightTerm>>();
+		List<List<HighlightTerm>> finalLists = new ArrayList<>();
 
 		while (iHighlightTerms.hasNext()) {
 			// terminating condition: all descendingLists have the required size
@@ -558,7 +558,7 @@ class LuceneQueryHighlighter implements Highlighter {
 				break;
 			}
 
-			List<List<HighlightTerm>> newLists = new ArrayList<List<HighlightTerm>>();
+			List<List<HighlightTerm>> newLists = new ArrayList<>();
 			HighlightTerm prevTerm = iHighlightTerms.next();
 			if (prevTerm.hasOverlap(highlightTerm)) {
 				// if this term surrounds the highlightTerm, we don't want it.
@@ -571,19 +571,19 @@ class LuceneQueryHighlighter implements Highlighter {
 					if (prevTerm.hasOverlap(oneTerm)) {
 						// we have an overlap - need to add two new lists, one
 						// with the overlap, and one without it
-						List<HighlightTerm> newList = new ArrayList<HighlightTerm>(i);
+						List<HighlightTerm> newList = new ArrayList<>(i);
 						for (int j = 0; j < i; j++)
 							newList.add(descendingList.get(j));
 						newList.add(prevTerm);
 						newLists.add(newList);
-						List<HighlightTerm> newList2 = new ArrayList<HighlightTerm>(descendingList);
+						List<HighlightTerm> newList2 = new ArrayList<>(descendingList);
 						newLists.add(newList2);
 						foundOverlap = true;
 						break;
 					}
 				}
 				if (!foundOverlap) {
-					List<HighlightTerm> newList = new ArrayList<HighlightTerm>(descendingList);
+					List<HighlightTerm> newList = new ArrayList<>(descendingList);
 					newList.add(prevTerm);
 					newLists.add(newList);
 				}
@@ -598,10 +598,9 @@ class LuceneQueryHighlighter implements Highlighter {
 	}
 
 	/**
-	 * For two terms both of which appear in an enclosing phrase, based on the
-	 * real distance between baseTerm and otherTerm in the text, check if the
-	 * difference between the real distance and the required distance is covered
-	 * by the slop.
+	 * For two terms both of which appear in an enclosing phrase, based on the real
+	 * distance between baseTerm and otherTerm in the text, check if the difference
+	 * between the real distance and the required distance is covered by the slop.
 	 * 
 	 * @param baseTerm
 	 *            the base term
@@ -650,10 +649,10 @@ class LuceneQueryHighlighter implements Highlighter {
 	}
 
 	/**
-	 * A term is weighed as follows: Term frequency = sum, for each field, of
-	 * the document count containing this term Doc frequency = sum, for each
-	 * field, of document count containing at least one term in this field IDF =
-	 * log(docFreq) - log(termFreq).
+	 * A term is weighed as follows: Term frequency = sum, for each field, of the
+	 * document count containing this term Doc frequency = sum, for each field, of
+	 * document count containing at least one term in this field IDF = log(docFreq)
+	 * - log(termFreq).
 	 * 
 	 * @throws IOException
 	 */

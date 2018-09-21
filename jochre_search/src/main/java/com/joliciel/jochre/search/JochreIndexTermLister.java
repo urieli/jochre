@@ -31,8 +31,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 public class JochreIndexTermLister {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexTermLister.class);
 
-	private int docId;
-	private IndexSearcher indexSearcher;
+	private final int docId;
+	private final IndexSearcher indexSearcher;
 	private TreeMap<Integer, JochreTerm> offsetTermMap;
 
 	public JochreIndexTermLister(int docId, IndexSearcher indexSearcher) {
@@ -41,65 +41,60 @@ public class JochreIndexTermLister {
 		this.indexSearcher = indexSearcher;
 	}
 
-	public Map<String, Set<JochreTerm>> list() {
-		try {
-			Map<String, Set<JochreTerm>> fieldTermMap = new HashMap<String, Set<JochreTerm>>();
+	public Map<String, Set<JochreTerm>> list() throws IOException {
+		Map<String, Set<JochreTerm>> fieldTermMap = new HashMap<>();
 
-			IndexReader reader = indexSearcher.getIndexReader();
+		IndexReader reader = indexSearcher.getIndexReader();
 
-			IndexReaderContext readerContext = reader.getContext();
-			List<LeafReaderContext> leaves = readerContext.leaves();
-			int leaf = ReaderUtil.subIndex(docId, leaves);
+		IndexReaderContext readerContext = reader.getContext();
+		List<LeafReaderContext> leaves = readerContext.leaves();
+		int leaf = ReaderUtil.subIndex(docId, leaves);
 
-			Set<String> fields = new HashSet<String>();
+		Set<String> fields = new HashSet<>();
 
-			fields.add(JochreIndexField.text.name());
-			fields.add(JochreIndexField.author.name());
-			fields.add(JochreIndexField.title.name());
-			fields.add(JochreIndexField.publisher.name());
-			fields.add(JochreIndexField.authorLang.name());
-			fields.add(JochreIndexField.titleLang.name());
+		fields.add(JochreIndexField.text.name());
+		fields.add(JochreIndexField.author.name());
+		fields.add(JochreIndexField.title.name());
+		fields.add(JochreIndexField.publisher.name());
+		fields.add(JochreIndexField.authorLang.name());
+		fields.add(JochreIndexField.titleLang.name());
 
-			for (String field : fields)
-				fieldTermMap.put(field, new TreeSet<JochreTerm>());
+		for (String field : fields)
+			fieldTermMap.put(field, new TreeSet<JochreTerm>());
 
+		if (LOG.isTraceEnabled())
+			LOG.trace("Searching leaf " + leaf);
+
+		LeafReaderContext subContext = leaves.get(leaf);
+		LeafReader atomicReader = subContext.reader();
+
+		int fieldCounter = 0;
+		for (String field : fields) {
+			fieldCounter++;
 			if (LOG.isTraceEnabled())
-				LOG.trace("Searching leaf " + leaf);
+				LOG.trace("Field " + fieldCounter + ": " + field);
 
-			LeafReaderContext subContext = leaves.get(leaf);
-			LeafReader atomicReader = subContext.reader();
+			Terms atomicReaderTerms = atomicReader.terms(field);
+			if (atomicReaderTerms == null) {
+				LOG.trace("Empty reader");
+				continue; // nothing to do
+			}
 
-			int fieldCounter = 0;
-			for (String field : fields) {
-				fieldCounter++;
-				if (LOG.isTraceEnabled())
-					LOG.trace("Field " + fieldCounter + ": " + field);
+			TermsEnum termsEnum = atomicReaderTerms.iterator();
 
-				Terms atomicReaderTerms = atomicReader.terms(field);
-				if (atomicReaderTerms == null) {
-					LOG.trace("Empty reader");
-					continue; // nothing to do
-				}
+			@SuppressWarnings("unused")
+			BytesRef bytesRef = null;
+			while ((bytesRef = termsEnum.next()) != null) {
+				this.findTerms(fieldTermMap, field, termsEnum, subContext, docId);
+			} // next bytesRef
+		} // next field
 
-				TermsEnum termsEnum = atomicReaderTerms.iterator();
-
-				@SuppressWarnings("unused")
-				BytesRef bytesRef = null;
-				while ((bytesRef = termsEnum.next()) != null) {
-					this.findTerms(fieldTermMap, field, termsEnum, subContext, docId);
-				} // next bytesRef
-			} // next field
-
-			return fieldTermMap;
-		} catch (IOException e) {
-			LOG.error("Failed to list terms for docId " + docId, e);
-			throw new RuntimeException(e);
-		}
+		return fieldTermMap;
 	}
 
-	public NavigableMap<Integer, JochreTerm> getTextTermByOffset() {
+	public NavigableMap<Integer, JochreTerm> getTextTermByOffset() throws IOException {
 		if (offsetTermMap == null) {
-			offsetTermMap = new TreeMap<Integer, JochreTerm>();
+			offsetTermMap = new TreeMap<>();
 			Map<String, Set<JochreTerm>> fieldTermMap = this.list();
 			Set<JochreTerm> textTerms = fieldTermMap.get(JochreIndexField.text.name());
 			for (JochreTerm jochreTerm : textTerms) {

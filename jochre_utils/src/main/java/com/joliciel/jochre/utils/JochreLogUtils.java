@@ -15,26 +15,21 @@ import ch.qos.logback.core.joran.spi.JoranException;
 public class JochreLogUtils {
 
 	/**
-	 * If logConfigPath is not null, use it to configure logging. Otherwise, use
-	 * the default configuration file.
+	 * If logConfigPath is not null, use it to configure logging. Otherwise, use the
+	 * default configuration file.
 	 */
 	public static void configureLogging(String logConfigPath) {
 		try {
-			if (logConfigPath != null) {
-				File slf4jFile = new File(logConfigPath);
-				if (slf4jFile.exists()) {
-					try (InputStream stream = new BufferedInputStream(new FileInputStream(slf4jFile))) {
-						JochreLogUtils.configureLogging(stream);
-					}
-				} else {
-					throw new JochreException("missing logConfigFile: " + slf4jFile.getCanonicalPath());
-				}
-			} else {
-				try (InputStream stream = JochreLogUtils.class.getResourceAsStream("/com/joliciel/jochre/utils/resources/default-logback.xml")) {
+			File slf4jFile = new File(logConfigPath);
+			if (slf4jFile.exists()) {
+				try (InputStream stream = new BufferedInputStream(new FileInputStream(slf4jFile))) {
 					JochreLogUtils.configureLogging(stream);
 				}
+			} else {
+				throw new JochreException("missing logConfigFile: " + slf4jFile.getCanonicalPath());
 			}
 		} catch (IOException e) {
+			System.err.println("Error configuring: " + logConfigPath);
 			System.err.println(e.getMessage());
 			System.err.println(e.getStackTrace().toString());
 			throw new RuntimeException(e);
@@ -49,7 +44,6 @@ public class JochreLogUtils {
 			loggerContext.reset();
 
 			JoranConfigurator configurator = new JoranConfigurator();
-			configurator.setContext(loggerContext);
 			configurator.setContext(loggerContext);
 			// Call context.reset() to clear any previous configuration,
 			// e.g. default configuration

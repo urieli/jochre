@@ -18,14 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.utils.dao;
 
-import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.typesafe.config.Config;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * For configurating a datasource from a TypeSafe.Config
@@ -42,13 +41,13 @@ public class DaoConfig {
 	 * @param config
 	 * @return
 	 */
-	public static String getKey(Config config) {
-		Config dataSourceConfig = config.getConfig("jochre.jdbc");
-		if (!dataSourceConfig.hasPath("url"))
+	public static String getKey(Config jdbcConfig) {
+
+		if (!jdbcConfig.hasPath("url"))
 			return null;
-		String driverClass = dataSourceConfig.getString("driver-class-name");
-		String url = dataSourceConfig.getString("url");
-		String user = dataSourceConfig.getString("username");
+		String driverClass = jdbcConfig.getString("driver-class-name");
+		String url = jdbcConfig.getString("url");
+		String user = jdbcConfig.getString("username");
 		String key = driverClass + "|" + url + "|" + user;
 		return key;
 	}
@@ -56,43 +55,25 @@ public class DaoConfig {
 	/**
 	 * Get a datasource from the jochre.jdbc key in the configuration file.
 	 */
-	public static DataSource getDataSource(Config config) {
-		String key = getKey(config);
+	public static DataSource getDataSource(Config jdbcConfig) {
+		String key = getKey(jdbcConfig);
 		if (key == null)
 			return null;
 
 		if (dataSources.containsKey(key))
 			return dataSources.get(key);
 
-		Config dataSourceConfig = config.getConfig("jochre.jdbc");
-		String driverClass = dataSourceConfig.getString("driver-class-name");
-		String url = dataSourceConfig.getString("url");
-		String user = dataSourceConfig.getString("username");
-
-		ComboPooledDataSource dataSource = new ComboPooledDataSource();
-		try {
-			dataSource.setDriverClass(driverClass);
-		} catch (PropertyVetoException e) {
-			throw new RuntimeException(e);
-		}
-
-		dataSource.setJdbcUrl(url);
-		dataSource.setUser(user);
-		dataSource.setPassword(dataSourceConfig.getString("password"));
-		if (dataSourceConfig.hasPath("checkout-timeout")) {
-			dataSource.setCheckoutTimeout(dataSourceConfig.getInt("checkout-timeout"));
-		}
-		if (dataSourceConfig.hasPath("max-pool-size")) {
-			dataSource.setMaxPoolSize(dataSourceConfig.getInt("max-pool-size"));
-		}
-		if (dataSourceConfig.hasPath("min-pool-size")) {
-			dataSource.setMinPoolSize(dataSourceConfig.getInt("min-pool-size"));
-		}
-		if (dataSourceConfig.hasPath("max-idle-time")) {
-			dataSource.setMaxIdleTime(dataSourceConfig.getInt("max-idle-time"));
-		}
-
-		dataSource.setMaxIdleTimeExcessConnections(dataSourceConfig.getInt("max-idle-time-excess-connections"));
+		HikariDataSource dataSource = new HikariDataSource();
+		dataSource.setDriverClassName(jdbcConfig.getString("driver-class-name"));
+		dataSource.setJdbcUrl(jdbcConfig.getString("url"));
+		dataSource.setUsername(jdbcConfig.getString("username"));
+		dataSource.setPassword(jdbcConfig.getString("password"));
+		dataSource.setConnectionTimeout(jdbcConfig.getDuration("checkout-timeout").toMillis());
+		dataSource.setMaximumPoolSize(jdbcConfig.getInt("max-pool-size"));
+		dataSource.setIdleTimeout(jdbcConfig.getDuration("idle-timeout").toMillis());
+		dataSource.setMinimumIdle(jdbcConfig.getInt("min-idle"));
+		dataSource.setMaxLifetime(jdbcConfig.getDuration("max-lifetime").toMillis());
+		dataSource.setPoolName("HikariPool-" + key);
 
 		dataSources.put(key, dataSource);
 		return dataSource;

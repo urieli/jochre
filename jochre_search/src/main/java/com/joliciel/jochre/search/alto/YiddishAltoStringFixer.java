@@ -12,11 +12,13 @@ import org.apache.commons.math.stat.clustering.KMeansPlusPlusClusterer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.search.JochreSearchConfig;
+
 class YiddishAltoStringFixer implements AltoStringFixer {
 	private static final Logger LOG = LoggerFactory.getLogger(YiddishAltoStringFixer.class);
 	private Set<String> dualCharacterLetters = null;
 
-	public YiddishAltoStringFixer() {
+	public YiddishAltoStringFixer(JochreSearchConfig config) {
 	}
 
 	@Override
@@ -245,7 +247,7 @@ class YiddishAltoStringFixer implements AltoStringFixer {
 
 	private Set<String> getDualCharacterLetters() {
 		if (dualCharacterLetters == null) {
-			dualCharacterLetters = new TreeSet<String>();
+			dualCharacterLetters = new TreeSet<>();
 			String[] dualCharacterLetterArray = new String[] { "אָ", "אַ", "בּ", "פּ", "וּ", "פֿ", "שׁ", "וֹ", "יִ", "ײַ", "כֿ", "תּ", "אֶ", "כּ", "בֿ", "עֵ",
 					"אִ", "שׂ", "נָ", "מְ", "הֶ", "מַ", "בָּ", "לִ", "נִ", "עֶ", "כֶ", "יי", "וו", "אֵ", "וי" };
 			for (String letter : dualCharacterLetterArray) {

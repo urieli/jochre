@@ -18,10 +18,35 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface AltoDocument {
-	public String getName();
-	public List<AltoPage> getPages();
-	public int wordCount();
+public class AltoDocument {
+	private String name;
+	private List<AltoPage> pages = new ArrayList<>();
+	private int wordCount = -1;
+
+	public AltoDocument(String name) {
+		super();
+		this.name = name;
+	}
+
+	public List<AltoPage> getPages() {
+		return pages;
+	}
+
+	public int wordCount() {
+		if (wordCount < 0) {
+			wordCount = 0;
+			for (AltoPage page : this.getPages()) {
+				wordCount += page.wordCount();
+			}
+		}
+		return wordCount;
+	}
+
+	public String getName() {
+		return name;
+	}
+
 }
