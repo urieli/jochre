@@ -10,7 +10,7 @@ from django.conf import settings
 from django.template.defaulttags import register
 
 def search(request):
-	if not request.user.is_authenticated():
+	if not request.user.is_authenticated:
 		return redirect('accounts/login/')
 	
 	username = request.user.username
