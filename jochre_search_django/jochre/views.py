@@ -116,7 +116,6 @@ def search(request):
 				haveResults = True
 				userdata = {"command": "snippets",
 							"snippetCount": 8,
-							"snippetSize": 160,
 							"query": query,
 							"docIds": docIds,
 							"user": username,

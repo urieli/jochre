@@ -14,7 +14,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from settings import LOGIN_REDIRECT_URL
+from jochre_search_django.settings import LOGIN_REDIRECT_URL
 admin.autodiscover()
 
 urlpatterns = [

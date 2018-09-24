@@ -122,4 +122,4 @@ USE_L10N = True
 USE_TZ = True
 
 ### local settings
-from settings_local import *
+from jochre_search_django.settings_local import *
