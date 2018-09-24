@@ -30,6 +30,7 @@ import org.apache.lucene.search.MultiPhraseQuery;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SynonymQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.util.BytesRef;
@@ -138,10 +139,8 @@ public class LuceneQueryHighlighter implements Highlighter {
 				}
 			}
 
-			// We store the TF once per term text (BytesRef) rather than per
-			// term
-			// so as not to weight the same term higher for certain fields than
-			// others
+			// We store the TF once per term text (BytesRef) rather than per term
+			// so as not to weight the same term higher for certain fields than others
 			Map<BytesRef, Double> termLogs = new HashMap<>();
 
 			List<HighlightPassage> allHighlights = new ArrayList<>();
@@ -706,6 +705,8 @@ public class LuceneQueryHighlighter implements Highlighter {
 			prefixes.add(((PrefixQuery) query).getPrefix());
 		} else if (query instanceof TermQuery) {
 			terms.add(((TermQuery) query).getTerm());
+		} else if (query instanceof SynonymQuery) {
+			terms.addAll(((SynonymQuery) query).getTerms());
 		} else if (query instanceof WildcardQuery) {
 			wildcardTerms.add(((WildcardQuery) query).getTerm());
 		} else if (query instanceof BooleanQuery) {
