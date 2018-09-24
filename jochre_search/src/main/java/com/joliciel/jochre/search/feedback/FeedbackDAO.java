@@ -36,8 +36,18 @@ public class FeedbackDAO {
 	private static final String SELECT_QUERY = "query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address";
 	private static final String SELECT_CLAUSE = "clause_query_id, clause_criterion_id, clause_text, criterion_name";
 
-	public FeedbackDAO(DataSource dataSource) {
+	private static FeedbackDAO instance;
+
+	public static FeedbackDAO getInstance(DataSource dataSource) {
+		if (instance == null) {
+			instance = new FeedbackDAO(dataSource);
+		}
+		return instance;
+	}
+
+	private FeedbackDAO(DataSource dataSource) {
 		this.dataSource = dataSource;
+		this.loadCriteria();
 	}
 
 	FeedbackWord loadWord(int wordId) {

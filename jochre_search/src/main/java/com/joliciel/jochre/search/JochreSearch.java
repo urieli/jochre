@@ -245,7 +245,7 @@ public class JochreSearch {
 			JochreSearchManager searchManager = JochreSearchManager.getInstance(searchConfig);
 			FeedbackDAO feedbackDAO = null;
 			if (searchConfig.hasDatabase()) {
-				feedbackDAO = new FeedbackDAO(searchConfig.getDataSource());
+				feedbackDAO = FeedbackDAO.getInstance(searchConfig.getDataSource());
 			}
 
 			PrintWriter out = null;
@@ -707,6 +707,8 @@ public class JochreSearch {
 				// e.g. default configuration
 				loggerContext.reset();
 				configurator.doConfigure(slf4jFile);
+			} else {
+				throw new Exception("LogConfigFile not found: " + logConfigPath);
 			}
 			argMap.remove("logConfigFile");
 		}
