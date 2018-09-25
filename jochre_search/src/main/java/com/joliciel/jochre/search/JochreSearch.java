@@ -102,20 +102,66 @@ public class JochreSearch {
 	}
 
 	public enum Command {
+		/**
+		 * Start a thread to update the index, takin ginto account any recent changes.
+		 */
 		index,
+		/**
+		 * Search the index.
+		 */
 		search,
+		/**
+		 * Return the terms corresponding to a given search query.
+		 */
 		highlight,
+		/**
+		 * Return the most relevant snippets corresponding to a given search query.
+		 */
 		snippets,
+		/**
+		 * List all of the fields in a given index document.
+		 */
 		view,
+		/**
+		 * List all of the terms in a given index document.
+		 */
 		list,
+		/**
+		 * Return the image corresponding to a specific word.
+		 */
 		wordImage,
+		/**
+		 * Make a suggestion for an OCR error.
+		 */
 		suggest,
+		/**
+		 * Serialize a lexicon.
+		 */
 		serializeLexicon,
+		/**
+		 * Deserialize a lexicon and test certain words.
+		 */
 		deserializeLexicon,
+		/**
+		 * Return the highlighted text corresponding to a particular snippet.
+		 */
 		textSnippet,
+		/**
+		 * Return the image corresponding to a particular snippet.
+		 */
 		imageSnippet,
+		/**
+		 * Find the word corresponding to a particular document location.
+		 */
 		word,
-		indexStatus
+		/**
+		 * Check the status of the index update thread.
+		 */
+		indexStatus,
+		/**
+		 * Refresh the index reader, to take into account any index updates.
+		 */
+		refresh
 	}
 
 	public void execute(Map<String, String> argMap, Either<PrintWriter, OutputStream> output) {
@@ -281,6 +327,12 @@ public class JochreSearch {
 
 				jsonGen.writeEndObject();
 				jsonGen.flush();
+			}
+			case refresh: {
+				JochreSearchManager manager = JochreSearchManager.getInstance(searchConfig);
+				manager.getManager().maybeRefresh();
+				out.write("{\"response\":\"index reader refreshed\"}\n");
+				break;
 			}
 			case search:
 			case highlight:
