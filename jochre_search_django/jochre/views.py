@@ -10,6 +10,8 @@ from django.conf import settings
 from django.template.defaulttags import register
 
 def search(request):
+	logger = logging.getLogger(__name__)
+
 	if not request.user.is_authenticated:
 		return redirect('accounts/login/')
 	
@@ -83,6 +85,8 @@ def search(request):
 		if strict:
 			userdata['expand'] = 'false'
 		
+		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+
 		resp = requests.get(searchUrl, userdata)
 		
 		results = resp.json()
@@ -164,6 +168,9 @@ def search(request):
 							userdata = {"command": "imageSnippet",
 										"snippet": snippetJson,
 										"user": username}
+
+							logger.debug("sending request: %s, %s" % (settings.JOCHRE_SEARCH_EXT_URL, userdata))
+
 							req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
 							preparedReq = req.prepare()
 							snippetImageUrl = preparedReq.url
