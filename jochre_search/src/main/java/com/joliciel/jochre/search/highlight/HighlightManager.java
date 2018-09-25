@@ -142,6 +142,7 @@ public class HighlightManager {
 				}
 				result = Either.ofLeft(snippets);
 			} catch (Exception e) {
+				LOG.error("Unable to generate snippet", e);
 				result = Either.ofRight(e);
 			}
 			snippetMap.put(docId, result);

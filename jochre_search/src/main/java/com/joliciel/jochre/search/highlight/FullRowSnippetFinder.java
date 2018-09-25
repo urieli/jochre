@@ -122,6 +122,10 @@ class FullRowSnippetFinder implements SnippetFinder {
 						LOG.debug("start: " + start);
 						LOG.debug("end: " + end);
 
+						LOG.debug("snippet: " + snippet);
+						LOG.debug("term payload: " + term.getPayload());
+						LOG.debug("otherTerm payload: " + otherTerm.getPayload());
+
 						throw new JochreSearchException("otherTerm on wrong page. term: " + term + ", otherTerm: " + otherTerm + ", document: "
 								+ jochreDoc.getName() + ", pageIndex: " + pageIndex + ", startRowIndex: " + startRowIndex + ", endRowIndex: " + endRowIndex
 								+ ", start: " + start + ", end: " + end);

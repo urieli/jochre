@@ -189,7 +189,7 @@ public class JochreIndexDocument {
 			doc.add(new StringField(JochreIndexField.name.name(), directory.getName(), Field.Store.YES));
 			doc.add(new StringField(JochreIndexField.path.name(), this.path, Field.Store.YES));
 			doc.add(new StoredField(JochreIndexField.startPage.name(), startPage));
-			doc.add(new StoredField(JochreIndexField.endPage.name(), startPage));
+			doc.add(new StoredField(JochreIndexField.endPage.name(), endPage));
 			doc.add(new StringField(JochreIndexField.sectionNumber.name(), "" + sectionNumber, Field.Store.YES));
 			doc.add(new Field(JochreIndexField.text.name(), contents, TYPE_STORED));
 			doc.add(new StoredField(JochreIndexField.length.name(), length));
