@@ -59,11 +59,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.levigo.jbig2</groupId>
-			<artifactId>levigo-jbig2-imageio</artifactId>
-			<!-- This JAR needs to load before all others.
-			To avoid problems in a Tomcat distribution, it should be placed in the tomcat lib.
-			We therefore exclude it here. -->
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>jbig2-imageio</artifactId>
+			<!-- This JAR needs to load before all others. To avoid problems in a 
+				Tomcat distribution, it should be placed in the tomcat lib. We therefore 
+				exclude it here. -->
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

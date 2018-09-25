@@ -24,16 +24,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
-import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
+import org.apache.pdfbox.pdmodel.graphics.PDXObject;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public abstract class AbstractPdfImageVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractPdfImageVisitor.class);
 	private PDDocument pdfDocument = null;
 	private File pdfFile;
-	private Map<String, String> fields = new TreeMap<String, String>();
+	private Map<String, String> fields = new TreeMap<>();
 	private boolean docClosed = false;
 	private boolean stopOnError = false;
 
@@ -98,35 +98,32 @@ public abstract class AbstractPdfImageVisitor {
 	 */
 	final protected void visitImages(int firstPage, int lastPage) {
 		try {
-			@SuppressWarnings("unchecked")
-			List<PDPage> allPages = pdfDocument.getDocumentCatalog().getAllPages();
-			Iterator<PDPage> pageIterator = allPages.iterator();
-
 			int i = 0;
-			while (pageIterator.hasNext()) {
-				PDPage pdfPage = pageIterator.next();
+			for (PDPage pdfPage : pdfDocument.getPages()) {
 				i++;
 				if (i < firstPage)
 					continue;
 				if (lastPage > 0 && i > lastPage)
 					break;
 
-				LOG.info("Decoding page " + i + " (out of " + allPages.size() + ")");
+				LOG.info("Decoding page " + i + " (out of " + pdfDocument.getNumberOfPages() + ")");
 
 				try {
 					PDResources resources = pdfPage.getResources();
-					Map<String, PDXObject> pdxObjects = resources.getXObjects();
+					Iterator<COSName> pdxObjects = resources.getXObjectNames().iterator();
 					int j = 0;
-					for (String key : pdxObjects.keySet()) {
-						PDXObject pdxObject = pdxObjects.get(key);
-						if (pdxObject instanceof PDXObjectImage) {
-							PDXObjectImage pdfImage = (PDXObjectImage) pdxObject;
-							BufferedImage image = pdfImage.getRGBImage();
+					while (pdxObjects.hasNext()) {
+						COSName cosName = pdxObjects.next();
+
+						PDXObject pdxObject = resources.getXObject(cosName);
+						if (pdxObject instanceof PDImageXObject) {
+							PDImageXObject pdfImage = (PDImageXObject) pdxObject;
+							BufferedImage image = pdfImage.getImage();
 							if (image == null) {
 								throw new PdfImageExtractionException(
 										"Something went wrong: unable to extract image " + j + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
 							}
-							this.visitImage(image, key, i, j);
+							this.visitImage(image, cosName.getName(), i, j);
 							j++;
 						}
 					}
@@ -178,8 +175,8 @@ public abstract class AbstractPdfImageVisitor {
 	}
 
 	/**
-	 * Should processing stop if an error is encountered extracting an image
-	 * from a given page.
+	 * Should processing stop if an error is encountered extracting an image from a
+	 * given page.
 	 */
 	public boolean isStopOnError() {
 		return stopOnError;

@@ -58,10 +58,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.levigo.jbig2</groupId>
-			<artifactId>levigo-jbig2-imageio</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
