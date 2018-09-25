@@ -1,8 +1,16 @@
 {% load staticfiles %}
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
 <title>Jochre Search</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 <link rel="stylesheet" href="{% static 'jquery-ui.css' %}">
 <script src="{% static 'jquery-1.11.3.min.js' %}"></script>
@@ -11,81 +19,79 @@
 <body>
 <form id="frmQuery" method="get" accept-charset="UTF-8">
 <input type="hidden" name="page" id="hdnPage" value="1" />
-<table style="width:740px;">
-<tr>
-<td width="170px"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></td>
+<div class="container">
+<div class="row justify-content-center">
+<div class="col"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></div>
 {% if not RTL %}
-<td style="text-align: left">
+<div class="col-8" style="text-align: left">
 <h1>{{ JOCHRE_TITLE }}</h1>
 <p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-</td>
+</div>
 {% endif %}
-<td width="150px">
-<table>
-<tr>
-<td><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></td>
-<td>
+<div class="col"><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></div>
+<div class="col">
     {% if request.user.first_name or request.user.last_name %}
         {{ request.user.first_name }} {{ request.user.last_name }}
     {% else %}
         {{ request.user.username }}
     {% endif %}
-	<br/>
+    <br/>
     <a href="accounts/logout/">{{ Strings.logout }}</a>
-</td>
-</tr>
-</table>
-</td>
+</div>
 {% if RTL %}
-<td style="text-align: right">
+<div class="col-8" style="text-align: right">
 <h1 class="yiddish">{{ JOCHRE_TITLE }}</h1>
 <p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-</td>
+</div>
 {% endif %}
-</tr>
-</table>
-<table style="width:740px;">
-<tr><td><hr/></td></tr>
+</div>
+</div>
+
+<div class="container">
+	<div class="row justify-content-center">
+		<div class="col">
+			<hr/>
+		</div>
+	</div>
 {% if RTL %}
-<tr>
-<td style="vertical-align: bottom;" align="right">
+<div class="row">
+<div class="col" style="vertical-align: bottom;" align="right">
 <span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>&nbsp;
 <input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
 <input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" class="yiddish" />
-</td>
-</tr>
-<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-<td align="right">
-<table>
-<tr>
-<td class="RTLAuthor">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
-<td class="RTLAuthor" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></td>
-<td class="RTLAuthor" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></td>
-</tr>
-</table>
-</td>
-</tr>
+</div>
+</div>
+<div class="row" id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
+<div class="col" align="right">
+<div class="container">
+<div class="row">
+<div class="col" class="RTLAuthor">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></div>
+<div class="col" class="RTLAuthor" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></div>
+<div class="col" class="RTLAuthor" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></div>
+</div>
+</div>
+</div>
+</div>
 {% else %}
-<tr>
-<td style="vertical-align: bottom;" align="left">&nbsp;
+<div class="row">
+<div class="col" style="vertical-align: bottom;" align="left">&nbsp;
 <input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" />&nbsp;
 <input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
 <span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>
-</td>
-</tr>
-<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-<td align="left">
-<table>
-<tr>
-<td width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></td>
-<td width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></td>
-<td>{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
-</tr>
-</table>
-</td>
-</tr>
+</div>
+</div>
+<div class="row" id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
+<div class="col" align="left">
+<div class="container">
+<div class="row">
+<div class="col" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></div>
+<div class="col" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></div>
+<div class="col">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></div>
+</div>
+</div>
+</div>
+</div>
 {% endif %}
-</table>
 </div>
 <script>
 $("#toggleAdvancedSearch").on("click",function(){
@@ -162,7 +168,7 @@ function transformKeyPress(textfield, evt) {
 	if (evt.ctrlKey)
 		return true;
 	
-    // Ensure we only handle printable keys, excluding enter and space
+    // Ensure we only handle prindiv class="container" keys, excluding enter and space
     var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
     if (charCode && charCode > 32) {
         var keyChar = String.fromCharCode(charCode);
@@ -224,62 +230,62 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 {% elif not haveResults %}
 	<p>{{ Strings.noResults }}</p>
 {% else %}
-    <table style="width:740px"><tr>
-    <td ><b>{{ foundResults }}:</b></td>
+    <div class="container" style="width:740px"><div class="row">
+    <div class="col" ><b>{{ foundResults }}:</b></div>
     {% if RTL %}
-    <td class="RTLAuthor" style="width:50%">{{ foundResultsRTL }}:</td>
+    <div class="col" class="RTLAuthor" style="width:50%">{{ foundResultsRTL }}:</div>
     {% endif %}
-    </tr></table>
-	<table width="740px">
+    </div></div>
+	<div class="container" width="740px">
 		{% for result in results %}
-			<tr><td height="5px" bgcolor="black"></td></tr>
-			<tr><td align="left">
-			<table width="100%">
-			<tr>
-			<td class="Title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</td>
+			<div class="row"><div class="col" height="5px" bgcolor="black"></div></div>
+			<div class="row"><div class="col" align="left">
+			<div class="container" width="100%">
+			<div class="row">
+			<div class="col" class="Title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</div>
 			{% if RTL %}
-			<td class="RTLTitle" width="50%"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</td>
+			<div class="col" class="RTLTitle" width="50%"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</div>
 			{% endif %}
-			</tr>
-			<tr>
-			<td class="Author"><b>{{ Strings.author }}:</b> {{ result.author }}</td>
+			</div>
+			<div class="row">
+			<div class="col" class="Author"><b>{{ Strings.author }}:</b> {{ result.author }}</div>
 			{% if RTL %}
-			<td class="RTLAuthor" width="50%"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</td>
+			<div class="col" class="RTLAuthor" width="50%"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</div>
 			{% endif %}
-			</tr>
-			<tr>
-			<td class="Author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
+			</div>
+			<div class="row">
+			<div class="col" class="Author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div>
 			{% if RTL %}
-			<td class="RTLAuthor" width="50%"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
+			<div class="col" class="RTLAuthor" width="50%"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div>
 			{% endif %}
-			</tr>
+			</div>
 			{% if result.publisher %}
-				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</td></tr>
+				<div class="row"><div class="col" class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</div></div>
 			{% endif %}
 			{% if result.date %}
-				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.date }}:</b> {{ result.date }} </td></tr>
+				<div class="row"><div class="col" class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.date }}:</b> {{ result.date }} </div></div>
 			{% endif %}
-			</table>
-			</td></tr>
-			<tr><td>
+			</div>
+			</div></div>
+			<div class="row"><div class="col">
 			{% if result.snippetError %}
 			   <p style="color:red;">{{ result.snippetError.message }}</p>
 			   <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
 			{% else %}
 			{% for snippet in result.snippets %}
-				<table width="100%" border="0">
-				<tr>
+				<div class="container" width="100%" border="0">
+				<div class="row">
 				{% if RTL %}
-				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetYiddish">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
-				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
-				<td align="right" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
+				<div class="col"><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetYiddish">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></div>
+				<div class="col" align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></div>
+				<div class="col" align="right" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></div>
 				{% else %}
-				<td align="left" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
-				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
-				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
+				<div class="col" align="left" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></div>
+				<div class="col" align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></div>
+				<div class="col"><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></div>
 				{% endif %}
-				</tr>
-				</table>
+				</div>
+				</div>
 				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" style="display: none;"></div>
 				<script>
 				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
@@ -398,28 +404,28 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 				</script>
 			{% endfor %}
 			{% endif %}
-			</td></tr>
-			<tr><td height="10px"></td></tr>
+			</div></div>
+			<div class="row"><div class="col" height="10px"></div></div>
         {% endfor %}
-	</table>
+	</div>
 {% endif %}
 {% if pageLinks and pageLinks.last_page.number != 1 %}
 	<div style="width: 740px; text-align: left; ">
-	<table style="margin: auto;"><tr>
+	<div class="container" style="margin: auto;"><div class="row">
 	{% if pageLinks.first_page %}
-		<td style="width:60px; text-align: center;">
+		<div class="col" style="width:60px; text-align: center;">
 		<a href="#" id="pageFirst">{{ Strings.first }}</a>
-		</td>
+		</div>
 	{% endif %}
-	<td style="width:60px; text-align: center;">
+	<div class="col" style="width:60px; text-align: center;">
 	{% if pageLinks.previous_page and pageLinks.previous_page.number != pageLinks.current_page.value %}
 		<a href="#" id="pagePrev">{{ Strings.prev }}</a>
 	{% else %}
 		<span style="font-weight: bold; color: gray;">{{ Strings.prev }}</span>
 	{% endif %}
-	</td>
+	</div>
 	{% for pageLink in pageLinks.range_pages %}
-		<td style="width:40px; text-align: center;">
+		<div class="col" style="width:40px; text-align: center;">
 		{% if pageLink.type == "current_page" %}
 			<b>{{ pageLink.value }}</b>
 		{% elif pageLink.type == "span" %}
@@ -427,21 +433,21 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 		{% else %}
 			<a href="#" id="page{{ pageLink.value }}">{{ pageLink.number }}</a>
 		{% endif %}
-		</td>
+		</div>
 	{% endfor %}
-	<td style="width:60px; text-align: center;">
+	<div class="col" style="width:60px; text-align: center;">
 	{% if pageLinks.next_page and pageLinks.next_page.number != pageLinks.current_page.value %}
 		<a href="#" id="pageNext">{{ Strings.next }}</a>
 	{% else %}
 		<span style="font-weight: bold; color: gray;">{{ Strings.next }}</span>
 	{% endif %}
-	</td>
+	</div>
 	{% if pageLinks.last_page %}
-		<td style="width:60px; text-align: center;">
+		<div class="col" style="width:60px; text-align: center;">
 		<a href="#" id="pageLast">{{ Strings.last }}</a>
-		</td>
+		</div>
 	{% endif %}	
-	</tr></table></div>
+	</div></div></div>
 	{% for pageLink in pageLinks.range_pages %}
 		<script>
 		$("#page{{ pageLink.value }}").on("click",function(){
@@ -490,40 +496,40 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
    <form>
     <fieldset>
       <p>{{ Strings.fixWordInstructions }}</p>
-      <table>
-      <tr>
-      <td>
-      <table>
-      <tr><td><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></td>
+      <div class="container">
+      <div class="row">
+      <div class="col">
+      <div class="container">
+      <div class="row"><div class="col"><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></div>
       {% if RTL %}
-      <td><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none; width:150px;">
-      <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish" style="width:150px;"></td>
+      <div class="col"><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none; width:150px;">
+      <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish" style="width:150px;"></div>
       {% else %}
-      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
-      <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none; width:150px;"></td>
+      <div class="col"><input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
+      <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none; width:150px;"></div>
       {% endif %}
-	  </tr>
-      <tr><td><label for="selFont">{{ Strings.fixWordFont }}</label></td>
-      <td><select id="selFont" name="selFont">
+	  </div>
+      <div class="row"><div class="col"><label for="selFont">{{ Strings.fixWordFont }}</label></div>
+      <div class="col"><select id="selFont" name="selFont">
       {% for fontCode in JOCHRE_FONT_LIST %}
       <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
       {% endfor %}
-      </select></td></tr>
-      <tr><td><label>{{ Strings.fixWordFontExample }}</label></td>
-      <td><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></td>
-      </tr>
-      <tr><td><label for="selLang">{{ Strings.fixWordLanguage }}</label></td>
-      <td><select id="selLang" name="selLang">
+      </select></div></div>
+      <div class="row"><div class="col"><label>{{ Strings.fixWordFontExample }}</label></div>
+      <div class="col"><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></div>
+      </div>
+      <div class="row"><div class="col"><label for="selLang">{{ Strings.fixWordLanguage }}</label></div>
+      <div class="col"><select id="selLang" name="selLang">
       {% for languageCode in JOCHRE_LANGUAGE_LIST %}
       <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
       {% endfor %}
-      </select></td></tr>
-      </table>
-      <td>
-      <td style="width:64px;">
+      </select></div></div>
+      </div>
+      <div class="col">
+      <div class="col" style="width:64px;">
       <img id="imgWordLoading" src="{% static "images/preloaders126.gif" %}" style="display:none;" />
-      </td>
-      </table>
+      </div>
+      </div>
       <!-- Allow form submission with keyboard without duplicating the dialog button -->
       <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
     </fieldset>
@@ -545,5 +551,8 @@ $('#imgFixWord').on('load', function() {
 	document.getElementById("imgWordLoading").style.display="none";
 	});
 </script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 </body>
 </html>
