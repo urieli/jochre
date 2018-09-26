@@ -14,7 +14,7 @@ import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.SingleInstanceLockFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,9 @@ public class JochreSearchManager {
 			String indexDirLocation = config.getConfig().getString("index-dir");
 			LOG.info("Loading index from: " + indexDirLocation);
 			if (indexDirLocation.equals(IN_MEMORY)) {
-				indexDir = new RAMDirectory(new SingleInstanceLockFactory());
+				File tempFile = File.createTempFile("index", ".tmp");
+				tempFile.delete();
+				indexDir = new MMapDirectory(tempFile.toPath());
 			} else {
 				Path indexDirPath = new File(indexDirLocation).toPath();
 				indexDir = FSDirectory.open(indexDirPath, new SingleInstanceLockFactory());

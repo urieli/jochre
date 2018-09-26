@@ -416,8 +416,8 @@ public class JochreSearch {
 							Set<String> fields = new HashSet<>();
 							fields.add(JochreIndexField.text.name());
 
-							Highlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher);
-							HighlightManager highlightManager = new HighlightManager(indexSearcher, searchConfig);
+							Highlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher, fields);
+							HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, searchConfig);
 							highlightManager.setDecimalPlaces(query.getDecimalPlaces());
 							highlightManager.setMinWeight(minWeight);
 							highlightManager.setIncludeText(includeText);
@@ -426,9 +426,9 @@ public class JochreSearch {
 								highlightManager.setSnippetCount(snippetCount);
 
 							if (command == Command.highlight) {
-								highlightManager.highlight(highlighter, docIds, fields, out);
+								highlightManager.highlight(highlighter, docIds, out);
 							} else {
-								highlightManager.findSnippets(highlighter, docIds, fields, out);
+								highlightManager.findSnippets(highlighter, docIds, out);
 							}
 							break;
 						}
@@ -465,7 +465,9 @@ public class JochreSearch {
 						LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 					}
 
-					HighlightManager highlightManager = new HighlightManager(indexSearcher, searchConfig);
+					Set<String> fields = new HashSet<>();
+					fields.add(JochreIndexField.text.name());
+					HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, searchConfig);
 					String text = highlightManager.displaySnippet(snippet);
 
 					out.write(text);
@@ -485,8 +487,9 @@ public class JochreSearch {
 						Document doc = indexSearcher.doc(snippet.getDocId());
 						LOG.debug("Snippet in: " + doc.get(JochreIndexField.path.name()));
 					}
-
-					HighlightManager highlightManager = new HighlightManager(indexSearcher, searchConfig);
+					Set<String> fields = new HashSet<>();
+					fields.add(JochreIndexField.text.name());
+					HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, searchConfig);
 					ImageSnippet imageSnippet = highlightManager.getImageSnippet(snippet);
 					ImageOutputStream ios = ImageIO.createImageOutputStream(output.getRight());
 					BufferedImage image = imageSnippet.getImage();

@@ -57,9 +57,9 @@ public class LuceneQueryHighlighterTest {
 			Set<String> fields = new HashSet<>();
 			fields.add(JochreIndexField.text.name());
 
-			LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher);
+			LuceneQueryHighlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher, fields);
 
-			Map<Integer, NavigableSet<HighlightTerm>> terms = highlighter.highlight(docIds, fields);
+			Map<Integer, NavigableSet<HighlightTerm>> terms = highlighter.highlight(docIds);
 			NavigableSet<HighlightTerm> myTerms = terms.get(docId);
 			assertEquals(1, myTerms.size());
 
@@ -74,8 +74,8 @@ public class LuceneQueryHighlighterTest {
 				i++;
 			}
 
-			HighlightManager highlightManager = new HighlightManager(indexSearcher, config);
-			Map<Integer, Either<List<Snippet>, Exception>> snippets = highlightManager.findSnippets(docIds, fields, terms, 2);
+			HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, config);
+			Map<Integer, Either<List<Snippet>, Exception>> snippets = highlightManager.findSnippets(docIds, terms, 2);
 			List<Snippet> mySnippets = snippets.get(docId).getLeft();
 			assertEquals(1, mySnippets.size());
 

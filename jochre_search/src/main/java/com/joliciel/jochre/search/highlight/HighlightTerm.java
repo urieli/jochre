@@ -40,22 +40,23 @@ import com.joliciel.jochre.search.JochrePayload;
  */
 public class HighlightTerm implements Comparable<HighlightTerm> {
 	private static final Logger LOG = LoggerFactory.getLogger(HighlightTerm.class);
-	private int startOffset;
-	private int endOffset;
-	private double weight;
-	private int docId;
-	private String field;
-	private JochrePayload payload;
-	private int position = -1;
-	private boolean inPhrase = false;
+	private final int startOffset;
+	private final int endOffset;
+	private final double weight;
+	private final int docId;
+	private final String field;
+	private final JochrePayload payload;
+	private final int position;
 
-	public HighlightTerm(int docId, String field, int startOffset, int endOffset, JochrePayload payload) {
+	public HighlightTerm(int docId, String field, int startOffset, int endOffset, int position, double weight, JochrePayload payload) {
 		super();
 		this.docId = docId;
 		this.field = field;
 		this.startOffset = startOffset;
 		this.endOffset = endOffset;
 		this.payload = payload;
+		this.position = position;
+		this.weight = weight;
 	}
 
 	/**
@@ -91,10 +92,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 	 */
 	public double getWeight() {
 		return weight;
-	}
-
-	public void setWeight(double weight) {
-		this.weight = weight;
 	}
 
 	@Override
@@ -170,22 +167,6 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 		return position;
 	}
 
-	public void setPosition(int position) {
-		this.position = position;
-	}
-
-	/**
-	 * Is the current highlight term inside a phrase, that is, between quotes in the
-	 * search query.
-	 */
-	public boolean isInPhrase() {
-		return inPhrase;
-	}
-
-	public void setInPhrase(boolean inPhrase) {
-		this.inPhrase = inPhrase;
-	}
-
 	/**
 	 * Do the two terms overlap on any character indexes.
 	 */
@@ -236,12 +217,14 @@ public class HighlightTerm implements Comparable<HighlightTerm> {
 			for (TreeSet<HighlightTerm> setToCombine : setsToCombine) {
 				HighlightTerm firstTerm = setToCombine.first();
 				HighlightTerm lastTerm = setToCombine.last();
-				HighlightTerm combinedTerm = new HighlightTerm(firstTerm.getDocId(), firstTerm.getField(), firstTerm.getStartOffset(), lastTerm.getEndOffset(),
-						firstTerm.getPayload());
-				// for now, we simply add their weights together
+				double weight = 0;
 				for (HighlightTerm termToCombine : setToCombine) {
-					combinedTerm.setWeight(combinedTerm.getWeight() + termToCombine.getWeight());
+					weight += termToCombine.getWeight();
 				}
+				HighlightTerm combinedTerm = new HighlightTerm(firstTerm.getDocId(), firstTerm.getField(), firstTerm.getStartOffset(), lastTerm.getEndOffset(),
+						firstTerm.getPosition(), weight, firstTerm.getPayload());
+				// for now, we simply add their weights together
+
 				fixedTerms.add(combinedTerm);
 			}
 			return fixedTerms;

@@ -30,5 +30,5 @@ public interface Highlighter {
 	/**
 	 * Find all of the terms to highlight in a given set of doc ids.
 	 */
-	public Map<Integer, NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
+	public Map<Integer, NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds);
 }

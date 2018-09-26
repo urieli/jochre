@@ -51,6 +51,7 @@ public class HighlightManager {
 
 	private final IndexSearcher indexSearcher;
 	private final JochreSearchConfig config;
+	private final Set<String> fields;
 
 	private int decimalPlaces = 2;
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
@@ -60,8 +61,9 @@ public class HighlightManager {
 	private double minWeight = 0;
 	private int snippetCount;
 
-	public HighlightManager(IndexSearcher indexSearcher, JochreSearchConfig config) {
+	public HighlightManager(IndexSearcher indexSearcher, Set<String> fields, JochreSearchConfig config) {
 		this.config = config;
+		this.fields = fields;
 		this.indexSearcher = indexSearcher;
 		this.snippetCount = config.getConfig().getInt("snippet-finder.snippet-count");
 	}
@@ -78,8 +80,8 @@ public class HighlightManager {
 	 * @throws IOException
 	 */
 
-	public void highlight(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) throws IOException {
-		Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
+	public void highlight(Highlighter highlighter, Set<Integer> docIds, Writer out) throws IOException {
+		Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds);
 		JsonFactory jsonFactory = new JsonFactory();
 		JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
@@ -126,8 +128,8 @@ public class HighlightManager {
 	 * @param maxSnippets
 	 *            The maximum number of snippets.
 	 */
-	public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds, Set<String> fields,
-			Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets) {
+	public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds, Map<Integer, NavigableSet<HighlightTerm>> termMap,
+			int maxSnippets) {
 		SnippetFinder snippetFinder = SnippetFinder.getInstance(config);
 
 		Map<Integer, Either<List<Snippet>, Exception>> snippetMap = new HashMap<>();
@@ -161,9 +163,9 @@ public class HighlightManager {
 	 *            The writer where the JSON should be written.
 	 * @throws IOException
 	 */
-	public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Set<String> fields, Writer out) throws IOException {
-		Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds, fields);
-		Map<Integer, Either<List<Snippet>, Exception>> snippetMap = this.findSnippets(docIds, fields, termMap, this.snippetCount);
+	public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Writer out) throws IOException {
+		Map<Integer, NavigableSet<HighlightTerm>> termMap = highlighter.highlight(docIds);
+		Map<Integer, Either<List<Snippet>, Exception>> snippetMap = this.findSnippets(docIds, termMap, this.snippetCount);
 
 		JsonFactory jsonFactory = new JsonFactory();
 		JsonGenerator jsonGen = jsonFactory.createGenerator(out);

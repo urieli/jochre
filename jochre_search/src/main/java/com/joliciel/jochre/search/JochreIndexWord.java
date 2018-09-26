@@ -100,7 +100,7 @@ public class JochreIndexWord {
 	 */
 	public String getText() {
 		if (this.text == null)
-			text = doc.getContents().substring(jochreTerm.start, jochreTerm.end);
+			text = doc.getContents().substring(jochreTerm.getStart(), jochreTerm.getEnd());
 		return text;
 	}
 

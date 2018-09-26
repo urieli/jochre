@@ -181,8 +181,7 @@ public class Snippet implements Comparable<Snippet> {
 						if (left2 >= 0)
 							secondaryRect = new Rectangle(left2, top2, width2, height2);
 						JochrePayload payload = new JochrePayload(rect, secondaryRect, pageIndex, paragraphIndex, rowIndex);
-						HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, payload);
-						highlightTerm.setWeight(weight);
+						HighlightTerm highlightTerm = new HighlightTerm(termDocId, termField, termStart, termEnd, 0, weight, payload);
 						this.highlightTerms.add(highlightTerm);
 					}
 				} else {

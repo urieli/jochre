@@ -36,7 +36,6 @@ public class JochreIndexTermLister {
 	private TreeMap<Integer, JochreTerm> offsetTermMap;
 
 	public JochreIndexTermLister(int docId, IndexSearcher indexSearcher) {
-		super();
 		this.docId = docId;
 		this.indexSearcher = indexSearcher;
 	}
@@ -165,7 +164,7 @@ public class JochreIndexTermLister {
 					if (bytesRef != null)
 						payload = new JochrePayload(bytesRef);
 
-					JochreTerm jochreTerm = new JochreTerm(term.toString(), position, start, end, payload);
+					JochreTerm jochreTerm = new JochreTerm(term.toString(), position, start, end, payload, term);
 					Set<JochreTerm> jochreTerms = textFeatureMap.get(field);
 					jochreTerms.add(jochreTerm);
 				} // next occurrence
@@ -176,21 +175,23 @@ public class JochreIndexTermLister {
 	}
 
 	public static final class JochreTerm implements Comparable<JochreTerm> {
-		String name;
-		int position;
-		int start;
-		int end;
-		JochrePayload payload;
+		private final String name;
+		private final int position;
+		private final int start;
+		private final int end;
+		private final JochrePayload payload;
+		private final Term term;
 
-		public JochreTerm(String name, int position, int start, int end, JochrePayload payload) {
-			super();
-			this.name = name;
-			if (this.name.startsWith(JochreSearchConstants.INDEX_PUNCT_PREFIX))
-				this.name = this.name.substring(1);
+		public JochreTerm(String name, int position, int start, int end, JochrePayload payload, Term term) {
+			if (name.startsWith(JochreSearchConstants.INDEX_PUNCT_PREFIX))
+				this.name = name.substring(1);
+			else
+				this.name = name;
 			this.position = position;
 			this.start = start;
 			this.end = end;
 			this.payload = payload;
+			this.term = term;
 		}
 
 		public String getName() {
@@ -211,6 +212,10 @@ public class JochreIndexTermLister {
 
 		public JochrePayload getPayload() {
 			return payload;
+		}
+
+		public Term getTerm() {
+			return term;
 		}
 
 		@Override
