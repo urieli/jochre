@@ -18,17 +18,16 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.highlight;
 
-public class WrappingDecorator implements HighlightTermDecorator {
-	private String before;
-	private String after;
-	
-	
-	public WrappingDecorator(String before, String after) {
-		super();
-		this.before = before;
-		this.after = after;
-	}
+import com.joliciel.jochre.search.JochreSearchConfig;
 
+public class WrappingDecorator implements HighlightTermDecorator {
+	private final String before;
+	private final String after;
+
+	public WrappingDecorator(JochreSearchConfig config) {
+		this.before = config.getConfig().getString("highlighter.wrapping-decorator.before");
+		this.after = config.getConfig().getString("highlighter.wrapping-decorator.after");
+	}
 
 	@Override
 	public String decorate(String term) {

@@ -23,10 +23,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.joliciel.jochre.utils.dao.ImageUtils;
 import com.joliciel.talismane.utils.DaoUtils;
 
-class FeedbackDAO {
+public class FeedbackDAO {
 	private static final Logger LOG = LoggerFactory.getLogger(FeedbackDAO.class);
-	private DataSource dataSource;
-	private FeedbackServiceInternal feedbackService;
+	private final DataSource dataSource;
 
 	private static final String SELECT_DOCUMENT = "doc_id, doc_path";
 	private static final String SELECT_ROW = "row_id, row_doc_id, row_page_index, row_x, row_y, row_width, row_height, row_image";
@@ -37,12 +36,22 @@ class FeedbackDAO {
 	private static final String SELECT_QUERY = "query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address";
 	private static final String SELECT_CLAUSE = "clause_query_id, clause_criterion_id, clause_text, criterion_name";
 
-	public FeedbackDAO(DataSource dataSource) {
-		this.dataSource = dataSource;
+	private static FeedbackDAO instance;
+
+	public static FeedbackDAO getInstance(DataSource dataSource) {
+		if (instance == null) {
+			instance = new FeedbackDAO(dataSource);
+		}
+		return instance;
 	}
 
-	public FeedbackWord loadWord(int wordId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	private FeedbackDAO(DataSource dataSource) {
+		this.dataSource = dataSource;
+		this.loadCriteria();
+	}
+
+	FeedbackWord loadWord(int wordId) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_WORD + " FROM joc_word WHERE word_id=:word_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("word_id", wordId);
@@ -51,15 +60,15 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackWord word = null;
 		try {
-			word = jt.queryForObject(sql, paramSource, new WordMapper(this.getFeedbackService()));
+			word = jt.queryForObject(sql, paramSource, new WordMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return word;
 	}
 
-	public FeedbackWord findWord(FeedbackDocument doc, int pageIndex, Rectangle rectangle) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackWord findWord(FeedbackDocument doc, int pageIndex, Rectangle rectangle) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_WORD + " FROM joc_word" + " INNER JOIN joc_row ON word_row_id = row_id" + " WHERE row_doc_id=:row_doc_id"
 				+ " AND row_page_index=:row_page_index" + " AND word_x=:word_x" + " AND word_y=:word_y";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -72,16 +81,16 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackWord word = null;
 		try {
-			word = jt.queryForObject(sql, paramSource, new WordMapper(this.getFeedbackService()));
+			word = jt.queryForObject(sql, paramSource, new WordMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return word;
 	}
 
-	public void saveWord(FeedbackWordInternal word) {
+	void saveWord(FeedbackWord word) {
 		// note: no update
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
 		// word_id, word_row_id, word_x, word_y, word_width, word_height
@@ -128,20 +137,14 @@ class FeedbackDAO {
 		}
 	}
 
-	protected static final class WordMapper implements RowMapper<FeedbackWord> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected WordMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-
+	protected final class WordMapper implements RowMapper<FeedbackWord> {
 		@Override
 		public FeedbackWord mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public FeedbackWordInternal mapRow(SqlRowSet rs) throws SQLException {
-			FeedbackWordInternal word = feedbackService.getEmptyFeedbackWordInternal();
+		public FeedbackWord mapRow(SqlRowSet rs) throws SQLException {
+			FeedbackWord word = new FeedbackWord(FeedbackDAO.this);
 			// word_id, word_row_id, word_x, word_y, word_width, word_height
 			// word_2nd_x, word_2nd_y, word_2nd_width, word_2nd_height,
 			// word_2nd_row_id, word_initial_guess
@@ -172,8 +175,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public FeedbackRow loadRow(int rowId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackRow loadRow(int rowId) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_ROW + " FROM joc_row WHERE row_id=:row_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("row_id", rowId);
@@ -182,15 +185,15 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackRow row = null;
 		try {
-			row = jt.queryForObject(sql, paramSource, new FeedbackRowMapper(this.getFeedbackService()));
+			row = jt.queryForObject(sql, paramSource, new FeedbackRowMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return row;
 	}
 
-	public FeedbackRow findRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackRow findRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_ROW + " FROM joc_row WHERE row_doc_id=:row_doc_id" + " AND row_page_index=:row_page_index" + " AND row_x=:row_x"
 				+ " AND row_y=:row_y";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -203,16 +206,16 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackRow row = null;
 		try {
-			row = jt.queryForObject(sql, paramSource, new FeedbackRowMapper(this.getFeedbackService()));
+			row = jt.queryForObject(sql, paramSource, new FeedbackRowMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return row;
 	}
 
-	public void saveRow(FeedbackRowInternal row) {
+	void saveRow(FeedbackRow row) {
 		// note: no update
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
 		// row_id, row_doc_id, row_page_index, row_x, row_y, row_width,
@@ -245,20 +248,14 @@ class FeedbackDAO {
 		}
 	}
 
-	protected static final class FeedbackRowMapper implements RowMapper<FeedbackRow> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected FeedbackRowMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-
+	protected final class FeedbackRowMapper implements RowMapper<FeedbackRow> {
 		@Override
 		public FeedbackRow mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public FeedbackRowInternal mapRow(SqlRowSet rs) throws SQLException {
-			FeedbackRowInternal row = feedbackService.getEmptyFeedbackRowInternal();
+		public FeedbackRow mapRow(SqlRowSet rs) throws SQLException {
+			FeedbackRow row = new FeedbackRow(FeedbackDAO.this);
 			// row_id, row_doc_id, row_page_index, row_x, row_y, row_width,
 			// row_height, row_image
 			row.setId(rs.getInt("row_id"));
@@ -280,8 +277,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public FeedbackSuggestion loadSuggestion(int suggestionId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackSuggestion loadSuggestion(int suggestionId) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_SUGGESTION + " FROM joc_suggestion" + " INNER JOIN joc_font ON suggest_font_id = font_id"
 				+ " INNER JOIN joc_language ON suggest_language_id = language_id" + " INNER JOIN joc_user ON suggest_user_id = user_id"
 				+ " INNER JOIN joc_ip ON suggest_ip_id = ip_id" + " WHERE suggestion_id=:suggestion_id";
@@ -292,17 +289,17 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackSuggestion suggestion = null;
 		try {
-			suggestion = jt.queryForObject(sql, paramSource, new SuggestionMapper(this.getFeedbackService()));
+			suggestion = jt.queryForObject(sql, paramSource, new SuggestionMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return suggestion;
 	}
 
-	public List<FeedbackSuggestion> findUnappliedSuggestions() {
+	List<FeedbackSuggestion> findUnappliedSuggestions() {
 		String sql = null;
 		try {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 			sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
 					+ " INNER JOIN joc_font ON suggest_font_id = font_id" + " INNER JOIN joc_language ON suggest_language_id = language_id"
 					+ " INNER JOIN joc_user ON suggest_user_id = user_id" + " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
@@ -316,15 +313,15 @@ class FeedbackDAO {
 			logParameters(paramSource);
 
 			SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
-			SuggestionMapper suggestionMapper = new SuggestionMapper(this.getFeedbackService());
-			WordMapper wordMapper = new WordMapper(this.getFeedbackService());
-			FeedbackRowMapper rowMapper = new FeedbackRowMapper(this.getFeedbackService());
-			DocumentMapper docMapper = new DocumentMapper(this.getFeedbackService());
+			SuggestionMapper suggestionMapper = new SuggestionMapper();
+			WordMapper wordMapper = new WordMapper();
+			FeedbackRowMapper rowMapper = new FeedbackRowMapper();
+			DocumentMapper docMapper = new DocumentMapper();
 			List<FeedbackSuggestion> suggestions = new ArrayList<>();
 			while (rs.next()) {
-				FeedbackSuggestionInternal suggestion = suggestionMapper.mapRow(rs);
-				FeedbackWordInternal word = wordMapper.mapRow(rs);
-				FeedbackRowInternal row = rowMapper.mapRow(rs);
+				FeedbackSuggestion suggestion = suggestionMapper.mapRow(rs);
+				FeedbackWord word = wordMapper.mapRow(rs);
+				FeedbackRow row = rowMapper.mapRow(rs);
 				FeedbackDocument document = docMapper.mapRow(rs);
 				suggestion.setWord(word);
 				word.setRow(row);
@@ -339,10 +336,10 @@ class FeedbackDAO {
 		}
 	}
 
-	public List<FeedbackSuggestion> findSuggestions(FeedbackDocument doc, int pageIndex) {
+	List<FeedbackSuggestion> findSuggestions(FeedbackDocument doc, int pageIndex) {
 		String sql = null;
 		try {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 			sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
 					+ " INNER JOIN joc_font ON suggest_font_id = font_id" + " INNER JOIN joc_language ON suggest_language_id = language_id"
 					+ " INNER JOIN joc_user ON suggest_user_id = user_id" + " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
@@ -358,15 +355,15 @@ class FeedbackDAO {
 			logParameters(paramSource);
 
 			SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
-			SuggestionMapper suggestionMapper = new SuggestionMapper(this.getFeedbackService());
-			WordMapper wordMapper = new WordMapper(this.getFeedbackService());
-			FeedbackRowMapper rowMapper = new FeedbackRowMapper(this.getFeedbackService());
-			DocumentMapper docMapper = new DocumentMapper(this.getFeedbackService());
+			SuggestionMapper suggestionMapper = new SuggestionMapper();
+			WordMapper wordMapper = new WordMapper();
+			FeedbackRowMapper rowMapper = new FeedbackRowMapper();
+			DocumentMapper docMapper = new DocumentMapper();
 			List<FeedbackSuggestion> suggestions = new ArrayList<>();
 			while (rs.next()) {
-				FeedbackSuggestionInternal suggestion = suggestionMapper.mapRow(rs);
-				FeedbackWordInternal word = wordMapper.mapRow(rs);
-				FeedbackRowInternal row = rowMapper.mapRow(rs);
+				FeedbackSuggestion suggestion = suggestionMapper.mapRow(rs);
+				FeedbackWord word = wordMapper.mapRow(rs);
+				FeedbackRow row = rowMapper.mapRow(rs);
 				FeedbackDocument document = docMapper.mapRow(rs);
 				suggestion.setWord(word);
 				word.setRow(row);
@@ -381,10 +378,10 @@ class FeedbackDAO {
 		}
 	}
 
-	public Map<Integer, List<FeedbackSuggestion>> findSuggestions(FeedbackDocument doc) {
+	Map<Integer, List<FeedbackSuggestion>> findSuggestions(FeedbackDocument doc) {
 		String sql = null;
 		try {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 			sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT + " FROM joc_suggestion"
 					+ " INNER JOIN joc_font ON suggest_font_id = font_id" + " INNER JOIN joc_language ON suggest_language_id = language_id"
 					+ " INNER JOIN joc_user ON suggest_user_id = user_id" + " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
@@ -399,12 +396,12 @@ class FeedbackDAO {
 			logParameters(paramSource);
 
 			SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
-			SuggestionMapper suggestionMapper = new SuggestionMapper(this.getFeedbackService());
-			WordMapper wordMapper = new WordMapper(this.getFeedbackService());
-			FeedbackRowMapper rowMapper = new FeedbackRowMapper(this.getFeedbackService());
-			DocumentMapper docMapper = new DocumentMapper(this.getFeedbackService());
+			SuggestionMapper suggestionMapper = new SuggestionMapper();
+			WordMapper wordMapper = new WordMapper();
+			FeedbackRowMapper rowMapper = new FeedbackRowMapper();
+			DocumentMapper docMapper = new DocumentMapper();
 
-			Map<Integer, List<FeedbackSuggestion>> suggestionMap = new HashMap<Integer, List<FeedbackSuggestion>>();
+			Map<Integer, List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
 
 			int currentPageIndex = -1;
 			List<FeedbackSuggestion> suggestions = null;
@@ -416,9 +413,9 @@ class FeedbackDAO {
 					currentPageIndex = pageIndex;
 				}
 
-				FeedbackSuggestionInternal suggestion = suggestionMapper.mapRow(rs);
-				FeedbackWordInternal word = wordMapper.mapRow(rs);
-				FeedbackRowInternal row = rowMapper.mapRow(rs);
+				FeedbackSuggestion suggestion = suggestionMapper.mapRow(rs);
+				FeedbackWord word = wordMapper.mapRow(rs);
+				FeedbackRow row = rowMapper.mapRow(rs);
 				FeedbackDocument document = docMapper.mapRow(rs);
 				suggestion.setWord(word);
 				word.setRow(row);
@@ -433,8 +430,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public void saveSuggestion(FeedbackSuggestionInternal suggestion) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	void saveSuggestion(FeedbackSuggestion suggestion) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
 		// suggest_id, suggest_user_id, suggest_word_id, suggest_font_id,
@@ -488,7 +485,7 @@ class FeedbackDAO {
 	}
 
 	private int getIpId(String ipAddress) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT ip_id FROM joc_ip WHERE ip_address=:ip_address";
 		LOG.trace(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -513,7 +510,7 @@ class FeedbackDAO {
 	}
 
 	private int getFontId(String fontCode) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT font_id FROM joc_font WHERE font_code=:font_code";
 		LOG.trace(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -538,7 +535,7 @@ class FeedbackDAO {
 	}
 
 	private int getLanguageId(String languageCode) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT language_id FROM joc_language WHERE language_code=:language_code";
 		LOG.trace(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -563,7 +560,7 @@ class FeedbackDAO {
 	}
 
 	private int getUserId(String userName) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT user_id FROM joc_user WHERE user_username=:user_username";
 		LOG.trace(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -587,8 +584,8 @@ class FeedbackDAO {
 		return userId;
 	}
 
-	public void loadCriteria() {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	void loadCriteria() {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT criterion_id, criterion_name FROM joc_criterion";
 		LOG.debug(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -617,20 +614,14 @@ class FeedbackDAO {
 		}
 	}
 
-	protected static final class SuggestionMapper implements RowMapper<FeedbackSuggestion> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected SuggestionMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-
+	protected final class SuggestionMapper implements RowMapper<FeedbackSuggestion> {
 		@Override
 		public FeedbackSuggestion mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public FeedbackSuggestionInternal mapRow(SqlRowSet rs) {
-			FeedbackSuggestionInternal suggestion = feedbackService.getEmptyFeedbackSuggestionInternal();
+		public FeedbackSuggestion mapRow(SqlRowSet rs) {
+			FeedbackSuggestion suggestion = new FeedbackSuggestion(FeedbackDAO.this);
 			// suggest_id, suggest_user_id, suggest_word_id, suggest_font_id,
 			// suggest_language_id, suggest_create_date
 			// suggest_text, suggest_previous_text, suggest_applied,
@@ -651,8 +642,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public FeedbackQuery loadQuery(int queryId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackQuery loadQuery(int queryId) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_QUERY + "," + SELECT_CLAUSE + " FROM joc_query" + " INNER JOIN joc_user ON query_user_id = user_id"
 				+ " INNER JOIN joc_ip ON query_ip_id = ip_id" + " INNER JOIN joc_clause ON query_id = clause_query_id" + " WHERE query_id=:query_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
@@ -661,7 +652,7 @@ class FeedbackDAO {
 		LOG.debug(sql);
 		logParameters(paramSource);
 		SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
-		QueryMapper queryMapper = new QueryMapper(feedbackService);
+		QueryMapper queryMapper = new QueryMapper();
 		FeedbackQuery query = null;
 		while (rs.next()) {
 			if (query == null)
@@ -673,8 +664,8 @@ class FeedbackDAO {
 		return query;
 	}
 
-	public void saveQuery(FeedbackQueryInternal query) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	void saveQuery(FeedbackQuery query) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
 		// query_id, query_user_id, query_ip_id, query_date, query_results
@@ -719,20 +710,15 @@ class FeedbackDAO {
 		}
 	}
 
-	protected static final class QueryMapper implements RowMapper<FeedbackQuery> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected QueryMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
+	protected final class QueryMapper implements RowMapper<FeedbackQuery> {
 
 		@Override
 		public FeedbackQuery mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public FeedbackQueryInternal mapRow(SqlRowSet rs) {
-			FeedbackQueryInternal query = feedbackService.getEmptyFeedbackQueryInternal();
+		public FeedbackQuery mapRow(SqlRowSet rs) {
+			FeedbackQuery query = new FeedbackQuery(FeedbackDAO.this);
 			// query_id, query_user_id, query_ip_id, query_date, query_results,
 			// user_username, ip_address
 			query.setId(rs.getInt("query_id"));
@@ -745,8 +731,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public FeedbackDocument loadDocument(int documentId) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackDocument loadDocument(int documentId) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_DOCUMENT + " FROM joc_document WHERE doc_id=:doc_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("doc_id", documentId);
@@ -755,15 +741,15 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackDocument document = null;
 		try {
-			document = jt.queryForObject(sql, paramSource, new DocumentMapper(this.getFeedbackService()));
+			document = jt.queryForObject(sql, paramSource, new DocumentMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return document;
 	}
 
-	public FeedbackDocument findDocument(String path) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+	FeedbackDocument findDocument(String path) {
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		String sql = "SELECT " + SELECT_DOCUMENT + " FROM joc_document WHERE doc_path=:doc_path";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		paramSource.addValue("doc_path", path);
@@ -772,16 +758,16 @@ class FeedbackDAO {
 		logParameters(paramSource);
 		FeedbackDocument doc = null;
 		try {
-			doc = jt.queryForObject(sql, paramSource, new DocumentMapper(this.getFeedbackService()));
+			doc = jt.queryForObject(sql, paramSource, new DocumentMapper());
 		} catch (EmptyResultDataAccessException ex) {
 			ex.hashCode();
 		}
 		return doc;
 	}
 
-	public void saveDocument(FeedbackDocumentInternal doc) {
+	void saveDocument(FeedbackDocument doc) {
 		// note: no update
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
 		// doc_id, doc_code
@@ -805,20 +791,14 @@ class FeedbackDAO {
 		}
 	}
 
-	protected static final class DocumentMapper implements RowMapper<FeedbackDocument> {
-		private FeedbackServiceInternal feedbackService;
-
-		protected DocumentMapper(FeedbackServiceInternal feedbackService) {
-			this.feedbackService = feedbackService;
-		}
-
+	protected final class DocumentMapper implements RowMapper<FeedbackDocument> {
 		@Override
 		public FeedbackDocument mapRow(ResultSet rs, int rowNum) throws SQLException {
 			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
 		}
 
-		public FeedbackDocumentInternal mapRow(SqlRowSet rs) {
-			FeedbackDocumentInternal document = feedbackService.getEmptyFeedbackDocumentInternal();
+		public FeedbackDocument mapRow(SqlRowSet rs) {
+			FeedbackDocument document = new FeedbackDocument(FeedbackDAO.this);
 			// doc_id, doc_path
 			document.setId(rs.getInt("doc_id"));
 			document.setPath(rs.getString("doc_path"));
@@ -827,23 +807,8 @@ class FeedbackDAO {
 		}
 	}
 
-	public static void logParameters(MapSqlParameterSource paramSource) {
+	static void logParameters(MapSqlParameterSource paramSource) {
 		DaoUtils.LogParameters(paramSource.getValues());
 	}
 
-	public FeedbackServiceInternal getFeedbackService() {
-		return feedbackService;
-	}
-
-	public void setFeedbackService(FeedbackServiceInternal feedbackService) {
-		this.feedbackService = feedbackService;
-	}
-
-	public DataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
-	}
 }

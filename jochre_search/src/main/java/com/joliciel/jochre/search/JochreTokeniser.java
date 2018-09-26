@@ -21,14 +21,14 @@ package com.joliciel.jochre.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A very simple "dummy" tokeniser wrapping a TokenExtractor, which is in charge
@@ -37,10 +37,8 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
  * @author Assaf Urieli
  *
  */
-class JochreTokeniser extends Tokenizer {
+final class JochreTokeniser extends Tokenizer {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreTokeniser.class);
-
-	private SearchServiceInternal searchService;
 
 	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
@@ -136,14 +134,6 @@ class JochreTokeniser extends Tokenizer {
 			tokens = null;
 			return false;
 		}
-	}
-
-	public SearchServiceInternal getSearchService() {
-		return searchService;
-	}
-
-	public void setSearchService(SearchServiceInternal searchService) {
-		this.searchService = searchService;
 	}
 
 }

@@ -56,7 +56,7 @@ public final class GraphicsDao {
 	private static Map<String, GraphicsDao> instances = new HashMap<>();
 
 	public static GraphicsDao getInstance(JochreSession jochreSession) {
-		String key = DaoConfig.getKey(jochreSession.getConfig());
+		String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
 		GraphicsDao instance = instances.get(key);
 		if (instance == null) {
 			instance = new GraphicsDao(jochreSession);
@@ -67,7 +67,7 @@ public final class GraphicsDao {
 
 	private GraphicsDao(JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
 	}
 
 	private static final String SELECT_IMAGE = "image_id, image_name, image_width, image_height, image_black_threshold"
@@ -151,7 +151,7 @@ public final class GraphicsDao {
 
 		if (dualCharacterLetters.size() > 0)
 			paramSource.addValue("dual_character_letters", linguistics.getDualCharacterLetters());
-		List<Integer> imageStatusList = new ArrayList<Integer>();
+		List<Integer> imageStatusList = new ArrayList<>();
 		imageStatusList.add(ImageStatus.TRAINING_VALIDATED.getId());
 		imageStatusList.add(ImageStatus.TRAINING_HELD_OUT.getId());
 		imageStatusList.add(ImageStatus.TRAINING_TEST.getId());
@@ -265,7 +265,7 @@ public final class GraphicsDao {
 		String sql = "SELECT " + SELECT_IMAGE + " FROM ocr_image" + " INNER JOIN ocr_page ON page_id=image_page_id"
 				+ " WHERE image_imgstatus_id in (:image_imgstatus_id)" + " ORDER BY page_doc_id, page_index, image_index, image_id";
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
-		List<Integer> imageStatusList = new ArrayList<Integer>();
+		List<Integer> imageStatusList = new ArrayList<>();
 		for (ImageStatus imageStatus : imageStatuses)
 			imageStatusList.add(imageStatus.getId());
 		paramSource.addValue("image_imgstatus_id", imageStatusList);

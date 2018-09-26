@@ -18,11 +18,30 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.lexicon;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
 /**
  * Normalises text for storage in index and or lexica.
+ * 
  * @author Assaf Urieli
  *
  */
 public interface TextNormaliser {
+	static Map<Locale, TextNormaliser> textNormaliserMap = new HashMap<>();
+
+	public static TextNormaliser getTextNormaliser(Locale locale) {
+		TextNormaliser textNormaliser = null;
+		if (locale.getLanguage().equals("yi") || locale.getLanguage().equals("ji")) {
+			textNormaliser = textNormaliserMap.get(locale);
+			if (textNormaliser == null) {
+				textNormaliser = new YiddishTextNormaliser();
+				textNormaliserMap.put(locale, textNormaliser);
+			}
+		}
+		return textNormaliser;
+	}
+
 	public String normalise(String text);
 }

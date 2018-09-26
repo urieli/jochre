@@ -2,13 +2,14 @@ package com.joliciel.jochre.search;
 
 /**
  * Different fields indexed with each Jochre Document.
+ * 
  * @author Assaf Urieli
  *
  */
 public enum JochreIndexField {
 	name,
 	path,
-	index,
+	sectionNumber,
 	startPage,
 	endPage,
 	text,
@@ -22,5 +23,11 @@ public enum JochreIndexField {
 	id,
 	url,
 	volume,
-	length;
+	length,
+	/** Prefix for each row's rectangle. */
+	rect,
+	/** Prefix for each row's start position in characters. */
+	start,
+	/** Prefix for the number of rows in each page */
+	rowCount;
 }

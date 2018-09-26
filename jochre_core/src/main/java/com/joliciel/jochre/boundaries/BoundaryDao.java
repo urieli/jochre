@@ -49,7 +49,7 @@ public final class BoundaryDao {
 	public static Map<String, BoundaryDao> instances = new HashMap<>();
 
 	public static BoundaryDao getInstance(JochreSession jochreSession) {
-		String key = DaoConfig.getKey(jochreSession.getConfig());
+		String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
 		BoundaryDao instance = instances.get(key);
 		if (instance == null) {
 			instance = new BoundaryDao(jochreSession);
@@ -60,7 +60,7 @@ public final class BoundaryDao {
 
 	private BoundaryDao(JochreSession jochreSession) {
 		this.jochreSession = jochreSession;
-		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig());
+		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
 	}
 
 	public DataSource getDataSource() {

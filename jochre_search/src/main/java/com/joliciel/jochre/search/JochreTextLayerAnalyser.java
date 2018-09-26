@@ -18,13 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.lexicon.TextNormaliser;
 import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
@@ -39,14 +39,13 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  */
 class JochreTextLayerAnalyser extends Analyzer {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreTextLayerAnalyser.class);
-	private TokenExtractor tokenExtractor;
-	private TextNormaliser textNormaliser;
+	private final TokenExtractor tokenExtractor;
+	private final TextNormaliser textNormaliser;
 
-	private SearchServiceInternal searchService;
-
-	public JochreTextLayerAnalyser(TokenExtractor tokenExtractor) {
+	public JochreTextLayerAnalyser(TokenExtractor tokenExtractor, TextNormaliser textNormaliser) {
 		super(Analyzer.PER_FIELD_REUSE_STRATEGY);
 		this.tokenExtractor = tokenExtractor;
+		this.textNormaliser = textNormaliser;
 	}
 
 	@Override
@@ -54,7 +53,7 @@ class JochreTextLayerAnalyser extends Analyzer {
 		if (LOG.isTraceEnabled())
 			LOG.trace("Analysing field " + fieldName);
 
-		Tokenizer source = searchService.getJochreTokeniser(tokenExtractor, fieldName);
+		Tokenizer source = new JochreTokeniser(tokenExtractor, fieldName);
 		TokenStream result = source;
 		if (textNormaliser != null)
 			result = new TextNormalisingFilter(result, textNormaliser);
@@ -63,21 +62,5 @@ class JochreTextLayerAnalyser extends Analyzer {
 			result = new LowerCaseFilter(result);
 		}
 		return new TokenStreamComponents(source, result);
-	}
-
-	public SearchServiceInternal getSearchService() {
-		return searchService;
-	}
-
-	public void setSearchService(SearchServiceInternal searchService) {
-		this.searchService = searchService;
-	}
-
-	public TextNormaliser getTextNormaliser() {
-		return textNormaliser;
-	}
-
-	public void setTextNormaliser(TextNormaliser textNormaliser) {
-		this.textNormaliser = textNormaliser;
 	}
 }

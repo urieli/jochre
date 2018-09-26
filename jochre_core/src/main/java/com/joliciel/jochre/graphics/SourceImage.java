@@ -184,12 +184,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 		LOG.debug("End white: " + endWhite);
 
 		DescriptiveStatistics blackCountStats = new DescriptiveStatistics();
-		DescriptiveStatistics blackSpread = new DescriptiveStatistics();
 		for (int i = 0; i <= endWhite; i++) {
 			blackCountStats.addValue(pixelSpread[i]);
-			for (int j = 0; j < pixelSpread[i]; j++) {
-				blackSpread.addValue(i);
-			}
 		}
 
 		LOG.debug("mean counts: " + countStats.getMean());
@@ -212,31 +208,43 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 		// the higher the black threshold, the more pixels will be considered
 		// "black" in each letter
-		int blackThresholdValue = (int) Math.round(blackSpread.getPercentile(blackThresholdPercentile));
-		LOG.debug("Black threshold value: " + blackThresholdValue);
-		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
-		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
-		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
+		int blackThresholdValue = this.getPercentile(pixelSpread, 0, endWhite, blackThresholdPercentile);
 
 		blackThreshold = (int) Math.round((blackThresholdValue - blackLimit) * greyscaleMultiplier);
-		LOG.debug("Black threshold: " + blackThreshold);
 
 		// the lower the threshold, the more separate letters will be
-		int separationThresholdValue = (int) Math.round(blackSpread.getPercentile(separationThresholdPercentile));
-		LOG.debug("Separation threshold value: " + separationThresholdValue);
-		LOG.debug("Black spread 25 percentile: " + (int) Math.round(blackSpread.getPercentile(25.0)));
-		LOG.debug("Black spread 50 percentile: " + (int) Math.round(blackSpread.getPercentile(50.0)));
-		LOG.debug("Black spread 75 percentile: " + (int) Math.round(blackSpread.getPercentile(75.0)));
+		int separationThresholdValue = this.getPercentile(pixelSpread, 0, endWhite, separationThresholdPercentile);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Black threshold value: " + blackThresholdValue);
+			LOG.debug("Black threshold: " + blackThreshold);
+			LOG.debug("Separation threshold value: " + separationThresholdValue);
+			LOG.debug("Black spread 25 percentile: " + this.getPercentile(pixelSpread, 0, endWhite, 25.0));
+			LOG.debug("Black spread 50 percentile: " + this.getPercentile(pixelSpread, 0, endWhite, 50.0));
+			LOG.debug("Black spread 75 percentile: " + this.getPercentile(pixelSpread, 0, endWhite, 75.0));
+		}
 
 		separationThreshold = (int) Math.round((separationThresholdValue - blackLimit) * greyscaleMultiplier);
 		LOG.debug("Separation threshold: " + separationThreshold);
 		if (drawPixelSpread)
-			this.drawChart(pixelSpread, countStats, blackCountStats, blackSpread, startWhite, endWhite, startBlack, blackThresholdValue);
+			this.drawChart(pixelSpread, countStats, blackCountStats, startWhite, endWhite, startBlack, blackThresholdValue);
 
 	}
 
-	private void drawChart(int[] pixelSpread, DescriptiveStatistics countStats, DescriptiveStatistics blackCountStats, DescriptiveStatistics blackSpread,
-			int startWhite, int endWhite, int startBlack, int blackThresholdValue) {
+	private int getPercentile(int[] pixelSpread, int start, int end, double percentile) {
+		double total = 0;
+		for (int i = start; i <= end; i++)
+			total += pixelSpread[i];
+		double runningTotal = 0;
+		for (int i = start; i <= end; i++) {
+			runningTotal += pixelSpread[i];
+			if (runningTotal / total >= percentile)
+				return i;
+		}
+		return end;
+	}
+
+	private void drawChart(int[] pixelSpread, DescriptiveStatistics countStats, DescriptiveStatistics blackCountStats, int startWhite, int endWhite,
+			int startBlack, int blackThresholdValue) {
 		XYSeries xySeries = new XYSeries("Brightness data");
 		double maxSpread = 0;
 		for (int i = 0; i < 256; i++) {
@@ -288,8 +296,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * The rows found in this image (ignoring paragraph splits, or before
-	 * paragraph splits).
+	 * The rows found in this image (ignoring paragraph splits, or before paragraph
+	 * splits).
 	 */
 	public List<RowOfShapes> getRows() {
 		if (rows == null) {
@@ -368,8 +376,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape width,
-	 * to return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape width, to
+	 * return only "average shapes".
 	 */
 	public double getAverageShapeWidthMargin() {
 		this.calculateShapeStatistics();
@@ -387,8 +395,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns a margin to consider on either side of the average shape height,
-	 * to return only "average shapes".
+	 * Returns a margin to consider on either side of the average shape height, to
+	 * return only "average shapes".
 	 */
 	public double getAverageShapeHeightMargin() {
 		this.calculateShapeStatistics();
@@ -422,9 +430,9 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Returns the slope of the current image's horizontal inclination. Assumes
-	 * an initial stab has already been made at group shapes into rows, and that
-	 * rows are grouped from top to bottom.
+	 * Returns the slope of the current image's horizontal inclination. Assumes an
+	 * initial stab has already been made at group shapes into rows, and that rows
+	 * are grouped from top to bottom.
 	 */
 	public double getInclination() {
 		LOG.debug("#### getInclination ####");
@@ -475,9 +483,9 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Get white areas which delimit rows (to break columns up into separate
-	 * rows). Assumes specks have already been removed (to avoid reducing white
-	 * areas artificially).
+	 * Get white areas which delimit rows (to break columns up into separate rows).
+	 * Assumes specks have already been removed (to avoid reducing white areas
+	 * artificially).
 	 * 
 	 * @param shapes
 	 *            the shapes to be considered when looking for white space.
@@ -674,8 +682,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
 	/**
 	 * Get white areas around large shapes. Assumes rows have already been
-	 * calculated. Used for recognising "false indents" when delimiting
-	 * paragraphs.
+	 * calculated. Used for recognising "false indents" when delimiting paragraphs.
 	 */
 	public List<Rectangle> getWhiteAreasAroundLargeShapes() {
 		if (whiteAreasAroundLargeShapes == null) {
@@ -959,8 +966,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 	}
 
 	/**
-	 * Get the x-adjustment at a particular y-coordinate, in view of the page
-	 * slope.
+	 * Get the x-adjustment at a particular y-coordinate, in view of the page slope.
 	 */
 	public double getXAdjustment(double yCoordinate) {
 		// determine the vertical slope for adjusting the line accordingly

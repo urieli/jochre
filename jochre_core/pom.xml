@@ -58,8 +58,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.levigo.jbig2</groupId>
-			<artifactId>levigo-jbig2-imageio</artifactId>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>jbig2-imageio</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.joliciel.talismane</groupId>
@@ -70,8 +70,8 @@
 			<artifactId>talismane-utils</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.mchange</groupId>
-			<artifactId>c3p0</artifactId>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>jfree</groupId>
@@ -102,7 +102,7 @@
 			<artifactId>jochre-utils</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>postgresql</groupId>
+			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
 		<dependency>
