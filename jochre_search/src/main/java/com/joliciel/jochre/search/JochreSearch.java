@@ -520,9 +520,9 @@ public class JochreSearch {
 					JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
 					String word1 = jochreWord.getText();
 					String word2 = null;
-					if (word.contains(JochreSearchConstants.INDEX_NEWLINE)) {
-						word2 = word1.substring(word.indexOf(JochreSearchConstants.INDEX_NEWLINE) + 1);
-						word1 = word1.substring(0, word.indexOf(JochreSearchConstants.INDEX_NEWLINE));
+					if (word1.contains(JochreSearchConstants.INDEX_NEWLINE)) {
+						word2 = word1.substring(word1.indexOf(JochreSearchConstants.INDEX_NEWLINE) + 1);
+						word1 = word1.substring(0, word1.indexOf(JochreSearchConstants.INDEX_NEWLINE));
 					}
 					JsonFactory jsonFactory = new JsonFactory();
 					JsonGenerator jsonGen = jsonFactory.createGenerator(out);
