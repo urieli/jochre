@@ -12,6 +12,7 @@
 <title>Jochre Search</title>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/typeaheadjs.css' %}" />
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
@@ -25,17 +26,16 @@
 			  crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="http://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
 
 {% include "header-local.html" %}
 
 <form id="frmQuery" method="get" accept-charset="UTF-8">
 <input type="hidden" name="page" id="hdnPage" value="1" />
-<div class="container mt-1">
+<div class="d-flex justify-content-end m-1">
 	<div class="row">
-		<div class="col-3">&nbsp;</div>
-		<div class="col-2"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></div>
 		{% if not RTL %}
-			<div class="col-5" style="text-align: left">
+			<div class="col-10" style="text-align: left">
 			<h1>{{ JOCHRE_TITLE }}</h1>
 			<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
 			</div>
@@ -43,7 +43,7 @@
 		<div class="col-1"><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></div>
 		<div class="col-1">
 				{% if request.user.first_name or request.user.last_name %}
-						{{ request.user.first_name }} {{ request.user.last_name }}
+						{{ request.user.first_name }}&nbsp;{{ request.user.last_name }}
 				{% else %}
 						{{ request.user.username }}
 				{% endif %}
@@ -51,7 +51,7 @@
 				<a href="accounts/logout/">{{ Strings.logout }}</a>
 		</div>
 		{% if RTL %}
-			<div class="col-5" style="text-align: right">
+			<div class="col-10" style="text-align: right">
 				<div class="rtl">
 					<p class="rtl" style="font-size: 24px; font-weight: bold">{{ JOCHRE_TITLE }}</p>
 					<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
@@ -62,55 +62,132 @@
 </div>
 
 <div class="container">
-	<div class="row justify-content-center">
+	<div class="row">
 		<div class="col">
 			<hr/>
 		</div>
 	</div>
-	{% if RTL %}
-	<div class="row">
-		<div class="col" style="vertical-align: bottom;" align="right">
-			<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>&nbsp;
-			<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
-			<input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" class="rtl" />
-		</div>
-	</div>
-	<div class="row" id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-		<div class="col" align="right">
-			<div class="container">
-				<div class="row">
-					<div class="col"><div class="authorRtl rtl">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></div></div>
-					<div class="col"><div class="authorRtl rtl"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></div></div>
-					<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></div></div>
-				</div>
+	<div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
+		<div class="input-group input-group-sm m-1">
+			<input type="text" id="txtQuery" name="query" value="{{ query }}" class="form-control{% if RTL %} rtl{% endif %}" />
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary btn-sm">{{ Strings.searchButton }}</button>&nbsp;
+				<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
 			</div>
 		</div>
 	</div>
-	{% else %}
-	<div class="row">
-		<div class="col" style="vertical-align: bottom;" align="left">&nbsp;
-			<input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" />&nbsp;
-			<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
-			<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>
-		</div>
-	</div>
-	<div class="row" id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-		<div class="col" align="left">
-			<div class="container">
-				<div class="row">
-					<div class="col" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></div>
-					<div class="col" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></div>
-					<div class="col">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></div>
+</div>
+<div class="container-fluid {% if not displayAdvancedSearch %}collapse {% endif %}mt-1" id="advancedSearch">
+	<fieldset>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="col-6 {% if RTL %}authorRtl rtl{% else %}author{% endif %} p-0 m-0">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtAuthor">{{ Strings.authorField }}:&nbsp;</label>
+				<div class="alert-auto">
+					<input id="txtAuthor" class="typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
+					<input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
+				</div>
+				<div class="input-group-append">
+					&nbsp;<button type="button" id="addAuthor" class="btn btn-secondary btn-sm" aria-label="add author">+</button>
+					&nbsp;✓<input type="radio" name="authorInclude" value="true" checked="true">
+					&nbsp;✗<input type="radio" name="authorInclude" value="false">
 				</div>
 			</div>
 		</div>
+		<div class="col-6{% if RTL %} rtl{% endif %}" id="authorList">
+			{% for author in authors %}
+			<div id="author{{ forloop.counter }}" class="alert alert-success alert-dismissible p-0 alert-auto">
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{author}}
+				<button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+				<script>
+					$('#author{{ forloop.counter }}').on('closed.bs.alert', function () {
+						var currentAuthors = $('#hdnAuthors').val().replace('|{{author}}','');
+						console.log(currentAuthors);
+						$('#hdnAuthors').val(currentAuthors);
+					});
+				</script>
+			</div>&nbsp;
+		{% endfor %}
+		<script>
+			var authorCounter = {{ authors|length }};
+		</script>
+		</div>
 	</div>
-	{% endif %}
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtTitle">{{ Strings.titleField }}:&nbsp;</label>
+				<input type="text" id="txtTitle" name="title" class="form-control{% if RTL %} rtl{% endif %}" value="{{ title }}" placeholder="{{ Strings.titleField }}" />
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtTitle">{{ Strings.strictField }}?&nbsp;</label>
+				<input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
+			</div>
+		</div>
+	</div>
+</fieldset>
 </div>
 <script>
-$("#toggleAdvancedSearch").on("click",function(){
+	$('#txtAuthor').typeahead({
+	  hint: false,
+	  highlight: true,
+	  minLength: 1
+	},
+	{
+	  name: 'authors',
+	  limit: 10,
+	  source: function (q, sync, async) {
+	    console.log(q);
+	    $.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=10`, function( data ) {
+	    	var matches = [];
+				$.each( data, function( key, val ) {
+					console.log(`${key}: ${val}`);
+					if (key=="results") {
+						for (var i = 0, len = val.length; i < len; i++) {
+						  console.log(val[i]);
+						  matches.push(val[i]);
+						 }
+					}
+				});
+				console.log(`returning ${matches}`);
+				async(matches);
+			});
+	  }
+	});
+
+	$('#addAuthor').click(function() {
+		var author = $('#txtAuthor').val();
+		if (author.length > 0) {
+			console.log(`adding ${author}`);
+			authorCounter += 1;
+			$('#authorList').append(`
+				<div id="author${authorCounter}" class="alert alert-success alert-dismissible p-0 alert-auto">
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${author}
+					<button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+					<script>
+						$('#author${authorCounter}').on('closed.bs.alert', function () {
+							var currentAuthors = $('#hdnAuthors').val().replace('|${author}','');
+							console.log(currentAuthors);
+							$('#hdnAuthors').val(currentAuthors);
+						})
+					<\/script>
+				</div>&nbsp;
+				`);
+			$('#txtAuthor').val("");
+			var currentAuthors = $('#hdnAuthors').val();
+			$('#hdnAuthors').val(`${currentAuthors}|${author}`);
+		}
+	});
+
+</script>
+<script>
+$("#toggleAdvancedSearch").click(function(){
 	$("#advancedSearch").toggle();
-	 });
+});
 	 
 {% if RTL %}
 function latinToYiddish(charStr) {
@@ -171,7 +248,7 @@ function latinToYiddish(charStr) {
 	case '”': return '"';
 	case '’': return "'";
 	case '„': return '"';
-	default: return charStr;
+	default: return "";
 	}
 }
 
@@ -189,52 +266,38 @@ function transformKeyPress(textfield, evt) {
 
 				// Transform typed character
 				var mappedChar = latinToYiddish(keyChar);
+				if (mappedChar=="")
+					return true;
 
-				var start, end;
-				if (typeof textfield.selectionStart == "number" && typeof textfield.selectionEnd == "number") {
-						// Non-IE browsers and IE 9
-						start = textfield.selectionStart;
-						end = textfield.selectionEnd;
-						textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
+				var start = textfield.selectionStart;
+				var end = textfield.selectionEnd;
+				var newValue = val.slice(0, start) + mappedChar + val.slice(end);
+				if (textfield.id=='txtAuthor')
+					$('#txtAuthor').typeahead('val',newValue);
+				else
+					textfield.value = newValue;
 
-						// Move the caret
-						textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
-				} else if (document.selection && document.selection.createRange) {
-						// For IE up to version 8
-						var selectionRange = document.selection.createRange();
-						var textInputRange = textfield.createTextRange();
-						var precedingRange = textfield.createTextRange();
-						var bookmark = selectionRange.getBookmark();
-						textInputRange.moveToBookmark(bookmark);
-						precedingRange.setEndPoint("EndToStart", textInputRange);
-						start = precedingRange.text.length;
-						end = start + selectionRange.text.length;
-
-						textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
-						start++;
-
-						// Move the caret
-						textInputRange = textfield.createTextRange();
-						textInputRange.collapse(true);
-						textInputRange.move("character", start - (textfield.value.slice(0, start).split("\r\n").length - 1));
-						textInputRange.select();
-				}
+				// Move the caret
+				textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
 
 				return false;
 		}
 };
 
-document.getElementById("txtQuery").onkeypress = function(evt) {
-		return transformKeyPress(this, evt);
-};
+$("#txtQuery").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+$("#txtTitle").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+$("#txtAuthor").keypress(function(evt){
+	if(evt.which == 13) {
+    $('#addAuthor').click();
+    return false;
+  }
+	return transformKeyPress(this, evt);
+});
 
-document.getElementById("txtTitle").onkeypress = function(evt) {
-		return transformKeyPress(this, evt);
-};
-
-document.getElementById("txtAuthor").onkeypress = function(evt) {
-		return transformKeyPress(this, evt);
-};
 {% endif %}
 </script>
 {% if parseException %}
@@ -587,5 +650,17 @@ $('#imgFixWord').on('load', function() {
 	document.getElementById("imgWordLoading").style.display="none";
 	});
 </script>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<hr/>
+		</div>
+	</div>
+</div>
+<div class="d-flex justify-content-center">
+	<div class="row">
+		<div class="col"><p>&nbsp;</p><strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a></div>
+	</div>
+</div>
 </body>
 </html>

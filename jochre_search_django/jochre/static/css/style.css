@@ -1,4 +1,4 @@
-BODY { background-color: #FFFFCC; color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
+BODY { background-color: #ffffff; color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
 H1 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 18px; }
 H2 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 16px;}
 H3 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 14px; }
@@ -12,7 +12,7 @@ INPUT { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 16px;
 INPUT[type="text"] { color: #660033; font-family: "Times New Roman", Times, serif; font-size: 14px; }
 INPUT[type="text"].RTL { color: #660033; font-family: "Times New Roman", Times, serif; font-size: 16px; text-align: right; direction: rtl;  }
 INPUT[type="button"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Verdana, Helvetica, Arial; font-size: 13px; FONT-WEIGHT: bold; }
-INPUT[type="submit"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Narkisim, "Times New Roman", Times; font-size: 18px; FONT-WEIGHT: bold; }
+INPUT[type="submit"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Serif; font-size: 18px; FONT-WEIGHT: bold; }
 TEXTAREA { color: #660033; font-family: Arial, Helvetica; font-size: 12px; }
 P { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
 LI { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
@@ -27,13 +27,15 @@ A.darklink {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: b
 A:hover { text-decoration: underline; }
 A.simple:hover {  text-decoration: underline; }
 .rtl {
-	font-family: Narkisim, "Times New Roman", Times;
+	font-family: Serif;
 	text-align: right;
 	direction: rtl;
 }
-.snippet { color: #660033; font-family: "Times New Roman", Times, serif; text-align: left; vertical-align: top; direction: ltr; }
+.snippet { color: #660033; font-family: Serif; text-align: left; vertical-align: top; direction: ltr; }
 .snippetRtl { color: #660033; font-size: 16px; }
 .imageSnippet {}
 .image { border:1px solid #021a40; width: 100%; }
 H1.rtl { font-size: 24px; }
 .black-separator { background-color: black; height: 5px; }
+.alert-auto {display:inline-block;} 
+.yiddish-bold {font-weight: 900;}

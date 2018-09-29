@@ -26,7 +26,7 @@ class JochreQueryAnalyser extends Analyzer {
 	private final JochreSearchConfig config;
 
 	public JochreQueryAnalyser(JochreSearchConfig config, boolean expandInflections) {
-		this.textNormaliser = TextNormaliser.getTextNormaliser(config.getLocale());
+		this.textNormaliser = TextNormaliser.getInstance(config);
 		this.config = config;
 		this.lexicon = config.getLexicon();
 		this.expandInflections = expandInflections;

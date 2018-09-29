@@ -37,20 +37,26 @@ def search(request):
 	strict = False
 	if ('strict') in request.GET:
 		strict = True
+
+	authorInclude = True
+	if ('authorInclude') in request.GET:
+		authorInclude = request.GET['authorInclude']=='true'
 	
 	if len(author)>0 or len(title)>0 or strict:
 		advancedSearch = True
 
-	displayAdvancedSearch = 'none'
+	displayAdvancedSearch = False
 	if advancedSearch:
-		displayAdvancedSearch = 'visible'
+		displayAdvancedSearch = True
 	
 	pageNumber = 0
 	if 'page' in request.GET:
 		pageNumber = int(request.GET['page'])
 	
 	model = {"query" : query,
-			 "author" : author,
+			 "authors" : filter(None, author.split("|")),
+			 "authorQuery": author,
+			 "authorInclude" : authorInclude,
 			 "title" : title,
 			 "strict" : strict,
 			 "displayAdvancedSearch" : displayAdvancedSearch,
@@ -79,11 +85,15 @@ def search(request):
 					"ip": ip,
 					}
 		if len(author)>0:
-			userdata['author'] = author
+			userdata['authors'] = author
 		if len(title)>0:
 			userdata['title'] = title
 		if strict:
 			userdata['expand'] = 'false'
+		if authorInclude:
+			userdata['authorInclude'] = 'true'
+		else:
+			userdata['authorInclude'] = 'false'
 		
 		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
 

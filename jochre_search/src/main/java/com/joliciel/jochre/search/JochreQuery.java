@@ -18,10 +18,10 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -30,6 +30,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,17 +46,22 @@ public class JochreQuery {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
 	private int decimalPlaces = 4;
 	private int maxDocs = 20;
-	private String queryString = null;
-	private String authorQueryString = null;
-	private String titleQueryString = null;
+	private final String queryString;
+	private final List<String> authors;
+	private final boolean authorInclude;
+	private final String titleQueryString;
 	private Query luceneQuery = null;
 	private Query luceneTextQuery = null;
 	private int[] docIds = null;
 	private boolean expandInflections = true;
 	private final JochreSearchConfig config;
 
-	public JochreQuery(JochreSearchConfig config) {
+	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString) {
 		this.config = config;
+		this.queryString = queryString;
+		this.authors = authors;
+		this.authorInclude = authorInclude;
+		this.titleQueryString = titleQueryString;
 	}
 
 	/**
@@ -90,8 +96,19 @@ public class JochreQuery {
 		return queryString;
 	}
 
-	public void setQueryString(String queryString) {
-		this.queryString = queryString;
+	/**
+	 * A list of authors for inclusion or exclusion.
+	 */
+	public List<String> getAuthors() {
+		return authors;
+	}
+
+	/**
+	 * If true and {@link #getAuthors()} is not empty, the query is limited to
+	 * authors in the list. If false, the query excludes authors in the list.
+	 */
+	public boolean isAuthorInclude() {
+		return authorInclude;
 	}
 
 	public int[] getDocIds() {
@@ -102,20 +119,8 @@ public class JochreQuery {
 		this.docIds = docIds;
 	}
 
-	public String getAuthorQueryString() {
-		return authorQueryString;
-	}
-
-	public void setAuthorQueryString(String authorQueryString) {
-		this.authorQueryString = authorQueryString;
-	}
-
 	public String getTitleQueryString() {
 		return titleQueryString;
-	}
-
-	public void setTitleQueryString(String titleQueryString) {
-		this.titleQueryString = titleQueryString;
 	}
 
 	/**
@@ -131,7 +136,7 @@ public class JochreQuery {
 				JochreQueryAnalyser analyzer = new JochreQueryAnalyser(config, expandInflections);
 				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
 				String queryString = this.getQueryString();
-				TextNormaliser textNormaliser = TextNormaliser.getTextNormaliser(config.getLocale());
+				TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
 				if (textNormaliser != null)
 					queryString = textNormaliser.normalise(queryString);
 				luceneTextQuery = queryParser.parse(queryString);
@@ -149,58 +154,47 @@ public class JochreQuery {
 	 */
 	public Query getLuceneQuery() {
 		try {
-			Analyzer jochreAnalyzer = new JochreMetaDataAnalyser();
+			Analyzer jochreAnalyzer = new JochreMetaDataAnalyser(config);
 			if (luceneQuery == null) {
 				Builder builder = new Builder();
 				builder.add(this.getLuceneTextQuery(), Occur.MUST);
-				List<Query> additionalQueries = new ArrayList<>();
-				if (this.authorQueryString != null) {
-					MultiFieldQueryParser authorParser = new MultiFieldQueryParser(
-							new String[] { JochreIndexField.author.name(), JochreIndexField.authorLang.name() }, jochreAnalyzer);
-					String queryString = authorQueryString;
-					LOG.debug("authorQueryString: " + authorQueryString);
-					TextNormaliser textNormaliser = TextNormaliser.getTextNormaliser(config.getLocale());
-					if (textNormaliser != null)
-						queryString = textNormaliser.normalise(queryString);
+				if (this.authors.size() > 0) {
+					Builder authorBuilder = new Builder();
+					TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
 
-					Query authorQuery = authorParser.parse(queryString);
-					additionalQueries.add(authorQuery);
+					for (String author : authors) {
+						String authorString = author;
+						if (textNormaliser != null)
+							authorString = textNormaliser.normalise(author);
+						TermQuery termQuery = new TermQuery(new Term(JochreIndexField.author.name(), authorString));
+						authorBuilder.add(new BooleanClause(termQuery, Occur.SHOULD));
+						TermQuery termQuery2 = new TermQuery(new Term(JochreIndexField.authorEnglish.name(), authorString));
+						authorBuilder.add(new BooleanClause(termQuery2, Occur.SHOULD));
+					}
+
+					BooleanQuery authorQuery = authorBuilder.build();
+					BooleanClause authorClause = new BooleanClause(authorQuery, this.authorInclude ? Occur.MUST : Occur.MUST_NOT);
+					builder.add(authorClause);
 				}
-				if (this.titleQueryString != null) {
+				if (this.titleQueryString != null && this.titleQueryString.length() > 0) {
 					MultiFieldQueryParser titleParser = new MultiFieldQueryParser(
-							new String[] { JochreIndexField.title.name(), JochreIndexField.titleLang.name() }, jochreAnalyzer);
+							new String[] { JochreIndexField.titleEnglish.name(), JochreIndexField.title.name() }, jochreAnalyzer);
 					String queryString = titleQueryString;
 					LOG.debug("titleQueryString: " + titleQueryString);
-					TextNormaliser textNormaliser = TextNormaliser.getTextNormaliser(config.getLocale());
+					TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
 					if (textNormaliser != null)
 						queryString = textNormaliser.normalise(queryString);
 
 					Query titleQuery = titleParser.parse(queryString);
-					additionalQueries.add(titleQuery);
+					builder.add(titleQuery, Occur.MUST);
 				}
 
-				for (Query additionalQuery : additionalQueries) {
-					// In most cases, the queryClause will return a single
-					// boolean clause
-					// in this case, we can simplify things
-					BooleanClause booleanClause = null;
-					if (additionalQuery instanceof BooleanQuery) {
-						BooleanQuery clauseBooleanQuery = (BooleanQuery) additionalQuery;
-						if (clauseBooleanQuery.clauses().size() == 1) {
-							booleanClause = clauseBooleanQuery.clauses().get(0);
-						}
-					}
-					if (booleanClause == null)
-						builder.add(additionalQuery, Occur.MUST);
-					else
-						builder.add(booleanClause);
-				}
 				luceneQuery = builder.build();
 				LOG.debug(luceneQuery.toString());
 			}
 			return luceneQuery;
 		} catch (ParseException e) {
-			LOG.error("Failed to parse author query: " + this.getAuthorQueryString() + ", or title query: " + this.getTitleQueryString(), e);
+			LOG.error("Failed to parse title query: " + this.getTitleQueryString(), e);
 			throw new JochreQueryParseException(e.getMessage());
 		}
 	}

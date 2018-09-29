@@ -3,25 +3,19 @@ package com.joliciel.jochre.search;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 
-import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreIndexBuilderTest {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilderTest.class);
+public class JochreQueryTest {
 
 	@Test
-	public void testUpdateIndex() throws IOException {
+	public void test() throws IOException {
 		System.setProperty("config.file", "src/test/resources/test.conf");
 		ConfigFactory.invalidateCaches();
 
@@ -35,21 +29,15 @@ public class JochreIndexBuilderTest {
 
 		IndexSearcher indexSearcher = manager.getManager().acquire();
 		try {
+			JochreQuery query = new JochreQuery(config, "קײנער", Arrays.asList("שלום עליכם"), true, "");
 			JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
-			Map<Integer, Document> docs = searcher.findDocuments("MotlPeysiDemKhazns");
-			assertEquals(1, docs.size());
-			int docId = docs.keySet().iterator().next();
-			JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
-			assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
-			LOG.debug(jochreDoc.getContents());
-
-			JochreQuery query = new JochreQuery(config, "זיך", new ArrayList<>(), true, "");
 			TopDocs topDocs = searcher.search(query);
 			assertEquals(1, topDocs.totalHits);
-			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-				jochreDoc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, config);
-				assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
-			}
+
+			query = new JochreQuery(config, "קײנער", Arrays.asList("שלום עליכם"), false, "");
+			topDocs = searcher.search(query);
+			assertEquals(0, topDocs.totalHits);
+
 		} finally {
 			manager.getManager().release(indexSearcher);
 		}

@@ -209,10 +209,10 @@ public class JochreIndexDirectory {
 				}
 				if (title != null && title.length() > 0) {
 					title = DiacriticRemover.apply(title);
-					this.metaData.put(JochreIndexField.title.name(), title);
+					this.metaData.put(JochreIndexField.titleEnglish.name(), title);
 				}
 				if (author != null && author.length() > 0)
-					this.metaData.put(JochreIndexField.author.name(), author);
+					this.metaData.put(JochreIndexField.authorEnglish.name(), author);
 
 			} else {
 				try {
@@ -250,17 +250,17 @@ public class JochreIndexDirectory {
 					if (bookUrl.length() > 0)
 						this.metaData.put(JochreIndexField.url.name(), bookUrl);
 					if (title.length() > 0)
-						this.metaData.put(JochreIndexField.title.name(), title);
+						this.metaData.put(JochreIndexField.titleEnglish.name(), title);
 					if (author.length() > 0)
-						this.metaData.put(JochreIndexField.author.name(), author);
+						this.metaData.put(JochreIndexField.authorEnglish.name(), author);
 					if (publisher.length() > 0)
 						this.metaData.put(JochreIndexField.publisher.name(), publisher);
 					if (date.length() > 0)
 						this.metaData.put(JochreIndexField.date.name(), date);
 					if (authorLang.length() > 0)
-						this.metaData.put(JochreIndexField.authorLang.name(), authorLang);
+						this.metaData.put(JochreIndexField.author.name(), authorLang);
 					if (titleLang.length() > 0)
-						this.metaData.put(JochreIndexField.titleLang.name(), titleLang);
+						this.metaData.put(JochreIndexField.title.name(), titleLang);
 					if (volume.length() > 0)
 						this.metaData.put(JochreIndexField.volume.name(), volume);
 

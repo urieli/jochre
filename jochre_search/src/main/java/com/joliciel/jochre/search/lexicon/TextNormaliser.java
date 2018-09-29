@@ -18,9 +18,15 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.lexicon;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.search.JochreSearchConfig;
+import com.joliciel.jochre.search.highlight.SnippetFinder;
 
 /**
  * Normalises text for storage in index and or lexica.
@@ -29,18 +35,29 @@ import java.util.Map;
  *
  */
 public interface TextNormaliser {
-	static Map<Locale, TextNormaliser> textNormaliserMap = new HashMap<>();
+	static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
+	static Map<String, TextNormaliser> instances = new HashMap<>();
 
-	public static TextNormaliser getTextNormaliser(Locale locale) {
-		TextNormaliser textNormaliser = null;
-		if (locale.getLanguage().equals("yi") || locale.getLanguage().equals("ji")) {
-			textNormaliser = textNormaliserMap.get(locale);
-			if (textNormaliser == null) {
-				textNormaliser = new YiddishTextNormaliser();
-				textNormaliserMap.put(locale, textNormaliser);
+	public static TextNormaliser getInstance(JochreSearchConfig config) {
+		TextNormaliser instance = instances.get(config.getConfigId());
+		if (instance == null) {
+			try {
+				if (config.getConfig().hasPath("text-normaliser.class")) {
+					String className = config.getConfig().getString("text-normaliser.class");
+
+					@SuppressWarnings("unchecked")
+					Class<? extends TextNormaliser> clazz = (Class<? extends TextNormaliser>) Class.forName(className);
+					Constructor<? extends TextNormaliser> cons = clazz.getConstructor(JochreSearchConfig.class);
+
+					instance = cons.newInstance(config);
+				}
+				instances.put(config.getConfigId(), instance);
+			} catch (ReflectiveOperationException e) {
+				LOG.error("Unable to construct TextNormaliser", e);
+				throw new RuntimeException(e);
 			}
 		}
-		return textNormaliser;
+		return instance;
 	}
 
 	public String normalise(String text);

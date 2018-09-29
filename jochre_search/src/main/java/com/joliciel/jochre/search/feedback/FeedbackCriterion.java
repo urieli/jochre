@@ -25,29 +25,32 @@ import com.joliciel.jochre.search.JochreSearchException;
 
 /**
  * A single query criterion type.
+ * 
  * @author Assaf Urieli
  *
  */
 public enum FeedbackCriterion {
 	text,
 	author,
+	includeAuthors,
 	title,
 	strict;
-	
+
 	private int id;
-	private static Map<Integer,FeedbackCriterion> idMap = new HashMap<Integer, FeedbackCriterion>();
-	
+	private static Map<Integer, FeedbackCriterion> idMap = new HashMap<>();
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 		idMap.put(id, this);
 	}
-	
+
 	public static FeedbackCriterion forId(int id) {
 		FeedbackCriterion criterion = idMap.get(id);
-		if (criterion==null)
+		if (criterion == null)
 			throw new JochreSearchException("Unknown criterion for id: " + id);
 		return criterion;
 	}

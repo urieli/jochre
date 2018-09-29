@@ -87,21 +87,21 @@ public class JochreIndexSearcher {
 						Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue()));
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.id.name(), doc.get(JochreIndexField.id.name()));
-				String author = doc.get(JochreIndexField.author.name());
+				String author = doc.get(JochreIndexField.authorEnglish.name());
 				if (author != null)
-					jsonGen.writeStringField(JochreIndexField.author.name(), author);
-				String title = doc.get(JochreIndexField.title.name());
+					jsonGen.writeStringField(JochreIndexField.authorEnglish.name(), author);
+				String title = doc.get(JochreIndexField.titleEnglish.name());
 				if (title != null)
-					jsonGen.writeStringField(JochreIndexField.title.name(), title);
+					jsonGen.writeStringField(JochreIndexField.titleEnglish.name(), title);
 				String url = doc.get(JochreIndexField.url.name());
 				if (url != null)
 					jsonGen.writeStringField(JochreIndexField.url.name(), url);
-				String authorLang = doc.get(JochreIndexField.authorLang.name());
+				String authorLang = doc.get(JochreIndexField.author.name());
 				if (authorLang != null)
-					jsonGen.writeStringField(JochreIndexField.authorLang.name(), authorLang);
-				String titleLang = doc.get(JochreIndexField.titleLang.name());
+					jsonGen.writeStringField(JochreIndexField.author.name(), authorLang);
+				String titleLang = doc.get(JochreIndexField.title.name());
 				if (titleLang != null)
-					jsonGen.writeStringField(JochreIndexField.titleLang.name(), titleLang);
+					jsonGen.writeStringField(JochreIndexField.title.name(), titleLang);
 				String volume = doc.get(JochreIndexField.volume.name());
 				if (volume != null)
 					jsonGen.writeStringField(JochreIndexField.volume.name(), volume);
