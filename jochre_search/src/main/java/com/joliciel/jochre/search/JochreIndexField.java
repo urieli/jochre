@@ -34,6 +34,8 @@ public enum JochreIndexField {
 	date,
 	/** Year stored as a number for range queries */
 	year,
+	/** The year to be used for sorting */
+	yearSort,
 	/** Full author name (not tokenised) in the original language */
 	author,
 	/** Tokenised title in the original language */

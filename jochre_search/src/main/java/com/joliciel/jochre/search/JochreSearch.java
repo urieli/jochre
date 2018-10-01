@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.joliciel.jochre.search.JochreQuery.SortBy;
 import com.joliciel.jochre.search.feedback.FeedbackCriterion;
 import com.joliciel.jochre.search.feedback.FeedbackDAO;
 import com.joliciel.jochre.search.feedback.FeedbackQuery;
@@ -197,6 +198,8 @@ public class JochreSearch {
 			int maxDocs = -1;
 			int decimalPlaces = -1;
 			Boolean expandInflections = null;
+			SortBy sortBy = SortBy.Score;
+			boolean sortAscending = true;
 
 			// lexicon handling
 			String lexiconDirPath = null;
@@ -302,6 +305,10 @@ public class JochreSearch {
 					prefix = argValue;
 				} else if (argName.equals("maxResults")) {
 					maxResults = Integer.parseInt(argValue);
+				} else if (argName.equals("sortBy")) {
+					sortBy = SortBy.valueOf(argValue);
+				} else if (argName.equals("sortAscending")) {
+					sortAscending = argValue.equals("true");
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -363,7 +370,7 @@ public class JochreSearch {
 					if (queryString == null)
 						throw new RuntimeException("For command " + command + " query is required");
 
-					JochreQuery query = new JochreQuery(searchConfig, queryString, authors, authorInclude, titleQueryString);
+					JochreQuery query = new JochreQuery(searchConfig, queryString, authors, authorInclude, titleQueryString, sortBy, sortAscending);
 
 					if (decimalPlaces >= 0)
 						query.setDecimalPlaces(decimalPlaces);

@@ -10,6 +10,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -211,6 +212,7 @@ public class JochreIndexDocument {
 				doc.add(new StringField(JochreIndexField.date.name(), year, Field.Store.YES));
 				try {
 					doc.add(new IntPoint(JochreIndexField.year.name(), Integer.parseInt(year)));
+					doc.add(new SortedNumericDocValuesField(JochreIndexField.yearSort.name(), Integer.parseInt(year)));
 				} catch (NumberFormatException nfe) {
 					// not a number, oh well
 				}

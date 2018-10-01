@@ -18,6 +18,7 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -43,6 +44,11 @@ import com.joliciel.jochre.search.lexicon.TextNormaliser;
  *
  */
 public class JochreQuery {
+	public enum SortBy {
+		Score,
+		Year
+	}
+
 	private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
 	private int decimalPlaces = 4;
 	private int maxDocs = 20;
@@ -55,13 +61,26 @@ public class JochreQuery {
 	private int[] docIds = null;
 	private boolean expandInflections = true;
 	private final JochreSearchConfig config;
+	private final SortBy sortBy;
+	private final boolean sortAscending;
+
+	public JochreQuery(JochreSearchConfig config, String queryString) {
+		this(config, queryString, new ArrayList<>(), true, "", SortBy.Score, true);
+	}
 
 	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString) {
+		this(config, queryString, authors, authorInclude, titleQueryString, SortBy.Score, true);
+	}
+
+	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, SortBy sortBy,
+			boolean sortAscending) {
 		this.config = config;
 		this.queryString = queryString;
 		this.authors = authors;
 		this.authorInclude = authorInclude;
 		this.titleQueryString = titleQueryString;
+		this.sortBy = sortBy;
+		this.sortAscending = sortAscending;
 	}
 
 	/**
@@ -209,6 +228,14 @@ public class JochreQuery {
 
 	public void setExpandInflections(boolean expandInflections) {
 		this.expandInflections = expandInflections;
+	}
+
+	public SortBy getSortBy() {
+		return sortBy;
+	}
+
+	public boolean isSortAscending() {
+		return sortAscending;
 	}
 
 }

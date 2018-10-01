@@ -18,6 +18,9 @@ import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
@@ -48,7 +51,14 @@ public class JochreIndexSearcher {
 	 * Return a list of Lucene docIds and scores corresponding to a given query.
 	 */
 	public TopDocs search(JochreQuery jochreQuery) throws IOException {
-		TopDocs topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
+		TopDocs topDocs = null;
+		switch (jochreQuery.getSortBy()) {
+		case Score:
+			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
+		case Year:
+			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs(),
+					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, jochreQuery.isSortAscending())));
+		}
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Search results: ");
