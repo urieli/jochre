@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -23,6 +24,9 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopDocsCollector;
+import org.apache.lucene.search.TopFieldCollector;
+import org.apache.lucene.search.TopScoreDocCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,23 +46,40 @@ public class JochreIndexSearcher {
 
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
 	private Map<Integer, DecimalFormat> decimalFormats = new HashMap<>();
+	private final int maxDocs;
 
 	public JochreIndexSearcher(IndexSearcher indexSearcher, JochreSearchConfig config) {
 		this.indexSearcher = indexSearcher;
+		this.maxDocs = config.getMaxResults();
 	}
 
 	/**
-	 * Return a list of Lucene docIds and scores corresponding to a given query.
+	 * Return paginated results for a query.
+	 * 
+	 * @param jochreQuery
+	 *            the query to run
+	 * @param pageNumber
+	 *            the page number to return
+	 * @param resultsPerPage
+	 *            results per page
+	 * @return a pair giving the TopDocs corresponding to the paginated results, and
+	 *         the total hits
+	 * @throws IOException
 	 */
-	public TopDocs search(JochreQuery jochreQuery) throws IOException {
-		TopDocs topDocs = null;
+	public Pair<TopDocs, Integer> search(JochreQuery jochreQuery, int pageNumber, int resultsPerPage) throws IOException {
+		TopDocsCollector<? extends ScoreDoc> topDocsCollector = null;
 		switch (jochreQuery.getSortBy()) {
 		case Score:
-			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
+			topDocsCollector = TopScoreDocCollector.create(this.maxDocs);
 		case Year:
-			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs(),
-					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, !jochreQuery.isSortAscending())));
+			topDocsCollector = TopFieldCollector.create(
+					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, !jochreQuery.isSortAscending())), this.maxDocs,
+					false, false, false, true);
 		}
+
+		indexSearcher.search(jochreQuery.getLuceneQuery(), topDocsCollector);
+		TopDocs topDocs = topDocsCollector.topDocs(pageNumber * resultsPerPage, resultsPerPage);
+		int totalHits = topDocsCollector.getTotalHits();
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Search results: ");
@@ -68,7 +89,7 @@ public class JochreIndexSearcher {
 				LOG.trace(extId + "(docId " + scoreDoc.doc + "): " + scoreDoc.score);
 			}
 		}
-		return topDocs;
+		return Pair.of(topDocs, totalHits);
 	}
 
 	/**
@@ -76,17 +97,19 @@ public class JochreIndexSearcher {
 	 * 
 	 * @return the number of results
 	 */
-	public long search(JochreQuery jochreQuery, Writer out) throws IOException {
+	public long search(JochreQuery jochreQuery, int pageNumber, int resultsPerPage, Writer out) throws IOException {
 		try {
-			TopDocs topDocs = this.search(jochreQuery);
+			Pair<TopDocs, Integer> result = this.search(jochreQuery, pageNumber, resultsPerPage);
 			DecimalFormat df = this.getDecimalFormat(jochreQuery.getDecimalPlaces());
 
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
-			jsonGen.writeStartArray();
+			jsonGen.writeStartObject();
+			jsonGen.writeNumberField("totalHits", result.getRight());
+			jsonGen.writeArrayFieldStart("results");
 
-			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+			for (ScoreDoc scoreDoc : result.getLeft().scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
@@ -129,9 +152,10 @@ public class JochreIndexSearcher {
 			}
 
 			jsonGen.writeEndArray();
+			jsonGen.writeEndObject();
 			jsonGen.flush();
 
-			return topDocs.totalHits;
+			return result.getRight();
 		} catch (ParseException e) {
 			LOG.error("Failed search using jochreQuery " + jochreQuery.toString(), e);
 			throw new RuntimeException(e);

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.junit.Test;
@@ -32,20 +33,20 @@ public class JochreQueryTest {
 		try {
 			JochreQuery query = new JochreQuery(config, "קײנער", Arrays.asList("שלום עליכם"), true, "", null, null);
 			JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
-			TopDocs topDocs = searcher.search(query);
-			assertEquals(1, topDocs.totalHits);
+			Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
+			assertEquals(1, results.getRight().intValue());
 
 			query = new JochreQuery(config, "קײנער", Arrays.asList("שלום עליכם"), false, "", null, null);
-			topDocs = searcher.search(query);
-			assertEquals(0, topDocs.totalHits);
+			results = searcher.search(query, 0, 100);
+			assertEquals(0, results.getRight().intValue());
 
 			query = new JochreQuery(config, "קײנער", new ArrayList<>(), false, "", 1917, 1917);
-			topDocs = searcher.search(query);
-			assertEquals(1, topDocs.totalHits);
+			results = searcher.search(query, 0, 100);
+			assertEquals(1, results.getRight().intValue());
 
 			query = new JochreQuery(config, "קײנער", new ArrayList<>(), false, "", 1918, 1920);
-			topDocs = searcher.search(query);
-			assertEquals(0, topDocs.totalHits);
+			results = searcher.search(query, 0, 100);
+			assertEquals(0, results.getRight().intValue());
 
 		} finally {
 			manager.getManager().release(indexSearcher);

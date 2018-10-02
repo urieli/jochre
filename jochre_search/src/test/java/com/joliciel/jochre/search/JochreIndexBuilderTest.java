@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
@@ -43,9 +44,9 @@ public class JochreIndexBuilderTest {
 			LOG.debug(jochreDoc.toString());
 
 			JochreQuery query = new JochreQuery(config, "זיך");
-			TopDocs topDocs = searcher.search(query);
-			assertEquals(1, topDocs.totalHits);
-			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+			Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
+			assertEquals(1, results.getRight().intValue());
+			for (ScoreDoc scoreDoc : results.getLeft().scoreDocs) {
 				jochreDoc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, config);
 				assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
 			}

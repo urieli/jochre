@@ -17,13 +17,13 @@
 </head>
 <body>
 <script
-			  src="https://code.jquery.com/jquery-3.3.1.min.js"
-			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-			  crossorigin="anonymous"></script>
+				src="https://code.jquery.com/jquery-3.3.1.min.js"
+				integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+				crossorigin="anonymous"></script>
 <script
-			  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-			  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-			  crossorigin="anonymous"></script>
+				src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+				integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+				crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="http://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
@@ -60,13 +60,8 @@
 		{% endif %}
 	</div>
 </div>
-
+<hr style="margin-top:0px;">
 <div class="container">
-	<div class="row">
-		<div class="col">
-			<hr/>
-		</div>
-	</div>
 	<div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
 		<div class="input-group input-group-sm m-1">
 			<input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" required />
@@ -134,8 +129,8 @@
 	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
 		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
 			<div class="input-group input-group-sm m-1">
-				<label for="txtTitle">{{ Strings.strictField }}?&nbsp;</label>
 				<input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
+				&nbsp;<label for="txtTitle">{{ Strings.strictField }}?</label>
 			</div>
 		</div>
 	</div>
@@ -144,10 +139,10 @@
 			<div class="input-group input-group-sm m-1">
 				<label for="selSortBy">{{ Strings.sortBy }}:&nbsp;</label>
 				<select class="form-control" id="selSortBy" name="sortBy">
-		      <option value="score" {% if sortBy == "score" %}selected{% endif %}>{{ Strings.sortByScore }}</option>
-		      <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{{ Strings.sortByYearAscending }}</option>
-		      <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{{ Strings.sortByYearDescending }}</option>
-		    </select>
+					<option value="score" {% if sortBy == "score" %}selected{% endif %}>{{ Strings.sortByScore }}</option>
+					<option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{{ Strings.sortByYearAscending }}</option>
+					<option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{{ Strings.sortByYearDescending }}</option>
+				</select>
 			</div>
 		</div>
 	</div>
@@ -155,30 +150,30 @@
 </div>
 <script>
 	$('#txtAuthor').typeahead({
-	  hint: false,
-	  highlight: true,
-	  minLength: 1
+		hint: false,
+		highlight: true,
+		minLength: 1
 	},
 	{
-	  name: 'authors',
-	  limit: 10,
-	  source: function (q, sync, async) {
-	    console.log(q);
-	    $.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=10`, function( data ) {
-	    	var matches = [];
+		name: 'authors',
+		limit: 10,
+		source: function (q, sync, async) {
+			console.log(q);
+			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=10`, function( data ) {
+				var matches = [];
 				$.each( data, function( key, val ) {
 					console.log(`${key}: ${val}`);
 					if (key=="results") {
 						for (var i = 0, len = val.length; i < len; i++) {
-						  console.log(val[i]);
-						  matches.push(val[i]);
+							console.log(val[i]);
+							matches.push(val[i]);
 						 }
 					}
 				});
 				console.log(`returning ${matches}`);
 				async(matches);
 			});
-	  }
+		}
 	});
 
 	$('#addAuthor').click(function() {
@@ -314,9 +309,9 @@ $("#txtTitle").keypress(function(evt){
 });
 $("#txtAuthor").keypress(function(evt){
 	if(evt.which == 13) {
-    $('#addAuthor').click();
-    return false;
-  }
+		$('#addAuthor').click();
+		return false;
+	}
 	return transformKeyPress(this, evt);
 });
 
@@ -337,7 +332,7 @@ $("#txtAuthor").keypress(function(evt){
 		{% endif %}
 	</div>
 {% for result in results %}
-	<div class="row">
+	<div class="row mt-1 mb-1">
 		<div class="col"><div class="black-separator"></div></div>
 	</div>
 	<div class="row">
@@ -373,7 +368,6 @@ $("#txtAuthor").keypress(function(evt){
 		{% if RTL %}
 			<div class="col-11">
 				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetRtl rtl">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
-				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="collapse imageSnippetRtl rtl"></div>
 			</div>
 			<div class="col-1">
 				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>&nbsp;&nbsp;
@@ -386,9 +380,11 @@ $("#txtAuthor").keypress(function(evt){
 			</div>
 			<div class="col-11">
 				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
-				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="collapse imageSnippet"></div>
 			</div>
 		{% endif %}
+		</div>
+		<div class="row collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+			<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="imageSnippet"></div>
 		</div>
 		<script>
 		$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
@@ -397,7 +393,7 @@ $("#txtAuthor").keypress(function(evt){
 				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" class="image" />');
 				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
 			}
-			$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
+			$("#imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
 			});
 		$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
 			window.open('{{ snippet.readOnlineUrl }}', '_blank');
@@ -487,98 +483,39 @@ $("#txtAuthor").keypress(function(evt){
 	<div class="row"><div class="col" height="10px"></div></div>
 {% endfor %}
 </div>
-{% endif %}
-{% if pageLinks and pageLinks.last_page.number != 1 %}
-<div class="container w-50">
-	<div class="row">
-	{% if pageLinks.first_page %}
-		<div class="col" style="text-align: center;">
-			<a href="#" id="pageFirst">{{ Strings.first }}</a>
-		</div>
-	{% endif %}
-	<div class="col" style="text-align: center;">
-		{% if pageLinks.previous_page and pageLinks.previous_page.number != pageLinks.current_page.value %}
-			<a href="#" id="pagePrev">{{ Strings.prev }}</a>
-		{% else %}
-			<span style="font-weight: bold; color: gray;">{{ Strings.prev }}</span>
-		{% endif %}
+<nav class="navbar navbar-expand-md" aria-label="Page navigation">
+	<div class="mx-auto order-0">
+		<ul class="pagination">
+			{% for pageLink in pageLinks %}
+				{% if pageLink.active %}
+					<li class="page-item"><a id="pageLink{{ forloop.counter }}" class="page-link" href="#">{{ pageLink.name}}</a>
+					<script>
+						$("#pageLink{{ forloop.counter }}").click(function(){
+							$("#hdnPage").val("{{ pageLink.val }}");
+							$("#frmQuery").submit();
+							return false;
+						});
+					</script>
+					</li>
+				{% else %}
+					<li class="page-item disabled"><a class="page-link">{{ pageLink.name }}</a></li>
+				{% endif %}
+			{% endfor %}
+		</ul>
 	</div>
-	{% for pageLink in pageLinks.range_pages %}
-		<div class="col" style="text-align: center;">
-			{% if pageLink.type == "current_page" %}
-				<b>{{ pageLink.value }}</b>
-			{% elif pageLink.type == "span" %}
-					{{ pageLink.value }}
-			{% else %}
-				<a href="#" id="page{{ pageLink.value }}">{{ pageLink.number }}</a>
-			{% endif %}
-		</div>
-	{% endfor %}
-	<div class="col" style="text-align: center;">
-		{% if pageLinks.next_page and pageLinks.next_page.number != pageLinks.current_page.value %}
-			<a href="#" id="pageNext">{{ Strings.next }}</a>
-		{% else %}
-			<span style="font-weight: bold; color: gray;">{{ Strings.next }}</span>
-		{% endif %}
-	</div>
-	{% if pageLinks.last_page %}
-		<div class="col" style="text-align: center;">
-			<a href="#" id="pageLast">{{ Strings.last }}</a>
-		</div>
-	{% endif %}	
-	</div>
-</div>
-<script>
-{% for pageLink in pageLinks.range_pages %}
-	{% if pageLink.value != '..' %}
-		$("#page{{ pageLink.value }}").on("click",function(){
-			$("#hdnPage").val("{{ pageLink.value }}");
-			$("#frmQuery").submit();
-			return false;
-			});
-	{% endif %}
-{% endfor %}
-{% if pageLinks.first_page %}
-	$("#pageFirst").on("click",function(){
-		$("#hdnPage").val("{{ pageLinks.first_page.number }}");
-		$("#frmQuery").submit();
-		return false;
-		 });
-{% endif %}
-{% if pageLinks.last_page %}
-	$("#pageLast").on("click",function(){
-		$("#hdnPage").val("{{ pageLinks.last_page.number }}");
-		$("#frmQuery").submit();
-		return false;
-		 });
-{% endif %}
-{% if pageLinks.previous_page %}
-	$("#pagePrev").on("click",function(){
-		$("#hdnPage").val("{{ pageLinks.previous_page.number }}");
-		$("#frmQuery").submit();
-		return false;
-		 });
-{% endif %}
-{% if pageLinks.next_page %}
-	$("#pageNext").on("click",function(){
-		$("#hdnPage").val("{{ pageLinks.next_page.number }}");
-		$("#frmQuery").submit();
-		return false;
-		 });
-{% endif %}
-</script>
+</nav>
 {% endif %}
 </form>
 <div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{{ Strings.fixWordTitle }}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="fixWordModalTitle">{{ Strings.fixWordTitle }}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="fixWordModalTitle">{{ Strings.fixWordTitle }}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
 				<div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
 					<img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
 				</div>
@@ -628,22 +565,22 @@ $("#txtAuthor").keypress(function(evt){
 						</div>
 					</fieldset>
 				</form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="btnSaveFixWord" type="button" class="btn btn-primary">Save changes</button>
-      </div>
-      <div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-			  <strong>Suggestion recorded.</strong>
-			  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			    <span aria-hidden="true">&times;</span>
-			  </button>
 			</div>
-      <div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
-			  <strong>An error occurred.</strong>
-			  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			    <span aria-hidden="true">&times;</span>
-			  </button>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button id="btnSaveFixWord" type="button" class="btn btn-primary">Save changes</button>
+			</div>
+			<div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
+				<strong>Suggestion recorded.</strong>
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
+				<strong>An error occurred.</strong>
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
 			</div>
 			<script>
 				$('#alertFixWordSuccess').on('closed.bs.alert', function () {
@@ -653,8 +590,8 @@ $("#txtAuthor").keypress(function(evt){
 					$("#fixWordModal").modal('hide');
 				})
 			</script>
-    </div>
-  </div>
+		</div>
+	</div>
 </div>
 <script>
 {% if RTL %}
@@ -681,7 +618,9 @@ $('#imgFixWord').on('load', function() {
 </div>
 <div class="d-flex justify-content-center">
 	<div class="row">
-		<div class="col"><p>&nbsp;</p><strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a></div>
+		<div class="col">
+			<strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"	/></a>
+		</div>
 	</div>
 </div>
 </body>

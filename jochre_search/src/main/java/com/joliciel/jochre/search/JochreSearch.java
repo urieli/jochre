@@ -47,6 +47,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.IndexSearcher;
@@ -195,13 +196,14 @@ public class JochreSearch {
 			List<String> authors = new ArrayList<>();
 			boolean authorInclude = true;
 			String titleQueryString = null;
-			int maxDocs = -1;
 			int decimalPlaces = -1;
 			Boolean expandInflections = null;
 			SortBy sortBy = SortBy.Score;
 			boolean sortAscending = true;
 			Integer fromYear = null;
 			Integer toYear = null;
+			int pageNumber = 0;
+			int resultsPerPage = 10;
 
 			// lexicon handling
 			String lexiconDirPath = null;
@@ -256,8 +258,6 @@ public class JochreSearch {
 					authorInclude = argValue.equals("true");
 				} else if (argName.equalsIgnoreCase("title")) {
 					titleQueryString = argValue;
-				} else if (argName.equalsIgnoreCase("maxDocs")) {
-					maxDocs = Integer.parseInt(argValue);
 				} else if (argName.equalsIgnoreCase("decimalPlaces")) {
 					decimalPlaces = Integer.parseInt(argValue);
 				} else if (argName.equals("expand")) {
@@ -315,6 +315,10 @@ public class JochreSearch {
 					fromYear = Integer.parseInt(argValue);
 				} else if (argName.equals("toYear")) {
 					toYear = Integer.parseInt(argValue);
+				} else if (argName.equals("page")) {
+					pageNumber = Integer.parseInt(argValue);
+				} else if (argName.equals("resultsPerPage")) {
+					resultsPerPage = Integer.parseInt(argValue);
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -381,8 +385,6 @@ public class JochreSearch {
 
 					if (decimalPlaces >= 0)
 						query.setDecimalPlaces(decimalPlaces);
-					if (maxDocs >= 0)
-						query.setMaxDocs(maxDocs);
 					if (expandInflections != null)
 						query.setExpandInflections(expandInflections);
 
@@ -391,7 +393,7 @@ public class JochreSearch {
 
 						switch (command) {
 						case search: {
-							long resultCount = searcher.search(query, out);
+							long resultCount = searcher.search(query, pageNumber, resultsPerPage, out);
 
 							if (feedbackDAO != null) {
 								FeedbackQuery feedbackQuery = new FeedbackQuery(user, ip, feedbackDAO);
@@ -420,10 +422,10 @@ public class JochreSearch {
 						}
 						default: {
 							if (docIds == null) {
-								TopDocs topDocs = searcher.search(query);
+								Pair<TopDocs, Integer> result = searcher.search(query, pageNumber, resultsPerPage);
 
 								docIds = new LinkedHashSet<>();
-								for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+								for (ScoreDoc scoreDoc : result.getLeft().scoreDocs) {
 									docIds.add(scoreDoc.doc);
 									LOG.debug("### Next document");
 									Document doc = indexSearcher.doc(scoreDoc.doc);

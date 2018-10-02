@@ -52,7 +52,6 @@ public class JochreQuery {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
 	private int decimalPlaces = 4;
-	private int maxDocs = 20;
 	private final String queryString;
 	private final List<String> authors;
 	private final boolean authorInclude;
@@ -104,17 +103,6 @@ public class JochreQuery {
 	}
 
 	/**
-	 * The maximum number of docs to return. Default is 20.
-	 */
-	public int getMaxDocs() {
-		return maxDocs;
-	}
-
-	public void setMaxDocs(int maxDocs) {
-		this.maxDocs = maxDocs;
-	}
-
-	/**
 	 * The actual query string, as interpreted by a Lucene query parser.
 	 */
 	public String getQueryString() {
@@ -156,7 +144,6 @@ public class JochreQuery {
 		try {
 			if (luceneTextQuery == null) {
 				LOG.debug("Parsing query: " + this.getQueryString());
-				LOG.debug("Max docs: " + this.getMaxDocs());
 				LOG.debug("expandInflections: " + expandInflections);
 				JochreQueryAnalyser analyzer = new JochreQueryAnalyser(config, expandInflections);
 				QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);

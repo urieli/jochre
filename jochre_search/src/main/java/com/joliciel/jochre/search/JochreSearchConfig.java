@@ -26,12 +26,14 @@ public class JochreSearchConfig {
 	private final String configId;
 	private final Locale locale;
 	private final File contentDir;
+	private final int maxResults;
 
 	public JochreSearchConfig(String configId, Config config) {
 		this.configId = configId;
 		this.config = config.getConfig("jochre.search." + configId);
 		this.locale = Locale.forLanguageTag(this.config.getString("locale"));
 		this.contentDir = new File(this.config.getString("content-dir"));
+		this.maxResults = this.config.getInt("max-results");
 	}
 
 	public boolean isLeftToRight() {
@@ -78,6 +80,10 @@ public class JochreSearchConfig {
 
 	public Locale getLocale() {
 		return locale;
+	}
+
+	public int getMaxResults() {
+		return maxResults;
 	}
 
 	public Config getConfig() {
