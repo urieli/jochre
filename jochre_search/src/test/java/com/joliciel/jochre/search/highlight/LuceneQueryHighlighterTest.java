@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.junit.Test;
@@ -46,11 +47,10 @@ public class LuceneQueryHighlighterTest {
 
 		IndexSearcher indexSearcher = manager.getManager().acquire();
 		try {
-			JochreQuery query = new JochreQuery(config);
-			query.setQueryString("קײנער");
+			JochreQuery query = new JochreQuery(config, "קײנער");
 			JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
-			TopDocs topDocs = searcher.search(query);
-			int docId = topDocs.scoreDocs[0].doc;
+			Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
+			int docId = results.getLeft().scoreDocs[0].doc;
 			Set<Integer> docIds = new HashSet<>();
 			docIds.add(docId);
 

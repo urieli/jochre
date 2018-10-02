@@ -9,8 +9,11 @@ import java.util.List;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexableField;
@@ -197,18 +200,27 @@ public class JochreIndexDocument {
 
 			if (this.directory.getMetaData().containsKey(JochreIndexField.id.name()))
 				doc.add(new StringField(JochreIndexField.id.name(), this.directory.getMetaData().get(JochreIndexField.id.name()), Field.Store.YES));
+			if (this.directory.getMetaData().containsKey(JochreIndexField.authorEnglish.name()))
+				doc.add(new TextField(JochreIndexField.authorEnglish.name(), this.directory.getMetaData().get(JochreIndexField.authorEnglish.name()),
+						Field.Store.YES));
+			if (this.directory.getMetaData().containsKey(JochreIndexField.titleEnglish.name()))
+				doc.add(new Field(JochreIndexField.titleEnglish.name(), this.directory.getMetaData().get(JochreIndexField.titleEnglish.name()), TYPE_STORED));
+			if (this.directory.getMetaData().containsKey(JochreIndexField.publisher.name()))
+				doc.add(new TextField(JochreIndexField.publisher.name(), this.directory.getMetaData().get(JochreIndexField.publisher.name()), Field.Store.YES));
+			if (this.directory.getMetaData().containsKey(JochreIndexField.date.name())) {
+				String year = this.directory.getMetaData().get(JochreIndexField.date.name());
+				doc.add(new StringField(JochreIndexField.date.name(), year, Field.Store.YES));
+				try {
+					doc.add(new IntPoint(JochreIndexField.year.name(), Integer.parseInt(year)));
+					doc.add(new SortedNumericDocValuesField(JochreIndexField.yearSort.name(), Integer.parseInt(year)));
+				} catch (NumberFormatException nfe) {
+					// not a number, oh well
+				}
+			}
 			if (this.directory.getMetaData().containsKey(JochreIndexField.author.name()))
-				doc.add(new Field(JochreIndexField.author.name(), this.directory.getMetaData().get(JochreIndexField.author.name()), TYPE_STORED));
+				doc.add(new TextField(JochreIndexField.author.name(), this.directory.getMetaData().get(JochreIndexField.author.name()), Field.Store.YES));
 			if (this.directory.getMetaData().containsKey(JochreIndexField.title.name()))
 				doc.add(new Field(JochreIndexField.title.name(), this.directory.getMetaData().get(JochreIndexField.title.name()), TYPE_STORED));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.publisher.name()))
-				doc.add(new Field(JochreIndexField.publisher.name(), this.directory.getMetaData().get(JochreIndexField.publisher.name()), TYPE_STORED));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.date.name()))
-				doc.add(new StringField(JochreIndexField.date.name(), this.directory.getMetaData().get(JochreIndexField.date.name()), Field.Store.YES));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.authorLang.name()))
-				doc.add(new Field(JochreIndexField.authorLang.name(), this.directory.getMetaData().get(JochreIndexField.authorLang.name()), TYPE_STORED));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.titleLang.name()))
-				doc.add(new Field(JochreIndexField.titleLang.name(), this.directory.getMetaData().get(JochreIndexField.titleLang.name()), TYPE_STORED));
 			if (this.directory.getMetaData().containsKey(JochreIndexField.volume.name()))
 				doc.add(new StringField(JochreIndexField.volume.name(), this.directory.getMetaData().get(JochreIndexField.volume.name()), Field.Store.YES));
 
@@ -455,4 +467,11 @@ public class JochreIndexDocument {
 	public int getDocId() {
 		return docId;
 	}
+
+	@Override
+	public String toString() {
+		return "JochreIndexDocument [sectionNumber=" + sectionNumber + ", path=" + path + ", name=" + name + ", startPage=" + startPage + ", endPage=" + endPage
+				+ ", length=" + length + ", docId=" + docId + "]";
+	}
+
 }

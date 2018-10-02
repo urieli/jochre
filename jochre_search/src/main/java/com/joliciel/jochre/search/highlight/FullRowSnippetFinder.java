@@ -64,7 +64,7 @@ class FullRowSnippetFinder implements SnippetFinder {
 			i++;
 			String content = jochreDoc.getContents();
 			if (term.getStartOffset() >= content.length()) {
-				String title = doc.get(JochreIndexField.title.name());
+				String title = doc.get(JochreIndexField.titleEnglish.name());
 				String startPage = doc.get(JochreIndexField.startPage.name());
 				String endPage = doc.get(JochreIndexField.endPage.name());
 				LOG.debug("Content: " + content);

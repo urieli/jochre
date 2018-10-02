@@ -1,97 +1,211 @@
 {% load staticfiles %}
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
 <title>Jochre Search</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
-<link rel="stylesheet" href="{% static 'jquery-ui.css' %}">
-<script src="{% static 'jquery-1.11.3.min.js' %}"></script>
-<script src="{% static 'jquery-ui.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/typeaheadjs.css' %}" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
+<script
+				src="https://code.jquery.com/jquery-3.3.1.min.js"
+				integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+				crossorigin="anonymous"></script>
+<script
+				src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+				integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+				crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="http://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
+
+{% include "header-local.html" %}
+
 <form id="frmQuery" method="get" accept-charset="UTF-8">
 <input type="hidden" name="page" id="hdnPage" value="1" />
-<table style="width:740px;">
-<tr>
-<td width="170px"><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" width="150px" border="0" /></a></td>
-{% if not RTL %}
-<td style="text-align: left">
-<h1>{{ JOCHRE_TITLE }}</h1>
-<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-</td>
-{% endif %}
-<td width="150px">
-<table>
-<tr>
-<td><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></td>
-<td>
-    {% if request.user.first_name or request.user.last_name %}
-        {{ request.user.first_name }} {{ request.user.last_name }}
-    {% else %}
-        {{ request.user.username }}
-    {% endif %}
-	<br/>
-    <a href="accounts/logout/">{{ Strings.logout }}</a>
-</td>
-</tr>
-</table>
-</td>
-{% if RTL %}
-<td style="text-align: right">
-<h1 class="yiddish">{{ JOCHRE_TITLE }}</h1>
-<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-</td>
-{% endif %}
-</tr>
-</table>
-<table style="width:740px;">
-<tr><td><hr/></td></tr>
-{% if RTL %}
-<tr>
-<td style="vertical-align: bottom;" align="right">
-<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>&nbsp;
-<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
-<input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" class="yiddish" />
-</td>
-</tr>
-<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-<td align="right">
-<table>
-<tr>
-<td class="RTLAuthor">{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
-<td class="RTLAuthor" width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></td>
-<td class="RTLAuthor" width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></td>
-</tr>
-</table>
-</td>
-</tr>
-{% else %}
-<tr>
-<td style="vertical-align: bottom;" align="left">&nbsp;
-<input type="text" id="txtQuery" name="query" style="width:300px;" value="{{ query }}" />&nbsp;
-<input type="submit" value="{{ Strings.searchButton }}" />&nbsp;
-<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" border="0" width="20px" /></span>
-</td>
-</tr>
-<tr id="advancedSearch" style="display: {{ displayAdvancedSearch }};">
-<td align="left">
-<table>
-<tr>
-<td width="250px"><b>{{ Strings.authorField }}:</b> <input type="text" id="txtAuthor" name="author" style="width:150px;" value="{{ author }}" /></td>
-<td width="250px"><b>{{ Strings.titleField }}:</b> <input type="text" id="txtTitle" name="title" style="width:150px;" value="{{ title }}" /></td>
-<td>{{ Strings.strictField }}? <input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/></td>
-</tr>
-</table>
-</td>
-</tr>
-{% endif %}
-</table>
+<div class="d-flex justify-content-end m-1">
+	<div class="row">
+		{% if not RTL %}
+			<div class="col-10" style="text-align: left">
+			<h1>{{ JOCHRE_TITLE }}</h1>
+			<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
+			</div>
+		{% endif %}
+		<div class="col-1"><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></div>
+		<div class="col-1">
+				{% if request.user.first_name or request.user.last_name %}
+						{{ request.user.first_name }}&nbsp;{{ request.user.last_name }}
+				{% else %}
+						{{ request.user.username }}
+				{% endif %}
+				<br/>
+				<a href="accounts/logout/">{{ Strings.logout }}</a>
+		</div>
+		{% if RTL %}
+			<div class="col-10" style="text-align: right">
+				<div class="rtl">
+					<p class="rtl" style="font-size: 24px; font-weight: bold">{{ JOCHRE_TITLE }}</p>
+					<p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</div>
+<hr style="margin-top:0px;">
+<div class="container">
+	<div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
+		<div class="input-group input-group-sm m-1">
+			<input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" required />
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary btn-sm">{{ Strings.searchButton }}</button>&nbsp;
+				<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container-fluid {% if not displayAdvancedSearch %}collapse {% endif %}mt-1" id="advancedSearch">
+	<fieldset>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="col-6 {% if RTL %}authorRtl rtl{% else %}author{% endif %} p-0 m-0">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtAuthor">{{ Strings.authorField }}:&nbsp;</label>
+				<div class="alert-auto">
+					<input id="txtAuthor" class="typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
+					<input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
+				</div>
+				<div class="input-group-append">
+					&nbsp;<button type="button" id="addAuthor" class="btn btn-secondary btn-sm" aria-label="add author">+</button>
+					&nbsp;✓<input type="radio" name="authorInclude" value="true" checked="true">
+					&nbsp;✗<input type="radio" name="authorInclude" value="false">
+				</div>
+			</div>
+		</div>
+		<div class="col-6{% if RTL %} rtl{% endif %}" id="authorList">
+			{% for author in authors %}
+			<div id="author{{ forloop.counter }}" class="alert alert-success alert-dismissible p-0 alert-auto">
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{author}}
+				<button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+				<script>
+					$('#author{{ forloop.counter }}').on('closed.bs.alert', function () {
+						var currentAuthors = $('#hdnAuthors').val().replace('|{{author}}','');
+						console.log(currentAuthors);
+						$('#hdnAuthors').val(currentAuthors);
+					});
+				</script>
+			</div>&nbsp;
+		{% endfor %}
+		<script>
+			var authorCounter = {{ authors|length }};
+		</script>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtTitle">{{ Strings.titleField }}:&nbsp;</label>
+				<input type="text" id="txtTitle" name="title" class="form-control{% if RTL %} rtl{% endif %}" value="{{ title }}" placeholder="{{ Strings.titleField }}" />
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="txtFromYear">{{ Strings.fromYearField }}:&nbsp;</label>
+				<input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}"">
+				<label for="txtToYear">&nbsp;&nbsp;{{ Strings.toYearField }}:&nbsp;</label>
+				<input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control" value="{{ toYear }}"">
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
+				&nbsp;<label for="txtTitle">{{ Strings.strictField }}?</label>
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="selSortBy">{{ Strings.sortBy }}:&nbsp;</label>
+				<select class="form-control" id="selSortBy" name="sortBy">
+					<option value="score" {% if sortBy == "score" %}selected{% endif %}>{{ Strings.sortByScore }}</option>
+					<option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{{ Strings.sortByYearAscending }}</option>
+					<option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{{ Strings.sortByYearDescending }}</option>
+				</select>
+			</div>
+		</div>
+	</div>
+</fieldset>
 </div>
 <script>
-$("#toggleAdvancedSearch").on("click",function(){
+	$('#txtAuthor').typeahead({
+		hint: false,
+		highlight: true,
+		minLength: 1
+	},
+	{
+		name: 'authors',
+		limit: 10,
+		source: function (q, sync, async) {
+			console.log(q);
+			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=10`, function( data ) {
+				var matches = [];
+				$.each( data, function( key, val ) {
+					console.log(`${key}: ${val}`);
+					if (key=="results") {
+						for (var i = 0, len = val.length; i < len; i++) {
+							console.log(val[i]);
+							matches.push(val[i]);
+						 }
+					}
+				});
+				console.log(`returning ${matches}`);
+				async(matches);
+			});
+		}
+	});
+
+	$('#addAuthor').click(function() {
+		var author = $('#txtAuthor').val();
+		if (author.length > 0) {
+			console.log(`adding ${author}`);
+			authorCounter += 1;
+			$('#authorList').append(`
+				<div id="author${authorCounter}" class="alert alert-success alert-dismissible p-0 alert-auto">
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${author}
+					<button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+					<script>
+						$('#author${authorCounter}').on('closed.bs.alert', function () {
+							var currentAuthors = $('#hdnAuthors').val().replace('|${author}','');
+							console.log(currentAuthors);
+							$('#hdnAuthors').val(currentAuthors);
+						})
+					<\/script>
+				</div>&nbsp;
+				`);
+			$('#txtAuthor').typeahead('val','');
+			var currentAuthors = $('#hdnAuthors').val();
+			$('#hdnAuthors').val(`${currentAuthors}|${author}`);
+		}
+	});
+
+</script>
+<script>
+$("#toggleAdvancedSearch").click(function(){
 	$("#advancedSearch").toggle();
-   });
-   
+});
+	 
 {% if RTL %}
 function latinToYiddish(charStr) {
 	switch (charStr) {
@@ -151,70 +265,56 @@ function latinToYiddish(charStr) {
 	case '”': return '"';
 	case '’': return "'";
 	case '„': return '"';
-	default: return charStr;
+	default: return "";
 	}
 }
 
 function transformKeyPress(textfield, evt) {
-    var val = textfield.value;
-    evt = evt || window.event;
+		var val = textfield.value;
+		evt = evt || window.event;
 
 	if (evt.ctrlKey)
 		return true;
 	
-    // Ensure we only handle printable keys, excluding enter and space
-    var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
-    if (charCode && charCode > 32) {
-        var keyChar = String.fromCharCode(charCode);
+		// Ensure we only handle prindiv class="container" keys, excluding enter and space
+		var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
+		if (charCode && charCode > 32) {
+				var keyChar = String.fromCharCode(charCode);
 
-        // Transform typed character
-        var mappedChar = latinToYiddish(keyChar);
+				// Transform typed character
+				var mappedChar = latinToYiddish(keyChar);
+				if (mappedChar=="")
+					return true;
 
-        var start, end;
-        if (typeof textfield.selectionStart == "number" && typeof textfield.selectionEnd == "number") {
-            // Non-IE browsers and IE 9
-            start = textfield.selectionStart;
-            end = textfield.selectionEnd;
-            textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
+				var start = textfield.selectionStart;
+				var end = textfield.selectionEnd;
+				var newValue = val.slice(0, start) + mappedChar + val.slice(end);
+				if (textfield.id=='txtAuthor')
+					$('#txtAuthor').typeahead('val',newValue);
+				else
+					textfield.value = newValue;
 
-            // Move the caret
-            textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
-        } else if (document.selection && document.selection.createRange) {
-            // For IE up to version 8
-            var selectionRange = document.selection.createRange();
-            var textInputRange = textfield.createTextRange();
-            var precedingRange = textfield.createTextRange();
-            var bookmark = selectionRange.getBookmark();
-            textInputRange.moveToBookmark(bookmark);
-            precedingRange.setEndPoint("EndToStart", textInputRange);
-            start = precedingRange.text.length;
-            end = start + selectionRange.text.length;
+				// Move the caret
+				textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
 
-            textfield.value = val.slice(0, start) + mappedChar + val.slice(end);
-            start++;
-
-            // Move the caret
-            textInputRange = textfield.createTextRange();
-            textInputRange.collapse(true);
-            textInputRange.move("character", start - (textfield.value.slice(0, start).split("\r\n").length - 1));
-            textInputRange.select();
-        }
-
-        return false;
-    }
+				return false;
+		}
 };
 
-document.getElementById("txtQuery").onkeypress = function(evt) {
-    return transformKeyPress(this, evt);
-};
+$("#txtQuery").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+$("#txtTitle").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+$("#txtAuthor").keypress(function(evt){
+	if(evt.which == 13) {
+		$('#addAuthor').click();
+		return false;
+	}
+	return transformKeyPress(this, evt);
+});
 
-document.getElementById("txtTitle").onkeypress = function(evt) {
-    return transformKeyPress(this, evt);
-};
-
-document.getElementById("txtAuthor").onkeypress = function(evt) {
-    return transformKeyPress(this, evt);
-};
 {% endif %}
 </script>
 {% if parseException %}
@@ -224,318 +324,282 @@ document.getElementById("txtAuthor").onkeypress = function(evt) {
 {% elif not haveResults %}
 	<p>{{ Strings.noResults }}</p>
 {% else %}
-    <table style="width:740px"><tr>
-    <td ><b>{{ foundResults }}:</b></td>
-    {% if RTL %}
-    <td class="RTLAuthor" style="width:50%">{{ foundResultsRTL }}:</td>
-    {% endif %}
-    </tr></table>
-	<table width="740px">
-		{% for result in results %}
-			<tr><td height="5px" bgcolor="black"></td></tr>
-			<tr><td align="left">
-			<table width="100%">
-			<tr>
-			<td class="Title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</td>
-			{% if RTL %}
-			<td class="RTLTitle" width="50%"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</td>
-			{% endif %}
-			</tr>
-			<tr>
-			<td class="Author"><b>{{ Strings.author }}:</b> {{ result.author }}</td>
-			{% if RTL %}
-			<td class="RTLAuthor" width="50%"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</td>
-			{% endif %}
-			</tr>
-			<tr>
-			<td class="Author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
-			{% if RTL %}
-			<td class="RTLAuthor" width="50%"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</td>
-			{% endif %}
-			</tr>
-			{% if result.publisher %}
-				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</td></tr>
-			{% endif %}
-			{% if result.date %}
-				<tr><td class="Author" {% if RTL %}colspan="2"{% endif %}><b>{{ Strings.date }}:</b> {{ result.date }} </td></tr>
-			{% endif %}
-			</table>
-			</td></tr>
-			<tr><td>
-			{% if result.snippetError %}
-			   <p style="color:red;">{{ result.snippetError.message }}</p>
-			   <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
-			{% else %}
-			{% for snippet in result.snippets %}
-				<table width="100%" border="0">
-				<tr>
-				{% if RTL %}
-				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetYiddish">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
-				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
-				<td align="right" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
-				{% else %}
-				<td align="left" valign="top" width="30px"><b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b></td>
-				<td align="center" valign="top" width="30px"><span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span></td>
-				<td><div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div></td>
-				{% endif %}
-				</tr>
-				</table>
-				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" style="display: none;"></div>
-				<script>
-				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
-				$("#img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
-					if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
-						$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" width="720px" border="1" />');
-						$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
-					}
-					$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
-			    });
-				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
-					window.open('{{ snippet.readOnlineUrl }}', '_blank');
-				});
-				
-				{% if JOCHRE_CROWD_SOURCE %}
-				$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").bind("dblclick",function(event){
-					var sel = window.getSelection();
-			        
-					var localOffset = sel.anchorOffset;
-					var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
-					var wordOffset = globalOffset + localOffset;
-					
-					//alert("localOffset: " + localOffset + ", globalOffset: " + globalOffset + ", wordOffset: " + wordOffset);
-					var target = $(this);
-				    var dialog, form;
-
-					function applyFix() {
-						document.getElementById("imgWordLoading").style.display="inline";
-
-						var suggestion = document.getElementById("txtSuggestion").value;
-						var suggestion2 = document.getElementById("txtSuggestion2").value;
-						
-						var selFont = document.getElementById("selFont");
-						var fontCode = selFont.options[selFont.selectedIndex].value;
-
-						var selLang = document.getElementById("selLang");
-						var languageCode = selLang.options[selLang.selectedIndex].value;						
-						
-						$.ajax({
-							  url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
-									+ "&docId={{ result.docId }}"
-									+ "&startOffset=" + wordOffset
-									+ "&user={{ request.user.username }}"
-									+ "&ip={{ ip }}"
-									+ "&suggestion=" + encodeURIComponent(suggestion)
-									+ "&suggestion2=" + encodeURIComponent(suggestion2)
-									+ "&fontCode=" + encodeURIComponent(fontCode)
-									+ "&languageCode=" + encodeURIComponent(languageCode),
-							  dataType: 'json',
-							  async: false,
-							  success: function( data ) {
-								  document.getElementById("imgWordLoading").style.display="none";
-								  alert('Suggestion recorded.');
-								},
-							  error: function(XMLHttpRequest, textStatus, errorThrown) {
-								  document.getElementById("imgWordLoading").style.display="none";
-							      alert("Status: " + textStatus + ". Error: " + errorThrown); 
-							    },
-							});
-						dialog.dialog( "close" );
-						
-						document.getElementById("imgWordLoading").style.display="none";
-					}
-					 
-					dialog = $( "#dialog-fixWord" ).dialog({
-					      autoOpen: false,
-					      height: 400,
-					      width: 600,
-					      position: { my: "center", at: "center", of: target },
-					      modal: true,
-					      buttons: {
-					        "Ok": applyFix,
-					        Cancel: function() {
-					          dialog.dialog("close");
-					        }
-					      },
-					      close: function() {
-					        form[ 0 ].reset();
-					      }
-					    });
-					
-				    form = dialog.find( "form" ).on( "submit", function( event ) {
-				        event.preventDefault();
-				        applyFix();
-				      });
-				    
-				    document.getElementById("imgFixWord").src="";
-				    document.getElementById("imgWordLoading").style.display="inline";
-					document.getElementById("txtSuggestion").value="";
-					document.getElementById("txtSuggestion2").value="";
-					document.getElementById("txtSuggestion2").style.display="none";
-					document.getElementById("imgFixWord").src='{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset;
-					
-					var selFont = document.getElementById("selFont");
-					selFont.value =  selFont.options[0].value;
-					var selLang = document.getElementById("selLang");
-					selLang.value =  selLang.options[0].value;
-					
-					document.getElementById("imgFont").src="{% static defaultFontImage %}";
-					
-					$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
-						  $.each( data, function( key, val ) {
-							if (key=="word") {
-								document.getElementById("txtSuggestion").value=val;
-							} else if (key=="word2") {
-								document.getElementById("txtSuggestion2").value=val;
-								document.getElementById("txtSuggestion2").style.display="inline";
-							}
-						  });
-						});
-					
-					dialog.dialog("open");
-
-				});
-				{% endif %}
-				</script>
-			{% endfor %}
-			{% endif %}
-			</td></tr>
-			<tr><td height="10px"></td></tr>
-        {% endfor %}
-	</table>
-{% endif %}
-{% if pageLinks and pageLinks.last_page.number != 1 %}
-	<div style="width: 740px; text-align: left; ">
-	<table style="margin: auto;"><tr>
-	{% if pageLinks.first_page %}
-		<td style="width:60px; text-align: center;">
-		<a href="#" id="pageFirst">{{ Strings.first }}</a>
-		</td>
-	{% endif %}
-	<td style="width:60px; text-align: center;">
-	{% if pageLinks.previous_page and pageLinks.previous_page.number != pageLinks.current_page.value %}
-		<a href="#" id="pagePrev">{{ Strings.prev }}</a>
-	{% else %}
-		<span style="font-weight: bold; color: gray;">{{ Strings.prev }}</span>
-	{% endif %}
-	</td>
-	{% for pageLink in pageLinks.range_pages %}
-		<td style="width:40px; text-align: center;">
-		{% if pageLink.type == "current_page" %}
-			<b>{{ pageLink.value }}</b>
-		{% elif pageLink.type == "span" %}
-		    {{ pageLink.value }}
-		{% else %}
-			<a href="#" id="page{{ pageLink.value }}">{{ pageLink.number }}</a>
+<div class="container">
+	<div class="row">
+		<div class="col"><div class="author"><b>{{ foundResults }}:</b></div></div>
+		{% if RTL %}
+		<div class="col"><div class="authorRtl rtl">{{ foundResultsRTL }}:</div></div>
 		{% endif %}
-		</td>
-	{% endfor %}
-	<td style="width:60px; text-align: center;">
-	{% if pageLinks.next_page and pageLinks.next_page.number != pageLinks.current_page.value %}
-		<a href="#" id="pageNext">{{ Strings.next }}</a>
-	{% else %}
-		<span style="font-weight: bold; color: gray;">{{ Strings.next }}</span>
+	</div>
+{% for result in results %}
+	<div class="row mt-1 mb-1">
+		<div class="col"><div class="black-separator"></div></div>
+	</div>
+	<div class="row">
+		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+		{% if RTL %}
+			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</div></div>
+		{% endif %}
+	</div>
+	<div class="row">
+		<div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.author }}</div></div>
+		{% if RTL %}
+			<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</div></div>
+		{% endif %}
+	</div>
+	<div class="row">
+		<div class="col" class="author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div>
+		{% if RTL %}
+			<div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div></div>
+		{% endif %}
+	</div>
+	{% if result.publisher %}
+		<div class="row"><div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</div></div></div>
 	{% endif %}
-	</td>
-	{% if pageLinks.last_page %}
-		<td style="width:60px; text-align: center;">
-		<a href="#" id="pageLast">{{ Strings.last }}</a>
-		</td>
-	{% endif %}	
-	</tr></table></div>
-	{% for pageLink in pageLinks.range_pages %}
+	{% if result.date %}
+		<div class="row"><div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.date }} </div></div></div>
+	{% endif %}
+	{% if result.snippetError %}
+		 <p style="color:red;">{{ result.snippetError.message }}</p>
+		 <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
+	{% else %}
+	{% for snippet in result.snippets %}
+		<div class="row">
+		{% if RTL %}
+			<div class="col-11">
+				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetRtl rtl">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
+			</div>
+			<div class="col-1">
+				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>&nbsp;&nbsp;
+				<b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>
+			</div>
+		{% else %}
+			<div class="col-1">
+				<b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>&nbsp;&nbsp;
+				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>
+			</div>
+			<div class="col-11">
+				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
+			</div>
+		{% endif %}
+		</div>
+		<div class="row collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+			<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="imageSnippet"></div>
+		</div>
 		<script>
-		$("#page{{ pageLink.value }}").on("click",function(){
-			$("#hdnPage").val("{{ pageLink.value }}");
-			$("#frmQuery").submit();
-			return false;
-	    });
+		$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
+		$("#img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
+			if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
+				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" class="image" />');
+				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
+			}
+			$("#imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
+			});
+		$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
+			window.open('{{ snippet.readOnlineUrl }}', '_blank');
+		});
+		
+		{% if JOCHRE_CROWD_SOURCE %}
+		$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").bind("dblclick",function(event){
+			var sel = window.getSelection();
+					
+			var localOffset = sel.anchorOffset;
+			var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
+			var wordOffset = globalOffset + localOffset;
+			
+			console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
+			$('#alertFixWordSuccess').hide();
+			$('#alertFixWordError').hide();
+
+			function applyFix() {
+				$("#imgWordLoading").show();
+
+				var suggestion = document.getElementById("txtSuggestion").value;
+				var suggestion2 = document.getElementById("txtSuggestion2").value;
+				
+				var selFont = document.getElementById("selFont");
+				var fontCode = selFont.options[selFont.selectedIndex].value;
+
+				var selLang = document.getElementById("selLang");
+				var languageCode = selLang.options[selLang.selectedIndex].value;
+				
+				$.ajax({
+					url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
+						+ "&docId={{ result.docId }}"
+						+ "&startOffset=" + wordOffset
+						+ "&user={{ request.user.username }}"
+						+ "&ip={{ ip }}"
+						+ "&suggestion=" + encodeURIComponent(suggestion)
+						+ "&suggestion2=" + encodeURIComponent(suggestion2)
+						+ "&fontCode=" + encodeURIComponent(fontCode)
+						+ "&languageCode=" + encodeURIComponent(languageCode),
+					dataType: 'json',
+					success: function( data ) {
+						$("#imgWordLoading").hide();
+						$('#alertFixWordSuccess').show();
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+						$("#imgWordLoading").hide();
+						$('#alertFixWordError').show();
+						},
+					});
+			}
+			
+			$('#btnSaveFixWord').on('click', function (e) {
+				applyFix();
+			});
+			
+			$("#imgFixWord").attr("src","");
+			$("#imgWordLoading").show();
+			$("#txtSuggestion").val("");
+			$("#txtSuggestion2").val("");
+			$("#txtSuggestion2").hide();
+			$("#imgFixWord").attr("src",'{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset);
+			
+			$("#selFont").val($("#selFont option:first").val());;
+			$("#selLang").val($("#selLang option:first").val());;
+			
+			$("#imgFont").attr("src","{% static defaultFontImage %}");
+			
+			$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
+					$.each( data, function( key, val ) {
+						if (key=="word") {
+							console.log(`found word : ${val}`);
+							$("#txtSuggestion").val(val);
+						} else if (key=="word2") {
+							console.log(`found word2 : ${val}`);
+							$("#txtSuggestion2").val(val);
+							$("#txtSuggestion2").show();
+						}
+					});
+				});
+
+			$("#fixWordModal").modal()
+		});
+		{% endif %}
 		</script>
 	{% endfor %}
-	<script>
-	{% if pageLinks.first_page %}
-		$("#pageFirst").on("click",function(){
-			$("#hdnPage").val("{{ pageLinks.first_page.number }}");
-			$("#frmQuery").submit();
-			return false;
-		   });
 	{% endif %}
-	{% if pageLinks.last_page %}
-		$("#pageLast").on("click",function(){
-			$("#hdnPage").val("{{ pageLinks.last_page.number }}");
-			$("#frmQuery").submit();
-			return false;
-		   });
-	{% endif %}
-	{% if pageLinks.previous_page %}
-		$("#pagePrev").on("click",function(){
-			$("#hdnPage").val("{{ pageLinks.previous_page.number }}");
-			$("#frmQuery").submit();
-			return false;
-		   });
-	{% endif %}
-	{% if pageLinks.next_page %}
-		$("#pageNext").on("click",function(){
-			$("#hdnPage").val("{{ pageLinks.next_page.number }}");
-			$("#frmQuery").submit();
-			return false;
-		   });
-	{% endif %}
-	</script>
+	<div class="row"><div class="col" height="10px"></div></div>
+{% endfor %}
+</div>
+<nav class="navbar navbar-expand-md" aria-label="Page navigation">
+	<div class="mx-auto order-0">
+		<ul class="pagination">
+			{% for pageLink in pageLinks %}
+				{% if pageLink.active %}
+					<li class="page-item"><a id="pageLink{{ forloop.counter }}" class="page-link" href="#">{{ pageLink.name}}</a>
+					<script>
+						$("#pageLink{{ forloop.counter }}").click(function(){
+							$("#hdnPage").val("{{ pageLink.val }}");
+							$("#frmQuery").submit();
+							return false;
+						});
+					</script>
+					</li>
+				{% else %}
+					<li class="page-item disabled"><a class="page-link">{{ pageLink.name }}</a></li>
+				{% endif %}
+			{% endfor %}
+		</ul>
+	</div>
+</nav>
 {% endif %}
 </form>
-<div id="dialog-fixWord" title="{{ Strings.fixWordTitle }}" style="display:none;">
-  <div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
-  <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
-  </div>
-   <form>
-    <fieldset>
-      <p>{{ Strings.fixWordInstructions }}</p>
-      <table>
-      <tr>
-      <td>
-      <table>
-      <tr><td><label for="txtSuggestion">{{ Strings.fixWordWord }}</label></td>
-      {% if RTL %}
-      <td><input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="yiddish" style="display:none; width:150px;">
-      <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="yiddish" style="width:150px;"></td>
-      {% else %}
-      <td><input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
-      <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" style="display:none; width:150px;"></td>
-      {% endif %}
-	  </tr>
-      <tr><td><label for="selFont">{{ Strings.fixWordFont }}</label></td>
-      <td><select id="selFont" name="selFont">
-      {% for fontCode in JOCHRE_FONT_LIST %}
-      <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
-      {% endfor %}
-      </select></td></tr>
-      <tr><td><label>{{ Strings.fixWordFontExample }}</label></td>
-      <td><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></td>
-      </tr>
-      <tr><td><label for="selLang">{{ Strings.fixWordLanguage }}</label></td>
-      <td><select id="selLang" name="selLang">
-      {% for languageCode in JOCHRE_LANGUAGE_LIST %}
-      <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
-      {% endfor %}
-      </select></td></tr>
-      </table>
-      <td>
-      <td style="width:64px;">
-      <img id="imgWordLoading" src="{% static "images/preloaders126.gif" %}" style="display:none;" />
-      </td>
-      </table>
-      <!-- Allow form submission with keyboard without duplicating the dialog button -->
-      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-    </fieldset>
-  </form>
+<div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{{ Strings.fixWordTitle }}" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="fixWordModalTitle">{{ Strings.fixWordTitle }}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
+					<img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
+				</div>
+				<form>
+					<fieldset>
+						<p>{{ Strings.fixWordInstructions }}</p>
+						<div class="form-group row">
+							<label for="txtSuggestion" class="col-2 col-form-label">{{ Strings.fixWordWord }}</label>
+							{% if RTL %}
+							<div class="col-10">
+								<input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="rtl collapse" style="width:150px;">
+								<input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="rtl" style="width:150px;">
+							</div>
+							{% else %}
+							<div class="col-10">
+								<input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
+								<input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="collapse" style="width:150px;">
+							</div>
+							{% endif %}
+						</div>
+						<div class="form-group row">
+							<label for="selFont" class="col-2 col-form-label">{{ Strings.fixWordFont }}</label>
+							<div class="col-10">
+								<select id="selFont" name="selFont">
+									{% for fontCode in JOCHRE_FONT_LIST %}
+									<option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+						<div class="form-group row">
+							<label class="col-2 col-form-label">{{ Strings.fixWordFontExample }}</label>
+							<div class="col-10"><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></div>
+						</div>
+						<div class="form-group row">
+							<label for="selLang" class="col-2 col-form-label">{{ Strings.fixWordLanguage }}</label>
+							<div class="col-10">
+								<select id="selLang" name="selLang">
+									{% for languageCode in JOCHRE_LANGUAGE_LIST %}
+									<option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+						<div id="imgWordLoading" class="collapse">
+							<img src="{% static "images/preloaders126.gif" %}" />
+						</div>
+					</fieldset>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				<button id="btnSaveFixWord" type="button" class="btn btn-primary">Save changes</button>
+			</div>
+			<div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
+				<strong>Suggestion recorded.</strong>
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
+				<strong>An error occurred.</strong>
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<script>
+				$('#alertFixWordSuccess').on('closed.bs.alert', function () {
+					$("#fixWordModal").modal('hide');
+				})
+				$('#alertFixWordError').on('closed.bs.alert', function () {
+					$("#fixWordModal").modal('hide');
+				})
+			</script>
+		</div>
+	</div>
 </div>
 <script>
 {% if RTL %}
 document.getElementById("txtSuggestion").onkeypress = function(evt) {
-    return transformKeyPress(this, evt);
+		return transformKeyPress(this, evt);
 };
 document.getElementById("txtSuggestion2").onkeypress = function(evt) {
-    return transformKeyPress(this, evt);
+		return transformKeyPress(this, evt);
 };
 {% endif %}
 $('#selFont').on('change', function() {
@@ -545,5 +609,19 @@ $('#imgFixWord').on('load', function() {
 	document.getElementById("imgWordLoading").style.display="none";
 	});
 </script>
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<hr/>
+		</div>
+	</div>
+</div>
+<div class="d-flex justify-content-center">
+	<div class="row">
+		<div class="col">
+			<strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"	/></a>
+		</div>
+	</div>
+</div>
 </body>
 </html>

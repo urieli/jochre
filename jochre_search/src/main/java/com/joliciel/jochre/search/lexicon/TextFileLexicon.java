@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -19,6 +18,8 @@ import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.joliciel.jochre.search.JochreSearchConfig;
 
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
@@ -29,10 +30,10 @@ public class TextFileLexicon implements Lexicon, Serializable {
 	public Map<String, Set<String>> wordToLemmaMap = new THashMap<>();
 	public Map<String, Set<String>> lemmaToWordMap = new THashMap<>();
 
-	private Locale locale;
+	private final JochreSearchConfig config;
 
-	public TextFileLexicon(Locale locale) {
-		this.locale = locale;
+	public TextFileLexicon(JochreSearchConfig config) {
+		this.config = config;
 	}
 
 	public void addLexiconFile(File lexiconFile, LexicalEntryReader lexicalEntryReader) {
@@ -40,7 +41,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 			String fileName = lexiconFile.getName();
 			Scanner lexiconScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(lexiconFile), "UTF-8")));
 
-			TextNormaliser textNormaliser = TextNormaliser.getTextNormaliser(locale);
+			TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
 
 			while (lexiconScanner.hasNextLine()) {
 				String line = lexiconScanner.nextLine();

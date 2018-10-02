@@ -32,7 +32,7 @@ public class FeedbackRow {
 
 	FeedbackRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage, FeedbackDAO feedbackDAO) {
 		this(feedbackDAO);
-		this.setDocument(document);
+		this.setDocument(doc);
 		this.setPageIndex(pageIndex);
 		this.setRectangle(rectangle);
 		this.setImage(rowImage);

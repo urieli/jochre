@@ -1,7 +1,6 @@
 #coding=utf-8
 import json
 import requests
-import paginate
 import logging
 
 from django.shortcuts import render
@@ -37,23 +36,45 @@ def search(request):
 	strict = False
 	if ('strict') in request.GET:
 		strict = True
+
+	authorInclude = True
+	if ('authorInclude') in request.GET:
+		authorInclude = request.GET['authorInclude']=='true'
+
+	fromYear = ''
+	if 'fromYear' in request.GET:
+		fromYear = request.GET['fromYear']
+
+	toYear = ''
+	if 'toYear' in request.GET:
+		toYear = request.GET['toYear']
+
+	sortBy = ''
+	if 'sortBy' in request.GET:
+		sortBy = request.GET['sortBy']
 	
-	if len(author)>0 or len(title)>0 or strict:
+	if len(author)>0 or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc':
 		advancedSearch = True
 
-	displayAdvancedSearch = 'none'
+	displayAdvancedSearch = False
 	if advancedSearch:
-		displayAdvancedSearch = 'visible'
+		displayAdvancedSearch = True
 	
-	pageNumber = 0
+	page = 0
 	if 'page' in request.GET:
-		pageNumber = int(request.GET['page'])
+		page = int(request.GET['page'])-1
 	
 	model = {"query" : query,
-			 "author" : author,
+			 "authors" : filter(None, author.split("|")),
+			 "authorQuery": author,
+			 "authorInclude" : authorInclude,
 			 "title" : title,
 			 "strict" : strict,
+			 "fromYear" : fromYear,
+			 "toYear" : toYear,
+			 "sortBy" : sortBy,
 			 "displayAdvancedSearch" : displayAdvancedSearch,
+			 "page" : page+1,
 			 "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
 			 "JOCHRE_CREDITS" : settings.JOCHRE_CREDITS,
 			 "JOCHRE_SEARCH_EXT_URL" : settings.JOCHRE_SEARCH_EXT_URL,
@@ -73,18 +94,34 @@ def search(request):
 		MAX_DOCS=1000
 		RESULTS_PER_PAGE=10
 		userdata = {"command": "search",
-					"maxDocs": MAX_DOCS,
 					"query": query,
 					"user": username,
 					"ip": ip,
+					"page": page,
+					"resultsPerPage" : RESULTS_PER_PAGE
 					}
 		if len(author)>0:
-			userdata['author'] = author
+			userdata['authors'] = author
 		if len(title)>0:
 			userdata['title'] = title
 		if strict:
 			userdata['expand'] = 'false'
-		
+		if authorInclude:
+			userdata['authorInclude'] = 'true'
+		else:
+			userdata['authorInclude'] = 'false'
+		if len(fromYear)>0:
+			userdata['fromYear'] = fromYear
+		if len(toYear)>0:
+			userdata['toYear'] = toYear
+		if len(sortBy)>0:
+			if sortBy=='yearAsc':
+				userdata['sortBy'] = 'Year'
+				userdata['sortAscending'] = 'true'
+			elif sortBy=='yearDesc':
+				userdata['sortBy'] = 'Year'
+				userdata['sortAscending'] = 'false'
+
 		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
 
 		resp = requests.get(searchUrl, userdata)
@@ -94,11 +131,11 @@ def search(request):
 		if len(results)==1 and 'parseException' in results[0]:
 			model["parseException"] = results[0]["message"]
 		else:
-			page = paginate.Page(results, page=pageNumber, items_per_page=RESULTS_PER_PAGE)
-			
 			docIds = ''
-			
-			for result in page.items:
+			totalHits = results['totalHits']
+			docs = results['results']
+
+			for result in docs:
 				if 'volume' in result and 'title' in result:
 					result['titleAndVolume'] = result['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
 					if 'titleLang' in result and 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
@@ -116,7 +153,7 @@ def search(request):
 					docIds += ','
 				docIds += str(result['docId'])
 			
-			if len(page.items)>0:
+			if len(docs)>0:
 				haveResults = True
 				userdata = {"command": "snippets",
 							"snippetCount": 8,
@@ -128,28 +165,40 @@ def search(request):
 				if strict:
 					userdata['expand'] = 'false'
 				resp = requests.get(searchUrl, userdata)
-				model["results"] = page.items
-				model["start"] = page.first_item
-				model["end"] = page.last_item
-				model["resultCount"] = len(results)
-				model["pageLinks"] = page.link_map(url="http://localhost:8000?page=$page")
-				
-				foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (len(results), page.first_item, page.last_item)
-				if (len(results)>=1000):
-					foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'] % (len(results), page.first_item, page.last_item)
+				model["results"] = docs
+				start = page * RESULTS_PER_PAGE + 1
+				end = start + RESULTS_PER_PAGE - 1
+				if end > totalHits: end = totalHits
+				model["start"] = start
+				model["end"] = end
+				model["resultCount"] = totalHits
+
+				pageLinks = []
+				lastPage = totalHits // RESULTS_PER_PAGE
+				startPage = page - 3
+				if startPage < 0: startPage = 0
+				endPage = startPage + 6
+				if endPage > lastPage: endPage = lastPage
+				pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["first"], "val":1, "active":True})
+				pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["prev"], "val":page, "active": (page > 0)})
+				if startPage>0: pageLinks.append({"name":"..", "val":0, "active": False})
+				for i in range(startPage, endPage+1):
+					pageLinks.append({"name":"%d" % (i+1), "val": i+1, "active": i != page })
+				if endPage<lastPage: pageLinks.append({"name":"..", "val":0, "active": False})
+				pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["next"], "val":page+2, "active": (page < lastPage)})
+				pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["last"], "val":lastPage+1, "active":True})
+				model["pageLinks"] = pageLinks
+
+				foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (totalHits, start, end)
 				model["foundResults"] = foundResults
 				
 				if 'foundResultsRTL' in settings.JOCHRE_UI_STRINGS:
-					foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (len(results), page.first_item, page.last_item)
-					if (len(results)>=1000):
-						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'] % (len(results), page.first_item, page.last_item)
+					foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (totalHits, start, end)
 					model["foundResultsRTL"] = foundResultsRTL
-
-				logging.debug(model["pageLinks"])
 				
 				snippetMap = resp.json()
 	
-				for result in page.items:
+				for result in docs:
 					bookId = result['name']
 					docId = result['docId']
 					snippetObj = snippetMap[str(docId)]

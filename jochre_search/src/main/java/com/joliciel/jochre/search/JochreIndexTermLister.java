@@ -52,11 +52,11 @@ public class JochreIndexTermLister {
 		Set<String> fields = new HashSet<>();
 
 		fields.add(JochreIndexField.text.name());
+		fields.add(JochreIndexField.authorEnglish.name());
+		fields.add(JochreIndexField.titleEnglish.name());
+		fields.add(JochreIndexField.publisher.name());
 		fields.add(JochreIndexField.author.name());
 		fields.add(JochreIndexField.title.name());
-		fields.add(JochreIndexField.publisher.name());
-		fields.add(JochreIndexField.authorLang.name());
-		fields.add(JochreIndexField.titleLang.name());
 
 		for (String field : fields)
 			fieldTermMap.put(field, new TreeSet<JochreTerm>());

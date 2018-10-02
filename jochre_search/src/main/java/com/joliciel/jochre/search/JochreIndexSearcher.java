@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -18,8 +19,14 @@ import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopDocsCollector;
+import org.apache.lucene.search.TopFieldCollector;
+import org.apache.lucene.search.TopScoreDocCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +46,40 @@ public class JochreIndexSearcher {
 
 	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
 	private Map<Integer, DecimalFormat> decimalFormats = new HashMap<>();
+	private final int maxDocs;
 
 	public JochreIndexSearcher(IndexSearcher indexSearcher, JochreSearchConfig config) {
 		this.indexSearcher = indexSearcher;
+		this.maxDocs = config.getMaxResults();
 	}
 
 	/**
-	 * Return a list of Lucene docIds and scores corresponding to a given query.
+	 * Return paginated results for a query.
+	 * 
+	 * @param jochreQuery
+	 *            the query to run
+	 * @param pageNumber
+	 *            the page number to return
+	 * @param resultsPerPage
+	 *            results per page
+	 * @return a pair giving the TopDocs corresponding to the paginated results, and
+	 *         the total hits
+	 * @throws IOException
 	 */
-	public TopDocs search(JochreQuery jochreQuery) throws IOException {
-		TopDocs topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
+	public Pair<TopDocs, Integer> search(JochreQuery jochreQuery, int pageNumber, int resultsPerPage) throws IOException {
+		TopDocsCollector<? extends ScoreDoc> topDocsCollector = null;
+		switch (jochreQuery.getSortBy()) {
+		case Score:
+			topDocsCollector = TopScoreDocCollector.create(this.maxDocs);
+		case Year:
+			topDocsCollector = TopFieldCollector.create(
+					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, !jochreQuery.isSortAscending())), this.maxDocs,
+					false, false, false, true);
+		}
+
+		indexSearcher.search(jochreQuery.getLuceneQuery(), topDocsCollector);
+		TopDocs topDocs = topDocsCollector.topDocs(pageNumber * resultsPerPage, resultsPerPage);
+		int totalHits = topDocsCollector.getTotalHits();
 
 		if (LOG.isTraceEnabled()) {
 			LOG.trace("Search results: ");
@@ -58,7 +89,7 @@ public class JochreIndexSearcher {
 				LOG.trace(extId + "(docId " + scoreDoc.doc + "): " + scoreDoc.score);
 			}
 		}
-		return topDocs;
+		return Pair.of(topDocs, totalHits);
 	}
 
 	/**
@@ -66,17 +97,19 @@ public class JochreIndexSearcher {
 	 * 
 	 * @return the number of results
 	 */
-	public long search(JochreQuery jochreQuery, Writer out) throws IOException {
+	public long search(JochreQuery jochreQuery, int pageNumber, int resultsPerPage, Writer out) throws IOException {
 		try {
-			TopDocs topDocs = this.search(jochreQuery);
+			Pair<TopDocs, Integer> result = this.search(jochreQuery, pageNumber, resultsPerPage);
 			DecimalFormat df = this.getDecimalFormat(jochreQuery.getDecimalPlaces());
 
 			JsonFactory jsonFactory = new JsonFactory();
 			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
-			jsonGen.writeStartArray();
+			jsonGen.writeStartObject();
+			jsonGen.writeNumberField("totalHits", result.getRight());
+			jsonGen.writeArrayFieldStart("results");
 
-			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+			for (ScoreDoc scoreDoc : result.getLeft().scoreDocs) {
 				Document doc = indexSearcher.doc(scoreDoc.doc);
 				jsonGen.writeStartObject();
 				jsonGen.writeNumberField("docId", scoreDoc.doc);
@@ -87,21 +120,21 @@ public class JochreIndexSearcher {
 						Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue()));
 				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
 				jsonGen.writeStringField(JochreIndexField.id.name(), doc.get(JochreIndexField.id.name()));
-				String author = doc.get(JochreIndexField.author.name());
+				String author = doc.get(JochreIndexField.authorEnglish.name());
 				if (author != null)
-					jsonGen.writeStringField(JochreIndexField.author.name(), author);
-				String title = doc.get(JochreIndexField.title.name());
+					jsonGen.writeStringField(JochreIndexField.authorEnglish.name(), author);
+				String title = doc.get(JochreIndexField.titleEnglish.name());
 				if (title != null)
-					jsonGen.writeStringField(JochreIndexField.title.name(), title);
+					jsonGen.writeStringField(JochreIndexField.titleEnglish.name(), title);
 				String url = doc.get(JochreIndexField.url.name());
 				if (url != null)
 					jsonGen.writeStringField(JochreIndexField.url.name(), url);
-				String authorLang = doc.get(JochreIndexField.authorLang.name());
+				String authorLang = doc.get(JochreIndexField.author.name());
 				if (authorLang != null)
-					jsonGen.writeStringField(JochreIndexField.authorLang.name(), authorLang);
-				String titleLang = doc.get(JochreIndexField.titleLang.name());
+					jsonGen.writeStringField(JochreIndexField.author.name(), authorLang);
+				String titleLang = doc.get(JochreIndexField.title.name());
 				if (titleLang != null)
-					jsonGen.writeStringField(JochreIndexField.titleLang.name(), titleLang);
+					jsonGen.writeStringField(JochreIndexField.title.name(), titleLang);
 				String volume = doc.get(JochreIndexField.volume.name());
 				if (volume != null)
 					jsonGen.writeStringField(JochreIndexField.volume.name(), volume);
@@ -119,9 +152,10 @@ public class JochreIndexSearcher {
 			}
 
 			jsonGen.writeEndArray();
+			jsonGen.writeEndObject();
 			jsonGen.flush();
 
-			return topDocs.totalHits;
+			return result.getRight();
 		} catch (ParseException e) {
 			LOG.error("Failed search using jochreQuery " + jochreQuery.toString(), e);
 			throw new RuntimeException(e);

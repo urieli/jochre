@@ -54,7 +54,6 @@ import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
 import com.joliciel.jochre.search.feedback.FeedbackDAO;
 import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
-import com.joliciel.jochre.search.lexicon.TextNormaliser;
 
 public class JochreIndexBuilder implements Runnable, TokenExtractor {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilder.class);
@@ -94,9 +93,12 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 		this.forceUpdate = forceUpdate;
 
 		Map<String, Analyzer> analyzerPerField = new HashMap<>();
-		analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, TextNormaliser.getTextNormaliser(config.getLocale())));
+		analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, config));
+		analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(config));
+		analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(config));
+		analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(config));
 
-		PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(), analyzerPerField);
+		PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(config), analyzerPerField);
 		IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 		iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		this.indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
