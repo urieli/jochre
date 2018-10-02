@@ -156,10 +156,10 @@
 	},
 	{
 		name: 'authors',
-		limit: 10,
+		limit: 100,
 		source: function (q, sync, async) {
 			console.log(q);
-			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=10`, function( data ) {
+			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=8`, function( data ) {
 				var matches = [];
 				$.each( data, function( key, val ) {
 					console.log(`${key}: ${val}`);
