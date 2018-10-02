@@ -107,3 +107,5 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
 }
+
+DEFAULT_KEYBOARD_MAPPINGS = {}

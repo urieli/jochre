@@ -30,6 +30,73 @@
 
 {% include "header-local.html" %}
 
+<script>
+var keyboardMappings = {};
+var keyboardMappingEnabled = false;
+
+$(function() {
+	applyKeyboardMappings();
+});
+
+function applyKeyboardMappings() {
+	keyboardMappings = {};
+	keyboardMappingEnabled = false;
+	$.getJSON( `/keyboard`, function( data ) {
+		$.each( data, function( key, val ) {
+			if (key=="mapping") {
+				$.each( val, function( from, to ) {
+					keyboardMappings[from] = to;
+				});
+			} else if (key=="enabled") {
+				keyboardMappingEnabled = val;
+			}
+		});
+	});
+}
+
+function transformChar(charStr) {
+	if (charStr in keyboardMappings)
+		return keyboardMappings[charStr];
+	else
+		return "";
+}
+
+function transformKeyPress(textfield, evt) {
+	if (!keyboardMappingEnabled)
+		return true;
+
+	var val = textfield.value;
+	evt = evt || window.event;
+
+	if (evt.ctrlKey)
+		return true;
+
+	// Ensure we only handle prindiv class="container" keys, excluding enter and space
+	var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
+	if (charCode && charCode > 32) {
+		var keyChar = String.fromCharCode(charCode);
+
+		// Transform typed character
+		var mappedChar = transformChar(keyChar);
+		if (mappedChar=="")
+			return true;
+
+		var start = textfield.selectionStart;
+		var end = textfield.selectionEnd;
+		var newValue = val.slice(0, start) + mappedChar + val.slice(end);
+		if (textfield.id=='txtAuthor')
+			$('#txtAuthor').typeahead('val',newValue);
+		else
+			textfield.value = newValue;
+
+		// Move the caret
+		textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
+
+		return false;
+	}
+};
+</script>
+
 <form id="frmQuery" method="get" accept-charset="UTF-8">
 <input type="hidden" name="page" id="hdnPage" value="1" />
 <div class="d-flex justify-content-end m-1">
@@ -49,6 +116,14 @@
 				{% endif %}
 				<br/>
 				<a href="accounts/logout/">{{ Strings.logout }}</a>
+				<br/>
+				<a id="updateKeyboardMappings" href="#"><img src="{% static 'images/keyboard.png' %}" style="width:40px"></a>
+				<script>
+					$('#updateKeyboardMappings').click(function() {
+						loadKeyboardMappings();
+						return false;
+					});
+				</script>
 		</div>
 		{% if RTL %}
 			<div class="col-10" style="text-align: right">
@@ -128,9 +203,9 @@
 	</div>
 	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
 		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
-			<div class="input-group input-group-sm m-1">
-				<input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
-				&nbsp;<label for="txtTitle">{{ Strings.strictField }}?</label>
+			<div class="input-group input-group-sm m-1 checkboxes">
+				<label for="chkStrict"><input id="chkStrict" type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
+				<span>{{ Strings.strictField }}?</span></label>
 			</div>
 		</div>
 	</div>
@@ -205,101 +280,6 @@
 $("#toggleAdvancedSearch").click(function(){
 	$("#advancedSearch").toggle();
 });
-	 
-{% if RTL %}
-function latinToYiddish(charStr) {
-	switch (charStr) {
-	case 'a': return 'אַ';
-	case 'A': return 'א';
-	case 'b': return 'ב';
-	case 'B': return 'בּ';
-	case 'c': return 'כ';
-	case 'C': return 'ך';
-	case 'd': return 'ד';
-	case 'D': return 'ד';
-	case 'e': return 'ע';
-	case 'E': return 'ע';
-	case 'f': return 'פֿ';
-	case 'F': return 'ף';
-	case 'g': return 'ג';
-	case 'G': return 'ג';
-	case 'h': return 'ה';
-	case 'H': return 'ה';
-	case 'i': return 'י';
-	case 'I': return 'יִ';
-	case 'j': return 'ױ';
-	case 'J': return 'ױ';
-	case 'k': return 'ק';
-	case 'K': return 'כּ';
-	case 'l': return 'ל';
-	case 'L': return 'ל';
-	case 'm': return 'מ';
-	case 'M': return 'ם';
-	case 'n': return 'נ';
-	case 'N': return 'ן';
-	case 'o': return 'אָ';
-	case 'O': return 'וֹ';
-	case 'p': return 'פּ';
-	case 'P': return 'פ';
-	case 'q': return 'ח';
-	case 'Q': return 'כֿ';
-	case 'r': return 'ר';
-	case 'R': return 'ר';
-	case 's': return 'ס';
-	case 'S': return 'ת';
-	case 't': return 'ט';
-	case 'T': return 'תּ';
-	case 'u': return 'ו';
-	case 'U': return 'וּ';
-	case 'v': return 'װ';
-	case 'V': return 'בֿ';
-	case 'w': return 'ש';
-	case 'W': return 'שׂ';
-	case 'x': return 'צ';
-	case 'X': return 'ץ';
-	case 'y': return 'ײ';
-	case 'Y': return 'ײַ';
-	case 'z': return 'ז';
-	case 'Z': return 'ז';
-	case '“': return '"';
-	case '”': return '"';
-	case '’': return "'";
-	case '„': return '"';
-	default: return "";
-	}
-}
-
-function transformKeyPress(textfield, evt) {
-		var val = textfield.value;
-		evt = evt || window.event;
-
-	if (evt.ctrlKey)
-		return true;
-	
-		// Ensure we only handle prindiv class="container" keys, excluding enter and space
-		var charCode = typeof evt.which == "number" ? evt.which : evt.keyCode;
-		if (charCode && charCode > 32) {
-				var keyChar = String.fromCharCode(charCode);
-
-				// Transform typed character
-				var mappedChar = latinToYiddish(keyChar);
-				if (mappedChar=="")
-					return true;
-
-				var start = textfield.selectionStart;
-				var end = textfield.selectionEnd;
-				var newValue = val.slice(0, start) + mappedChar + val.slice(end);
-				if (textfield.id=='txtAuthor')
-					$('#txtAuthor').typeahead('val',newValue);
-				else
-					textfield.value = newValue;
-
-				// Move the caret
-				textfield.selectionStart = textfield.selectionEnd = start + mappedChar.length;
-
-				return false;
-		}
-};
 
 $("#txtQuery").keypress(function(evt){
 	return transformKeyPress(this, evt);
@@ -315,7 +295,6 @@ $("#txtAuthor").keypress(function(evt){
 	return transformKeyPress(this, evt);
 });
 
-{% endif %}
 </script>
 {% if parseException %}
 	<p>{{ Strings.unableToProcessQuery }}:</p>
@@ -436,11 +415,13 @@ $("#txtAuthor").keypress(function(evt){
 					dataType: 'json',
 					success: function( data ) {
 						$("#imgWordLoading").hide();
+						$('#alertFixWordError').hide();
 						$('#alertFixWordSuccess').show();
 					},
 					error: function(XMLHttpRequest, textStatus, errorThrown) {
 						$("#imgWordLoading").hide();
 						$('#alertFixWordError').show();
+						$('#alertFixWordSuccess').hide();
 						},
 					});
 			}
@@ -572,43 +553,195 @@ $("#txtAuthor").keypress(function(evt){
 			</div>
 			<div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
 				<strong>Suggestion recorded.</strong>
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<button type="button" class="close" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
 			<div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
 				<strong>An error occurred.</strong>
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<button type="button" class="close" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<script>
-				$('#alertFixWordSuccess').on('closed.bs.alert', function () {
-					$("#fixWordModal").modal('hide');
-				})
-				$('#alertFixWordError').on('closed.bs.alert', function () {
-					$("#fixWordModal").modal('hide');
-				})
-			</script>
 		</div>
 	</div>
 </div>
+
 <script>
-{% if RTL %}
-document.getElementById("txtSuggestion").onkeypress = function(evt) {
-		return transformKeyPress(this, evt);
-};
-document.getElementById("txtSuggestion2").onkeypress = function(evt) {
-		return transformKeyPress(this, evt);
-};
-{% endif %}
+$("#txtSuggestion").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+
+$("#txtSuggestion2").keypress(function(evt){
+	return transformKeyPress(this, evt);
+});
+
 $('#selFont').on('change', function() {
 	imgFont.src = "{% static 'images/' %}" + this.value + ".png";
-	});
+});
 $('#imgFixWord').on('load', function() {
-	document.getElementById("imgWordLoading").style.display="none";
+	$("#imgWordLoading").hide();
+});
+</script>
+
+<div class="modal fade" id="keyboardModal" tabindex="-1" role="dialog" aria-labelledby="Update key mappings" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Update key mappings</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="frmKeys" role="form" autocomplete="off">
+					{% csrf_token %}
+					<div class="d-flex">
+						<div class="input-group m-1 checkboxes">
+							<label for="frmKeysEnabled" class="col-12 col-form-label">
+							<input type="checkbox" id="frmKeysEnabled" name="enabled">
+							<span>Enable keyboard mappings</span></label>
+						</div>
+					</div>
+					<div id="keyboardEntries" class="d-flex flex-wrap">
+					</div>
+				</form>
+				<script>
+				$('#frmKeys').on('click', '.btn-add', function(e)
+				{
+					e.preventDefault();
+
+					var entries = $('#keyboardEntries');
+					var currentEntry = $(this).parents('.entry:first');
+					var newEntry = $(currentEntry.clone()).appendTo(entries);
+
+					newEntry.find('input').val('');
+					entries.find('.entry:not(:last) .btn-add')
+						.removeClass('btn-add').addClass('btn-remove')
+						.removeClass('btn-success').addClass('btn-danger')
+						.html('-');
+				}).on('click', '.btn-remove', function(e)
+				{
+					$(this).parents('.entry:first').remove();
+					e.preventDefault();
+					return false;
+				});
+				</script>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+				<button id="btnKeyboardDefault" type="button" class="btn btn-warning">Restore defaults</button>
+				<button id="btnKeyboardSave" type="button" class="btn btn-primary">Save changes</button>
+			</div>
+			<div id="alertKeyboardSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
+				<strong>Keyboard mappings updated.</strong>
+				<button type="button" class="close" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div id="alertKeyboardError" class="alert alert-error alert-dismissible collapse" role="alert">
+				<strong>An error occurred.</strong>
+				<button type="button" class="close" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function loadKeyboardMappings() {
+		$('#keyboardEntries').empty();
+		$('#alertKeyboardError').hide();
+		$('#alertKeyboardSuccess').hide();
+		$.getJSON( `/keyboard`, function( data ) {
+			var mappings = [];
+			var enabled;
+			$.each( data, function( key, val ) {
+				if (key=="mapping") {
+					$.each( val, function( from, to ) {
+						mappings.push([from, to]);
+					});
+				} else if (key=="enabled") {
+					enabled = val;
+				}
+			});
+			$('#frmKeysEnabled').prop('checked', enabled);
+			for (var i=0; i<mappings.length; i++) {
+				var key = mappings[i][0];
+				var val = mappings[i][1];
+				var htmlVal = val.replace(/&/g, '&amp;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#39;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;');
+
+				var button = "";
+				if (i==mappings.length-1) {
+					button = `<button class="btn btn-success btn-add" type="button">+</button>`;
+				} else {
+					button = `<button class="btn btn-danger btn-remove" type="button">-</button>`;
+				}
+				$('#keyboardEntries').append(`
+					<div class="entry input-group col-3">
+						<input class="form-control" name="from" type="text" placeholder="From" value="${key}" />
+						<input class="form-control" name="to" type="text" placeholder="To" value="${htmlVal}" />
+						<span class="input-group-btn">
+							${button}
+						</span>
+					</div>
+					`);
+			}
+			$("#keyboardModal").modal()
+		});
+	}
+
+	$('#btnKeyboardDefault').click( function() {
+		$('#frmKeysAction').val("default");
+		$.ajax({
+			type: 'POST',
+			url: '/updateKeyboard',
+			data: $('#frmKeys').serialize(),
+			success: function() {
+				$('#alertKeyboardError').hide();
+				$('#alertKeyboardSuccess').show();
+				applyKeyboardMappings();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$('#alertKeyboardError').show();
+				$('#alertKeyboardSuccess').hide();
+			},
+		});
+	});
+
+	$('#btnKeyboardSave').click( function() {
+		$('#frmKeysAction').val("save");
+		$.ajax({
+			type: 'POST',
+			url: '/updateKeyboard',
+			data: $('#frmKeys').serialize(),
+			success: function() {
+				$('#alertKeyboardError').hide();
+				$('#alertKeyboardSuccess').show();
+				applyKeyboardMappings();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$('#alertKeyboardError').show();
+				$('#alertKeyboardSuccess').hide();
+			},
+		});
 	});
 </script>
+
+<script>
+	$('.alert .close').click(function(){
+		$(this).parent().hide();
+		var modal = $(this).closest('.modal');
+		if (modal)
+			modal.modal('hide');
+	});
+</script>
+
 <div class="container">
 	<div class="row">
 		<div class="col">
