@@ -467,4 +467,11 @@ public class JochreIndexDocument {
 	public int getDocId() {
 		return docId;
 	}
+
+	@Override
+	public String toString() {
+		return "JochreIndexDocument [sectionNumber=" + sectionNumber + ", path=" + path + ", name=" + name + ", startPage=" + startPage + ", endPage=" + endPage
+				+ ", length=" + length + ", docId=" + docId + "]";
+	}
+
 }

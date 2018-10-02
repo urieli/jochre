@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,7 @@ public class LuceneQueryHighlighterTest {
 
 		IndexSearcher indexSearcher = manager.getManager().acquire();
 		try {
-			JochreQuery query = new JochreQuery(config, "קײנער", new ArrayList<>(), true, "");
+			JochreQuery query = new JochreQuery(config, "קײנער");
 			JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
 			TopDocs topDocs = searcher.search(query);
 			int docId = topDocs.scoreDocs[0].doc;

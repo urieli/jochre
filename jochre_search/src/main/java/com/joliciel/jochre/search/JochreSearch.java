@@ -200,6 +200,8 @@ public class JochreSearch {
 			Boolean expandInflections = null;
 			SortBy sortBy = SortBy.Score;
 			boolean sortAscending = true;
+			Integer fromYear = null;
+			Integer toYear = null;
 
 			// lexicon handling
 			String lexiconDirPath = null;
@@ -309,6 +311,10 @@ public class JochreSearch {
 					sortBy = SortBy.valueOf(argValue);
 				} else if (argName.equals("sortAscending")) {
 					sortAscending = argValue.equals("true");
+				} else if (argName.equals("fromYear")) {
+					fromYear = Integer.parseInt(argValue);
+				} else if (argName.equals("toYear")) {
+					toYear = Integer.parseInt(argValue);
 				} else {
 					throw new RuntimeException("Unknown option: " + argName);
 				}
@@ -370,7 +376,8 @@ public class JochreSearch {
 					if (queryString == null)
 						throw new RuntimeException("For command " + command + " query is required");
 
-					JochreQuery query = new JochreQuery(searchConfig, queryString, authors, authorInclude, titleQueryString, sortBy, sortAscending);
+					JochreQuery query = new JochreQuery(searchConfig, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, sortBy,
+							sortAscending);
 
 					if (decimalPlaces >= 0)
 						query.setDecimalPlaces(decimalPlaces);

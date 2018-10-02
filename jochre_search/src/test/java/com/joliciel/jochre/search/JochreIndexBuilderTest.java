@@ -3,7 +3,6 @@ package com.joliciel.jochre.search;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.lucene.document.Document;
@@ -41,9 +40,9 @@ public class JochreIndexBuilderTest {
 			int docId = docs.keySet().iterator().next();
 			JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
 			assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
-			LOG.debug(jochreDoc.getContents());
+			LOG.debug(jochreDoc.toString());
 
-			JochreQuery query = new JochreQuery(config, "זיך", new ArrayList<>(), true, "");
+			JochreQuery query = new JochreQuery(config, "זיך");
 			TopDocs topDocs = searcher.search(query);
 			assertEquals(1, topDocs.totalHits);
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -63,22 +64,27 @@ public class JochreQuery {
 	private final JochreSearchConfig config;
 	private final SortBy sortBy;
 	private final boolean sortAscending;
+	private final Integer fromYear;
+	private final Integer toYear;
 
 	public JochreQuery(JochreSearchConfig config, String queryString) {
-		this(config, queryString, new ArrayList<>(), true, "", SortBy.Score, true);
+		this(config, queryString, new ArrayList<>(), true, "", null, null);
 	}
 
-	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString) {
-		this(config, queryString, authors, authorInclude, titleQueryString, SortBy.Score, true);
+	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
+			Integer toYear) {
+		this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, SortBy.Score, true);
 	}
 
-	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, SortBy sortBy,
-			boolean sortAscending) {
+	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
+			Integer toYear, SortBy sortBy, boolean sortAscending) {
 		this.config = config;
 		this.queryString = queryString;
 		this.authors = authors;
 		this.authorInclude = authorInclude;
 		this.titleQueryString = titleQueryString;
+		this.fromYear = fromYear;
+		this.toYear = toYear;
 		this.sortBy = sortBy;
 		this.sortAscending = sortAscending;
 	}
@@ -206,6 +212,11 @@ public class JochreQuery {
 
 					Query titleQuery = titleParser.parse(queryString);
 					builder.add(titleQuery, Occur.MUST);
+				}
+				if (this.fromYear != null || this.toYear != null) {
+					Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(), this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
+							this.toYear == null ? Integer.MAX_VALUE : this.toYear.intValue());
+					builder.add(new BooleanClause(yearQuery, Occur.MUST));
 				}
 
 				luceneQuery = builder.build();
