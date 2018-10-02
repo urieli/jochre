@@ -173,6 +173,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 				}
 			}
 
+			LOG.debug("Commiting index...");
 			searchStatusHolder.setStatus(SearchStatus.COMMITING);
 			indexWriter.commit();
 			indexWriter.close();
