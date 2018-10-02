@@ -57,7 +57,7 @@ public class JochreIndexSearcher {
 			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs());
 		case Year:
 			topDocs = indexSearcher.search(jochreQuery.getLuceneQuery(), jochreQuery.getMaxDocs(),
-					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, jochreQuery.isSortAscending())));
+					new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, !jochreQuery.isSortAscending())));
 		}
 
 		if (LOG.isTraceEnabled()) {

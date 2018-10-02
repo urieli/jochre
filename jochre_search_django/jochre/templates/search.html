@@ -69,7 +69,7 @@
 	</div>
 	<div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
 		<div class="input-group input-group-sm m-1">
-			<input type="text" id="txtQuery" name="query" value="{{ query }}" class="form-control{% if RTL %} rtl{% endif %}" />
+			<input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" required />
 			<div class="input-group-append">
 				<button type="submit" class="btn btn-primary btn-sm">{{ Strings.searchButton }}</button>&nbsp;
 				<span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
@@ -124,8 +124,30 @@
 	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
 		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
 			<div class="input-group input-group-sm m-1">
+				<label for="txtFromYear">{{ Strings.fromYearField }}:&nbsp;</label>
+				<input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}"">
+				<label for="txtToYear">&nbsp;&nbsp;{{ Strings.toYearField }}:&nbsp;</label>
+				<input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control" value="{{ toYear }}"">
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
 				<label for="txtTitle">{{ Strings.strictField }}?&nbsp;</label>
 				<input type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
+			</div>
+		</div>
+	</div>
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+			<div class="input-group input-group-sm m-1">
+				<label for="selSortBy">{{ Strings.sortBy }}:&nbsp;</label>
+				<select class="form-control" id="selSortBy" name="sortBy">
+		      <option value="score" {% if sortBy == "score" %}selected{% endif %}>{{ Strings.sortByScore }}</option>
+		      <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{{ Strings.sortByYearAscending }}</option>
+		      <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{{ Strings.sortByYearDescending }}</option>
+		    </select>
 			</div>
 		</div>
 	</div>
@@ -391,7 +413,7 @@ $("#txtAuthor").keypress(function(evt){
 			
 			console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
 			$('#alertFixWordSuccess').hide();
-			$('#alertFixWordSuccess').hide();
+			$('#alertFixWordError').hide();
 
 			function applyFix() {
 				$("#imgWordLoading").show();
@@ -403,7 +425,7 @@ $("#txtAuthor").keypress(function(evt){
 				var fontCode = selFont.options[selFont.selectedIndex].value;
 
 				var selLang = document.getElementById("selLang");
-				var languageCode = selLang.options[selLang.selectedIndex].value;						
+				var languageCode = selLang.options[selLang.selectedIndex].value;
 				
 				$.ajax({
 					url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"

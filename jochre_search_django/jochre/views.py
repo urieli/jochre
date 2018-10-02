@@ -41,8 +41,20 @@ def search(request):
 	authorInclude = True
 	if ('authorInclude') in request.GET:
 		authorInclude = request.GET['authorInclude']=='true'
+
+	fromYear = ''
+	if 'fromYear' in request.GET:
+		fromYear = request.GET['fromYear']
+
+	toYear = ''
+	if 'toYear' in request.GET:
+		toYear = request.GET['toYear']
+
+	sortBy = ''
+	if 'sortBy' in request.GET:
+		sortBy = request.GET['sortBy']
 	
-	if len(author)>0 or len(title)>0 or strict:
+	if len(author)>0 or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc':
 		advancedSearch = True
 
 	displayAdvancedSearch = False
@@ -59,6 +71,9 @@ def search(request):
 			 "authorInclude" : authorInclude,
 			 "title" : title,
 			 "strict" : strict,
+			 "fromYear" : fromYear,
+			 "toYear" : toYear,
+			 "sortBy" : sortBy,
 			 "displayAdvancedSearch" : displayAdvancedSearch,
 			 "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
 			 "JOCHRE_CREDITS" : settings.JOCHRE_CREDITS,
@@ -94,7 +109,18 @@ def search(request):
 			userdata['authorInclude'] = 'true'
 		else:
 			userdata['authorInclude'] = 'false'
-		
+		if len(fromYear)>0:
+			userdata['fromYear'] = fromYear
+		if len(toYear)>0:
+			userdata['toYear'] = toYear
+		if len(sortBy)>0:
+			if sortBy=='yearAsc':
+				userdata['sortBy'] = 'Year'
+				userdata['sortAscending'] = 'true'
+			elif sortBy=='yearDesc':
+				userdata['sortBy'] = 'Year'
+				userdata['sortAscending'] = 'false'
+
 		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
 
 		resp = requests.get(searchUrl, userdata)
