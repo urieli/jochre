@@ -177,7 +177,7 @@
 					<\/script>
 				</div>&nbsp;
 				`);
-			$('#txtAuthor').val("");
+			$('#txtAuthor').typeahead('val','');
 			var currentAuthors = $('#hdnAuthors').val();
 			$('#hdnAuthors').val(`${currentAuthors}|${author}`);
 		}
