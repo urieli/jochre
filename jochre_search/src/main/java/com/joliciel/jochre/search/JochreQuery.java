@@ -241,6 +241,14 @@ public class JochreQuery {
 		this.expandInflections = expandInflections;
 	}
 
+	public Integer getFromYear() {
+		return fromYear;
+	}
+
+	public Integer getToYear() {
+		return toYear;
+	}
+
 	public SortBy getSortBy() {
 		return sortBy;
 	}

@@ -405,6 +405,15 @@ public class JochreSearch {
 									feedbackQuery.addClause(FeedbackCriterion.title, query.getTitleQueryString());
 								if (!query.isExpandInflections())
 									feedbackQuery.addClause(FeedbackCriterion.strict, "true");
+								if (query.getFromYear() != null)
+									feedbackQuery.addClause(FeedbackCriterion.fromYear, query.getFromYear().toString());
+								if (query.getToYear() != null)
+									feedbackQuery.addClause(FeedbackCriterion.toYear, query.getToYear().toString());
+								if (query.getSortBy() != SortBy.Score) {
+									feedbackQuery.addClause(FeedbackCriterion.sortBy, query.getSortBy().name());
+									feedbackQuery.addClause(FeedbackCriterion.sortAscending, "" + query.isSortAscending());
+								}
+
 								feedbackQuery.save();
 							}
 							break;

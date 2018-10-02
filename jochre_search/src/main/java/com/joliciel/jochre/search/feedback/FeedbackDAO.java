@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -590,26 +592,26 @@ public class FeedbackDAO {
 		LOG.debug(sql);
 		MapSqlParameterSource paramSource = new MapSqlParameterSource();
 		SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
+		Set<FeedbackCriterion> criteria = new HashSet<>();
 		while (rs.next()) {
 			int criterionId = rs.getInt("criterion_id");
 			String name = rs.getString("criterion_name");
 			FeedbackCriterion criterion = FeedbackCriterion.valueOf(name);
-			criterion.setId(criterionId);
+			criteria.add(criterion);
+			if (criterion.getId() != criterionId) {
+				LOG.error("Bad id for criterion: " + criterion.name() + ". Should be: " + criterion.getId() + ". Is: " + criterionId);
+			}
 		}
 
 		for (FeedbackCriterion criterion : FeedbackCriterion.values()) {
-			if (criterion.getId() == 0) {
-				sql = "SELECT nextval('joc_criterion_criterion_id_seq')";
-				LOG.trace(sql);
-				int criterionId = jt.queryForObject(sql, paramSource, Integer.class);
+			if (!criteria.contains(criterion)) {
 				sql = "INSERT INTO joc_criterion (criterion_id, criterion_name)" + " VALUES (:criterion_id, :criterion_name)";
 				paramSource = new MapSqlParameterSource();
-				paramSource.addValue("criterion_id", criterionId);
+				paramSource.addValue("criterion_id", criterion.getId());
 				paramSource.addValue("criterion_name", criterion.name());
 				LOG.debug(sql);
 				logParameters(paramSource);
 				jt.update(sql, paramSource);
-				criterion.setId(criterionId);
 			}
 		}
 	}
