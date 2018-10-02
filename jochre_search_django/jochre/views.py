@@ -136,19 +136,25 @@ def search(request):
 			docs = results['results']
 
 			for result in docs:
-				if 'volume' in result and 'title' in result:
-					result['titleAndVolume'] = result['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
-					if 'titleLang' in result and 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
-						result['titleLangAndVolume'] = result['titleLang'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
+				if 'volume' in result:
+					if 'titleEnglish' in result:
+						result['titleEnglishAndVolume'] = result['titleEnglish'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
 					else:
-						result['titleLangAndVolume'] = ""
+						result['titleEnglishAndVolume'] = settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
+					if 'title' in result:
+						result['titleAndVolume'] = result['title'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
+					else:
+						result['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
 				else:
+					if 'titleEnglish' in result:
+						result['titleEnglishAndVolume'] = result['titleEnglish']
+					else:
+						result['titleEnglishAndVolume'] = ''
 					if 'title' in result:
 						result['titleAndVolume'] = result['title']
-						if 'titleLang' in result:
-							result['titleLangAndVolume'] = result['titleLang']
-						else:
-							result['titleLangAndVolume'] = ""
+					else:
+						result['titleAndVolume'] = ''
+				
 				if len(docIds)>0:
 					docIds += ','
 				docIds += str(result['docId'])

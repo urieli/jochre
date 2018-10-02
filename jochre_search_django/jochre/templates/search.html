@@ -336,15 +336,15 @@ $("#txtAuthor").keypress(function(evt){
 		<div class="col"><div class="black-separator"></div></div>
 	</div>
 	<div class="row">
-		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
 		{% if RTL %}
-			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleLangAndVolume }}</a>{% endif %}</div></div>
+			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleAndVolume }}</a>{% endif %}</div></div>
 		{% endif %}
 	</div>
 	<div class="row">
-		<div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.author }}</div></div>
+		<div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.authorEnglish }}</div></div>
 		{% if RTL %}
-			<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.authorLang }}</div></div>
+			<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.author }}</div></div>
 		{% endif %}
 	</div>
 	<div class="row">
