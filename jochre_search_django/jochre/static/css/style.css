@@ -38,4 +38,17 @@ A.simple:hover {  text-decoration: underline; }
 H1.rtl { font-size: 24px; }
 .black-separator { background-color: black; height: 5px; }
 .alert-auto {display:inline-block;} 
-.yiddish-bold {font-weight: 900;}
+.highlight {font-weight: 900;}
+
+.checkboxes label {
+  display: block;
+  float: left;
+  padding-right: 10px;
+  white-space: nowrap;
+}
+.checkboxes input {
+  vertical-align: middle;
+}
+.checkboxes label span {
+  vertical-align: middle;
+}

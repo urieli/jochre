@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -777,7 +776,7 @@ public class JochreSearch {
 		} catch (RuntimeException e) {
 			LOG.error("Failed to run command " + command, e);
 			throw e;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOG.error("Failed to run command " + command, e);
 			throw new RuntimeException(e);
 		} finally {

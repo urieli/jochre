@@ -7,6 +7,9 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.conf import settings
 from django.template.defaulttags import register
+from django.http import HttpResponse
+
+from jochre.models import KeyboardMapping
 
 def search(request):
 	logger = logging.getLogger(__name__)
@@ -27,7 +30,7 @@ def search(request):
 	
 	author = ''
 	if 'author' in request.GET:
-		author = request.GET['author']
+		author = "|".join(request.GET.getlist('author'))
 		
 	title = ''
 	if 'title' in request.GET:
@@ -262,3 +265,59 @@ def get_client_ip(request):
 	else:
 		ip = request.META.get('REMOTE_ADDR')
 	return ip
+
+def keyboard(request):
+	logger = logging.getLogger(__name__)
+
+	if not request.user.is_authenticated:
+		raise ValueError('User not logged in.')
+	
+	username = request.user.username
+	mappings = KeyboardMapping.objects.filter(user=request.user)
+
+	if len(mappings)==1:
+		mapping = json.loads(mappings[0].mapping)
+		enabled = mappings[0].enabled
+	else:
+		mapping = settings.KEYBOARD_MAPPINGS
+		enabled = settings.KEYBOARD_MAPPINGS_ENABLED
+
+	model = {"mapping" : mapping, "enabled" : enabled}
+
+	return HttpResponse(json.dumps(model), content_type='application/json')
+
+def updateKeyboard(request):
+	logger = logging.getLogger(__name__)
+
+	if not request.user.is_authenticated:
+		raise ValueError('User not logged in.')
+
+	if request.method == 'POST':
+		if 'action' in request.POST and request.POST['action']=='default':
+			KeyboardMapping.objects.filter(user=request.user).delete()
+			logging.debug('deleted mapping')
+		else:
+			newVals = {}
+			if 'from' in request.POST and 'to' in request.POST:
+				fromKeys = request.POST.getlist('from')
+				logger.info("fromKeys: %s" % fromKeys)
+				toKeys = request.POST.getlist('to')
+				logger.info("toKeys: %s" % toKeys)
+				newMapping = dict(zip(fromKeys, toKeys))
+				newMapping = {k: v for k, v in newMapping.items() if v != "" and k != ""}
+				newMappingJson = json.dumps(newMapping)
+
+				logging.debug('newMapping: %s' % newMappingJson)
+				newVals['mapping'] = newMappingJson
+			if 'enabled' in request.POST:
+				newVals['enabled'] = True
+			else:
+				newVals['enabled'] = False
+
+			obj, created = KeyboardMapping.objects.update_or_create(
+				user=request.user,
+				defaults=newVals,
+			)
+
+	model = {"result": "success"}
+	return HttpResponse(json.dumps(model), content_type='application/json')

@@ -26,4 +26,5 @@ jochre_search_django/static/
 logs/
 ant/conf.xml
 target/
+jochre_search_django/jochre/migrations
 
