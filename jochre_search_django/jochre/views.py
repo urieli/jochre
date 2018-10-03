@@ -30,7 +30,7 @@ def search(request):
 	
 	author = ''
 	if 'author' in request.GET:
-		author = request.GET['author']
+		author = "|".join(request.GET.getlist('author'))
 		
 	title = ''
 	if 'title' in request.GET:

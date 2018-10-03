@@ -154,13 +154,13 @@ function transformKeyPress(textfield, evt) {
 			<div class="input-group input-group-sm m-1">
 				<label for="txtAuthor">{{ Strings.authorField }}:&nbsp;</label>
 				<div class="alert-auto">
-					<input id="txtAuthor" class="typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
+					<input id="txtAuthor" name="author" class="typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
 					<input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
 				</div>
 				<div class="input-group-append">
 					&nbsp;<button type="button" id="addAuthor" class="btn btn-secondary btn-sm" aria-label="add author">+</button>
-					&nbsp;✓<input type="radio" name="authorInclude" value="true" checked="true">
-					&nbsp;✗<input type="radio" name="authorInclude" value="false">
+					&nbsp;✓<input type="radio" name="authorInclude" value="true" {% if authorInclude %}checked="true"{% endif %}>
+					&nbsp;✗<input type="radio" name="authorInclude" value="false" {% if not authorInclude %}checked="true"{% endif %}>
 				</div>
 			</div>
 		</div>
