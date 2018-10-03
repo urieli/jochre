@@ -29,6 +29,7 @@ def search(request):
 		query = request.GET['query']
 	
 	author = ''
+	hasAuthors = False
 	if 'author' in request.GET:
 		author = "|".join(request.GET.getlist('author'))
 		hasAuthors = len(author.replace("|", ""))>0
