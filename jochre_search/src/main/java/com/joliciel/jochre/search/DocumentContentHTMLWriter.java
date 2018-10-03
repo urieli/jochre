@@ -80,6 +80,8 @@ public class DocumentContentHTMLWriter {
 						// always assume it's a soft hyphen.
 						sb.append(before.substring(0, before.length() - 1));
 					}
+				} else {
+					sb.append(before);
 				}
 			} else if (JochreSearchConstants.INDEX_PARAGRAPH.equals(newline)) {
 				sb.append(before);
