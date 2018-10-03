@@ -82,6 +82,7 @@ public class DocumentContentHTMLWriter {
 					}
 				} else {
 					sb.append(before);
+					sb.append(" ");
 				}
 			} else if (JochreSearchConstants.INDEX_PARAGRAPH.equals(newline)) {
 				sb.append(before);
