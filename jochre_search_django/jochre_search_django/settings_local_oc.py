@@ -108,4 +108,6 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordLanguage" : u"Language",
 }
 
-DEFAULT_KEYBOARD_MAPPINGS = {}
+KEYBOARD_MAPPINGS_ENABLED = False
+
+KEYBOARD_MAPPINGS = {}

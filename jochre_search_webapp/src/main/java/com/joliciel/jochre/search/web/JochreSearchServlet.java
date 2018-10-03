@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.JochreSearch;
+import com.joliciel.jochre.search.JochreSearch.Command;
 import com.joliciel.jochre.utils.Either;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -66,9 +67,7 @@ public class JochreSearchServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json;charset=UTF-8");
 
-			String command = req.getParameter("command");
-			if (command == null)
-				command = JochreSearch.Command.search.name();
+			Command command = Command.valueOf(req.getParameter("command"));
 			user = req.getParameter("user");
 
 			if (command.equals("logConfig")) {
@@ -93,13 +92,11 @@ public class JochreSearchServlet extends HttpServlet {
 
 			Either<PrintWriter, OutputStream> out;
 
-			if (!command.equals(JochreSearch.Command.imageSnippet.name()) && !command.equals(JochreSearch.Command.wordImage.name())) {
-				response.setContentType("text/plain;charset=UTF-8");
-				out = Either.ofLeft(response.getWriter());
-			} else {
-				String mimeType = "image/png";
-				response.setContentType(mimeType);
+			response.setContentType(command.getContentType());
+			if (command.getContentType().startsWith("image")) {
 				out = Either.ofRight(response.getOutputStream());
+			} else {
+				out = Either.ofLeft(response.getWriter());
 			}
 
 			Config config = ConfigFactory.load();
