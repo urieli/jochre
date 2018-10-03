@@ -362,8 +362,10 @@ $("#txtAuthor").keypress(function(evt){
 			</div>
 		{% endif %}
 		</div>
-		<div class="row collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
-			<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="imageSnippet"></div>
+		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+			<div class="col-lg-6 col-md-9 col-12">
+				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="imageSnippet"></div>
+			</div>
 		</div>
 		<script>
 		$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
