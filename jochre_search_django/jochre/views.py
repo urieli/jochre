@@ -31,6 +31,7 @@ def search(request):
 	author = ''
 	if 'author' in request.GET:
 		author = "|".join(request.GET.getlist('author'))
+		hasAuthors = len(author.replace("|", ""))>0
 		
 	title = ''
 	if 'title' in request.GET:
@@ -56,7 +57,7 @@ def search(request):
 	if 'sortBy' in request.GET:
 		sortBy = request.GET['sortBy']
 	
-	if len(author)>0 or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc':
+	if hasAuthors or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc':
 		advancedSearch = True
 
 	displayAdvancedSearch = False

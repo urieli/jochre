@@ -154,7 +154,7 @@ function transformKeyPress(textfield, evt) {
 			<div class="input-group input-group-sm m-1">
 				<label for="txtAuthor">{{ Strings.authorField }}:&nbsp;</label>
 				<div class="alert-auto">
-					<input id="txtAuthor" name="author" class="typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
+					<input id="txtAuthor" name="author" class="form-control typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
 					<input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
 				</div>
 				<div class="input-group-append">
@@ -183,16 +183,16 @@ function transformKeyPress(textfield, evt) {
 		</script>
 		</div>
 	</div>
-	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
 			<div class="input-group input-group-sm m-1">
 				<label for="txtTitle">{{ Strings.titleField }}:&nbsp;</label>
 				<input type="text" id="txtTitle" name="title" class="form-control{% if RTL %} rtl{% endif %}" value="{{ title }}" placeholder="{{ Strings.titleField }}" />
 			</div>
 		</div>
 	</div>
-	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
 			<div class="input-group input-group-sm m-1">
 				<label for="txtFromYear">{{ Strings.fromYearField }}:&nbsp;</label>
 				<input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}"">
@@ -201,16 +201,16 @@ function transformKeyPress(textfield, evt) {
 			</div>
 		</div>
 	</div>
-	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
 			<div class="input-group input-group-sm m-1 checkboxes">
 				<label for="chkStrict"><input id="chkStrict" type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
 				<span>{{ Strings.strictField }}?</span></label>
 			</div>
 		</div>
 	</div>
-	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %}">
+	<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
+		<div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
 			<div class="input-group input-group-sm m-1">
 				<label for="selSortBy">{{ Strings.sortBy }}:&nbsp;</label>
 				<select class="form-control" id="selSortBy" name="sortBy">
