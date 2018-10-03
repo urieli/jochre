@@ -14,10 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.urls import path
-from jochre.views import search, keyboard, updateKeyboard
+from jochre.views import search, keyboard, updateKeyboard, contents
 
 urlpatterns = [
 	path('', search, name='home'),
 	path('keyboard', keyboard, name='keyboard'),
 	path('updateKeyboard', updateKeyboard, name='updateKeyboard'),
+	path('contents', contents, name='contents'),
 ]

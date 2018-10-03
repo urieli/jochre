@@ -323,3 +323,34 @@ def updateKeyboard(request):
 
 	model = {"result": "success"}
 	return HttpResponse(json.dumps(model), content_type='application/json')
+
+def contents(request):
+	logger = logging.getLogger(__name__)
+
+	if not request.user.is_authenticated:
+		return redirect('accounts/login/')
+
+	searchUrl = settings.JOCHRE_SEARCH_URL
+	username = request.user.username
+	ip = get_client_ip(request)
+
+	contents = ''
+	if 'doc' in request.GET:
+		doc = request.GET['doc']
+
+		userdata = {"command": "contents",
+					"docName": doc,
+					"user": username,
+					"ip": ip,
+					}
+
+		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+
+		resp = requests.get(searchUrl, userdata)
+		contents = resp.text
+
+	model = {"contents": contents,
+					"RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT)
+					}
+
+	return render(request, 'contents.html', model)

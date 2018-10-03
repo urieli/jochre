@@ -2,30 +2,29 @@
 <!doctype html>
 <html lang="en">
 <head>
-<!-- Required meta tags -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<!-- Bootstrap CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
 <title>Jochre Search</title>
+
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/typeaheadjs.css' %}" />
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 <body>
-<script
-				src="https://code.jquery.com/jquery-3.3.1.min.js"
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
 				integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
 				crossorigin="anonymous"></script>
-<script
-				src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
 				integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
 				crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+				integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+				crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+				integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+				crossorigin="anonymous"></script>
 <script src="http://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
 
 {% include "header-local.html" %}
@@ -343,24 +342,15 @@ $("#txtAuthor").keypress(function(evt){
 		 <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
 	{% else %}
 	{% for snippet in result.snippets %}
-		<div class="row">
-		{% if RTL %}
-			<div class="col-11">
-				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetRtl rtl">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
-			</div>
+		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
 			<div class="col-1">
-				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>&nbsp;&nbsp;
 				<b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>
-			</div>
-		{% else %}
-			<div class="col-1">
-				<b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>&nbsp;&nbsp;
+				<a href="/contents?doc={{ result.name }}#page{{ snippet.pageNumber }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a>
 				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>
 			</div>
 			<div class="col-11">
-				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
+				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetRtl rtl">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
 			</div>
-		{% endif %}
 		</div>
 		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
 			<div class="col-lg-6 col-md-9 col-12">

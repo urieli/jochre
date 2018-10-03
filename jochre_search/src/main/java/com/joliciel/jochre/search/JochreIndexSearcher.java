@@ -178,6 +178,7 @@ public class JochreIndexSearcher {
 	/**
 	 * Find all documents corresponding to a given name.
 	 * 
+	 * @return a Map of lucene id and lucene document
 	 * @throws IOException
 	 */
 	public Map<Integer, Document> findDocuments(String name) throws IOException {

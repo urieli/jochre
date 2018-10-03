@@ -31,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,67 +109,82 @@ public class JochreSearch {
 		/**
 		 * Start a thread to update the index, takin ginto account any recent changes.
 		 */
-		index,
+		index("application/json;charset=UTF-8"),
 		/**
 		 * Search the index.
 		 */
-		search,
+		search("application/json;charset=UTF-8"),
 		/**
 		 * Return the terms corresponding to a given search query.
 		 */
-		highlight,
+		highlight("application/json;charset=UTF-8"),
 		/**
 		 * Return the most relevant snippets corresponding to a given search query.
 		 */
-		snippets,
+		snippets("application/json;charset=UTF-8"),
 		/**
 		 * List all of the fields in a given index document.
 		 */
-		view,
+		view("application/json;charset=UTF-8"),
 		/**
 		 * List all of the terms in a given index document.
 		 */
-		list,
+		list("application/json;charset=UTF-8"),
 		/**
 		 * Return the image corresponding to a specific word.
 		 */
-		wordImage,
+		wordImage("image/png"),
 		/**
 		 * Make a suggestion for an OCR error.
 		 */
-		suggest,
+		suggest("application/json;charset=UTF-8"),
 		/**
 		 * Serialize a lexicon.
 		 */
-		serializeLexicon,
+		serializeLexicon("application/json;charset=UTF-8"),
 		/**
 		 * Deserialize a lexicon and test certain words.
 		 */
-		deserializeLexicon,
+		deserializeLexicon("application/json;charset=UTF-8"),
 		/**
 		 * Return the highlighted text corresponding to a particular snippet.
 		 */
-		textSnippet,
+		textSnippet("application/json;charset=UTF-8"),
 		/**
 		 * Return the image corresponding to a particular snippet.
 		 */
-		imageSnippet,
+		imageSnippet("image/png"),
 		/**
 		 * Find the word corresponding to a particular document location.
 		 */
-		word,
+		word("application/json;charset=UTF-8"),
 		/**
 		 * Check the status of the index update thread.
 		 */
-		indexStatus,
+		indexStatus("application/json;charset=UTF-8"),
 		/**
 		 * Refresh the index reader, to take into account any index updates.
 		 */
-		refresh,
+		refresh("application/json;charset=UTF-8"),
 		/**
 		 * Search a given set of fields for the top-n terms matching a given prefix.
 		 */
-		prefixSearch
+		prefixSearch("application/json;charset=UTF-8"),
+		/**
+		 * Write document contents as HTML.
+		 */
+		contents("text/html;charset=UTF-8");
+
+		private final String contentType;
+
+		private Command(String contentType) {
+			this.contentType = contentType;
+		}
+
+		public String getContentType() {
+			return contentType;
+		}
+
 	}
 
 	public void execute(Map<String, String> argMap, Either<PrintWriter, OutputStream> output) {
@@ -731,6 +748,32 @@ public class JochreSearch {
 				}
 				break;
 			}
+			case contents: {
+				if (docName == null)
+					throw new RuntimeException("For command " + command + " docName is required");
+				IndexSearcher indexSearcher = searchManager.getManager().acquire();
+				try {
+					JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, searchConfig);
+					Map<Integer, Document> docMap = searcher.findDocuments(docName);
+					List<JochreIndexDocument> docs = new ArrayList<>();
+					for (int id : docMap.keySet())
+						docs.add(new JochreIndexDocument(indexSearcher, id, searchConfig));
+					Collections.sort(docs, new Comparator<JochreIndexDocument>() {
+						@Override
+						public int compare(JochreIndexDocument d1, JochreIndexDocument d2) {
+							return d1.getSectionNumber() - d2.getSectionNumber();
+						}
+					});
+					for (JochreIndexDocument doc : docs) {
+						DocumentContentHTMLWriter htmlWriter = new DocumentContentHTMLWriter(out, doc, searchConfig);
+						htmlWriter.writeContents();
+					}
+
+				} finally {
+					searchManager.getManager().release(indexSearcher);
+				}
+				break;
+			}
 			case serializeLexicon: {
 				if (lexiconDirPath == null)
 					throw new RuntimeException("For command " + command + " lexiconDir is required");
@@ -773,6 +816,10 @@ public class JochreSearch {
 				throw new RuntimeException("Unknown command: " + command);
 			}
 			}
+			if (output.isLeft())
+				output.getLeft().flush();
+			else
+				output.getRight().flush();
 		} catch (RuntimeException e) {
 			LOG.error("Failed to run command " + command, e);
 			throw e;
@@ -823,9 +870,9 @@ public class JochreSearch {
 			String configId = argMap.get("configId");
 			argMap.remove("configId");
 
-			String command = argMap.get("command");
+			Command command = Command.valueOf(argMap.get("command"));
 			Either<PrintWriter, OutputStream> output;
-			if (command.equals(JochreSearch.Command.imageSnippet.name()) && !command.equals(JochreSearch.Command.wordImage.name())) {
+			if (command.getContentType().startsWith("image")) {
 				String outFilePath = argMap.get("outFile");
 				argMap.remove("outFile");
 				File outfile = new File(outFilePath);

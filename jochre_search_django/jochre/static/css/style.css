@@ -1,41 +1,21 @@
-BODY { background-color: #ffffff; color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
-H1 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 18px; }
-H2 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 16px;}
-H3 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 14px; }
-H4 { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 13px; }
-DIV { color: #660033; font-family: Verdana, Helvetica, Arial; vertical-align: top; }
-.title { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 18px; vertical-align: top; }
-.titleRtl { color: #660033; font-size: 24px; vertical-align: top;  }
-.author { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; vertical-align: top; }
-.authorRtl { color: #660033; font-size: 18px; vertical-align: top;  }
-INPUT { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 16px; }
-INPUT[type="text"] { color: #660033; font-family: "Times New Roman", Times, serif; font-size: 14px; }
-INPUT[type="text"].RTL { color: #660033; font-family: "Times New Roman", Times, serif; font-size: 16px; text-align: right; direction: rtl;  }
-INPUT[type="button"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Verdana, Helvetica, Arial; font-size: 13px; FONT-WEIGHT: bold; }
-INPUT[type="submit"] { background-color: #FFCC66; border-bottom: ridge; border-left: ridge; border-right: ridge; border-top: ridge; color: #660000; font-family: Serif; font-size: 18px; FONT-WEIGHT: bold; }
-TEXTAREA { color: #660033; font-family: Arial, Helvetica; font-size: 12px; }
-P { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
-LI { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
-SELECT { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
-OPTION { color: #660033; font-family: Verdana, Helvetica, Arial; font-size: 12px; }
-.mainmenu { font-size : 11px; color : #000000 }
-A.mainmenu { text-decoration: none; font-weight: normal; color : #660033;  }
-A.mainmenu:hover{ text-decoration: underline; font-weight: normal; color : #000000; }
+BODY { background-color: #ffffff; font-family: Verdana, Helvetica, Arial; }
+.title { font-family: Verdana, Helvetica, Arial; font-size: 18px; vertical-align: top; }
+.titleRtl { font-size: 24px; vertical-align: top;  }
+.author { font-family: Verdana, Helvetica, Arial; font-size: 12px; vertical-align: top; }
+.authorRtl { font-size: 18px; vertical-align: top;  }
 A { font-weight: bold; color: #CC6600; text-decoration: none; vertical-align: top; }
-A.simple {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: normal; color: #660000; text-decoration: none}
-A.darklink {  font-family: Verdana, Arial, Helvetica, sans-serif; font-weight: bold; color: #660000; text-decoration: none}
 A:hover { text-decoration: underline; }
-A.simple:hover {  text-decoration: underline; }
 .rtl {
-	font-family: Serif;
+	font-family: "Times New Roman", Times, serif;
 	text-align: right;
 	direction: rtl;
 }
-.snippet { color: #660033; font-family: Serif; text-align: left; vertical-align: top; direction: ltr; }
-.snippetRtl { color: #660033; font-size: 16px; }
+INPUT[type="text"].rtl { font-size: 16px; }
+H1.rtl { font-size: 24px; }
+.snippet { font-family: "Times New Roman", Times, serif; text-align: left; vertical-align: top; direction: ltr; }
+.snippetRtl { font-size: 16px; }
 .imageSnippet {}
 .image { border:1px solid #021a40; width: 100%; }
-H1.rtl { font-size: 24px; }
 .black-separator { background-color: black; height: 5px; }
 .alert-auto {display:inline-block;} 
 .highlight {font-weight: 900;}
