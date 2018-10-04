@@ -182,7 +182,11 @@ public class JochreSearch {
 		/**
 		 * Write document contents as HTML.
 		 */
-		contents("text/html;charset=UTF-8");
+		contents("text/html;charset=UTF-8"),
+		/**
+		 * How many books were indexed by the current searcher.
+		 */
+		bookCount("application/json;charset=UTF-8");
 
 		private final String contentType;
 
@@ -833,6 +837,26 @@ public class JochreSearch {
 						DocumentContentHTMLWriter htmlWriter = new DocumentContentHTMLWriter(out, doc, config);
 						htmlWriter.writeContents();
 					}
+
+				} finally {
+					searchManager.getManager().release(indexSearcher);
+				}
+				break;
+			}
+			case bookCount: {
+				IndexSearcher indexSearcher = searchManager.getManager().acquire();
+				try {
+					int bookCount = ((JochreSearcher) indexSearcher).getBookCount();
+					JsonFactory jsonFactory = new JsonFactory();
+					JsonGenerator jsonGen = jsonFactory.createGenerator(out);
+
+					jsonGen.writeStartObject();
+					jsonGen.writeNumberField("bookCount", bookCount);
+					jsonGen.writeEndObject();
+
+					jsonGen.flush();
+					out.write("\n");
+					out.flush();
 
 				} finally {
 					searchManager.getManager().release(indexSearcher);

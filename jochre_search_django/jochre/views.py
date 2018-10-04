@@ -268,6 +268,18 @@ def search(request):
 							result['snippets'] = snippetsToSend
 					
 	model["haveResults"] = haveResults
+
+	userdata = {"command": "bookCount",
+				"user": username,
+				"ip": ip,
+				}
+
+	logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+
+	resp = requests.get(searchUrl, userdata).json()
+	bookCount = resp["bookCount"]
+	model["bookCount"] = bookCount
+
 	return render(request, 'search.html', model)
 
 @register.filter
