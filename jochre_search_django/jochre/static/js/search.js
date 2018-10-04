@@ -76,11 +76,12 @@ $(function() {
 		return transformKeyPress(this, evt);
 	});
 
-	$('#selFont').on('change', function() {
-		imgFont.src = "{% static 'images/' %}" + this.value + ".png";
-	});
 	$('#imgFixWord').on('load', function() {
 		$("#imgWordLoading").hide();
+	});
+
+	$('#selFont').on('change', function() {
+		$("#imgFont").attr("src", `${STATIC_LOCATION}images/${this.value}.png`);
 	});
 
 	$('#btnKeyboardDefault').click( function() {
@@ -243,10 +244,10 @@ function fixWord(evt, docId) {
 	$("#txtSuggestion2").hide();
 	$("#imgFixWord").attr("src",`${JOCHRE_SEARCH_EXT_URL}?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
 	
-	$("#selFont").val($("#selFont option:first").val());;
-	$("#selLang").val($("#selLang option:first").val());;
+	$("#selFont").val($("#selFont option:first").val());
+	$("#selLang").val($("#selLang option:first").val());
 	
-	$("#imgFont").attr("src","{% static defaultFontImage %}");
+	$("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selFont').val()}.png`);
 	
 	$.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
 			$.each( data, function( key, val ) {

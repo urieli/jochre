@@ -92,7 +92,6 @@ def search(request):
 			 "JOCHRE_FONT_NAMES" : settings.JOCHRE_FONT_NAMES,
 			 "JOCHRE_LANGUAGE_LIST" : settings.JOCHRE_LANGUAGE_LIST,
 			 "JOCHRE_LANGUAGE_NAMES" : settings.JOCHRE_LANGUAGE_NAMES,
-			 "defaultFontImage" : "images/" + settings.JOCHRE_FONT_LIST[0] + ".png",
 			 "ip": ip,
 			 }
 			 

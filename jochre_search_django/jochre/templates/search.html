@@ -33,6 +33,7 @@
 	var JOCHRE_SEARCH_EXT_URL = "{{ JOCHRE_SEARCH_EXT_URL }}";
 	var USERNAME = "{{ request.user.username }}";
 	var IP = "{{ ip }}";
+	var STATIC_LOCATION = "{% static "" %}";
 </script>
 <script src="{% static "js/search.js" %}"></script>
 
@@ -307,7 +308,7 @@
 						</div>
 						<div class="form-group row">
 							<label class="col-2 col-form-label">{{ Strings.fixWordFontExample }}</label>
-							<div class="col-10"><img id="imgFont" src="{% static defaultFontImage %}" style="max-width: 95%; max-height:32px;" /></div>
+							<div class="col-10"><img id="imgFont" style="max-width: 95%; max-height:32px;" /></div>
 						</div>
 						<div class="form-group row">
 							<label for="selLang" class="col-2 col-form-label">{{ Strings.fixWordLanguage }}</label>
