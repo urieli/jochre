@@ -1,13 +1,7 @@
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
-import java.io.Writer;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.ParseException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,9 +24,6 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-
 /**
  * A reusable index searcher tied to a given index directory.
  * 
@@ -43,9 +34,6 @@ public class JochreIndexSearcher {
 	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexSearcher.class);
 
 	private final IndexSearcher indexSearcher;
-
-	private DecimalFormatSymbols enSymbols = new DecimalFormatSymbols(Locale.US);
-	private Map<Integer, DecimalFormat> decimalFormats = new HashMap<>();
 	private final int maxDocs;
 
 	public JochreIndexSearcher(IndexSearcher indexSearcher, JochreSearchConfig config) {
@@ -90,89 +78,6 @@ public class JochreIndexSearcher {
 			}
 		}
 		return Pair.of(topDocs, totalHits);
-	}
-
-	/**
-	 * Write query results in JSON to the provided Writer.
-	 * 
-	 * @return the number of results
-	 */
-	public long search(JochreQuery jochreQuery, int pageNumber, int resultsPerPage, Writer out) throws IOException {
-		try {
-			Pair<TopDocs, Integer> result = this.search(jochreQuery, pageNumber, resultsPerPage);
-			DecimalFormat df = this.getDecimalFormat(jochreQuery.getDecimalPlaces());
-
-			JsonFactory jsonFactory = new JsonFactory();
-			JsonGenerator jsonGen = jsonFactory.createGenerator(out);
-
-			jsonGen.writeStartObject();
-			jsonGen.writeNumberField("totalHits", result.getRight());
-			jsonGen.writeArrayFieldStart("results");
-
-			for (ScoreDoc scoreDoc : result.getLeft().scoreDocs) {
-				Document doc = indexSearcher.doc(scoreDoc.doc);
-				jsonGen.writeStartObject();
-				jsonGen.writeNumberField("docId", scoreDoc.doc);
-				jsonGen.writeStringField(JochreIndexField.name.name(), doc.get(JochreIndexField.name.name()));
-				jsonGen.writeNumberField(JochreIndexField.startPage.name(), doc.getField(JochreIndexField.startPage.name()).numericValue().intValue());
-				jsonGen.writeNumberField(JochreIndexField.endPage.name(), doc.getField(JochreIndexField.endPage.name()).numericValue().intValue());
-				jsonGen.writeNumberField(JochreIndexField.sectionNumber.name(),
-						Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue()));
-				jsonGen.writeStringField(JochreIndexField.path.name(), doc.get(JochreIndexField.path.name()));
-				jsonGen.writeStringField(JochreIndexField.id.name(), doc.get(JochreIndexField.id.name()));
-				String author = doc.get(JochreIndexField.authorEnglish.name());
-				if (author != null)
-					jsonGen.writeStringField(JochreIndexField.authorEnglish.name(), author);
-				String title = doc.get(JochreIndexField.titleEnglish.name());
-				if (title != null)
-					jsonGen.writeStringField(JochreIndexField.titleEnglish.name(), title);
-				String url = doc.get(JochreIndexField.url.name());
-				if (url != null)
-					jsonGen.writeStringField(JochreIndexField.url.name(), url);
-				String authorLang = doc.get(JochreIndexField.author.name());
-				if (authorLang != null)
-					jsonGen.writeStringField(JochreIndexField.author.name(), authorLang);
-				String titleLang = doc.get(JochreIndexField.title.name());
-				if (titleLang != null)
-					jsonGen.writeStringField(JochreIndexField.title.name(), titleLang);
-				String volume = doc.get(JochreIndexField.volume.name());
-				if (volume != null)
-					jsonGen.writeStringField(JochreIndexField.volume.name(), volume);
-				String publisher = doc.get(JochreIndexField.publisher.name());
-				if (publisher != null)
-					jsonGen.writeStringField(JochreIndexField.publisher.name(), publisher);
-				String date = doc.get(JochreIndexField.date.name());
-				if (date != null)
-					jsonGen.writeStringField(JochreIndexField.date.name(), date);
-
-				double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
-				jsonGen.writeNumberField("score", roundedScore);
-
-				jsonGen.writeEndObject();
-			}
-
-			jsonGen.writeEndArray();
-			jsonGen.writeEndObject();
-			jsonGen.flush();
-
-			return result.getRight();
-		} catch (ParseException e) {
-			LOG.error("Failed search using jochreQuery " + jochreQuery.toString(), e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	private DecimalFormat getDecimalFormat(int decimalPlaces) {
-		DecimalFormat df = this.decimalFormats.get(decimalPlaces);
-		if (df == null) {
-			String dfFormat = "0.";
-			for (int i = 0; i < decimalPlaces; i++) {
-				dfFormat += "0";
-			}
-			df = new DecimalFormat(dfFormat, enSymbols);
-			decimalFormats.put(decimalPlaces, df);
-		}
-		return df;
 	}
 
 	/**

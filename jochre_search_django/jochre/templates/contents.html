@@ -28,6 +28,8 @@
 {% include "header-local.html" %}
 
 <div class="{% if RTL %}rtl{% endif %}">
+	<H1>{{ doc.title }}</H1>
+	<H2>{{ doc.author }}</H2>
 {% autoescape off %}{{ contents }}{% endautoescape %}
 </div>
 
@@ -40,5 +42,22 @@ $(document).ready(function() {
       }, 1000);
 });
 </script>
+
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<hr/>
+		</div>
+	</div>
+</div>
+<div class="d-flex justify-content-center">
+	<div class="row">
+		<div class="col">
+			<strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"	/></a>
+		</div>
+	</div>
+</div>
+</body>
+</html>
 </body>
 </html>

@@ -51,7 +51,6 @@ public class JochreQuery {
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
-	private int decimalPlaces = 4;
 	private final String queryString;
 	private final List<String> authors;
 	private final boolean authorInclude;
@@ -59,7 +58,7 @@ public class JochreQuery {
 	private Query luceneQuery = null;
 	private Query luceneTextQuery = null;
 	private int[] docIds = null;
-	private boolean expandInflections = true;
+	private final boolean expandInflections;
 	private final JochreSearchConfig config;
 	private final SortBy sortBy;
 	private final boolean sortAscending;
@@ -67,16 +66,16 @@ public class JochreQuery {
 	private final Integer toYear;
 
 	public JochreQuery(JochreSearchConfig config, String queryString) {
-		this(config, queryString, new ArrayList<>(), true, "", null, null);
+		this(config, queryString, new ArrayList<>(), true, "", null, null, true);
 	}
 
 	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-			Integer toYear) {
-		this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, SortBy.Score, true);
+			Integer toYear, boolean expandInflections) {
+		this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections, SortBy.Score, true);
 	}
 
 	public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-			Integer toYear, SortBy sortBy, boolean sortAscending) {
+			Integer toYear, boolean expandInflections, SortBy sortBy, boolean sortAscending) {
 		this.config = config;
 		this.queryString = queryString;
 		this.authors = authors;
@@ -84,22 +83,9 @@ public class JochreQuery {
 		this.titleQueryString = titleQueryString;
 		this.fromYear = fromYear;
 		this.toYear = toYear;
+		this.expandInflections = expandInflections;
 		this.sortBy = sortBy;
 		this.sortAscending = sortAscending;
-	}
-
-	/**
-	 * The number of decimal places to display for each score. Default is 4.
-	 */
-	public int getDecimalPlaces() {
-		return decimalPlaces;
-	}
-
-	public void setDecimalPlaces(int decimalPlaces) {
-		if (this.decimalPlaces != decimalPlaces) {
-			this.decimalPlaces = decimalPlaces;
-
-		}
 	}
 
 	/**
@@ -222,10 +208,6 @@ public class JochreQuery {
 	 */
 	public boolean isExpandInflections() {
 		return expandInflections;
-	}
-
-	public void setExpandInflections(boolean expandInflections) {
-		this.expandInflections = expandInflections;
 	}
 
 	public Integer getFromYear() {

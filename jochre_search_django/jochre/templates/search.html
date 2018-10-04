@@ -233,19 +233,8 @@ function transformKeyPress(textfield, evt) {
 		limit: 100,
 		source: function (q, sync, async) {
 			console.log(q);
-			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=8`, function( data ) {
-				var matches = [];
-				$.each( data, function( key, val ) {
-					console.log(`${key}: ${val}`);
-					if (key=="results") {
-						for (var i = 0, len = val.length; i < len; i++) {
-							console.log(val[i]);
-							matches.push(val[i]);
-						 }
-					}
-				});
-				console.log(`returning ${matches}`);
-				async(matches);
+			$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=prefixSearch&prefix=${q}&field=author&maxResults=8`, function( matches ) {
+				async(matches)
 			});
 		}
 	});
@@ -314,28 +303,28 @@ $("#txtAuthor").keypress(function(evt){
 		<div class="col"><div class="black-separator"></div></div>
 	</div>
 	<div class="row">
-		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
 		{% if RTL %}
-			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.titleAndVolume }}</a>{% endif %}</div></div>
+			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
 		{% endif %}
 	</div>
 	<div class="row">
-		<div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.authorEnglish }}</div></div>
+		<div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}</div></div>
 		{% if RTL %}
-			<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.author }}</div></div>
+			<div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}</div></div>
 		{% endif %}
 	</div>
 	<div class="row">
-		<div class="col" class="author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.startPage }} {{ Strings.to }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div>
+		<div class="col" class="author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.doc.startPage }} {{ Strings.to }} {{ result.doc.endPage }}{% if readOnline %}</a>{% endif %}</div>
 		{% if RTL %}
-			<div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.startPage }} {{ Strings.toRTL }} {{ result.endPage }}{% if readOnline %}</a>{% endif %}</div></div>
+			<div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.doc.startPage }} {{ Strings.toRTL }} {{ result.doc.endPage }}{% if readOnline %}</a>{% endif %}</div></div>
 		{% endif %}
 	</div>
 	{% if result.publisher %}
-		<div class="row"><div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.publisher }}</div></div></div>
+		<div class="row"><div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div></div>
 	{% endif %}
 	{% if result.date %}
-		<div class="row"><div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.date }} </div></div></div>
+		<div class="row"><div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div></div>
 	{% endif %}
 	{% if result.snippetError %}
 		 <p style="color:red;">{{ result.snippetError.message }}</p>
@@ -343,111 +332,36 @@ $("#txtAuthor").keypress(function(evt){
 	{% else %}
 	{% for snippet in result.snippets %}
 		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-			<div class="col-1">
+			<div class="col-2 col-xl-1 {% if RTL %}rtl{% endif %}">
 				<b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>
-				<a href="/contents?doc={{ result.name }}#page{{ snippet.pageNumber }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a>
-				<span id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></span>
+				<a href="/contents?doc={{ result.doc.name }}#page{{ snippet.pageNumber }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a>
+				<a id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" data-toggle="collapse" href="#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></a>
 			</div>
-			<div class="col-11">
-				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippetRtl rtl">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
+			<div class="col-10 col-xl-11 {% if RTL %}rtl{% endif %}">
+				<div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet{% if RTL %}Rtl{% endif %}">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
 			</div>
 		</div>
-		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} collapse mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
-			<div class="col-lg-6 col-md-9 col-12">
-				<div id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="imageSnippet"></div>
+		<div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} mr-1 ml-1" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+			<div class="col-xl-6 col-lg-8 col-md-10 col-12 collapse" id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
 			</div>
 		</div>
 		<script>
+
+		$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").click(function(evt){
+			window.open('{{ snippet.readOnlineUrl }}', '_blank');
+		});
+
 		$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
-		$("#img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
+		$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on('show.bs.collapse', function () {
 			if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
 				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" class="image" />');
 				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
 			}
-			$("#imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").toggle();
-			});
-		$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on("click",function(){
-			window.open('{{ snippet.readOnlineUrl }}', '_blank');
 		});
 		
 		{% if JOCHRE_CROWD_SOURCE %}
-		$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").bind("dblclick",function(event){
-			var sel = window.getSelection();
-					
-			var localOffset = sel.anchorOffset;
-			var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
-			var wordOffset = globalOffset + localOffset;
-			
-			console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
-			$('#alertFixWordSuccess').hide();
-			$('#alertFixWordError').hide();
-
-			function applyFix() {
-				$("#imgWordLoading").show();
-
-				var suggestion = document.getElementById("txtSuggestion").value;
-				var suggestion2 = document.getElementById("txtSuggestion2").value;
-				
-				var selFont = document.getElementById("selFont");
-				var fontCode = selFont.options[selFont.selectedIndex].value;
-
-				var selLang = document.getElementById("selLang");
-				var languageCode = selLang.options[selLang.selectedIndex].value;
-				
-				$.ajax({
-					url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
-						+ "&docId={{ result.docId }}"
-						+ "&startOffset=" + wordOffset
-						+ "&user={{ request.user.username }}"
-						+ "&ip={{ ip }}"
-						+ "&suggestion=" + encodeURIComponent(suggestion)
-						+ "&suggestion2=" + encodeURIComponent(suggestion2)
-						+ "&fontCode=" + encodeURIComponent(fontCode)
-						+ "&languageCode=" + encodeURIComponent(languageCode),
-					dataType: 'json',
-					success: function( data ) {
-						$("#imgWordLoading").hide();
-						$('#alertFixWordError').hide();
-						$('#alertFixWordSuccess').show();
-					},
-					error: function(XMLHttpRequest, textStatus, errorThrown) {
-						$("#imgWordLoading").hide();
-						$('#alertFixWordError').show();
-						$('#alertFixWordSuccess').hide();
-						},
-					});
-			}
-			
-			$('#btnSaveFixWord').on('click', function (e) {
-				applyFix();
-			});
-			
-			$("#imgFixWord").attr("src","");
-			$("#imgWordLoading").show();
-			$("#txtSuggestion").val("");
-			$("#txtSuggestion2").val("");
-			$("#txtSuggestion2").hide();
-			$("#imgFixWord").attr("src",'{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId={{ result.docId }}&startOffset=' + wordOffset);
-			
-			$("#selFont").val($("#selFont option:first").val());;
-			$("#selLang").val($("#selLang option:first").val());;
-			
-			$("#imgFont").attr("src","{% static defaultFontImage %}");
-			
-			$.getJSON( "{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId={{ result.docId }}&startOffset=" + wordOffset, function( data ) {
-					$.each( data, function( key, val ) {
-						if (key=="word") {
-							console.log(`found word : ${val}`);
-							$("#txtSuggestion").val(val);
-						} else if (key=="word2") {
-							console.log(`found word2 : ${val}`);
-							$("#txtSuggestion2").val(val);
-							$("#txtSuggestion2").show();
-						}
-					});
-				});
-
-			$("#fixWordModal").modal()
+		$("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").dblclick(function(evt){
+			fixWord(evt, {{ result.doc.docId }});
 		});
 		{% endif %}
 		</script>
@@ -560,6 +474,85 @@ $("#txtAuthor").keypress(function(evt){
 </div>
 
 <script>
+function fixWord(evt, docId) {
+	var sel = window.getSelection();
+			
+	var localOffset = sel.anchorOffset;
+	var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
+	var wordOffset = globalOffset + localOffset;
+	
+	console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
+	$('#alertFixWordSuccess').hide();
+	$('#alertFixWordError').hide();
+
+	function applyFix() {
+		$("#imgWordLoading").show();
+
+		var suggestion = $("#txtSuggestion").val();
+		var suggestion2 = $("#txtSuggestion2").val();
+		
+		var selFont = document.getElementById("selFont");
+		var fontCode = selFont.options[selFont.selectedIndex].value;
+
+		var selLang = document.getElementById("selLang");
+		var languageCode = selLang.options[selLang.selectedIndex].value;
+		
+		$.ajax({
+			url: "{{ JOCHRE_SEARCH_EXT_URL }}?command=suggest"
+				+ "&docId=" + docId
+				+ "&startOffset=" + wordOffset
+				+ "&user={{ request.user.username }}"
+				+ "&ip={{ ip }}"
+				+ "&suggestion=" + encodeURIComponent(suggestion)
+				+ "&suggestion2=" + encodeURIComponent(suggestion2)
+				+ "&fontCode=" + encodeURIComponent(fontCode)
+				+ "&languageCode=" + encodeURIComponent(languageCode),
+			dataType: 'json',
+			success: function( data ) {
+				$("#imgWordLoading").hide();
+				$('#alertFixWordError').hide();
+				$('#alertFixWordSuccess').show();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$("#imgWordLoading").hide();
+				$('#alertFixWordError').show();
+				$('#alertFixWordSuccess').hide();
+				},
+			});
+	}
+	
+	$('#btnSaveFixWord').click( function (e) {
+		applyFix();
+	});
+	
+	$("#imgFixWord").attr("src","");
+	$("#imgWordLoading").show();
+	$("#txtSuggestion").val("");
+	$("#txtSuggestion2").val("");
+	$("#txtSuggestion2").hide();
+	$("#imgFixWord").attr("src",`{{ JOCHRE_SEARCH_EXT_URL }}?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
+	
+	$("#selFont").val($("#selFont option:first").val());;
+	$("#selLang").val($("#selLang option:first").val());;
+	
+	$("#imgFont").attr("src","{% static defaultFontImage %}");
+	
+	$.getJSON( `{{ JOCHRE_SEARCH_EXT_URL }}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
+			$.each( data, function( key, val ) {
+				if (key=="word") {
+					console.log(`found word : ${val}`);
+					$("#txtSuggestion").val(val);
+				} else if (key=="word2") {
+					console.log(`found word2 : ${val}`);
+					$("#txtSuggestion2").val(val);
+					$("#txtSuggestion2").show();
+				}
+			});
+		});
+
+	$("#fixWordModal").modal();
+}
+
 $("#txtSuggestion").keypress(function(evt){
 	return transformKeyPress(this, evt);
 });
