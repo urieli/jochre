@@ -32,6 +32,7 @@ def search(request):
 	hasAuthors = False
 	if 'author' in request.GET:
 		author = "|".join(request.GET.getlist('author'))
+		author = author.replace("||", "|")
 		hasAuthors = len(author.replace("|", ""))>0
 		
 	title = ''
@@ -133,36 +134,44 @@ def search(request):
 		
 		results = resp.json()
 		
-		if len(results)==1 and 'parseException' in results[0]:
-			model["parseException"] = results[0]["message"]
+		if 'parseException' in results:
+			model["parseException"] = results=["message"]
 		else:
 			docIds = ''
 			totalHits = results['totalHits']
+			maxResults = results['maxResults']
 			docs = results['results']
 
 			for result in docs:
+				doc = result['doc']
 				if 'volume' in result:
 					if 'titleEnglish' in result:
-						result['titleEnglishAndVolume'] = result['titleEnglish'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
+						doc['titleEnglishAndVolume'] = doc['titleEnglish'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
 					else:
-						result['titleEnglishAndVolume'] = settings.JOCHRE_UI_STRINGS['volume'] + " " + result['volume']
-					if 'title' in result:
-						result['titleAndVolume'] = result['title'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
+						doc['titleEnglishAndVolume'] = settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
+					if 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
+						if 'title' in doc:
+							doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
+						else:
+							doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
 					else:
-						result['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  result['volume']
+						if 'title' in doc:
+							doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
+						else:
+							doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
 				else:
-					if 'titleEnglish' in result:
-						result['titleEnglishAndVolume'] = result['titleEnglish']
+					if 'titleEnglish' in doc:
+						doc['titleEnglishAndVolume'] = doc['titleEnglish']
 					else:
-						result['titleEnglishAndVolume'] = ''
-					if 'title' in result:
-						result['titleAndVolume'] = result['title']
+						doc['titleEnglishAndVolume'] = ''
+					if 'title' in doc:
+						doc['titleAndVolume'] = doc['title']
 					else:
-						result['titleAndVolume'] = ''
+						doc['titleAndVolume'] = ''
 				
 				if len(docIds)>0:
 					docIds += ','
-				docIds += str(result['docId'])
+				docIds += str(doc['docId'])
 			
 			if len(docs)>0:
 				haveResults = True
@@ -180,12 +189,15 @@ def search(request):
 				start = page * RESULTS_PER_PAGE + 1
 				end = start + RESULTS_PER_PAGE - 1
 				if end > totalHits: end = totalHits
+				if end > maxResults: end = maxResults
 				model["start"] = start
 				model["end"] = end
 				model["resultCount"] = totalHits
 
 				pageLinks = []
 				lastPage = totalHits // RESULTS_PER_PAGE
+				if (totalHits > maxResults):
+					lastPage = maxResults // RESULTS_PER_PAGE
 				startPage = page - 3
 				if startPage < 0: startPage = 0
 				endPage = startPage + 6
@@ -200,23 +212,30 @@ def search(request):
 				pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["last"], "val":lastPage+1, "active":True})
 				model["pageLinks"] = pageLinks
 
-				foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (totalHits, start, end)
+				if (totalHits <= maxResults):
+					foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (totalHits, start, end)
+				else:
+					foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'] % (maxResults, start, end)
 				model["foundResults"] = foundResults
 				
 				if 'foundResultsRTL' in settings.JOCHRE_UI_STRINGS:
-					foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (totalHits, start, end)
+					if (totalHits <= maxResults):
+						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (totalHits, start, end)
+					else:
+						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'] % (maxResults, start, end)
 					model["foundResultsRTL"] = foundResultsRTL
 				
 				snippetMap = resp.json()
 	
 				for result in docs:
-					bookId = result['name']
-					docId = result['docId']
+					doc = result['doc']
+					bookId = doc['name']
+					docId = doc['docId']
 					snippetObj = snippetMap[str(docId)]
 					
 					if 'snippetError' in snippetObj:
 						snippetError = snippetObj['snippetError']
-						result['snippetError'] = snippetError
+						doc['snippetError'] = snippetError
 						
 					else:
 						snippets = snippetObj['snippets']
@@ -249,6 +268,18 @@ def search(request):
 							result['snippets'] = snippetsToSend
 					
 	model["haveResults"] = haveResults
+
+	userdata = {"command": "bookCount",
+				"user": username,
+				"ip": ip,
+				}
+
+	logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+
+	resp = requests.get(searchUrl, userdata).json()
+	bookCount = resp["bookCount"]
+	model["bookCount"] = bookCount
+
 	return render(request, 'search.html', model)
 
 @register.filter
@@ -336,10 +367,22 @@ def contents(request):
 
 	contents = ''
 	if 'doc' in request.GET:
-		doc = request.GET['doc']
+		docName = request.GET['doc']
+
+		userdata = {"command": "document",
+					"docName": docName,
+					"user": username,
+					"ip": ip,
+					}
+
+		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+
+		resp = requests.get(searchUrl, userdata)
+		docs = resp.json()
+		doc = docs[0]
 
 		userdata = {"command": "contents",
-					"docName": doc,
+					"docName": docName,
 					"user": username,
 					"ip": ip,
 					}
@@ -350,6 +393,7 @@ def contents(request):
 		contents = resp.text
 
 	model = {"contents": contents,
+					"doc" : doc,
 					"RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT)
 					}
 

@@ -47,7 +47,7 @@ public class JochreSearchManager {
 			}
 
 			SearcherManager manager = null;
-			SearcherFactory searcherFactory = new SearcherFactory();
+			SearcherFactory searcherFactory = new JochreSearcherFactory(config);
 			try {
 				manager = new SearcherManager(indexDir, searcherFactory);
 			} catch (IndexNotFoundException infe) {

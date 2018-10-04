@@ -21,6 +21,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
@@ -36,6 +37,9 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  * A wrapper for a document in the Lucene sense - a single book could be split
  * into multiple documents, each with a different page range.
  * 
+ * The document is either read from the index, or it is read from a set of Alto
+ * pages to be saved in the index.
+ * 
  * @author Assaf Urieli
  *
  */
@@ -49,10 +53,20 @@ public class JochreIndexDocument {
 	private final int sectionNumber;
 	private final String path;
 	private final String name;
+	private final String id;
+	private final String publisher;
+	private final String author;
+	private final String title;
+	private final String url;
+	private final String authorEnglish;
+	private final String titleEnglish;
+	private final String date;
+	private final String volume;
+	private final int startPage;
+	private final int endPage;
 	private final JochreIndexDirectory directory;
-	private int startPage = -1;
-	private int endPage = -1;
-	private int length = -1;
+	private final int length;
+	private Long indexTime = null;
 	private TIntObjectMap<TIntObjectMap<Rectangle>> rectangles = null;
 	private TIntObjectMap<TIntIntMap> startIndexes = null;
 	private TIntIntMap rowCounts = null;
@@ -72,25 +86,64 @@ public class JochreIndexDocument {
 		TYPE_STORED.freeze();
 	}
 
+	/**
+	 * Construct a document already stored in the index.
+	 * 
+	 * @param indexSearcher
+	 * @param docId
+	 * @param config
+	 * @throws IOException
+	 */
 	public JochreIndexDocument(IndexSearcher indexSearcher, int docId, JochreSearchConfig config) throws IOException {
 		this.config = config;
 		this.indexSearcher = indexSearcher;
 		this.docId = docId;
 
 		this.doc = indexSearcher.doc(docId);
-		this.sectionNumber = Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue());
+		this.id = doc.get(JochreIndexField.id.name());
+		this.name = doc.get(JochreIndexField.name.name());
 		this.path = this.doc.get(JochreIndexField.path.name());
+		this.sectionNumber = Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue());
 		File dir = new File(config.getContentDir(), this.path);
 		this.directory = new JochreIndexDirectory(config.getContentDir(), dir);
-		this.name = this.directory.getName();
+
+		this.startPage = doc.getField(JochreIndexField.startPage.name()).numericValue().intValue();
+		this.endPage = doc.getField(JochreIndexField.endPage.name()).numericValue().intValue();
+		this.publisher = doc.get(JochreIndexField.publisher.name());
+		this.author = doc.get(JochreIndexField.author.name());
+		this.title = doc.get(JochreIndexField.title.name());
+		this.url = doc.get(JochreIndexField.url.name());
+		this.authorEnglish = doc.get(JochreIndexField.authorEnglish.name());
+		this.titleEnglish = doc.get(JochreIndexField.titleEnglish.name());
+		this.date = doc.get(JochreIndexField.date.name());
+		this.volume = doc.get(JochreIndexField.volume.name());
+		this.length = doc.getField(JochreIndexField.length.name()).numericValue().intValue();
 	}
 
+	/**
+	 * Construct a document from a list of Alto pages, to be stored in the index.
+	 * 
+	 * @param directory
+	 * @param index
+	 * @param pages
+	 * @param config
+	 */
 	public JochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> pages, JochreSearchConfig config) {
 		this.config = config;
 		this.directory = directory;
 		this.sectionNumber = index;
 		this.name = this.directory.getName();
 		this.path = directory.getPath();
+		this.id = this.directory.getMetaData().get(JochreIndexField.id.name());
+		this.publisher = this.directory.getMetaData().get(JochreIndexField.publisher.name());
+		this.author = this.directory.getMetaData().get(JochreIndexField.author.name());
+		this.title = this.directory.getMetaData().get(JochreIndexField.title.name());
+		this.url = this.directory.getMetaData().get(JochreIndexField.url.name());
+		this.authorEnglish = this.directory.getMetaData().get(JochreIndexField.authorEnglish.name());
+		this.titleEnglish = this.directory.getMetaData().get(JochreIndexField.titleEnglish.name());
+		this.date = this.directory.getMetaData().get(JochreIndexField.date.name());
+		this.volume = this.directory.getMetaData().get(JochreIndexField.volume.name());
+
 		this.doc = null;
 		this.indexSearcher = null;
 
@@ -198,34 +251,32 @@ public class JochreIndexDocument {
 			doc.add(new StoredField(JochreIndexField.length.name(), length));
 			doc.add(new StoredField(JochreIndexField.indexTime.name(), System.currentTimeMillis()));
 
-			if (this.directory.getMetaData().containsKey(JochreIndexField.id.name()))
-				doc.add(new StringField(JochreIndexField.id.name(), this.directory.getMetaData().get(JochreIndexField.id.name()), Field.Store.YES));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.authorEnglish.name()))
-				doc.add(new TextField(JochreIndexField.authorEnglish.name(), this.directory.getMetaData().get(JochreIndexField.authorEnglish.name()),
-						Field.Store.YES));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.titleEnglish.name()))
-				doc.add(new Field(JochreIndexField.titleEnglish.name(), this.directory.getMetaData().get(JochreIndexField.titleEnglish.name()), TYPE_STORED));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.publisher.name()))
-				doc.add(new TextField(JochreIndexField.publisher.name(), this.directory.getMetaData().get(JochreIndexField.publisher.name()), Field.Store.YES));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.date.name())) {
-				String year = this.directory.getMetaData().get(JochreIndexField.date.name());
-				doc.add(new StringField(JochreIndexField.date.name(), year, Field.Store.YES));
+			if (this.id != null)
+				doc.add(new StringField(JochreIndexField.id.name(), this.id, Field.Store.YES));
+			if (this.authorEnglish != null)
+				doc.add(new TextField(JochreIndexField.authorEnglish.name(), this.authorEnglish, Field.Store.YES));
+			if (this.titleEnglish != null)
+				doc.add(new Field(JochreIndexField.titleEnglish.name(), this.titleEnglish, TYPE_STORED));
+			if (this.publisher != null)
+				doc.add(new TextField(JochreIndexField.publisher.name(), this.publisher, Field.Store.YES));
+			if (this.date != null) {
+				doc.add(new StringField(JochreIndexField.date.name(), this.date, Field.Store.YES));
 				try {
-					doc.add(new IntPoint(JochreIndexField.year.name(), Integer.parseInt(year)));
-					doc.add(new SortedNumericDocValuesField(JochreIndexField.yearSort.name(), Integer.parseInt(year)));
+					doc.add(new IntPoint(JochreIndexField.year.name(), Integer.parseInt(this.date)));
+					doc.add(new SortedNumericDocValuesField(JochreIndexField.yearSort.name(), Integer.parseInt(this.date)));
 				} catch (NumberFormatException nfe) {
 					// not a number, oh well
 				}
 			}
-			if (this.directory.getMetaData().containsKey(JochreIndexField.author.name()))
-				doc.add(new TextField(JochreIndexField.author.name(), this.directory.getMetaData().get(JochreIndexField.author.name()), Field.Store.YES));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.title.name()))
-				doc.add(new Field(JochreIndexField.title.name(), this.directory.getMetaData().get(JochreIndexField.title.name()), TYPE_STORED));
-			if (this.directory.getMetaData().containsKey(JochreIndexField.volume.name()))
-				doc.add(new StringField(JochreIndexField.volume.name(), this.directory.getMetaData().get(JochreIndexField.volume.name()), Field.Store.YES));
+			if (this.author != null)
+				doc.add(new TextField(JochreIndexField.author.name(), this.author, Field.Store.YES));
+			if (this.title != null)
+				doc.add(new Field(JochreIndexField.title.name(), this.title, TYPE_STORED));
+			if (this.volume != null)
+				doc.add(new StringField(JochreIndexField.volume.name(), this.volume, Field.Store.YES));
 
-			if (this.directory.getMetaData().containsKey(JochreIndexField.url.name()))
-				doc.add(new StringField(JochreIndexField.url.name(), this.directory.getMetaData().get(JochreIndexField.url.name()), Field.Store.YES));
+			if (this.url != null)
+				doc.add(new StringField(JochreIndexField.url.name(), this.url, Field.Store.YES));
 
 			for (int pageIndex : rectangles.keys()) {
 				TIntObjectMap<Rectangle> rowRectangles = rectangles.get(pageIndex);
@@ -265,6 +316,39 @@ public class JochreIndexDocument {
 		}
 	}
 
+	public void toJson(JsonGenerator jsonGen) throws IOException {
+		jsonGen.writeStartObject();
+		jsonGen.writeNumberField("docId", docId);
+		jsonGen.writeStringField(JochreIndexField.name.name(), this.name);
+		jsonGen.writeNumberField(JochreIndexField.startPage.name(), this.startPage);
+		jsonGen.writeNumberField(JochreIndexField.endPage.name(), this.endPage);
+		jsonGen.writeNumberField(JochreIndexField.sectionNumber.name(), this.sectionNumber);
+		jsonGen.writeStringField(JochreIndexField.path.name(), this.path);
+		if (this.id != null)
+			jsonGen.writeStringField(JochreIndexField.id.name(), this.id);
+		if (this.authorEnglish != null)
+			jsonGen.writeStringField(JochreIndexField.authorEnglish.name(), this.authorEnglish);
+		if (this.titleEnglish != null)
+			jsonGen.writeStringField(JochreIndexField.titleEnglish.name(), titleEnglish);
+		if (this.url != null)
+			jsonGen.writeStringField(JochreIndexField.url.name(), this.url);
+		if (this.author != null)
+			jsonGen.writeStringField(JochreIndexField.author.name(), this.author);
+		if (this.title != null)
+			jsonGen.writeStringField(JochreIndexField.title.name(), this.title);
+		if (this.volume != null)
+			jsonGen.writeStringField(JochreIndexField.volume.name(), this.volume);
+		if (this.publisher != null)
+			jsonGen.writeStringField(JochreIndexField.publisher.name(), this.publisher);
+		if (this.date != null)
+			jsonGen.writeStringField(JochreIndexField.date.name(), this.date);
+		jsonGen.writeNumberField(JochreIndexField.length.name(), this.length);
+		if (this.indexTime != null)
+			jsonGen.writeNumberField(JochreIndexField.indexTime.name(), this.indexTime.longValue());
+
+		jsonGen.writeEndObject();
+	}
+
 	/**
 	 * The full string contents of the document.
 	 */
@@ -276,8 +360,6 @@ public class JochreIndexDocument {
 	}
 
 	public int getLength() {
-		if (this.length < 0)
-			this.length = doc.getField(JochreIndexField.length.name()).numericValue().intValue();
 		return length;
 	}
 
@@ -384,9 +466,6 @@ public class JochreIndexDocument {
 	 * The index of the first page contained in this document.
 	 */
 	public int getStartPage() {
-		if (startPage < 0 && this.doc != null) {
-			startPage = doc.getField(JochreIndexField.startPage.name()).numericValue().intValue();
-		}
 		return startPage;
 	}
 
@@ -394,9 +473,6 @@ public class JochreIndexDocument {
 	 * The index of the last page contained in this document.
 	 */
 	public int getEndPage() {
-		if (endPage < 0 && this.doc != null) {
-			endPage = doc.getField(JochreIndexField.endPage.name()).numericValue().intValue();
-		}
 		return endPage;
 	}
 
