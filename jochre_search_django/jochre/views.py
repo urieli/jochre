@@ -195,9 +195,9 @@ def search(request):
 				model["resultCount"] = totalHits
 
 				pageLinks = []
-				lastPage = totalHits // RESULTS_PER_PAGE
+				lastPage = (totalHits - 1) // RESULTS_PER_PAGE
 				if (totalHits > maxResults):
-					lastPage = maxResults // RESULTS_PER_PAGE
+					lastPage = (maxResults - 1) // RESULTS_PER_PAGE
 				startPage = page - 3
 				if startPage < 0: startPage = 0
 				endPage = startPage + 6
