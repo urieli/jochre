@@ -84,6 +84,10 @@ $(function() {
 		$("#imgFont").attr("src", `${STATIC_LOCATION}images/${this.value}.png`);
 	});
 
+	$('#btnSaveFixWord').click( function (e) {
+		applyFix();
+	});
+
 	$('#btnKeyboardDefault').click( function() {
 		$('#frmKeysAction').val("default");
 		$.ajax({
@@ -197,45 +201,8 @@ function fixWord(evt, docId) {
 	$('#alertFixWordSuccess').hide();
 	$('#alertFixWordError').hide();
 
-	function applyFix() {
-		$("#imgWordLoading").show();
-
-		var suggestion = $("#txtSuggestion").val();
-		var suggestion2 = $("#txtSuggestion2").val();
-		
-		var selFont = document.getElementById("selFont");
-		var fontCode = selFont.options[selFont.selectedIndex].value;
-
-		var selLang = document.getElementById("selLang");
-		var languageCode = selLang.options[selLang.selectedIndex].value;
-		
-		$.ajax({
-			url: JOCHRE_SEARCH_EXT_URL + "?command=suggest"
-				+ "&docId=" + docId
-				+ "&startOffset=" + wordOffset
-				+ "&user=" + USERNAME
-				+ "&ip=" + IP
-				+ "&suggestion=" + encodeURIComponent(suggestion)
-				+ "&suggestion2=" + encodeURIComponent(suggestion2)
-				+ "&fontCode=" + encodeURIComponent(fontCode)
-				+ "&languageCode=" + encodeURIComponent(languageCode),
-			dataType: 'json',
-			success: function( data ) {
-				$("#imgWordLoading").hide();
-				$('#alertFixWordError').hide();
-				$('#alertFixWordSuccess').show();
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				$("#imgWordLoading").hide();
-				$('#alertFixWordError').show();
-				$('#alertFixWordSuccess').hide();
-				},
-			});
-	}
-	
-	$('#btnSaveFixWord').click( function (e) {
-		applyFix();
-	});
+	$('#fixWordModal').data('docId', docId);
+	$('#fixWordModal').data('wordOffset', wordOffset);
 	
 	$("#imgFixWord").attr("src","");
 	$("#imgWordLoading").show();
@@ -263,6 +230,47 @@ function fixWord(evt, docId) {
 		});
 
 	$("#fixWordModal").modal();
+}
+
+function applyFix() {
+	var docId = $('#fixWordModal').data('docId');
+	var wordOffset = $('#fixWordModal').data('wordOffset');
+
+	$("#imgWordLoading").show();
+
+	var suggestion = $("#txtSuggestion").val();
+	var suggestion2 = $("#txtSuggestion2").val();
+	
+	var selFont = document.getElementById("selFont");
+	var fontCode = selFont.options[selFont.selectedIndex].value;
+
+	var selLang = document.getElementById("selLang");
+	var languageCode = selLang.options[selLang.selectedIndex].value;
+	
+	console.log(`Apply fix ${suggestion} for ${docId} at ${wordOffset}`);
+	
+	$.ajax({
+		url: JOCHRE_SEARCH_EXT_URL + "?command=suggest"
+			+ "&docId=" + docId
+			+ "&startOffset=" + wordOffset
+			+ "&user=" + USERNAME
+			+ "&ip=" + IP
+			+ "&suggestion=" + encodeURIComponent(suggestion)
+			+ "&suggestion2=" + encodeURIComponent(suggestion2)
+			+ "&fontCode=" + encodeURIComponent(fontCode)
+			+ "&languageCode=" + encodeURIComponent(languageCode),
+		dataType: 'json',
+		success: function( data ) {
+			$("#imgWordLoading").hide();
+			$('#alertFixWordError').hide();
+			$('#alertFixWordSuccess').show();
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			$("#imgWordLoading").hide();
+			$('#alertFixWordError').show();
+			$('#alertFixWordSuccess').hide();
+			},
+		});
 }
 
 function loadKeyboardMappings() {
