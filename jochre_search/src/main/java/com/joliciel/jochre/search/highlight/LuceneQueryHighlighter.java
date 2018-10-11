@@ -83,9 +83,16 @@ public class LuceneQueryHighlighter implements Highlighter {
 			List<LeafReaderContext> leaves = readerContext.leaves();
 
 			Map<Integer, NavigableSet<HighlightTerm>> termMap = new HashMap<>();
+			Map<Integer, Map<String, List<HighlightPassage>>> docPassages = new HashMap<>();
 
 			for (int docId : docIds) {
 				termMap.put(docId, new TreeSet<HighlightTerm>());
+
+				Map<String, List<HighlightPassage>> fieldPassages = new HashMap<>();
+				docPassages.put(docId, fieldPassages);
+				for (String field : fields) {
+					fieldPassages.put(field, new ArrayList<>());
+				}
 			}
 
 			Map<Integer, Document> luceneIdToLuceneDocMap = new HashMap<>();
@@ -107,7 +114,6 @@ public class LuceneQueryHighlighter implements Highlighter {
 			List<Weight> weights = new ArrayList<>();
 			List<CompiledAutomaton> automatons = new ArrayList<>();
 			this.extractWeights(query, weights, automatons);
-			Map<Integer, Map<String, List<HighlightPassage>>> docPassages = new HashMap<>();
 
 			for (int leaf : myLeaves.keySet()) {
 				if (LOG.isTraceEnabled())
@@ -117,16 +123,14 @@ public class LuceneQueryHighlighter implements Highlighter {
 				LeafReader atomicReader = subContext.reader();
 
 				for (int docId : docsPerLeaf) {
-					Map<String, List<HighlightPassage>> fieldPassages = new HashMap<>();
-					docPassages.put(docId, fieldPassages);
+					Map<String, List<HighlightPassage>> fieldPassages = docPassages.get(docId);
 					for (Weight weight : weights) {
 						Set<Term> terms = new HashSet<>();
 						weight.extractTerms(terms);
 						Matches matches = weight.matches(subContext, docId - subContext.docBase);
 						if (matches != null) {
 							for (String field : fields) {
-								List<HighlightPassage> passages = new ArrayList<>();
-								fieldPassages.put(field, passages);
+								List<HighlightPassage> passages = fieldPassages.get(field);
 								MatchesIterator iMatches = matches.getMatches(field);
 								while (iMatches.next()) {
 									HighlightPassage passage = new HighlightPassage(iMatches.startOffset(), iMatches.endOffset(), terms);
