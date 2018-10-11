@@ -17,6 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -122,16 +123,16 @@ public class YiddishMetaFetcher {
 
 		writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		writer.write("<metadata>\n");
-		writer.write("  <identifier>" + id + "</identifier>\n");
-		writer.write("  <identifier-access>" + bookUrl + "</identifier-access>\n");
-		writer.write("  <title>" + title + "</title>\n");
-		writer.write("  <volume>" + volume + "</volume>\n");
-		writer.write("  <creator>" + author + "</creator>\n");
-		writer.write("  <publisher>" + publisher + "</publisher>\n");
-		writer.write("  <date>" + date + "</date>\n");
-		writer.write("  <creator-alt-script>" + authorYid + "</creator-alt-script>\n");
-		writer.write("  <title-alt-script>" + titleYid + "</title-alt-script>\n");
-		writer.write("  <imagecount>" + pageCount + "</imagecount>\n");
+		writer.write("  <identifier>" + StringEscapeUtils.escapeXml10(id) + "</identifier>\n");
+		writer.write("  <identifier-access>" + StringEscapeUtils.escapeXml10(bookUrl) + "</identifier-access>\n");
+		writer.write("  <title>" + StringEscapeUtils.escapeXml10(title) + "</title>\n");
+		writer.write("  <volume>" + StringEscapeUtils.escapeXml10(volume) + "</volume>\n");
+		writer.write("  <creator>" + StringEscapeUtils.escapeXml10(author) + "</creator>\n");
+		writer.write("  <publisher>" + StringEscapeUtils.escapeXml10(publisher) + "</publisher>\n");
+		writer.write("  <date>" + StringEscapeUtils.escapeXml10(date) + "</date>\n");
+		writer.write("  <creator-alt-script>" + StringEscapeUtils.escapeXml10(authorYid) + "</creator-alt-script>\n");
+		writer.write("  <title-alt-script>" + StringEscapeUtils.escapeXml10(titleYid) + "</title-alt-script>\n");
+		writer.write("  <imagecount>" + StringEscapeUtils.escapeXml10(pageCount) + "</imagecount>\n");
 		writer.write("</metadata>\n");
 		writer.flush();
 	}
@@ -155,14 +156,15 @@ public class YiddishMetaFetcher {
 		int i = 1;
 		for (Map<String, String> myMeta : metaMap.values()) {
 			writer.write("<table style=\"width: 600px;\">");
-			writer.write("<tr><td style=\"width: 150px;\"><b>id " + i + "</b></td><td><a href=\"" + myMeta.get("bookUrl") + "\">" + myMeta.get("id")
-					+ "</a></td></tr>");
-			writer.write("<tr><td><b>title</b></td><td>" + myMeta.get("title") + "</td></tr>");
-			writer.write("<tr><td><b>author</b></td><td>" + myMeta.get("author") + "</td></tr>");
-			writer.write("<tr><td><b>publisher</b></td><td>" + myMeta.get("publisher") + "</td></tr>");
-			writer.write("<tr><td><b>date</b></td><td>" + myMeta.get("date") + "</td></tr>");
-			writer.write("<tr><td><b>authorLang</b></td><td style=\"direction: rtl;\">" + myMeta.get("authorLang") + "</td></tr>");
-			writer.write("<tr><td><b>titleLang</b></td><td style=\"direction: rtl;\">" + myMeta.get("titleLang") + "</td></tr>");
+			writer.write("<tr><td style=\"width: 150px;\"><b>id " + i + "</b></td><td><a href=\"" + myMeta.get("bookUrl") + "\">"
+					+ StringEscapeUtils.escapeHtml4(myMeta.get("id")) + "</a></td></tr>");
+			writer.write("<tr><td><b>title</b></td><td>" + StringEscapeUtils.escapeHtml4(myMeta.get("title")) + "</td></tr>");
+			writer.write("<tr><td><b>author</b></td><td>" + StringEscapeUtils.escapeHtml4(myMeta.get("author")) + "</td></tr>");
+			writer.write("<tr><td><b>publisher</b></td><td>" + StringEscapeUtils.escapeHtml4(myMeta.get("publisher")) + "</td></tr>");
+			writer.write("<tr><td><b>date</b></td><td>" + StringEscapeUtils.escapeHtml4(myMeta.get("date")) + "</td></tr>");
+			writer.write(
+					"<tr><td><b>authorLang</b></td><td style=\"direction: rtl;\">" + StringEscapeUtils.escapeHtml4(myMeta.get("authorLang")) + "</td></tr>");
+			writer.write("<tr><td><b>titleLang</b></td><td style=\"direction: rtl;\">" + StringEscapeUtils.escapeHtml4(myMeta.get("titleLang")) + "</td></tr>");
 			writer.write("</table><br/>");
 			writer.flush();
 			i++;
