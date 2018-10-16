@@ -67,10 +67,7 @@ public class JochreSearchServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json;charset=UTF-8");
 
-			Command command = Command.valueOf(req.getParameter("command"));
-			user = req.getParameter("user");
-
-			if (command.equals("logConfig")) {
+			if (req.getParameter("command").equals("logConfig")) {
 				response.setContentType("application/json;charset=UTF-8");
 				Slf4jListener.reloadLogger(this.getServletContext());
 				PrintWriter out = response.getWriter();
@@ -78,6 +75,9 @@ public class JochreSearchServlet extends HttpServlet {
 				out.flush();
 				return;
 			}
+
+			Command command = Command.valueOf(req.getParameter("command"));
+			user = req.getParameter("user");
 
 			Map<String, String> argMap = new HashMap<>();
 			@SuppressWarnings("rawtypes")
