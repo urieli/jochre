@@ -174,9 +174,9 @@
 		<div class="col"><div class="black-separator"></div></div>
 	</div>
 	<div class="row">
-		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+		<div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
 		{% if RTL %}
-			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
+			<div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
 		{% endif %}
 	</div>
 	<div class="row">
@@ -186,16 +186,26 @@
 		{% endif %}
 	</div>
 	<div class="row">
-		<div class="col" class="author"><b>{{ Strings.section }}:</b> {{ Strings.pages }} {% if readOnline %}<a href="{{ result.readOnlineUrl }} " target="_blank">{% endif %}{{ result.doc.startPage }} {{ Strings.to }} {{ result.doc.endPage }}{% if readOnline %}</a>{% endif %}</div>
+		<div class="col" class="author"><b>{{ Strings.section }}:</b> {{ result.doc.pages }}</div>
 		{% if RTL %}
-			<div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ Strings.pagesRTL }} {% if readOnline %}<a href="{{ result.readOnlineUrl }}" target="_blank">{% endif %}{{ result.doc.startPage }} {{ Strings.toRTL }} {{ result.doc.endPage }}{% if readOnline %}</a>{% endif %}</div></div>
+			<div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ result.doc.pagesRTL }}</div></div>
 		{% endif %}
 	</div>
-	{% if result.publisher %}
-		<div class="row"><div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div></div>
+	{% if result.doc.publisher %}
+		<div class="row">
+			<div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div>
+			{% if RTL %}
+				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> {{ result.doc.publisher }}</div></div>
+			{% endif %}
+			</div>
 	{% endif %}
-	{% if result.date %}
-		<div class="row"><div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div></div>
+	{% if result.doc.date %}
+		<div class="row">
+			<div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div>
+			{% if RTL %}
+				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b> {{ result.doc.date }}</div></div>
+			{% endif %}
+		</div>
 	{% endif %}
 	{% if result.snippetError %}
 		 <p style="color:red;">{{ result.snippetError.message }}</p>

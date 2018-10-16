@@ -127,7 +127,7 @@ def search(request):
 				userdata['sortBy'] = 'Year'
 				userdata['sortAscending'] = 'false'
 
-		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+		logger.debug("sending request: {0}, {1}".format(searchUrl, userdata))
 
 		resp = requests.get(searchUrl, userdata)
 		
@@ -168,6 +168,10 @@ def search(request):
 					else:
 						doc['titleAndVolume'] = ''
 				
+				doc['pages'] = settings.JOCHRE_UI_STRINGS['pages'].format(doc['startPage'], doc['endPage'])
+				if 'pagesRTL' in settings.JOCHRE_UI_STRINGS:
+					doc['pagesRTL'] = settings.JOCHRE_UI_STRINGS['pagesRTL'].format(doc['startPage'], doc['endPage'])
+
 				if len(docIds)>0:
 					docIds += ','
 				docIds += str(doc['docId'])
@@ -212,16 +216,16 @@ def search(request):
 				model["pageLinks"] = pageLinks
 
 				if (totalHits <= maxResults):
-					foundResults = settings.JOCHRE_UI_STRINGS['foundResults'] % (totalHits, start, end)
+					foundResults = settings.JOCHRE_UI_STRINGS['foundResults'].format(totalHits, start, end)
 				else:
-					foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'] % (maxResults, start, end)
+					foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'].format(maxResults, start, end)
 				model["foundResults"] = foundResults
 				
 				if 'foundResultsRTL' in settings.JOCHRE_UI_STRINGS:
 					if (totalHits <= maxResults):
-						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'] % (totalHits, start, end)
+						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'].format(totalHits, start, end)
 					else:
-						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'] % (maxResults, start, end)
+						foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'].format(maxResults, start, end)
 					model["foundResultsRTL"] = foundResultsRTL
 				
 				snippetMap = resp.json()
@@ -247,7 +251,7 @@ def search(request):
 										"snippet": snippetJson,
 										"user": username}
 
-							logger.debug("sending request: %s, %s" % (settings.JOCHRE_SEARCH_EXT_URL, userdata))
+							logger.debug("sending request: {0}, {1}".format(settings.JOCHRE_SEARCH_EXT_URL, userdata))
 
 							req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
 							preparedReq = req.prepare()
@@ -259,8 +263,7 @@ def search(request):
 										   "imageUrl": snippetImageUrl }
 							
 							if settings.JOCHRE_READ_ONLINE:
-								urlPageNumber = pageNumber / 2 * 2;
-								snippetReadUrl = u"https://archive.org/stream/" + bookId + u"#page/n" + str(urlPageNumber) + u"/mode/2up";
+								snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, pageNumber)
 								snippetDict["readOnlineUrl"] = snippetReadUrl
 
 							snippetsToSend.append(snippetDict)
