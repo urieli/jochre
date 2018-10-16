@@ -181,7 +181,9 @@ public class LuceneQueryHighlighter implements Highlighter {
 										continue; // term not found
 									}
 
-									List<HighlightTerm> highlights = this.findHighlights(field, termsEnum, subContext, luceneIdToLuceneDocMap, docsPerLeaf);
+									Set<Integer> singleDocIdSet = new HashSet<>();
+									singleDocIdSet.add(docId);
+									List<HighlightTerm> highlights = this.findHighlights(field, termsEnum, subContext, luceneIdToLuceneDocMap, singleDocIdSet);
 									for (HighlightTerm highlightTerm : highlights) {
 										if (highlightTerm.getStartOffset() >= passage.start && highlightTerm.getEndOffset() <= passage.end) {
 											if (LOG.isTraceEnabled())
