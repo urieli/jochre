@@ -263,7 +263,7 @@ def search(request):
 										   "imageUrl": snippetImageUrl }
 							
 							if settings.JOCHRE_READ_ONLINE:
-								snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, pageNumber)
+								snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, settings.PAGE_URL_TRANSFORM(pageNumber))
 								snippetDict["readOnlineUrl"] = snippetReadUrl
 
 							snippetsToSend.append(snippetDict)

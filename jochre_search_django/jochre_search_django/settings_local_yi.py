@@ -114,6 +114,9 @@ If the word as badly segmented (i.e. if only part of the word appears), do not c
 "fixWordLanguage" : u"Language",
 }
 
+def PAGE_URL_TRANSFORM(pageNumber):
+	return pageNumber - 1
+
 KEYBOARD_MAPPINGS_ENABLED = False
 
 KEYBOARD_MAPPINGS = {

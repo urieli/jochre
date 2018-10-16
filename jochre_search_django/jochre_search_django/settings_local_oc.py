@@ -108,6 +108,9 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordLanguage" : u"Language",
 }
 
+def PAGE_URL_TRANSFORM(pageNumber):
+	return pageNumber
+
 KEYBOARD_MAPPINGS_ENABLED = False
 
 KEYBOARD_MAPPINGS = {}
