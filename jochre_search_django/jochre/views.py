@@ -2,6 +2,7 @@
 import json
 import requests
 import logging
+import re
 
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -134,7 +135,14 @@ def search(request):
 		results = resp.json()
 		
 		if 'parseException' in results:
-			model["parseException"] = results=["message"]
+			# Fix double-escaped unicode strings in exception!
+			message = results["message"]
+			match = re.search("\\\\u([0-9a-fA-F]{4})", message) 
+			while match:
+				message = message[:match.start()] + chr(int(match.group(1), 16)) + message[match.end():]
+				match = re.search("\\\\u([0-9a-fA-F]{4})", message) 
+			logger.debug("Parse Exception: {0}".format(message))
+			model["parseException"] = message
 		else:
 			docIds = ''
 			totalHits = results['totalHits']
@@ -363,40 +371,44 @@ def contents(request):
 	if not request.user.is_authenticated:
 		return redirect('accounts/login/')
 
-	searchUrl = settings.JOCHRE_SEARCH_URL
-	username = request.user.username
-	ip = get_client_ip(request)
+	try:
+		searchUrl = settings.JOCHRE_SEARCH_URL
+		username = request.user.username
+		ip = get_client_ip(request)
 
-	contents = ''
-	if 'doc' in request.GET:
-		docName = request.GET['doc']
+		contents = ''
+		if 'doc' in request.GET:
+			docName = request.GET['doc']
 
-		userdata = {"command": "document",
-					"docName": docName,
-					"user": username,
-					"ip": ip,
-					}
+			userdata = {"command": "document",
+						"docName": docName,
+						"user": username,
+						"ip": ip,
+						}
 
-		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+			logger.debug("sending request: %s, %s" % (searchUrl, userdata))
 
-		resp = requests.get(searchUrl, userdata)
-		docs = resp.json()
-		doc = docs[0]
+			resp = requests.get(searchUrl, userdata)
+			docs = resp.json()
+			doc = docs[0]
 
-		userdata = {"command": "contents",
-					"docName": docName,
-					"user": username,
-					"ip": ip,
-					}
+			userdata = {"command": "contents",
+						"docName": docName,
+						"user": username,
+						"ip": ip,
+						}
 
-		logger.debug("sending request: %s, %s" % (searchUrl, userdata))
+			logger.debug("sending request: %s, %s" % (searchUrl, userdata))
 
-		resp = requests.get(searchUrl, userdata)
-		contents = resp.text
+			resp = requests.get(searchUrl, userdata)
+			contents = resp.text
 
-	model = {"contents": contents,
-					"doc" : doc,
-					"RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT)
-					}
+		model = {"contents": contents,
+						"doc" : doc,
+						"RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT)
+						}
+	except:
+		model = {"contents": "An error occurred while fetching content, please try to refresh this page.",
+			"RTL" : False}
 
 	return render(request, 'contents.html', model)

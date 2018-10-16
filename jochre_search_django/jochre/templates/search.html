@@ -157,7 +157,7 @@
 
 {% if parseException %}
 	<p>{{ Strings.unableToProcessQuery }}:</p>
-	<p>{{ parseException }}</p>
+	<p>{% autoescape off %}{{ parseException }}{% endautoescape %}</p>
 {% elif query|length == 0 %}
 {% elif not haveResults %}
 	<p>{{ Strings.noResults }}</p>
@@ -232,12 +232,15 @@
 					window.open('{{ snippet.readOnlineUrl }}', '_blank');
 				});
 
-				$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}=false;
+				$('#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}').data('counter', 0);
+
+				// Note a counter is added to the end of the URL simply to force a reload each time the image
+				// is opened. Normally this wouldn't be required, but in the case where the image failed to load
+				// the first time, this would reload it after a close and open.
+				// The "maxResults" parameter is meaningless here, it is simply used to update the URL and prevent caching.
 				$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on('show.bs.collapse', function () {
-					if (!$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}) {
-						$("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").html('<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}" class="image" />');
-						$loaded{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }} = true;
-					}
+					$(this).html(`<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}&maxResults=${$(this).data('counter')}" class="image" />`);
+					$(this).data('counter', $(this).data('counter')+1);
 				});
 			
 				{% if JOCHRE_CROWD_SOURCE %}
