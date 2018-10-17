@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.urls import path
+from django.views.generic.base import TemplateView
 from jochre.views import search, keyboard, updateKeyboard, contents
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
 	path('keyboard', keyboard, name='keyboard'),
 	path('updateKeyboard', updateKeyboard, name='updateKeyboard'),
 	path('contents', contents, name='contents'),
+	path('privacy', TemplateView.as_view(template_name='privacy-local.html'), name="privacy"),
 ]
