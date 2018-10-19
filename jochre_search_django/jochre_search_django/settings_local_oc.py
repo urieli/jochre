@@ -77,6 +77,7 @@ JOCHRE_UI_STRINGS = {
 "titleField" : u"Títol",
 "authorField" : u"Autor",
 "strictField" : u"Forma exacta",
+"clear" : u"Clear",
 "fromYearField" : u"Annada despuòi",
 "toYearField" : u"dusca",
 "sortBy" : u"Sort by",

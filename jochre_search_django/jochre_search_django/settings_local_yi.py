@@ -73,6 +73,7 @@ JOCHRE_UI_STRINGS = {
 "titleField" : u"טיטל",
 "authorField" : u"מחבר",
 "strictField" : u"שטרענג",
+"clear" : u"אױסמעקן",
 "fromYearField" : u"אױסגאַבע פֿון יאָר",
 "toYearField" : u"ביז יאָר",
 "sortBy" : u"סאָרטירן לױטן",
