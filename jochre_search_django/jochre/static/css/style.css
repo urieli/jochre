@@ -3,8 +3,8 @@ BODY { background-color: #ffffff; font-family: Verdana, Helvetica, Arial; }
 .titleRtl { font-size: 24px; vertical-align: top;  }
 .author { font-family: Verdana, Helvetica, Arial; font-size: 12px; vertical-align: top; }
 .authorRtl { font-size: 18px; vertical-align: top;  }
-A { font-weight: bold; color: #CC6600; text-decoration: none; vertical-align: top; }
-A:hover { text-decoration: underline; }
+A { text-decoration: underline; }
+A:hover { text-decoration: underline; color: #ed490a; }
 .rtl {
 	font-family: "Times New Roman", Times, serif;
 	text-align: right;
