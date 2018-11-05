@@ -60,12 +60,14 @@ public class HighlightManager {
 	private boolean includeGraphics = false;
 	private double minWeight = 0;
 	private int snippetCount;
+	private final String highlightClass;
 
 	public HighlightManager(IndexSearcher indexSearcher, Set<String> fields, JochreSearchConfig config) {
 		this.config = config;
 		this.fields = fields;
 		this.indexSearcher = indexSearcher;
 		this.snippetCount = config.getConfig().getInt("snippet-finder.snippet-count");
+		this.highlightClass = config.getConfig().getString("highlighter.highlight-css-class");
 	}
 
 	/**
@@ -242,8 +244,6 @@ public class HighlightManager {
 			LOG.trace("Displaying highlights for doc " + docId + ", field " + field);
 		}
 
-		HighlightTermDecorator decorator = HighlightTermDecorator.getInstance(config);
-
 		StringBuilder sb = new StringBuilder();
 		int currentPos = 0;
 		for (HighlightTerm term : terms) {
@@ -254,7 +254,7 @@ public class HighlightManager {
 				sb.append(content.substring(currentPos, term.getStartOffset()));
 				String termText = content.substring(term.getStartOffset(), term.getEndOffset());
 				if (term.getWeight() >= minWeight)
-					sb.append(decorator.decorate(termText));
+					sb.append("<span class=\"" + highlightClass + "\">" + termText + "</span>");
 				else
 					sb.append(termText);
 				currentPos = term.getEndOffset();
@@ -283,14 +283,13 @@ public class HighlightManager {
 		StringBuilder sb = new StringBuilder();
 		int currentPos = snippet.getStartOffset();
 
-		HighlightTermDecorator decorator = HighlightTermDecorator.getInstance(config);
 		sb.append("<span offset=\"" + currentPos + "\">");
 		for (HighlightTerm term : snippet.getHighlightTerms()) {
 			if (LOG.isTraceEnabled()) {
 				LOG.trace("Adding term: " + term.getStartOffset() + ", " + term.getEndOffset());
 			}
 			String substring = content.substring(currentPos, term.getStartOffset());
-			substring = this.addLineBreaks(substring, currentPos);
+			substring = this.addLineBreaks(substring, currentPos, false);
 			sb.append(substring);
 			currentPos = term.getStartOffset();
 
@@ -298,14 +297,14 @@ public class HighlightManager {
 				String termText = content.substring(term.getStartOffset(), term.getEndOffset());
 				sb.append("</span>");
 				// note: an end-of-line hyphenated word can contain newlines
-				termText = this.addLineBreaks(termText, currentPos);
-				termText = "<span offset=\"" + term.getStartOffset() + "\">" + termText + "</span>";
-				sb.append(decorator.decorate(termText));
+				termText = this.addLineBreaks(termText, currentPos, true);
+				termText = "<span offset=\"" + term.getStartOffset() + "\" class=\"" + highlightClass + "\">" + termText + "</span>";
+				sb.append(termText);
 				currentPos = term.getEndOffset();
 				sb.append("<span offset=\"" + currentPos + "\">");
 			}
 		}
-		sb.append(this.addLineBreaks(content.substring(currentPos, snippet.getEndOffset()), currentPos));
+		sb.append(this.addLineBreaks(content.substring(currentPos, snippet.getEndOffset()), currentPos, false));
 		sb.append("</span>");
 
 		if (LOG.isTraceEnabled()) {
@@ -317,7 +316,7 @@ public class HighlightManager {
 
 	private static final Pattern NEWLINE_PATTERN = Pattern.compile("[" + JochreSearchConstants.INDEX_NEWLINE + JochreSearchConstants.INDEX_PARAGRAPH + "]");
 
-	private String addLineBreaks(String text, int currentPos) {
+	private String addLineBreaks(String text, int currentPos, boolean inHighlight) {
 		StringBuilder sb = new StringBuilder();
 		int innerPos = 0;
 		Matcher matcher = NEWLINE_PATTERN.matcher(text);
@@ -326,7 +325,10 @@ public class HighlightManager {
 			sb.append("</span>");
 			sb.append("<br/>");
 			innerPos = matcher.end();
-			sb.append("<span offset=\"" + (currentPos + innerPos) + "\">");
+			if (inHighlight)
+				sb.append("<span offset=\"" + (currentPos + innerPos) + "\" class=\"" + highlightClass + "\">");
+			else
+				sb.append("<span offset=\"" + (currentPos + innerPos) + "\">");
 			if (LOG.isTraceEnabled())
 				LOG.trace("Added linebreak at " + (currentPos + innerPos));
 		}

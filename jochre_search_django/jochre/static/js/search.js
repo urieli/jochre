@@ -192,12 +192,24 @@ function transformKeyPress(textfield, evt) {
 
 function fixWord(evt, docId) {
 	var sel = window.getSelection();
-			
-	var localOffset = sel.anchorOffset;
-	var globalOffset = parseInt(sel.anchorNode.parentElement.attributes.getNamedItem("offset").value);
-	var wordOffset = globalOffset + localOffset;
 	
-	console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
+	var range = sel.getRangeAt(0);
+	console.log(`range startOffset: ${range.startOffset}, endOffset ${range.endOffset}, startContainer ${range.startContainer.nodeName}, endContainer ${range.endContainer.nodeName}, commonAncestorContainer ${range.commonAncestorContainer.nodeName}`);
+	console.log(`sel.anchorNode: ${sel.anchorNode.nodeName}, sel.anchorOffset: ${sel.anchorOffset}`);
+
+	var wordOffset;
+	// was a text node selected?
+	if (sel.anchorNode.nodeType == 3) {
+		var localOffset = sel.anchorOffset;
+		var globalOffset = parseInt($(sel.anchorNode).closest("span[offset]").attr("offset"));
+		wordOffset = globalOffset + localOffset;
+		console.log(`localOffset: ${localOffset}, globalOffset: ${globalOffset}, wordOffset: ${wordOffset}`);
+	} else {
+		var childNumber = sel.anchorOffset;
+		var span = sel.anchorNode.children[childNumber];
+		wordOffset = parseInt($(span).closest("span[offset]").attr("offset"));
+		console.log(`wordOffset: ${wordOffset}`);
+	}
 	$('#alertFixWordSuccess').hide();
 	$('#alertFixWordError').hide();
 
