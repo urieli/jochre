@@ -282,7 +282,7 @@
 				<version>2.21.0</version>
 				<configuration>
 					<argLine>
-						-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+						-javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar -Djdk.net.URLClassPath.disableClassPathURLCheck=true
 					</argLine>
 				</configuration>
 			</plugin>
