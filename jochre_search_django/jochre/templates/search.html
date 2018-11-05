@@ -202,7 +202,7 @@
 		<div class="row">
 			<div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div>
 			{% if RTL %}
-				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> {{ result.doc.publisher }}</div></div>
+				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span></div></div>
 			{% endif %}
 			</div>
 	{% endif %}
@@ -210,7 +210,7 @@
 		<div class="row">
 			<div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div>
 			{% if RTL %}
-				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b> {{ result.doc.date }}</div></div>
+				<div class="col"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span></div></div>
 			{% endif %}
 		</div>
 	{% endif %}
@@ -378,6 +378,7 @@
 			<div class="modal-body">
 				<form id="frmKeys" role="form" autocomplete="off">
 					{% csrf_token %}
+					<input type="hidden" id="frmKeysAction" name="action">
 					<div class="d-flex">
 						<div class="input-group m-1 checkboxes">
 							<label for="frmKeysEnabled" class="col-12 col-form-label">

@@ -10,6 +10,10 @@ A:hover { text-decoration: underline; color: #ed490a; }
 	text-align: right;
 	direction: rtl;
 }
+.ltr {
+  text-align: left;
+  direction: ltr;
+}
 INPUT[type="text"].rtl { font-size: 16px; }
 H1.rtl { font-size: 24px; }
 .snippet { font-family: "Times New Roman", Times, serif; text-align: left; vertical-align: top; direction: ltr; }
