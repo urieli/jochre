@@ -24,6 +24,8 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.FuzzyQuery;
+import org.apache.lucene.search.FuzzyTermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Matches;
 import org.apache.lucene.search.MatchesIterator;
@@ -31,6 +33,7 @@ import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.util.AttributeSource;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.Automaton;
 import org.apache.lucene.util.automaton.CompiledAutomaton;
@@ -112,8 +115,8 @@ public class LuceneQueryHighlighter implements Highlighter {
 			Query query = jochreQuery.getLuceneTextQuery();
 
 			List<Weight> weights = new ArrayList<>();
-			List<CompiledAutomaton> automatons = new ArrayList<>();
-			this.extractWeights(query, weights, automatons);
+			List<TermsEnumExtractor> extractors = new ArrayList<>();
+			this.extractWeights(query, weights, extractors);
 
 			for (int leaf : myLeaves.keySet()) {
 				if (LOG.isTraceEnabled())
@@ -150,17 +153,17 @@ public class LuceneQueryHighlighter implements Highlighter {
 						continue; // nothing to do
 					}
 
-					for (CompiledAutomaton automaton : automatons) {
+					for (TermsEnumExtractor extractor : extractors) {
 						if (LOG.isTraceEnabled())
-							LOG.trace("Matching automaton " + (automaton.term == null ? "" : automaton.term.utf8ToString()) + " in field " + field);
-						TermsEnum automatonEnum = automaton.getTermsEnum(atomicReaderTerms);
-						BytesRef nextBytesRef = automatonEnum.next();
+							LOG.trace("Matching extractor " + (extractor.getTerm() == null ? "" : extractor.getTerm().utf8ToString()) + " in field " + field);
+						TermsEnum extractorEnum = extractor.getTermsEnum(atomicReaderTerms);
+						BytesRef nextBytesRef = extractorEnum.next();
 						while (nextBytesRef != null) {
-							List<HighlightTerm> highlights = this.findHighlights(field, automatonEnum, subContext, luceneIdToLuceneDocMap, docsPerLeaf);
+							List<HighlightTerm> highlights = this.findHighlights(field, extractorEnum, subContext, luceneIdToLuceneDocMap, docsPerLeaf);
 							for (HighlightTerm highlightTerm : highlights) {
 								termMap.get(highlightTerm.getDocId()).add(highlightTerm);
 							}
-							nextBytesRef = automatonEnum.next();
+							nextBytesRef = extractorEnum.next();
 						}
 					}
 
@@ -238,26 +241,70 @@ public class LuceneQueryHighlighter implements Highlighter {
 		}
 	}
 
-	private void extractWeights(Query query, List<Weight> weights, List<CompiledAutomaton> automatons) throws IOException {
+	private void extractWeights(Query query, List<Weight> weights, List<TermsEnumExtractor> extractors) throws IOException {
 		if (query instanceof BooleanQuery) {
 			for (BooleanClause clause : ((BooleanQuery) query).clauses()) {
 				if (clause.getOccur() != Occur.MUST_NOT) {
-					this.extractWeights(clause.getQuery(), weights, automatons);
+					this.extractWeights(clause.getQuery(), weights, extractors);
 				}
 			}
 		} else if (query instanceof PrefixQuery) {
 			Term prefixTerm = ((PrefixQuery) query).getPrefix();
 			Automaton automaton = PrefixQuery.toAutomaton(prefixTerm.bytes());
 			CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton, null, true, Integer.MAX_VALUE, true);
-			automatons.add(compiledAutomaton);
-
+			extractors.add(new CompiledAutomatonTermsEnumExtractor(compiledAutomaton));
 		} else if (query instanceof WildcardQuery) {
 			Term wildcardTerm = ((WildcardQuery) query).getTerm();
 			Automaton automaton = WildcardQuery.toAutomaton(wildcardTerm);
 			CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
-			automatons.add(compiledAutomaton);
+			extractors.add(new CompiledAutomatonTermsEnumExtractor(compiledAutomaton));
+		} else if (query instanceof FuzzyQuery) {
+			extractors.add(new FuzzyQueryTermsEnumExtractor((FuzzyQuery) query));
 		} else {
 			weights.add(query.createWeight(indexSearcher, false, 1.0f));
+		}
+	}
+
+	private interface TermsEnumExtractor {
+		public TermsEnum getTermsEnum(Terms terms) throws IOException;
+
+		public BytesRef getTerm();
+	}
+
+	private static final class CompiledAutomatonTermsEnumExtractor implements TermsEnumExtractor {
+		private CompiledAutomaton compiledAutomaton;
+
+		public CompiledAutomatonTermsEnumExtractor(CompiledAutomaton compiledAutomaton) {
+			this.compiledAutomaton = compiledAutomaton;
+		}
+
+		@Override
+		public TermsEnum getTermsEnum(Terms terms) throws IOException {
+			return this.compiledAutomaton.getTermsEnum(terms);
+		}
+
+		@Override
+		public BytesRef getTerm() {
+			return this.compiledAutomaton.term;
+		}
+	}
+
+	private static final class FuzzyQueryTermsEnumExtractor implements TermsEnumExtractor {
+		private FuzzyQuery fuzzyQuery;
+
+		public FuzzyQueryTermsEnumExtractor(FuzzyQuery fuzzyQuery) {
+			this.fuzzyQuery = fuzzyQuery;
+		}
+
+		@Override
+		public TermsEnum getTermsEnum(Terms terms) throws IOException {
+			return new FuzzyTermsEnum(terms, new AttributeSource(), fuzzyQuery.getTerm(), fuzzyQuery.getMaxEdits(), fuzzyQuery.getPrefixLength(),
+					fuzzyQuery.getTranspositions());
+		}
+
+		@Override
+		public BytesRef getTerm() {
+			return this.fuzzyQuery.getTerm().bytes();
 		}
 	}
 
