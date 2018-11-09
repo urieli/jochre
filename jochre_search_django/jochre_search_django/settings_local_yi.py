@@ -114,8 +114,8 @@ If the word as badly segmented (i.e. if only part of the word appears), do not c
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
 "prefsTitle" : u"Preferences",
-"prefsDocsPerPage" : u"Documents per page",
-"prefsSnippetsPerDoc" : u"Snippets per document",
+"prefsDocsPerPage" : u"Results per page",
+"prefsSnippetsPerDoc" : u"Snippets per result",,
 }
 
 SHOW_SECTION = False

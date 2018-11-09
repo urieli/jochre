@@ -108,8 +108,8 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
 "prefsTitle" : u"Preferences",
-"prefsDocsPerPage" : u"Documents per page",
-"prefsSnippetsPerDoc" : u"Snippets per document",
+"prefsDocsPerPage" : u"Results per page",
+"prefsSnippetsPerDoc" : u"Snippets per result",
 }
 
 SHOW_SECTION = False
