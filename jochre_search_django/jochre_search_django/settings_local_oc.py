@@ -107,6 +107,9 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordFont" : u"Font",
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
+"prefsTitle" : u"Preferences",
+"prefsDocsPerPage" : u"Documents per page",
+"prefsSnippetsPerDoc" : u"Snippets per document",
 }
 
 def PAGE_URL_TRANSFORM(pageNumber):
@@ -115,3 +118,6 @@ def PAGE_URL_TRANSFORM(pageNumber):
 KEYBOARD_MAPPINGS_ENABLED = False
 
 KEYBOARD_MAPPINGS = {}
+
+DOCS_PER_PAGE = 10
+SNIPPETS_PER_DOC = 20

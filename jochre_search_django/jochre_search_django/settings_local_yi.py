@@ -113,6 +113,9 @@ If the word as badly segmented (i.e. if only part of the word appears), do not c
 "fixWordFont" : u"Font",
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
+"prefsTitle" : u"Preferences",
+"prefsDocsPerPage" : u"Documents per page",
+"prefsSnippetsPerDoc" : u"Snippets per document",
 }
 
 def PAGE_URL_TRANSFORM(pageNumber):
@@ -178,3 +181,6 @@ KEYBOARD_MAPPINGS = {
 	u'’':	 u"'",
 	u'„':	 u'"',
 }
+
+DOCS_PER_PAGE = 10
+SNIPPETS_PER_DOC = 20

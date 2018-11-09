@@ -10,7 +10,7 @@ from django.conf import settings
 from django.template.defaulttags import register
 from django.http import HttpResponse
 
-from jochre.models import KeyboardMapping
+from jochre.models import KeyboardMapping, Preferences
 
 def search(request):
 	logger = logging.getLogger(__name__)
@@ -19,7 +19,8 @@ def search(request):
 		return redirect('accounts/login/')
 	
 	username = request.user.username
-	ip = get_client_ip(request)
+	ip = getClientIP(request)
+	prefs = getPreferences(request)
 	
 	searchUrl = settings.JOCHRE_SEARCH_URL
 	advancedSearch = False
@@ -98,13 +99,12 @@ def search(request):
 			 
 	if len(query)>0:
 		MAX_DOCS=1000
-		RESULTS_PER_PAGE=10
 		userdata = {"command": "search",
 					"query": query,
 					"user": username,
 					"ip": ip,
 					"page": page,
-					"resultsPerPage" : RESULTS_PER_PAGE
+					"resultsPerPage" : prefs['docsPerPage']
 					}
 		if len(author)>0:
 			userdata['authors'] = author
@@ -187,7 +187,7 @@ def search(request):
 			if len(docs)>0:
 				haveResults = True
 				userdata = {"command": "snippets",
-							"snippetCount": 8,
+							"snippetCount": prefs['snippetsPerDoc'],
 							"query": query,
 							"docIds": docIds,
 							"user": username,
@@ -197,8 +197,8 @@ def search(request):
 					userdata['expand'] = 'false'
 				resp = requests.get(searchUrl, userdata)
 				model["results"] = docs
-				start = page * RESULTS_PER_PAGE + 1
-				end = start + RESULTS_PER_PAGE - 1
+				start = page * prefs['docsPerPage'] + 1
+				end = start + prefs['docsPerPage'] - 1
 				if end > totalHits: end = totalHits
 				if end > maxResults: end = maxResults
 				model["start"] = start
@@ -206,9 +206,9 @@ def search(request):
 				model["resultCount"] = totalHits
 
 				pageLinks = []
-				lastPage = (totalHits - 1) // RESULTS_PER_PAGE
+				lastPage = (totalHits - 1) // prefs['docsPerPage']
 				if (totalHits > maxResults):
-					lastPage = (maxResults - 1) // RESULTS_PER_PAGE
+					lastPage = (maxResults - 1) // prefs['docsPerPage']
 				startPage = page - 3
 				if startPage < 0: startPage = 0
 				endPage = startPage + 6
@@ -301,13 +301,64 @@ def addstr(arg1, arg2):
 	"""concatenate arg1 & arg2"""
 	return str(arg1) + str(arg2)
 
-def get_client_ip(request):
+def getClientIP(request):
 	x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 	if x_forwarded_for:
 		ip = x_forwarded_for.split(',')[0]
 	else:
 		ip = request.META.get('REMOTE_ADDR')
 	return ip
+
+def getPreferences(request):
+	logger = logging.getLogger(__name__)
+
+	if not request.user.is_authenticated:
+		raise ValueError('User not logged in.')
+	
+	username = request.user.username
+	preferences = Preferences.objects.filter(user=request.user)
+
+	if len(preferences)==1:
+		docsPerPage = preferences[0].docsPerPage
+		snippetsPerDoc = preferences[0].snippetsPerDoc
+	else:
+		docsPerPage = settings.DOCS_PER_PAGE
+		snippetsPerDoc = settings.SNIPPETS_PER_DOC
+
+	prefs = {
+		"docsPerPage" : docsPerPage,
+		"snippetsPerDoc" : snippetsPerDoc
+	}
+	return prefs
+
+def preferences(request):
+	model = getPreferences(request)
+	return HttpResponse(json.dumps(model), content_type='application/json')
+
+def updatePreferences(request):
+	logger = logging.getLogger(__name__)
+
+	if not request.user.is_authenticated:
+		raise ValueError('User not logged in.')
+
+	if request.method == 'POST':
+		if 'action' in request.POST and request.POST['action']=='default':
+			Preferences.objects.filter(user=request.user).delete()
+			logging.debug('deleted preferences')
+		else:
+			newVals = {}
+			if 'docsPerPage' in request.POST:
+				newVals['docsPerPage'] = int(request.POST['docsPerPage'])
+			if 'snippetsPerDoc' in request.POST:
+				newVals['snippetsPerDoc'] = int(request.POST['snippetsPerDoc'])
+
+			obj, created = Preferences.objects.update_or_create(
+				user=request.user,
+				defaults=newVals,
+			)
+
+	model = {"result": "success"}
+	return HttpResponse(json.dumps(model), content_type='application/json')
 
 def keyboard(request):
 	logger = logging.getLogger(__name__)
@@ -374,7 +425,7 @@ def contents(request):
 	try:
 		searchUrl = settings.JOCHRE_SEARCH_URL
 		username = request.user.username
-		ip = get_client_ip(request)
+		ip = getClientIP(request)
 
 		contents = ''
 		if 'doc' in request.GET:

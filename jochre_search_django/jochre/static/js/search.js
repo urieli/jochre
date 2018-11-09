@@ -10,6 +10,11 @@ $(function() {
 		return false;
 	});
 
+	$('#updatePreferences').click(function() {
+		loadPreferences();
+		return false;
+	});
+
 	$('#txtAuthor').typeahead({
 		hint: false,
 		highlight: true,
@@ -120,6 +125,40 @@ $(function() {
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('#alertKeyboardError').show();
 				$('#alertKeyboardSuccess').hide();
+			},
+		});
+	});
+
+	$('#btnDefaultPrefs').click( function() {
+		$('#frmPrefsAction').val("default");
+		$.ajax({
+			type: 'POST',
+			url: '/updatePreferences',
+			data: $('#frmPrefs').serialize(),
+			success: function() {
+				$('#alertPrefsError').hide();
+				$('#alertPrefsSuccess').show();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$('#alertPrefsError').show();
+				$('#alertPrefsSuccess').hide();
+			},
+		});
+	});
+
+	$('#btnSavePrefs').click( function() {
+		$('#frmPrefsAction').val("save");
+		$.ajax({
+			type: 'POST',
+			url: '/updatePreferences',
+			data: $('#frmPrefs').serialize(),
+			success: function() {
+				$('#alertPrefsError').hide();
+				$('#alertPrefsSuccess').show();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$('#alertPrefsError').show();
+				$('#alertPrefsSuccess').hide();
 			},
 		});
 	});
@@ -328,5 +367,20 @@ function loadKeyboardMappings() {
 				`);
 		}
 		$("#keyboardModal").modal()
+	});
+}
+
+function loadPreferences() {
+	$('#alertPrefsError').hide();
+	$('#alertPrefsSuccess').hide();
+	$.getJSON( `/preferences`, function( data ) {
+		$.each( data, function( key, val ) {
+			if (key=="docsPerPage") {
+				$("#docsPerPage").val(val);
+			} else if (key=="snippetsPerDoc") {
+				$("#snippetsPerDoc").val(val);
+			}
+		});
+		$("#preferencesModal").modal()
 	});
 }
