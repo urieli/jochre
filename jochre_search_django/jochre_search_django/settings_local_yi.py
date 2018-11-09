@@ -118,6 +118,8 @@ If the word as badly segmented (i.e. if only part of the word appears), do not c
 "prefsSnippetsPerDoc" : u"Snippets per document",
 }
 
+SHOW_SECTION = False
+
 def PAGE_URL_TRANSFORM(pageNumber):
 	return pageNumber - 1
 

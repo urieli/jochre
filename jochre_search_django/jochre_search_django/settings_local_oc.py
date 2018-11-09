@@ -112,6 +112,8 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "prefsSnippetsPerDoc" : u"Snippets per document",
 }
 
+SHOW_SECTION = False
+
 def PAGE_URL_TRANSFORM(pageNumber):
 	return pageNumber
 
