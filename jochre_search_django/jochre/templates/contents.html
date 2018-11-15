@@ -27,7 +27,7 @@
 
 {% include "header-local.html" %}
 
-<div class="{% if RTL %}rtl{% endif %}">
+<div class="m-4 {% if RTL %}rtl{% endif %}">
 	<H1>{{ doc.title }}</H1>
 	<H2>{{ doc.author }}</H2>
 {% autoescape off %}{{ contents }}{% endautoescape %}
