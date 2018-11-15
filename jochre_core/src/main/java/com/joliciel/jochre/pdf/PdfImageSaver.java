@@ -38,51 +38,52 @@ import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
  */
 public class PdfImageSaver extends AbstractPdfImageVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(PdfImageSaver.class);
-
-	private static String SEPARATOR = System.getProperty("file.separator");
 	private static String SUFFIX = "png";
 
-	private String outputDirectory;
-
-	public PdfImageSaver(File pdfFile) {
-		super(pdfFile);
-	}
+	private final File outputDir;
+	private final int firstPage;
+	private final int lastPage;
 
 	/**
-	 * Save the images to the outputDirectory indicated.
 	 * 
+	 * @param pdfFile
+	 *            File to read
+	 * @param outputDirectory
+	 *            Where to save the pages.
 	 * @param firstPage
 	 *            a value of -1 means no first page
 	 * @param lastPage
 	 *            a value of -1 means no last page
 	 */
-	public void saveImages(String outputDirectory, int firstPage, int lastPage) {
-
+	public PdfImageSaver(File pdfFile, String outputDirectory, int firstPage, int lastPage) {
+		super(pdfFile);
 		// Create the output directory if it doesn't exist
-		this.outputDirectory = outputDirectory;
+		this.outputDir = new File(outputDirectory);
 
 		LOG.debug("Images will be stored to " + outputDirectory);
-		File outputDirectoryPath = new File(outputDirectory);
-		if (outputDirectoryPath.exists() == false)
-			outputDirectoryPath.mkdirs();
+		if (outputDir.exists() == false)
+			outputDir.mkdirs();
+		this.firstPage = firstPage;
+		this.lastPage = lastPage;
+	}
 
+	/**
+	 * Save the images to the outputDirectory indicated.
+	 */
+	public void saveImages() {
 		this.visitImages(firstPage, lastPage);
 	}
 
 	@Override
 	protected void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex) {
-
-		// Each page gets its own directory
-		String pageDirectory = this.outputDirectory + SEPARATOR + pageIndex;
-
-		File pagePath = new File(pageDirectory);
-		if (pagePath.exists() == false)
-			pagePath.mkdirs();
-
 		String fileName = this.getPdfFile().getName().substring(0, this.getPdfFile().getName().lastIndexOf('.'));
-		fileName += "_" + pageIndex + "_" + imageIndex + "." + SUFFIX;
+		if (imageIndex > 0) {
+			fileName += "_" + String.format("%04d", pageIndex) + "_" + String.format("%02d", imageIndex) + "." + SUFFIX;
+		} else {
+			fileName += "_" + String.format("%04d", pageIndex) + "." + SUFFIX;
+		}
 		try {
-			ImageIO.write(image, SUFFIX, new File(pageDirectory + SEPARATOR + fileName));
+			ImageIO.write(image, SUFFIX, new File(outputDir, fileName));
 		} catch (IOException e) {
 			throw new JochreException(e);
 		}

@@ -237,9 +237,9 @@ public class Jochre {
 	 * Usage (* indicates optional):<br/>
 	 * Jochre load [filename] [isoLanguageCode] [firstPage]* [lastPage]*<br/>
 	 * Loads a file (pdf or image) and segments it into letters. The analysed
-	 * version is stored in the persistent store. Writes [filename].xml to the
-	 * same location, to enable the user to indicate the text to associate with
-	 * this file.<br/>
+	 * version is stored in the persistent store. Writes [filename].xml to the same
+	 * location, to enable the user to indicate the text to associate with this
+	 * file.<br/>
 	 * Jochre extract [filename] [outputDirectory] [firstPage]* [lastPage]*<br/>
 	 * Extracts images form a pdf file.<br/>
 	 */
@@ -669,8 +669,8 @@ public class Jochre {
 	}
 
 	/**
-	 * Log a shape's image to the log file, to make sure it got segmented and
-	 * stored correctly.
+	 * Log a shape's image to the log file, to make sure it got segmented and stored
+	 * correctly.
 	 */
 	public void doCommandLogImage(int shapeId) {
 		// just a utility for making sure images got segmented and stored
@@ -1231,8 +1231,8 @@ public class Jochre {
 
 		if (filename.toLowerCase().endsWith(".pdf")) {
 			File pdfFile = new File(filename);
-			PdfImageSaver pdfImageSaver = new PdfImageSaver(pdfFile);
-			pdfImageSaver.saveImages(outputDirPath, firstPage, lastPage);
+			PdfImageSaver pdfImageSaver = new PdfImageSaver(pdfFile, outputDirPath, firstPage, lastPage);
+			pdfImageSaver.saveImages();
 		} else {
 			throw new RuntimeException("Unrecognised file extension");
 		}
