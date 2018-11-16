@@ -29,13 +29,13 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  * @author Assaf Urieli
  *
  */
-public final class WidthFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double ratio = (double)shape.getWidth() / (double) (shape.getBaseLine() - shape.getMeanLine());
-		
-		FeatureResult<Double> outcome = this.generateResult(ratio);
-		return outcome;
-	}
+public final class WidthFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double ratio = (double)shape.getWidth() / (double) (shape.getBaseLine() - shape.getMeanLine());
+    
+    FeatureResult<Double> outcome = this.generateResult(ratio);
+    return outcome;
+  }
 }

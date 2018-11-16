@@ -38,151 +38,151 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
  *
  */
 public class Split implements Entity, ShapeWrapper {
-	private int shapeId;
-	private Shape shape;
-	private int position;
-	private boolean dirty;
-	private int id;
+  private int shapeId;
+  private Shape shape;
+  private int position;
+  private boolean dirty;
+  private int id;
 
-	private Map<String, FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
+  private Map<String, FeatureResult<?>> featureResults = new HashMap<String, FeatureResult<?>>();
 
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	Split(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-	}
+  Split(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+  }
 
-	public Split(Shape shape, JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.shape = shape;
-		this.shapeId = shape.getId();
-	}
+  public Split(Shape shape, JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.shape = shape;
+    this.shapeId = shape.getId();
+  }
 
-	public int getShapeId() {
-		return shapeId;
-	}
+  public int getShapeId() {
+    return shapeId;
+  }
 
-	void setShapeId(int shapeId) {
-		if (this.shapeId != shapeId) {
-			this.shapeId = shapeId;
-			this.setDirty(true);
-		}
-	}
+  void setShapeId(int shapeId) {
+    if (this.shapeId != shapeId) {
+      this.shapeId = shapeId;
+      this.setDirty(true);
+    }
+  }
 
-	/**
-	 * X-coordinate of the split, where zero is the left-most coordinate of the
-	 * shape.
-	 */
-	public int getPosition() {
-		return position;
-	}
+  /**
+   * X-coordinate of the split, where zero is the left-most coordinate of the
+   * shape.
+   */
+  public int getPosition() {
+    return position;
+  }
 
-	public void setPosition(int position) {
-		if (this.position != position) {
-			this.position = position;
-			this.dirty = true;
-		}
-	}
+  public void setPosition(int position) {
+    if (this.position != position) {
+      this.position = position;
+      this.dirty = true;
+    }
+  }
 
-	@Override
-	public Shape getShape() {
-		if (shape == null && shapeId != 0) {
-			GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
-			shape = graphicsDao.loadShape(shapeId);
-		}
-		return shape;
-	}
+  @Override
+  public Shape getShape() {
+    if (shape == null && shapeId != 0) {
+      GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+      shape = graphicsDao.loadShape(shapeId);
+    }
+    return shape;
+  }
 
-	void setShape(Shape shape) {
-		this.shape = shape;
-		if (shape != null)
-			this.setShapeId(shape.getId());
-		else
-			this.setShapeId(0);
-	}
+  void setShape(Shape shape) {
+    this.shape = shape;
+    if (shape != null)
+      this.setShapeId(shape.getId());
+    else
+      this.setShapeId(0);
+  }
 
-	@Override
-	public void save() {
-		if (this.dirty) {
-			BoundaryDao boundaryDao = BoundaryDao.getInstance(jochreSession);
-			boundaryDao.saveSplit(this);
-		}
-	}
+  @Override
+  public void save() {
+    if (this.dirty) {
+      BoundaryDao boundaryDao = BoundaryDao.getInstance(jochreSession);
+      boundaryDao.saveSplit(this);
+    }
+  }
 
-	/**
-	 * Delete this split from persistent store.
-	 */
-	public void delete() {
-		if (this.id != 0) {
-			BoundaryDao boundaryDao = BoundaryDao.getInstance(jochreSession);
-			boundaryDao.deleteSplit(this);
-		}
-	}
+  /**
+   * Delete this split from persistent store.
+   */
+  public void delete() {
+    if (this.id != 0) {
+      BoundaryDao boundaryDao = BoundaryDao.getInstance(jochreSession);
+      boundaryDao.deleteSplit(this);
+    }
+  }
 
-	boolean isDirty() {
-		return dirty;
-	}
+  boolean isDirty() {
+    return dirty;
+  }
 
-	void setDirty(boolean dirty) {
-		this.dirty = dirty;
-	}
+  void setDirty(boolean dirty) {
+    this.dirty = dirty;
+  }
 
-	@Override
-	public String toString() {
-		return "Split [shape=" + this.getShape() + ", position=" + position + "]";
-	}
+  @Override
+  public String toString() {
+    return "Split [shape=" + this.getShape() + ", position=" + position + "]";
+  }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + position;
-		result = prime * result + ((shape == null) ? 0 : shape.hashCode());
-		return result;
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + position;
+    result = prime * result + ((shape == null) ? 0 : shape.hashCode());
+    return result;
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Split other = (Split) obj;
-		if (position != other.position)
-			return false;
-		if (shape == null) {
-			if (other.shape != null)
-				return false;
-		} else if (!shape.equals(other.shape))
-			return false;
-		return true;
-	}
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Split other = (Split) obj;
+    if (position != other.position)
+      return false;
+    if (shape == null) {
+      if (other.shape != null)
+        return false;
+    } else if (!shape.equals(other.shape))
+      return false;
+    return true;
+  }
 
-	@SuppressWarnings("unchecked")
-	public <T> FeatureResult<T> getResultFromCache(SplitFeature<T> splitFeature) {
-		FeatureResult<T> result = null;
+  @SuppressWarnings("unchecked")
+  public <T> FeatureResult<T> getResultFromCache(SplitFeature<T> splitFeature) {
+    FeatureResult<T> result = null;
 
-		if (this.featureResults.containsKey(splitFeature.getName())) {
-			result = (FeatureResult<T>) this.featureResults.get(splitFeature.getName());
-		}
+    if (this.featureResults.containsKey(splitFeature.getName())) {
+      result = (FeatureResult<T>) this.featureResults.get(splitFeature.getName());
+    }
 
-		return result;
-	}
+    return result;
+  }
 
-	public <T> void putResultInCache(SplitFeature<T> splitFeature, FeatureResult<T> featureResult) {
-		this.featureResults.put(splitFeature.getName(), featureResult);
-	}
+  public <T> void putResultInCache(SplitFeature<T> splitFeature, FeatureResult<T> featureResult) {
+    this.featureResults.put(splitFeature.getName(), featureResult);
+  }
 
-	@Override
-	public int getId() {
-		return id;
-	}
+  @Override
+  public int getId() {
+    return id;
+  }
 
-	@Override
-	public void setId(int id) {
-		this.id = id;
-	}
+  @Override
+  public void setId(int id) {
+    this.id = id;
+  }
 
 }

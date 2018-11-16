@@ -6,6 +6,6 @@ package com.joliciel.jochre.search.alto;
  *
  */
 public interface AltoPageConsumer {
-	public void onNextPage(AltoPage altoPage);
-	public void onComplete();
+  public void onNextPage(AltoPage altoPage);
+  public void onComplete();
 }

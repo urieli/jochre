@@ -35,136 +35,136 @@ import mockit.Expectations;
 import mockit.Mocked;
 
 public class VectorizerImplTest {
-	private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
 
-	@Test
-	public void testGetLongestLines() throws Exception {
-		System.setProperty("config.file", "src/test/resources/test.conf");
-		ConfigFactory.invalidateCaches();
-		Config config = ConfigFactory.load();
-		JochreSession jochreSession = new JochreSession(config);
-		final int threshold = 100;
-		final int maxLines = 60;
-		final int whiteGapFillFactor = 5;
-		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
-				0, 1, 1, 1, 0, 1, 1, 1, // row
-				0, 0, 1, 1, 0, 0, 1, 1, // row
-				0, 0, 1, 1, 0, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 0, 0, // row
-				0, 0, 1, 1, 1, 0, 0, 0, // row
-				1, 1, 1, 1, 1, 0, 0, 0 // row
-		};
+  @Test
+  public void testGetLongestLines() throws Exception {
+    System.setProperty("config.file", "src/test/resources/test.conf");
+    ConfigFactory.invalidateCaches();
+    Config config = ConfigFactory.load();
+    JochreSession jochreSession = new JochreSession(config);
+    final int threshold = 100;
+    final int maxLines = 60;
+    final int whiteGapFillFactor = 5;
+    int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+        0, 1, 1, 1, 0, 1, 1, 1, // row
+        0, 0, 1, 1, 0, 0, 1, 1, // row
+        0, 0, 1, 1, 0, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 0, 0, // row
+        0, 0, 1, 1, 1, 0, 0, 0, // row
+        1, 1, 1, 1, 1, 0, 0, 0 // row
+    };
 
-		Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
+    Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
 
-		BitSet outline = new BitSet(64);
+    BitSet outline = new BitSet(64);
 
-		int[] outlinePixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
-				0, 1, 0, 1, 0, 1, 0, 1, // row
-				0, 0, 1, 1, 0, 0, 1, 1, // row
-				0, 0, 1, 1, 0, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 0, 1, 0, // row
-				0, 0, 0, 1, 0, 1, 0, 0, // row
-				0, 0, 1, 0, 1, 0, 0, 0, // row
-				1, 1, 1, 1, 1, 0, 0, 0 // row
-		};
-		for (int x = 0; x < 8; x++)
-			for (int y = 0; y < 8; y++) {
-				outline.set(y * 8 + x, outlinePixels[y * 8 + x] == 1);
-			}
+    int[] outlinePixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+        0, 1, 0, 1, 0, 1, 0, 1, // row
+        0, 0, 1, 1, 0, 0, 1, 1, // row
+        0, 0, 1, 1, 0, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 0, 1, 0, // row
+        0, 0, 0, 1, 0, 1, 0, 0, // row
+        0, 0, 1, 0, 1, 0, 0, 0, // row
+        1, 1, 1, 1, 1, 0, 0, 0 // row
+    };
+    for (int x = 0; x < 8; x++)
+      for (int y = 0; y < 8; y++) {
+        outline.set(y * 8 + x, outlinePixels[y * 8 + x] == 1);
+      }
 
-		Vectorizer vectorizer = new Vectorizer();
+    Vectorizer vectorizer = new Vectorizer();
 
-		vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
-		List<LineSegment> lines = vectorizer.getLongestLines(shape, outline, maxLines, threshold);
-		assertEquals(maxLines, lines.size());
-	}
+    vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
+    List<LineSegment> lines = vectorizer.getLongestLines(shape, outline, maxLines, threshold);
+    assertEquals(maxLines, lines.size());
+  }
 
-	@Test
-	public void testGetLinesToEdge() throws Exception {
-		System.setProperty("config.file", "src/test/resources/test.conf");
-		ConfigFactory.invalidateCaches();
-		Config config = ConfigFactory.load();
-		JochreSession jochreSession = new JochreSession(config);
-		final int threshold = 100;
-		final int whiteGapFillFactor = 5;
-		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
-				0, 1, 1, 1, 0, 1, 1, 1, // row
-				0, 0, 1, 1, 0, 0, 1, 1, // row
-				0, 0, 1, 1, 0, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 0, 0, // row
-				0, 0, 1, 1, 1, 0, 0, 0, // row
-				1, 1, 1, 1, 1, 0, 0, 0 // row
-		};
-		Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
+  @Test
+  public void testGetLinesToEdge() throws Exception {
+    System.setProperty("config.file", "src/test/resources/test.conf");
+    ConfigFactory.invalidateCaches();
+    Config config = ConfigFactory.load();
+    JochreSession jochreSession = new JochreSession(config);
+    final int threshold = 100;
+    final int whiteGapFillFactor = 5;
+    int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+        0, 1, 1, 1, 0, 1, 1, 1, // row
+        0, 0, 1, 1, 0, 0, 1, 1, // row
+        0, 0, 1, 1, 0, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 0, 0, // row
+        0, 0, 1, 1, 1, 0, 0, 0, // row
+        1, 1, 1, 1, 1, 0, 0, 0 // row
+    };
+    Shape shape = new ShapeMock(pixels, 8, 8, jochreSession);
 
-		Vectorizer vectorizer = new Vectorizer();
+    Vectorizer vectorizer = new Vectorizer();
 
-		vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
-		List<LineSegment> lines = vectorizer.getLinesToEdge(shape, 2, 2, threshold);
+    vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
+    List<LineSegment> lines = vectorizer.getLinesToEdge(shape, 2, 2, threshold);
 
-		assertEquals(6, lines.size());
-	}
+    assertEquals(6, lines.size());
+  }
 
-	@Test
-	public void testArrayListize(@Mocked final JochreImage image) throws Exception {
-		System.setProperty("config.file", "src/test/resources/test.conf");
-		ConfigFactory.invalidateCaches();
-		Config config = ConfigFactory.load();
-		JochreSession jochreSession = new JochreSession(config);
+  @Test
+  public void testArrayListize(@Mocked final JochreImage image) throws Exception {
+    System.setProperty("config.file", "src/test/resources/test.conf");
+    ConfigFactory.invalidateCaches();
+    Config config = ConfigFactory.load();
+    JochreSession jochreSession = new JochreSession(config);
 
-		final int threshold = 100;
-		final int whiteGapFillFactor = 5;
+    final int threshold = 100;
+    final int whiteGapFillFactor = 5;
 
-		int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
-				0, 1, 1, 1, 0, 1, 1, 1, // row
-				0, 0, 1, 1, 0, 0, 1, 1, // row
-				0, 0, 1, 1, 0, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 1, 0, // row
-				0, 0, 0, 1, 1, 1, 0, 0, // row
-				0, 0, 1, 1, 1, 0, 0, 0, // row
-				1, 1, 1, 1, 1, 0, 0, 0 // row
-		};
+    int[] pixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row
+        0, 1, 1, 1, 0, 1, 1, 1, // row
+        0, 0, 1, 1, 0, 0, 1, 1, // row
+        0, 0, 1, 1, 0, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 1, 0, // row
+        0, 0, 0, 1, 1, 1, 0, 0, // row
+        0, 0, 1, 1, 1, 0, 0, 0, // row
+        1, 1, 1, 1, 1, 0, 0, 0 // row
+    };
 
-		ShapeMock shape = new ShapeMock(pixels, 8, 8, jochreSession);
+    ShapeMock shape = new ShapeMock(pixels, 8, 8, jochreSession);
 
-		int[] outlinePixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row 0
-				0, 1, 0, 1, 0, 1, 0, 1, // row 1
-				0, 0, 1, 1, 0, 0, 1, 1, // row 2
-				0, 0, 1, 1, 0, 1, 1, 0, // row 3
-				0, 0, 0, 1, 1, 0, 1, 0, // row 4
-				0, 0, 0, 1, 0, 1, 0, 0, // row 5
-				0, 0, 1, 0, 1, 0, 0, 0, // row 6
-				1, 1, 1, 1, 1, 0, 0, 0, // row 7
-		};
+    int[] outlinePixels = { 0, 1, 1, 0, 0, 1, 1, 1, // row 0
+        0, 1, 0, 1, 0, 1, 0, 1, // row 1
+        0, 0, 1, 1, 0, 0, 1, 1, // row 2
+        0, 0, 1, 1, 0, 1, 1, 0, // row 3
+        0, 0, 0, 1, 1, 0, 1, 0, // row 4
+        0, 0, 0, 1, 0, 1, 0, 0, // row 5
+        0, 0, 1, 0, 1, 0, 0, 0, // row 6
+        1, 1, 1, 1, 1, 0, 0, 0, // row 7
+    };
 
-		BitSet outline = new BitSet();
-		for (int i = 0; i < 8 * 8; i++)
-			outline.set(i, outlinePixels[i] == 1);
+    BitSet outline = new BitSet();
+    for (int i = 0; i < 8 * 8; i++)
+      outline.set(i, outlinePixels[i] == 1);
 
-		shape.setOutline(outline);
-		shape.setJochreImage(image);
+    shape.setOutline(outline);
+    shape.setJochreImage(image);
 
-		new Expectations() {
-			{
-				image.getBlackThreshold();
-				result = threshold;
-				minTimes = 0;
-			}
-		};
+    new Expectations() {
+      {
+        image.getBlackThreshold();
+        result = threshold;
+        minTimes = 0;
+      }
+    };
 
-		Vectorizer vectorizer = new Vectorizer();
+    Vectorizer vectorizer = new Vectorizer();
 
-		vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
-		List<LineSegment> lines = vectorizer.vectorize(shape);
-		int i = 0;
-		for (LineSegment lineSegment : lines) {
-			double slope = (double) (lineSegment.getEndY() - lineSegment.getStartY()) / (double) (lineSegment.getEndX() - lineSegment.getStartX());
-			LOG.debug("Line " + i++ + "(" + lineSegment.getStartX() + "," + lineSegment.getStartY() + ") " + "(" + lineSegment.getEndX() + ","
-					+ lineSegment.getEndY() + "). Length = " + lineSegment.getLength() + ", Slope = " + slope);
-		}
+    vectorizer.setWhiteGapFillFactor(whiteGapFillFactor);
+    List<LineSegment> lines = vectorizer.vectorize(shape);
+    int i = 0;
+    for (LineSegment lineSegment : lines) {
+      double slope = (double) (lineSegment.getEndY() - lineSegment.getStartY()) / (double) (lineSegment.getEndX() - lineSegment.getStartX());
+      LOG.debug("Line " + i++ + "(" + lineSegment.getStartX() + "," + lineSegment.getStartY() + ") " + "(" + lineSegment.getEndX() + ","
+          + lineSegment.getEndY() + "). Length = " + lineSegment.getLength() + ", Slope = " + slope);
+    }
 
-	}
+  }
 }

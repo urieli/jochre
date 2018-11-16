@@ -28,56 +28,56 @@ package com.joliciel.jochre.search.feedback;
  *
  */
 public class FeedbackDocument {
-	private int id;
-	private String path;
+  private int id;
+  private String path;
 
-	private final FeedbackDAO feedbackDAO;
+  private final FeedbackDAO feedbackDAO;
 
-	public static FeedbackDocument findOrCreateDocument(String path, FeedbackDAO feedbackDAO) {
-		FeedbackDocument doc = feedbackDAO.findDocument(path);
-		if (doc == null) {
-			doc = new FeedbackDocument(path, feedbackDAO);
-			doc.save();
-		}
-		return doc;
-	}
+  public static FeedbackDocument findOrCreateDocument(String path, FeedbackDAO feedbackDAO) {
+    FeedbackDocument doc = feedbackDAO.findDocument(path);
+    if (doc == null) {
+      doc = new FeedbackDocument(path, feedbackDAO);
+      doc.save();
+    }
+    return doc;
+  }
 
-	FeedbackDocument(String path, FeedbackDAO feedbackDAO) {
-		this(feedbackDAO);
-		this.setPath(path);
-	}
+  FeedbackDocument(String path, FeedbackDAO feedbackDAO) {
+    this(feedbackDAO);
+    this.setPath(path);
+  }
 
-	FeedbackDocument(FeedbackDAO feedbackDAO) {
-		this.feedbackDAO = feedbackDAO;
-	}
+  FeedbackDocument(FeedbackDAO feedbackDAO) {
+    this.feedbackDAO = feedbackDAO;
+  }
 
-	/**
-	 * The document's unique internal id.
-	 */
-	public int getId() {
-		return id;
-	}
+  /**
+   * The document's unique internal id.
+   */
+  public int getId() {
+    return id;
+  }
 
-	void setId(int id) {
-		this.id = id;
-	}
+  void setId(int id) {
+    this.id = id;
+  }
 
-	/**
-	 * The document's path, which identifies it outside of the index.
-	 */
-	public String getPath() {
-		return path;
-	}
+  /**
+   * The document's path, which identifies it outside of the index.
+   */
+  public String getPath() {
+    return path;
+  }
 
-	void setPath(String path) {
-		this.path = path;
-	}
+  void setPath(String path) {
+    this.path = path;
+  }
 
-	boolean isNew() {
-		return id == 0;
-	}
+  boolean isNew() {
+    return id == 0;
+  }
 
-	void save() {
-		feedbackDAO.saveDocument(this);
-	}
+  void save() {
+    feedbackDAO.saveDocument(this);
+  }
 }

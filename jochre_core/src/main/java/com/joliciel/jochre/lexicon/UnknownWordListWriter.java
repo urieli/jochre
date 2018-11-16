@@ -41,70 +41,70 @@ import com.joliciel.talismane.utils.CountedOutcome;
  *
  */
 public class UnknownWordListWriter implements DocumentObserver {
-	private static final Logger LOG = LoggerFactory.getLogger(UnknownWordListWriter.class);
-	private Writer writer;
+  private static final Logger LOG = LoggerFactory.getLogger(UnknownWordListWriter.class);
+  private Writer writer;
 
-	public UnknownWordListWriter(Writer writer) {
-		this.writer = writer;
-	}
+  public UnknownWordListWriter(Writer writer) {
+    this.writer = writer;
+  }
 
-	@Override
-	public void onDocumentStart(JochreDocument jochreDocument) {
+  @Override
+  public void onDocumentStart(JochreDocument jochreDocument) {
 
-	}
+  }
 
-	@Override
-	public void onPageStart(JochrePage jochrePage) {
-		try {
-			writer.write("#### Page " + jochrePage.getIndex() + "\n");
-			writer.flush();
-		} catch (IOException e) {
-			LOG.error("Failed to write to UnknownWordListWriter", e);
-			throw new RuntimeException(e);
-		}
-	}
+  @Override
+  public void onPageStart(JochrePage jochrePage) {
+    try {
+      writer.write("#### Page " + jochrePage.getIndex() + "\n");
+      writer.flush();
+    } catch (IOException e) {
+      LOG.error("Failed to write to UnknownWordListWriter", e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	@Override
-	public void onImageStart(JochreImage jochreImage) {
-	}
+  @Override
+  public void onImageStart(JochreImage jochreImage) {
+  }
 
-	@Override
-	public void onImageComplete(JochreImage image) {
-		try {
-			for (Paragraph paragraph : image.getParagraphs()) {
-				if (!paragraph.isJunk()) {
-					for (RowOfShapes row : paragraph.getRows()) {
-						for (GroupOfShapes group : row.getGroups()) {
-							if (group.getBestLetterSequence() != null) {
-								for (LetterSequence subsequence : group.getBestLetterSequence().getSubsequences()) {
-									for (CountedOutcome<String> wordFrequency : subsequence.getWordFrequencies()) {
-										if (wordFrequency.getCount() == 0) {
-											writer.write(wordFrequency.getOutcome() + "\n");
-											writer.flush();
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException e) {
-			LOG.error("Failed to write to UnknownWordListWriter", e);
-			throw new RuntimeException(e);
-		}
-	}
+  @Override
+  public void onImageComplete(JochreImage image) {
+    try {
+      for (Paragraph paragraph : image.getParagraphs()) {
+        if (!paragraph.isJunk()) {
+          for (RowOfShapes row : paragraph.getRows()) {
+            for (GroupOfShapes group : row.getGroups()) {
+              if (group.getBestLetterSequence() != null) {
+                for (LetterSequence subsequence : group.getBestLetterSequence().getSubsequences()) {
+                  for (CountedOutcome<String> wordFrequency : subsequence.getWordFrequencies()) {
+                    if (wordFrequency.getCount() == 0) {
+                      writer.write(wordFrequency.getOutcome() + "\n");
+                      writer.flush();
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to write to UnknownWordListWriter", e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	@Override
-	public void onPageComplete(JochrePage jochrePage) {
-	}
+  @Override
+  public void onPageComplete(JochrePage jochrePage) {
+  }
 
-	@Override
-	public void onDocumentComplete(JochreDocument jochreDocument) {
-	}
+  @Override
+  public void onDocumentComplete(JochreDocument jochreDocument) {
+  }
 
-	@Override
-	public void onAnalysisComplete() {
-	}
+  @Override
+  public void onAnalysisComplete() {
+  }
 
 }

@@ -16,43 +16,43 @@ import org.zkoss.zul.Toolbar;
 import com.joliciel.jochre.security.User;
 
 public class MenuController extends GenericForwardComposer<Panel> {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(MenuController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MenuController.class);
 
-	@Wire
-	Panel panelMenu;
-	@Wire
-	Label lblName;
-	@Wire
-	Label lblCorpusName;
-	@Wire
-	Toolbar toolbar1;
+  @Wire
+  Panel panelMenu;
+  @Wire
+  Label lblName;
+  @Wire
+  Label lblCorpusName;
+  @Wire
+  Toolbar toolbar1;
 
-	public MenuController() {
-	}
+  public MenuController() {
+  }
 
-	@Override
-	public void doAfterCompose(Panel panel) throws Exception {
-		super.doAfterCompose(panel);
-		LOG.debug("MenuController");
-		Session session = Sessions.getCurrent();
-		User currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-		if (currentUser != null) {
-			lblName.setValue(currentUser.getFirstName() + " " + currentUser.getLastName());
-			toolbar1.setVisible(true);
-		} else {
-			lblName.setValue("");
-			toolbar1.setVisible(false);
-		}
-		lblCorpusName.setValue(JochreProperties.getInstance().getJochreSession().getConfig().getConfig("jochre.web").getString("corpus-name"));
-	}
+  @Override
+  public void doAfterCompose(Panel panel) throws Exception {
+    super.doAfterCompose(panel);
+    LOG.debug("MenuController");
+    Session session = Sessions.getCurrent();
+    User currentUser = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
+    if (currentUser != null) {
+      lblName.setValue(currentUser.getFirstName() + " " + currentUser.getLastName());
+      toolbar1.setVisible(true);
+    } else {
+      lblName.setValue("");
+      toolbar1.setVisible(false);
+    }
+    lblCorpusName.setValue(JochreProperties.getInstance().getJochreSession().getConfig().getConfig("jochre.web").getString("corpus-name"));
+  }
 
-	@Listen("onClick = #btnLogout")
-	public void onClick$btnLogout(Event event) {
-		LOG.debug("onClick$btnLogout");
-		Session session = Sessions.getCurrent();
-		session.removeAttribute(LoginController.SESSION_JOCHRE_USER);
-		Executions.sendRedirect("index.zul");
-	}
+  @Listen("onClick = #btnLogout")
+  public void onClick$btnLogout(Event event) {
+    LOG.debug("onClick$btnLogout");
+    Session session = Sessions.getCurrent();
+    session.removeAttribute(LoginController.SESSION_JOCHRE_USER);
+    Executions.sendRedirect("index.zul");
+  }
 }

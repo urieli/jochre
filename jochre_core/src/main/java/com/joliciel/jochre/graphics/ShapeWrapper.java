@@ -25,5 +25,5 @@ package com.joliciel.jochre.graphics;
  *
  */
 public interface ShapeWrapper {
-	public Shape getShape();
+  public Shape getShape();
 }

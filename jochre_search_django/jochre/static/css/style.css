@@ -6,9 +6,9 @@ BODY { background-color: #ffffff; font-family: Verdana, Helvetica, Arial; }
 A { text-decoration: underline; }
 A:hover { text-decoration: underline; color: #ed490a; }
 .rtl {
-	font-family: "Times New Roman", Times, serif;
-	text-align: right;
-	direction: rtl;
+  font-family: "Times New Roman", Times, serif;
+  text-align: right;
+  direction: rtl;
 }
 .ltr {
   text-align: left;

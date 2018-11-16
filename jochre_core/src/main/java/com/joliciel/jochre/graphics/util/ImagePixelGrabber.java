@@ -24,38 +24,38 @@ package com.joliciel.jochre.graphics.util;
  *
  */
 public interface ImagePixelGrabber {
-	/**
-	 * Will return a byte[] for a GIF/PNG, or an int[] for a JPG.
-	 */
-	public abstract Object getPixels();
+  /**
+   * Will return a byte[] for a GIF/PNG, or an int[] for a JPG.
+   */
+  public abstract Object getPixels();
 
-	public abstract int getWidth();
+  public abstract int getWidth();
 
-	public abstract int getHeight();
+  public abstract int getHeight();
 
-	/**
-	 * Only valid for indexed color models.
-	 */
-	public abstract int getNumColors();
+  /**
+   * Only valid for indexed color models.
+   */
+  public abstract int getNumColors();
 
-	/**
-	 * Red component of a pixel.
-	 */
-	public abstract int getRed(int pixel);
+  /**
+   * Red component of a pixel.
+   */
+  public abstract int getRed(int pixel);
 
-	/**
-	 * Green component of a pixel.
-	 */
-	public abstract int getGreen(int pixel);
+  /**
+   * Green component of a pixel.
+   */
+  public abstract int getGreen(int pixel);
 
-	/**
-	 * Blue component of a pixel.
-	 */
-	public abstract int getBlue(int pixel);
+  /**
+   * Blue component of a pixel.
+   */
+  public abstract int getBlue(int pixel);
 
-	/**
-	 * Get the greyscale value of pixel brightness.
-	 */
-	public abstract int getPixelBrightness(int x, int y);
+  /**
+   * Get the greyscale value of pixel brightness.
+   */
+  public abstract int getPixelBrightness(int x, int y);
 
 }

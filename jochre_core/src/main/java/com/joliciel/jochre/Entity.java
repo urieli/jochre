@@ -19,9 +19,9 @@
 package com.joliciel.jochre;
 
 public interface Entity {
-	public void save();
+  public void save();
 
-	public int getId();
+  public int getId();
 
-	public void setId(int id);
+  public void setId(int id);
 }

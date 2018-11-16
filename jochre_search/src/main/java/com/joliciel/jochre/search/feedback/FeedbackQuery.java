@@ -29,79 +29,79 @@ import java.util.Map;
  *
  */
 public class FeedbackQuery {
-	private int id;
-	private String user;
-	private String ip;
-	private Date date;
-	private int resultCount;
-	private Map<FeedbackCriterion, String> clauses = new HashMap<>();
+  private int id;
+  private String user;
+  private String ip;
+  private Date date;
+  private int resultCount;
+  private Map<FeedbackCriterion, String> clauses = new HashMap<>();
 
-	private final FeedbackDAO feedbackDAO;
+  private final FeedbackDAO feedbackDAO;
 
-	public FeedbackQuery(String user, String ip, FeedbackDAO feedbackDAO) {
-		this(feedbackDAO);
-		this.user = user;
-		this.ip = ip;
-	}
+  public FeedbackQuery(String user, String ip, FeedbackDAO feedbackDAO) {
+    this(feedbackDAO);
+    this.user = user;
+    this.ip = ip;
+  }
 
-	FeedbackQuery(FeedbackDAO feedbackDAO) {
-		this.feedbackDAO = feedbackDAO;
-	}
+  FeedbackQuery(FeedbackDAO feedbackDAO) {
+    this.feedbackDAO = feedbackDAO;
+  }
 
-	public int getId() {
-		return id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	void setId(int id) {
-		this.id = id;
-	}
+  void setId(int id) {
+    this.id = id;
+  }
 
-	public String getUser() {
-		return user;
-	}
+  public String getUser() {
+    return user;
+  }
 
-	void setUser(String user) {
-		this.user = user;
-	}
+  void setUser(String user) {
+    this.user = user;
+  }
 
-	public String getIp() {
-		return ip;
-	}
+  public String getIp() {
+    return ip;
+  }
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
 
-	public Date getDate() {
-		return date;
-	}
+  public Date getDate() {
+    return date;
+  }
 
-	void setDate(Date date) {
-		this.date = date;
-	}
+  void setDate(Date date) {
+    this.date = date;
+  }
 
-	public int getResultCount() {
-		return resultCount;
-	}
+  public int getResultCount() {
+    return resultCount;
+  }
 
-	public void setResultCount(int resultCount) {
-		this.resultCount = resultCount;
-	}
+  public void setResultCount(int resultCount) {
+    this.resultCount = resultCount;
+  }
 
-	public Map<FeedbackCriterion, String> getClauses() {
-		return clauses;
-	}
+  public Map<FeedbackCriterion, String> getClauses() {
+    return clauses;
+  }
 
-	public void addClause(FeedbackCriterion criterion, String text) {
-		this.clauses.put(criterion, text);
-	}
+  public void addClause(FeedbackCriterion criterion, String text) {
+    this.clauses.put(criterion, text);
+  }
 
-	boolean isNew() {
-		return id == 0;
-	}
+  boolean isNew() {
+    return id == 0;
+  }
 
-	public void save() {
-		this.feedbackDAO.saveQuery(this);
-	}
+  public void save() {
+    this.feedbackDAO.saveQuery(this);
+  }
 
 }

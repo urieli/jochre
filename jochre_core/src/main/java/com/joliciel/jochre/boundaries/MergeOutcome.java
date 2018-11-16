@@ -24,6 +24,6 @@ package com.joliciel.jochre.boundaries;
  *
  */
 public enum MergeOutcome implements SplitMergeOutcome {
-	DO_MERGE,
-	DO_NOT_MERGE;
+  DO_MERGE,
+  DO_NOT_MERGE;
 }

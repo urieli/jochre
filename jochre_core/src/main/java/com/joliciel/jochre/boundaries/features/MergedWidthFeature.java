@@ -28,33 +28,33 @@ import com.joliciel.jochre.boundaries.ShapePair;
  * @author Assaf Urieli
  */
 public class MergedWidthFeature extends AbstractMergeFeature<Double> implements DoubleFeature<ShapePair> {
-	DoubleFeature<ShapePair> maxWidthFeature;
-	
-	public MergedWidthFeature(DoubleFeature<ShapePair> maxWidthFeature) {
-		super();
-		this.maxWidthFeature = maxWidthFeature;
-		this.setName(super.getName() + "(" + maxWidthFeature.getName() + ")");
-	}
+  DoubleFeature<ShapePair> maxWidthFeature;
+  
+  public MergedWidthFeature(DoubleFeature<ShapePair> maxWidthFeature) {
+    super();
+    this.maxWidthFeature = maxWidthFeature;
+    this.setName(super.getName() + "(" + maxWidthFeature.getName() + ")");
+  }
 
 
-	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		FeatureResult<Double> maxWidthResult = maxWidthFeature.check(pair, env);
-		if (maxWidthResult!=null) {
-			double maxWidth = maxWidthResult.getOutcome();
-			double width = pair.getWidth();
-			
-			double xHeight = pair.getXHeight();
-			
-			double ratio = (width / xHeight) / (maxWidth);
-			if (ratio > 1.0)
-				 ratio = 1.0;
-			
-			result = this.generateResult(ratio);
-		}
-		return result;
-		
-	}
+  @Override
+  public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    FeatureResult<Double> maxWidthResult = maxWidthFeature.check(pair, env);
+    if (maxWidthResult!=null) {
+      double maxWidth = maxWidthResult.getOutcome();
+      double width = pair.getWidth();
+      
+      double xHeight = pair.getXHeight();
+      
+      double ratio = (width / xHeight) / (maxWidth);
+      if (ratio > 1.0)
+         ratio = 1.0;
+      
+      result = this.generateResult(ratio);
+    }
+    return result;
+    
+  }
 
 }

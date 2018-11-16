@@ -34,24 +34,24 @@ import com.joliciel.jochre.boundaries.Split;
  */
 public class SplitShapeWeightRatioFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
 
-	@Override
-	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		int[] verticalCounts = split.getShape().getVerticalCounts();
-		int rightCount = 0;
-		int leftCount = 0;
-		for (int i = 0; i<split.getShape().getWidth(); i++) {
-			if (i<split.getPosition())
-				leftCount += verticalCounts[i];
-			if (i>split.getPosition())
-				rightCount += verticalCounts[i];
-		}
-		double ratio = (double) leftCount / (double) rightCount;
-		if (ratio > 1)
-			ratio = 1 / ratio;
-		
-		result = this.generateResult(ratio);
-		return result;
-	}
+  @Override
+  public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    int[] verticalCounts = split.getShape().getVerticalCounts();
+    int rightCount = 0;
+    int leftCount = 0;
+    for (int i = 0; i<split.getShape().getWidth(); i++) {
+      if (i<split.getPosition())
+        leftCount += verticalCounts[i];
+      if (i>split.getPosition())
+        rightCount += verticalCounts[i];
+    }
+    double ratio = (double) leftCount / (double) rightCount;
+    if (ratio > 1)
+      ratio = 1 / ratio;
+    
+    result = this.generateResult(ratio);
+    return result;
+  }
 
 }

@@ -22,5 +22,5 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public interface SqlRowSetMapper<T> extends RowMapper<T> {
-	public T mapRow(SqlRowSet rs);
+  public T mapRow(SqlRowSet rs);
 }

@@ -21,17 +21,17 @@ package com.joliciel.jochre.utils.pdf;
 import com.joliciel.jochre.utils.JochreException;
 
 public class PdfImageExtractionException extends JochreException {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public PdfImageExtractionException() {
-	}
+  public PdfImageExtractionException() {
+  }
 
-	public PdfImageExtractionException(String s) {
-		super(s);
-	}
+  public PdfImageExtractionException(String s) {
+    super(s);
+  }
 
-	public PdfImageExtractionException(Exception e) {
-		super(e);
-	}
+  public PdfImageExtractionException(Exception e) {
+    super(e);
+  }
 
 }

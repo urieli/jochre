@@ -20,37 +20,37 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  *
  */
 class JochreQueryAnalyser extends Analyzer {
-	private final Lexicon lexicon;
-	private final boolean expandInflections;
-	private final TextNormaliser textNormaliser;
-	private final JochreSearchConfig config;
+  private final Lexicon lexicon;
+  private final boolean expandInflections;
+  private final TextNormaliser textNormaliser;
+  private final JochreSearchConfig config;
 
-	public JochreQueryAnalyser(JochreSearchConfig config, boolean expandInflections) {
-		this.textNormaliser = TextNormaliser.getInstance(config);
-		this.config = config;
-		this.lexicon = config.getLexicon();
-		this.expandInflections = expandInflections;
-	}
+  public JochreQueryAnalyser(JochreSearchConfig config, boolean expandInflections) {
+    this.textNormaliser = TextNormaliser.getInstance(config);
+    this.config = config;
+    this.lexicon = config.getLexicon();
+    this.expandInflections = expandInflections;
+  }
 
-	@Override
-	protected TokenStreamComponents createComponents(final String fieldName) {
-		Tokenizer source = new WhitespaceTokenizer();
-		TokenStream result = source;
+  @Override
+  protected TokenStreamComponents createComponents(final String fieldName) {
+    Tokenizer source = new WhitespaceTokenizer();
+    TokenStream result = source;
 
-		if (textNormaliser != null)
-			result = new TextNormalisingFilter(result, textNormaliser);
-		else {
-			result = new ASCIIFoldingFilter(result);
-			result = new LowerCaseFilter(result);
-		}
+    if (textNormaliser != null)
+      result = new TextNormalisingFilter(result, textNormaliser);
+    else {
+      result = new ASCIIFoldingFilter(result);
+      result = new LowerCaseFilter(result);
+    }
 
-		TokenFilter queryTokenFilter = config.getQueryTokenFilter(result);
-		if (queryTokenFilter != null)
-			result = queryTokenFilter;
+    TokenFilter queryTokenFilter = config.getQueryTokenFilter(result);
+    if (queryTokenFilter != null)
+      result = queryTokenFilter;
 
-		if (lexicon != null && expandInflections)
-			result = new InflectedFormFilter(result, lexicon);
-		result = new PunctuationFilter(result);
-		return new TokenStreamComponents(source, result);
-	}
+    if (lexicon != null && expandInflections)
+      result = new InflectedFormFilter(result, lexicon);
+    result = new PunctuationFilter(result);
+    return new TokenStreamComponents(source, result);
+  }
 }

@@ -20,47 +20,47 @@ package com.joliciel.jochre.yiddish.lexicons;
 
 public class YiddishTextUtils {
 
-	public static String removeEndForm(String form) {
-		String endForm = form;
-		if (endForm.endsWith("ם")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "מ";
-		} else if (endForm.endsWith("ן")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "נ";
-		} else if (endForm.endsWith("ץ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "צ";
-		} else if (endForm.endsWith("ף")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "פֿ";
-		} else if (endForm.endsWith("ך")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "כ";
-		}
-		
-		return endForm;
-		
-	}
-	
-	public static String getEndForm(String form) {
-		String endForm = form;
-		if (endForm.endsWith("מ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "ם";
-		} else if (endForm.endsWith("נ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "ן";
-		} else if (endForm.endsWith("צ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "ץ";
-		} else if (endForm.endsWith("פֿ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "ף";
-		} else if (endForm.endsWith("כ")) {
-			endForm = endForm.substring(0, endForm.length()-1) + "ך";
-		}
-		
-		return endForm;
-		
-	}
+  public static String removeEndForm(String form) {
+    String endForm = form;
+    if (endForm.endsWith("ם")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "מ";
+    } else if (endForm.endsWith("ן")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "נ";
+    } else if (endForm.endsWith("ץ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "צ";
+    } else if (endForm.endsWith("ף")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "פֿ";
+    } else if (endForm.endsWith("ך")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "כ";
+    }
+    
+    return endForm;
+    
+  }
+  
+  public static String getEndForm(String form) {
+    String endForm = form;
+    if (endForm.endsWith("מ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "ם";
+    } else if (endForm.endsWith("נ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "ן";
+    } else if (endForm.endsWith("צ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "ץ";
+    } else if (endForm.endsWith("פֿ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "ף";
+    } else if (endForm.endsWith("כ")) {
+      endForm = endForm.substring(0, endForm.length()-1) + "ך";
+    }
+    
+    return endForm;
+    
+  }
 
-	public static boolean endsWithVowel(String form) {
-		if (form.endsWith("י")||form.endsWith("ו")||form.endsWith("אַ")||form.endsWith("אָ")||form.endsWith("ע")
-				||form.endsWith("ױ")||form.endsWith("ײ")||form.endsWith("ײַ")
-				||form.endsWith("יִ")||form.endsWith("וּ"))
-			return true;
-		return false;
-	}
+  public static boolean endsWithVowel(String form) {
+    if (form.endsWith("י")||form.endsWith("ו")||form.endsWith("אַ")||form.endsWith("אָ")||form.endsWith("ע")
+        ||form.endsWith("ױ")||form.endsWith("ײ")||form.endsWith("ײַ")
+        ||form.endsWith("יִ")||form.endsWith("וּ"))
+      return true;
+    return false;
+  }
 }

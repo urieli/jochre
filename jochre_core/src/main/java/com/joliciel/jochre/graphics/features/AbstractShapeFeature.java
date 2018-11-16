@@ -31,16 +31,16 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  */
 abstract class AbstractShapeFeature<Y> extends AbstractCachableFeature<ShapeWrapper,Y> implements ShapeFeature<Y> {
 
-	@Override
-	protected FeatureResult<Y> checkInCache(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		return shape.getResultFromCache(this, env);
-	}
+  @Override
+  protected FeatureResult<Y> checkInCache(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    return shape.getResultFromCache(this, env);
+  }
 
-	@Override
-	protected void putInCache(ShapeWrapper shapeWrapper, FeatureResult<Y> featureResult, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		shape.putResultInCache(this, featureResult, env);
-	}
-	
+  @Override
+  protected void putInCache(ShapeWrapper shapeWrapper, FeatureResult<Y> featureResult, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    shape.putResultInCache(this, featureResult, env);
+  }
+  
 }

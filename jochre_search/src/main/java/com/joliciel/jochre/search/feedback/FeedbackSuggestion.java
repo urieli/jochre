@@ -20,247 +20,247 @@ import com.joliciel.jochre.search.JochreSearchConfig;
  *
  */
 public class FeedbackSuggestion {
-	private int id;
-	private String user;
-	private FeedbackWord word;
-	private int wordId;
-	private String font;
-	private String language;
-	private String text;
-	private String previousText;
-	private Date createDate;
-	private boolean applied = false;
-	private boolean ignored = false;
-	private String ip = null;
+  private int id;
+  private String user;
+  private FeedbackWord word;
+  private int wordId;
+  private String font;
+  private String language;
+  private String text;
+  private String previousText;
+  private Date createDate;
+  private boolean applied = false;
+  private boolean ignored = false;
+  private String ip = null;
 
-	private final FeedbackDAO feedbackDAO;
+  private final FeedbackDAO feedbackDAO;
 
-	/**
-	 * Find any suggestions which have not yet been applied, in order of creation.
-	 */
-	public static List<FeedbackSuggestion> findUnappliedSuggestions(FeedbackDAO feedbackDAO) {
-		if (feedbackDAO == null)
-			return new ArrayList<>();
-		return feedbackDAO.findUnappliedSuggestions();
-	}
+  /**
+   * Find any suggestions which have not yet been applied, in order of creation.
+   */
+  public static List<FeedbackSuggestion> findUnappliedSuggestions(FeedbackDAO feedbackDAO) {
+    if (feedbackDAO == null)
+      return new ArrayList<>();
+    return feedbackDAO.findUnappliedSuggestions();
+  }
 
-	/**
-	 * Find any suggestions made on a given document path and page index, in order
-	 * of creation.
-	 * 
-	 * @param path
-	 *            the path to the document
-	 * @param pageIndex
-	 *            the page index inside the document
-	 */
-	public static List<FeedbackSuggestion> findSuggestions(String path, int pageIndex, FeedbackDAO feedbackDAO) {
-		if (feedbackDAO == null)
-			return new ArrayList<>();
+  /**
+   * Find any suggestions made on a given document path and page index, in order
+   * of creation.
+   * 
+   * @param path
+   *            the path to the document
+   * @param pageIndex
+   *            the page index inside the document
+   */
+  public static List<FeedbackSuggestion> findSuggestions(String path, int pageIndex, FeedbackDAO feedbackDAO) {
+    if (feedbackDAO == null)
+      return new ArrayList<>();
 
-		FeedbackDocument doc = feedbackDAO.findDocument(path);
-		if (doc == null) {
-			return new ArrayList<>();
-		}
-		return feedbackDAO.findSuggestions(doc, pageIndex);
-	}
+    FeedbackDocument doc = feedbackDAO.findDocument(path);
+    if (doc == null) {
+      return new ArrayList<>();
+    }
+    return feedbackDAO.findSuggestions(doc, pageIndex);
+  }
 
-	/**
-	 * Find any suggestions made on a given document, grouped by page index and
-	 * ordered by creation date.
-	 * 
-	 * @param path
-	 *            the path to the document.
-	 */
-	public static Map<Integer, List<FeedbackSuggestion>> findSuggestions(String path, FeedbackDAO feedbackDAO) {
-		if (feedbackDAO == null)
-			return new HashMap<>();
+  /**
+   * Find any suggestions made on a given document, grouped by page index and
+   * ordered by creation date.
+   * 
+   * @param path
+   *            the path to the document.
+   */
+  public static Map<Integer, List<FeedbackSuggestion>> findSuggestions(String path, FeedbackDAO feedbackDAO) {
+    if (feedbackDAO == null)
+      return new HashMap<>();
 
-		FeedbackDocument doc = feedbackDAO.findDocument(path);
-		if (doc == null) {
-			return new HashMap<>();
-		}
-		return feedbackDAO.findSuggestions(doc);
-	}
+    FeedbackDocument doc = feedbackDAO.findDocument(path);
+    if (doc == null) {
+      return new HashMap<>();
+    }
+    return feedbackDAO.findSuggestions(doc);
+  }
 
-	/**
-	 * Make a suggestion for a given word in a JochreDocument.
-	 * 
-	 * @param docId
-	 *            The Lucene docId
-	 * @param offset
-	 *            The word's offset within the document.
-	 * @param suggestion
-	 *            The new suggestion
-	 * @param username
-	 *            The user who made the suggestion
-	 * @param ip
-	 *            The ip address for this suggestion
-	 * @param fontCode
-	 *            The font code for this suggestion
-	 * @param languageCode
-	 *            The language code for this suggestion
-	 * @return the suggestion created
-	 * @throws IOException
-	 */
-	public FeedbackSuggestion(IndexSearcher indexSearcher, int docId, int offset, String text, String username, String ip, String fontCode, String languageCode,
-			FeedbackDAO feedbackDAO, JochreSearchConfig config) throws IOException {
-		this(feedbackDAO);
-		JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
-		JochreIndexWord jochreWord = jochreDoc.getWord(offset);
-		FeedbackWord word = FeedbackWord.findOrCreateWord(jochreWord, feedbackDAO);
+  /**
+   * Make a suggestion for a given word in a JochreDocument.
+   * 
+   * @param docId
+   *            The Lucene docId
+   * @param offset
+   *            The word's offset within the document.
+   * @param suggestion
+   *            The new suggestion
+   * @param username
+   *            The user who made the suggestion
+   * @param ip
+   *            The ip address for this suggestion
+   * @param fontCode
+   *            The font code for this suggestion
+   * @param languageCode
+   *            The language code for this suggestion
+   * @return the suggestion created
+   * @throws IOException
+   */
+  public FeedbackSuggestion(IndexSearcher indexSearcher, int docId, int offset, String text, String username, String ip, String fontCode, String languageCode,
+      FeedbackDAO feedbackDAO, JochreSearchConfig config) throws IOException {
+    this(feedbackDAO);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+    JochreIndexWord jochreWord = jochreDoc.getWord(offset);
+    FeedbackWord word = FeedbackWord.findOrCreateWord(jochreWord, feedbackDAO);
 
-		this.setWord(word);
-		this.setUser(username);
-		this.setIp(ip);
-		this.setFont(fontCode);
-		this.setLanguage(languageCode);
-		this.setPreviousText(jochreWord.getText());
-		this.setText(text);
-	}
+    this.setWord(word);
+    this.setUser(username);
+    this.setIp(ip);
+    this.setFont(fontCode);
+    this.setLanguage(languageCode);
+    this.setPreviousText(jochreWord.getText());
+    this.setText(text);
+  }
 
-	FeedbackSuggestion(FeedbackDAO feedbackDAO) {
-		this.feedbackDAO = feedbackDAO;
-	}
+  FeedbackSuggestion(FeedbackDAO feedbackDAO) {
+    this.feedbackDAO = feedbackDAO;
+  }
 
-	/**
-	 * The unique internal id for this suggestion.
-	 */
-	public int getId() {
-		return id;
-	}
+  /**
+   * The unique internal id for this suggestion.
+   */
+  public int getId() {
+    return id;
+  }
 
-	void setId(int id) {
-		this.id = id;
-	}
+  void setId(int id) {
+    this.id = id;
+  }
 
-	/**
-	 * The user who made this suggestion.
-	 */
-	public String getUser() {
-		return user;
-	}
+  /**
+   * The user who made this suggestion.
+   */
+  public String getUser() {
+    return user;
+  }
 
-	void setUser(String user) {
-		this.user = user;
-	}
+  void setUser(String user) {
+    this.user = user;
+  }
 
-	/**
-	 * The word for which the suggestion was made.
-	 */
-	public FeedbackWord getWord() {
-		if (this.word == null && this.wordId != 0)
-			this.word = this.feedbackDAO.loadWord(this.wordId);
-		return word;
-	}
+  /**
+   * The word for which the suggestion was made.
+   */
+  public FeedbackWord getWord() {
+    if (this.word == null && this.wordId != 0)
+      this.word = this.feedbackDAO.loadWord(this.wordId);
+    return word;
+  }
 
-	void setWord(FeedbackWord word) {
-		this.word = word;
-		if (word != null)
-			this.wordId = word.getId();
-	}
+  void setWord(FeedbackWord word) {
+    this.word = word;
+    if (word != null)
+      this.wordId = word.getId();
+  }
 
-	public int getWordId() {
-		return wordId;
-	}
+  public int getWordId() {
+    return wordId;
+  }
 
-	void setWordId(int wordId) {
-		this.wordId = wordId;
-	}
+  void setWordId(int wordId) {
+    this.wordId = wordId;
+  }
 
-	/**
-	 * The font which the user indicated for this suggestion.
-	 */
-	public String getFont() {
-		return font;
-	}
+  /**
+   * The font which the user indicated for this suggestion.
+   */
+  public String getFont() {
+    return font;
+  }
 
-	void setFont(String font) {
-		this.font = font;
-	}
+  void setFont(String font) {
+    this.font = font;
+  }
 
-	/**
-	 * The language which the user indicated for this suggestion.
-	 */
-	public String getLanguage() {
-		return language;
-	}
+  /**
+   * The language which the user indicated for this suggestion.
+   */
+  public String getLanguage() {
+    return language;
+  }
 
-	void setLanguage(String language) {
-		this.language = language;
+  void setLanguage(String language) {
+    this.language = language;
 
-	}
+  }
 
-	/**
-	 * The suggested text.
-	 */
-	public String getText() {
-		return text;
-	}
+  /**
+   * The suggested text.
+   */
+  public String getText() {
+    return text;
+  }
 
-	void setText(String text) {
-		this.text = text;
-	}
+  void setText(String text) {
+    this.text = text;
+  }
 
-	/**
-	 * The text previous to the suggestion.
-	 */
-	public String getPreviousText() {
-		return previousText;
-	}
+  /**
+   * The text previous to the suggestion.
+   */
+  public String getPreviousText() {
+    return previousText;
+  }
 
-	void setPreviousText(String previousText) {
-		this.previousText = previousText;
-	}
+  void setPreviousText(String previousText) {
+    this.previousText = previousText;
+  }
 
-	/**
-	 * The date when the suggestion was made.
-	 */
-	public Date getCreateDate() {
-		return createDate;
-	}
+  /**
+   * The date when the suggestion was made.
+   */
+  public Date getCreateDate() {
+    return createDate;
+  }
 
-	void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
+  void setCreateDate(Date createDate) {
+    this.createDate = createDate;
+  }
 
-	/**
-	 * Has this suggestion been applied to the index yet?
-	 */
-	public boolean isApplied() {
-		return applied;
-	}
+  /**
+   * Has this suggestion been applied to the index yet?
+   */
+  public boolean isApplied() {
+    return applied;
+  }
 
-	public void setApplied(boolean applied) {
-		this.applied = applied;
-	}
+  public void setApplied(boolean applied) {
+    this.applied = applied;
+  }
 
-	/**
-	 * Should this suggestion be ignored?
-	 */
-	public boolean isIgnored() {
-		return ignored;
-	}
+  /**
+   * Should this suggestion be ignored?
+   */
+  public boolean isIgnored() {
+    return ignored;
+  }
 
-	public void setIgnored(boolean ignored) {
-		this.ignored = ignored;
-	}
+  public void setIgnored(boolean ignored) {
+    this.ignored = ignored;
+  }
 
-	public void save() {
-		this.feedbackDAO.saveSuggestion(this);
-	}
+  public void save() {
+    this.feedbackDAO.saveSuggestion(this);
+  }
 
-	boolean isNew() {
-		return id == 0;
-	}
+  boolean isNew() {
+    return id == 0;
+  }
 
-	/**
-	 * IP address of this suggestion, represented as a string.
-	 */
-	public String getIp() {
-		return ip;
-	}
+  /**
+   * IP address of this suggestion, represented as a string.
+   */
+  public String getIp() {
+    return ip;
+  }
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
 }

@@ -29,28 +29,28 @@ import com.joliciel.jochre.boundaries.Split;
  *
  */
 public class InverseSplitFeature extends AbstractSplitFeature<Double> implements
-		DoubleFeature<Split> {
+    DoubleFeature<Split> {
 
-	SplitFeature<Double> feature;
-	
-	public InverseSplitFeature(SplitFeature<Double> feature) {
-		super();
-		this.feature = feature;
-		this.setName(this.feature.getName() + "{inverse}");
-	}
+  SplitFeature<Double> feature;
+  
+  public InverseSplitFeature(SplitFeature<Double> feature) {
+    super();
+    this.feature = feature;
+    this.setName(this.feature.getName() + "{inverse}");
+  }
 
-	
-	@Override
-	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
-		FeatureResult<Double> rawOutcome = feature.check(split, env);
-		FeatureResult<Double> outcome = null;
-		if (rawOutcome!=null) {
-			double weight = rawOutcome.getOutcome();
-			double inverseWeight = 1 - weight;
-			if (inverseWeight<0)
-				inverseWeight = 0;
-			outcome = this.generateResult(inverseWeight);
-		}
-		return outcome;
-	}
+  
+  @Override
+  public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+    FeatureResult<Double> rawOutcome = feature.check(split, env);
+    FeatureResult<Double> outcome = null;
+    if (rawOutcome!=null) {
+      double weight = rawOutcome.getOutcome();
+      double inverseWeight = 1 - weight;
+      if (inverseWeight<0)
+        inverseWeight = 0;
+      outcome = this.generateResult(inverseWeight);
+    }
+    return outcome;
+  }
 }

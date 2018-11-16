@@ -13,14 +13,14 @@ import com.joliciel.jochre.graphics.Shape;
  *
  */
 public class OriginalBoundaryDetector implements BoundaryDetector {
-	@Override
-	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
-		List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
-		ShapeSequence emptySequence = new ShapeSequence();
-		for (Shape shape : group.getShapes()) {
-			emptySequence.addShape(shape);
-		}
-		shapeSequences.add(emptySequence);
-		return shapeSequences;
-	}
+  @Override
+  public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
+    List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
+    ShapeSequence emptySequence = new ShapeSequence();
+    for (Shape shape : group.getShapes()) {
+      emptySequence.addShape(shape);
+    }
+    shapeSequences.add(emptySequence);
+    return shapeSequences;
+  }
 }

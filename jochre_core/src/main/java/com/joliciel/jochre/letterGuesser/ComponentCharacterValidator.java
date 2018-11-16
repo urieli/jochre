@@ -28,27 +28,27 @@ import com.joliciel.jochre.JochreSession;
  *
  */
 public class ComponentCharacterValidator implements LetterValidator {
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	public ComponentCharacterValidator(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-	}
+  public ComponentCharacterValidator(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+  }
 
-	@Override
-	public boolean validate(String letter) {
-		if (letter.length() == 0)
-			return true;
-		if (jochreSession.getLinguistics().isCharacterValidationActive()) {
-			for (int i = 0; i < letter.length(); i++) {
-				char c = letter.charAt(i);
-				if (c == '|')
-					continue;
-				if (!jochreSession.getLinguistics().getValidCharacters().contains(c)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+  @Override
+  public boolean validate(String letter) {
+    if (letter.length() == 0)
+      return true;
+    if (jochreSession.getLinguistics().isCharacterValidationActive()) {
+      for (int i = 0; i < letter.length(); i++) {
+        char c = letter.charAt(i);
+        if (c == '|')
+          continue;
+        if (!jochreSession.getLinguistics().getValidCharacters().contains(c)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
 }

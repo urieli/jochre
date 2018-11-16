@@ -32,39 +32,39 @@ import org.slf4j.LoggerFactory;
 import com.joliciel.jochre.search.JochreSearchConfig;
 
 public interface SnippetFinder {
-	static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
-	static Map<String, SnippetFinder> instances = new HashMap<>();
+  static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
+  static Map<String, SnippetFinder> instances = new HashMap<>();
 
-	/**
-	 * Find the best n snippets corresponding to a list of highlight terms.
-	 * 
-	 * @param docId
-	 *            The Lucene document whose snippets we want
-	 * @param highlightTerms
-	 *            The previously retrieved highlight terms for the document.
-	 * @param maxSnippets
-	 *            The maximum number of snippets to return.
-	 */
-	public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets)
-			throws IOException;
+  /**
+   * Find the best n snippets corresponding to a list of highlight terms.
+   * 
+   * @param docId
+   *            The Lucene document whose snippets we want
+   * @param highlightTerms
+   *            The previously retrieved highlight terms for the document.
+   * @param maxSnippets
+   *            The maximum number of snippets to return.
+   */
+  public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets)
+      throws IOException;
 
-	public static SnippetFinder getInstance(JochreSearchConfig config) {
-		SnippetFinder instance = instances.get(config.getConfigId());
-		if (instance == null) {
-			try {
-				String className = config.getConfig().getString("snippet-finder.class");
+  public static SnippetFinder getInstance(JochreSearchConfig config) {
+    SnippetFinder instance = instances.get(config.getConfigId());
+    if (instance == null) {
+      try {
+        String className = config.getConfig().getString("snippet-finder.class");
 
-				@SuppressWarnings("unchecked")
-				Class<? extends SnippetFinder> clazz = (Class<? extends SnippetFinder>) Class.forName(className);
-				Constructor<? extends SnippetFinder> cons = clazz.getConstructor(JochreSearchConfig.class);
+        @SuppressWarnings("unchecked")
+        Class<? extends SnippetFinder> clazz = (Class<? extends SnippetFinder>) Class.forName(className);
+        Constructor<? extends SnippetFinder> cons = clazz.getConstructor(JochreSearchConfig.class);
 
-				instance = cons.newInstance(config);
-				instances.put(config.getConfigId(), instance);
-			} catch (ReflectiveOperationException e) {
-				LOG.error("Unable to construct SnippetFinder", e);
-				throw new RuntimeException(e);
-			}
-		}
-		return instance;
-	}
+        instance = cons.newInstance(config);
+        instances.put(config.getConfigId(), instance);
+      } catch (ReflectiveOperationException e) {
+        LOG.error("Unable to construct SnippetFinder", e);
+        throw new RuntimeException(e);
+      }
+    }
+    return instance;
+  }
 }

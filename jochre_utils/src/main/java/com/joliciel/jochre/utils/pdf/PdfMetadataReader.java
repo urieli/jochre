@@ -23,13 +23,13 @@ import java.io.File;
 
 public class PdfMetadataReader extends AbstractPdfImageVisitor {
 
-	public PdfMetadataReader(File pdfFile) {
-		super(pdfFile);
-	}
+  public PdfMetadataReader(File pdfFile) {
+    super(pdfFile);
+  }
 
-	@Override
-	protected void visitImage(BufferedImage image, String imageName,
-			int pageIndex, int imageIndex) {
-	}
+  @Override
+  protected void visitImage(BufferedImage image, String imageName,
+      int pageIndex, int imageIndex) {
+  }
 
 }

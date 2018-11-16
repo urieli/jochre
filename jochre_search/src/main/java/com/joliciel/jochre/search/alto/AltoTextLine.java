@@ -32,60 +32,60 @@ import java.util.List;
  *
  */
 public class AltoTextLine {
-	private List<AltoString> strings = new ArrayList<>();
-	private Rectangle rectangle;
-	private AltoTextBlock textBlock;
-	private int wordCount = -1;
-	private int index = -1;
+  private List<AltoString> strings = new ArrayList<>();
+  private Rectangle rectangle;
+  private AltoTextBlock textBlock;
+  private int wordCount = -1;
+  private int index = -1;
 
-	public AltoTextLine(AltoTextBlock textBlock, int left, int top, int width, int height) {
-		super();
-		this.textBlock = textBlock;
-		this.rectangle = new Rectangle(left, top, width, height);
-		this.index = this.textBlock.getPage().getTextLines().size();
-		this.textBlock.getTextLines().add(this);
-		this.textBlock.getPage().getTextLines().add(this);
-	}
+  public AltoTextLine(AltoTextBlock textBlock, int left, int top, int width, int height) {
+    super();
+    this.textBlock = textBlock;
+    this.rectangle = new Rectangle(left, top, width, height);
+    this.index = this.textBlock.getPage().getTextLines().size();
+    this.textBlock.getTextLines().add(this);
+    this.textBlock.getPage().getTextLines().add(this);
+  }
 
-	public List<AltoString> getStrings() {
-		return strings;
-	}
+  public List<AltoString> getStrings() {
+    return strings;
+  }
 
-	public Rectangle getRectangle() {
-		return rectangle;
-	}
+  public Rectangle getRectangle() {
+    return rectangle;
+  }
 
-	public AltoTextBlock getTextBlock() {
-		return textBlock;
-	}
+  public AltoTextBlock getTextBlock() {
+    return textBlock;
+  }
 
-	public int wordCount() {
-		if (wordCount < 0) {
-			for (AltoString string : this.strings) {
-				if (!string.isWhiteSpace())
-					wordCount++;
-			}
-		}
-		return wordCount;
-	}
+  public int wordCount() {
+    if (wordCount < 0) {
+      for (AltoString string : this.strings) {
+        if (!string.isWhiteSpace())
+          wordCount++;
+      }
+    }
+    return wordCount;
+  }
 
-	public int getIndex() {
-		return index;
-	}
+  public int getIndex() {
+    return index;
+  }
 
-	/**
-	 * Recalculate indexes after merging or other manipulation of contained strings.
-	 */
-	public void recalculate() {
-		int i = 0;
-		for (AltoString string : this.strings) {
-			string.setIndex(i++);
-		}
-	}
+  /**
+   * Recalculate indexes after merging or other manipulation of contained strings.
+   */
+  public void recalculate() {
+    int i = 0;
+    for (AltoString string : this.strings) {
+      string.setIndex(i++);
+    }
+  }
 
-	@Override
-	public String toString() {
-		return "AltoTextLineImpl [index=" + index + ", strings=" + strings + "]";
-	}
+  @Override
+  public String toString() {
+    return "AltoTextLineImpl [index=" + index + ", strings=" + strings + "]";
+  }
 
 }

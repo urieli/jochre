@@ -29,39 +29,39 @@ import org.apache.commons.math.stat.descriptive.moment.Mean;
  *
  */
 public class MeanAbsoluteDeviation {
-	List<Double> values = new ArrayList<Double>();
-	double meanAbsoluteDeviation = Double.NaN;
-	boolean dirty = false;
-	
-	public void clear() {
-		values.clear();
-		meanAbsoluteDeviation = Double.NaN;
-		dirty = false;
-	}
-	
-	public void increment(double value) {
-		values.add(value);
-		dirty = true;
-	}
-	
-	public double getResult() {
-		if (dirty) {
-			Mean mean = new Mean();
-			for (double value : values)
-				mean.increment(value);
-			double meanResult = mean.getResult();
-			
-			Mean deviationMean = new Mean();
-			for (double value : values) {
-				double deviation = value - meanResult;
-				if (deviation < 0) deviation = 0 - deviation;
-				deviationMean.increment(deviation);
-			}
-			
-			meanAbsoluteDeviation = deviationMean.getResult();
-			
-			dirty = false;
-		}
-		return meanAbsoluteDeviation;
-	}
+  List<Double> values = new ArrayList<Double>();
+  double meanAbsoluteDeviation = Double.NaN;
+  boolean dirty = false;
+  
+  public void clear() {
+    values.clear();
+    meanAbsoluteDeviation = Double.NaN;
+    dirty = false;
+  }
+  
+  public void increment(double value) {
+    values.add(value);
+    dirty = true;
+  }
+  
+  public double getResult() {
+    if (dirty) {
+      Mean mean = new Mean();
+      for (double value : values)
+        mean.increment(value);
+      double meanResult = mean.getResult();
+      
+      Mean deviationMean = new Mean();
+      for (double value : values) {
+        double deviation = value - meanResult;
+        if (deviation < 0) deviation = 0 - deviation;
+        deviationMean.increment(deviation);
+      }
+      
+      meanAbsoluteDeviation = deviationMean.getResult();
+      
+      dirty = false;
+    }
+    return meanAbsoluteDeviation;
+  }
 }

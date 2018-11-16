@@ -44,142 +44,142 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.joliciel.talismane.machineLearning.features.StringFeature;
 
 public class LetterFeatureParser extends AbstractFeatureParser<LetterGuesserContext> {
-	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureParser.class);
 
-	private final ShapeFeatureParser shapeFeatureParser;
-	private final ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
+  private final ShapeFeatureParser shapeFeatureParser;
+  private final ShapeInSequenceFeatureParser shapeInSequenceFeatureParser;
 
-	public LetterFeatureParser() {
-		super();
-		this.shapeFeatureParser = new ShapeFeatureParser();
-		this.shapeInSequenceFeatureParser = new ShapeInSequenceFeatureParser();
-	}
+  public LetterFeatureParser() {
+    super();
+    this.shapeFeatureParser = new ShapeFeatureParser();
+    this.shapeInSequenceFeatureParser = new ShapeInSequenceFeatureParser();
+  }
 
-	public Set<LetterFeature<?>> getLetterFeatureSet(List<String> featureDescriptors) {
-		Set<LetterFeature<?>> features = new TreeSet<LetterFeature<?>>();
-		FunctionDescriptorParser descriptorParser = new FunctionDescriptorParser();
+  public Set<LetterFeature<?>> getLetterFeatureSet(List<String> featureDescriptors) {
+    Set<LetterFeature<?>> features = new TreeSet<LetterFeature<?>>();
+    FunctionDescriptorParser descriptorParser = new FunctionDescriptorParser();
 
-		for (String featureDescriptor : featureDescriptors) {
-			LOG.trace(featureDescriptor);
-			if (featureDescriptor.length() > 0 && !featureDescriptor.startsWith("#")) {
-				FunctionDescriptor functionDescriptor = descriptorParser.parseDescriptor(featureDescriptor);
-				List<LetterFeature<?>> myFeatures = this.parseDescriptor(functionDescriptor);
-				features.addAll(myFeatures);
+    for (String featureDescriptor : featureDescriptors) {
+      LOG.trace(featureDescriptor);
+      if (featureDescriptor.length() > 0 && !featureDescriptor.startsWith("#")) {
+        FunctionDescriptor functionDescriptor = descriptorParser.parseDescriptor(featureDescriptor);
+        List<LetterFeature<?>> myFeatures = this.parseDescriptor(functionDescriptor);
+        features.addAll(myFeatures);
 
-			}
-		}
-		return features;
-	}
+      }
+    }
+    return features;
+  }
 
-	@Override
-	public void addFeatureClasses(FeatureClassContainer container) {
-		container.addFeatureClass("Ngram", NgramFeature.class);
+  @Override
+  public void addFeatureClasses(FeatureClassContainer container) {
+    container.addFeatureClass("Ngram", NgramFeature.class);
 
-		shapeFeatureParser.addFeatureClasses(container);
-		shapeInSequenceFeatureParser.addFeatureClasses(container);
-	}
+    shapeFeatureParser.addFeatureClasses(container);
+    shapeInSequenceFeatureParser.addFeatureClasses(container);
+  }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public List<LetterFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
-		List<Feature<LetterGuesserContext, ?>> letterFeatures = this.parse(functionDescriptor);
-		List<LetterFeature<?>> wrappedFeatures = new ArrayList<LetterFeature<?>>();
-		for (Feature<LetterGuesserContext, ?> letterFeature : letterFeatures) {
-			LetterFeature<?> wrappedFeature = null;
-			if (letterFeature instanceof LetterFeature) {
-				wrappedFeature = (LetterFeature<?>) letterFeature;
-			} else if (letterFeature instanceof BooleanFeature) {
-				wrappedFeature = new LetterBooleanFeatureWrapper((Feature<LetterGuesserContext, Boolean>) letterFeature);
-			} else if (letterFeature instanceof StringFeature) {
-				wrappedFeature = new LetterStringFeatureWrapper((Feature<LetterGuesserContext, String>) letterFeature);
-			} else if (letterFeature instanceof IntegerFeature) {
-				wrappedFeature = new LetterIntegerFeatureWrapper((Feature<LetterGuesserContext, Integer>) letterFeature);
-			} else if (letterFeature instanceof DoubleFeature) {
-				wrappedFeature = new LetterDoubleFeatureWrapper((Feature<LetterGuesserContext, Double>) letterFeature);
-			} else {
-				wrappedFeature = new LetterFeatureWrapper(letterFeature);
-			}
-			wrappedFeatures.add(wrappedFeature);
-		}
-		return wrappedFeatures;
-	}
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public List<LetterFeature<?>> parseDescriptor(FunctionDescriptor functionDescriptor) {
+    List<Feature<LetterGuesserContext, ?>> letterFeatures = this.parse(functionDescriptor);
+    List<LetterFeature<?>> wrappedFeatures = new ArrayList<LetterFeature<?>>();
+    for (Feature<LetterGuesserContext, ?> letterFeature : letterFeatures) {
+      LetterFeature<?> wrappedFeature = null;
+      if (letterFeature instanceof LetterFeature) {
+        wrappedFeature = (LetterFeature<?>) letterFeature;
+      } else if (letterFeature instanceof BooleanFeature) {
+        wrappedFeature = new LetterBooleanFeatureWrapper((Feature<LetterGuesserContext, Boolean>) letterFeature);
+      } else if (letterFeature instanceof StringFeature) {
+        wrappedFeature = new LetterStringFeatureWrapper((Feature<LetterGuesserContext, String>) letterFeature);
+      } else if (letterFeature instanceof IntegerFeature) {
+        wrappedFeature = new LetterIntegerFeatureWrapper((Feature<LetterGuesserContext, Integer>) letterFeature);
+      } else if (letterFeature instanceof DoubleFeature) {
+        wrappedFeature = new LetterDoubleFeatureWrapper((Feature<LetterGuesserContext, Double>) letterFeature);
+      } else {
+        wrappedFeature = new LetterFeatureWrapper(letterFeature);
+      }
+      wrappedFeatures.add(wrappedFeature);
+    }
+    return wrappedFeatures;
+  }
 
-	@Override
-	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
-		List<FunctionDescriptor> modifiedDescriptors = this.shapeFeatureParser.getModifiedDescriptors(functionDescriptor);
-		if (modifiedDescriptors == null || modifiedDescriptors.size() == 0)
-			modifiedDescriptors = this.shapeInSequenceFeatureParser.getModifiedDescriptors(functionDescriptor);
-		return modifiedDescriptors;
-	}
+  @Override
+  public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
+    List<FunctionDescriptor> modifiedDescriptors = this.shapeFeatureParser.getModifiedDescriptors(functionDescriptor);
+    if (modifiedDescriptors == null || modifiedDescriptors.size() == 0)
+      modifiedDescriptors = this.shapeInSequenceFeatureParser.getModifiedDescriptors(functionDescriptor);
+    return modifiedDescriptors;
+  }
 
-	private static class LetterFeatureWrapper<T> extends AbstractFeature<LetterGuesserContext, T>
-			implements LetterFeature<T>, FeatureWrapper<LetterGuesserContext, T> {
-		private Feature<LetterGuesserContext, T> wrappedFeature = null;
+  private static class LetterFeatureWrapper<T> extends AbstractFeature<LetterGuesserContext, T>
+      implements LetterFeature<T>, FeatureWrapper<LetterGuesserContext, T> {
+    private Feature<LetterGuesserContext, T> wrappedFeature = null;
 
-		public LetterFeatureWrapper(Feature<LetterGuesserContext, T> wrappedFeature) {
-			super();
-			this.wrappedFeature = wrappedFeature;
-			this.setName(wrappedFeature.getName());
-		}
+    public LetterFeatureWrapper(Feature<LetterGuesserContext, T> wrappedFeature) {
+      super();
+      this.wrappedFeature = wrappedFeature;
+      this.setName(wrappedFeature.getName());
+    }
 
-		@Override
-		public FeatureResult<T> check(LetterGuesserContext context, RuntimeEnvironment env) {
-			return wrappedFeature.check(context, env);
-		}
+    @Override
+    public FeatureResult<T> check(LetterGuesserContext context, RuntimeEnvironment env) {
+      return wrappedFeature.check(context, env);
+    }
 
-		@Override
-		public Feature<LetterGuesserContext, T> getWrappedFeature() {
-			return this.wrappedFeature;
-		}
+    @Override
+    public Feature<LetterGuesserContext, T> getWrappedFeature() {
+      return this.wrappedFeature;
+    }
 
-		@SuppressWarnings("rawtypes")
-		@Override
-		public Class<? extends Feature> getFeatureType() {
-			return wrappedFeature.getFeatureType();
-		}
-	}
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<? extends Feature> getFeatureType() {
+      return wrappedFeature.getFeatureType();
+    }
+  }
 
-	private class LetterBooleanFeatureWrapper extends LetterFeatureWrapper<Boolean>implements BooleanFeature<LetterGuesserContext> {
-		public LetterBooleanFeatureWrapper(Feature<LetterGuesserContext, Boolean> wrappedFeature) {
-			super(wrappedFeature);
-		}
-	}
+  private class LetterBooleanFeatureWrapper extends LetterFeatureWrapper<Boolean>implements BooleanFeature<LetterGuesserContext> {
+    public LetterBooleanFeatureWrapper(Feature<LetterGuesserContext, Boolean> wrappedFeature) {
+      super(wrappedFeature);
+    }
+  }
 
-	private class LetterStringFeatureWrapper extends LetterFeatureWrapper<String>implements StringFeature<LetterGuesserContext> {
-		public LetterStringFeatureWrapper(Feature<LetterGuesserContext, String> wrappedFeature) {
-			super(wrappedFeature);
-		}
-	}
+  private class LetterStringFeatureWrapper extends LetterFeatureWrapper<String>implements StringFeature<LetterGuesserContext> {
+    public LetterStringFeatureWrapper(Feature<LetterGuesserContext, String> wrappedFeature) {
+      super(wrappedFeature);
+    }
+  }
 
-	private class LetterDoubleFeatureWrapper extends LetterFeatureWrapper<Double>implements DoubleFeature<LetterGuesserContext> {
-		public LetterDoubleFeatureWrapper(Feature<LetterGuesserContext, Double> wrappedFeature) {
-			super(wrappedFeature);
-		}
-	}
+  private class LetterDoubleFeatureWrapper extends LetterFeatureWrapper<Double>implements DoubleFeature<LetterGuesserContext> {
+    public LetterDoubleFeatureWrapper(Feature<LetterGuesserContext, Double> wrappedFeature) {
+      super(wrappedFeature);
+    }
+  }
 
-	private class LetterIntegerFeatureWrapper extends LetterFeatureWrapper<Integer>implements IntegerFeature<LetterGuesserContext> {
-		public LetterIntegerFeatureWrapper(Feature<LetterGuesserContext, Integer> wrappedFeature) {
-			super(wrappedFeature);
-		}
-	}
+  private class LetterIntegerFeatureWrapper extends LetterFeatureWrapper<Integer>implements IntegerFeature<LetterGuesserContext> {
+    public LetterIntegerFeatureWrapper(Feature<LetterGuesserContext, Integer> wrappedFeature) {
+      super(wrappedFeature);
+    }
+  }
 
-	@Override
-	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
-		this.shapeFeatureParser.injectDependencies(feature);
-		this.shapeInSequenceFeatureParser.injectDependencies(feature);
-	}
+  @Override
+  public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+    this.shapeFeatureParser.injectDependencies(feature);
+    this.shapeInSequenceFeatureParser.injectDependencies(feature);
+  }
 
-	@Override
-	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
-		return false;
-	}
+  @Override
+  protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
+    return false;
+  }
 
-	@Override
-	protected Feature<LetterGuesserContext, ?> convertArgument(Class<?> parameterType, Feature<LetterGuesserContext, ?> originalArgument) {
-		return null;
-	}
+  @Override
+  protected Feature<LetterGuesserContext, ?> convertArgument(Class<?> parameterType, Feature<LetterGuesserContext, ?> originalArgument) {
+    return null;
+  }
 
-	@Override
-	public Feature<LetterGuesserContext, ?> convertFeatureCustomType(Feature<LetterGuesserContext, ?> feature) {
-		return null;
-	}
+  @Override
+  public Feature<LetterGuesserContext, ?> convertFeatureCustomType(Feature<LetterGuesserContext, ?> feature) {
+    return null;
+  }
 }

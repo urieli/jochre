@@ -30,8 +30,8 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  * @author Assaf Urieli
  */
 public interface LetterFeature<Y> extends Feature<LetterGuesserContext,Y> {
-	/**
-	 * Check the feature on this shape and return the result.
-	 */
-	public FeatureResult<Y> check(LetterGuesserContext context, RuntimeEnvironment env);
+  /**
+   * Check the feature on this shape and return the result.
+   */
+  public FeatureResult<Y> check(LetterGuesserContext context, RuntimeEnvironment env);
 }

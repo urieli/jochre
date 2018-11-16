@@ -33,17 +33,17 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
  *
  */
 public class PunctuationFilter extends FilteringTokenFilter {
-	private final CharArraySet punctuation = StopFilter.makeStopSet(".", ",", ";", ":", "?", "!", "|", "(", ")", "[", "]", "{", "}", "-", "\"", "'", "*", "„",
-			"“", "_", "‒", "—", "―");
-	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+  private final CharArraySet punctuation = StopFilter.makeStopSet(".", ",", ";", ":", "?", "!", "|", "(", ")", "[", "]", "{", "}", "-", "\"", "'", "*", "„",
+      "“", "_", "‒", "—", "―");
+  private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 
-	public PunctuationFilter(TokenStream in) {
-		super(in);
-	}
+  public PunctuationFilter(TokenStream in) {
+    super(in);
+  }
 
-	@Override
-	protected boolean accept() throws IOException {
-		return !punctuation.contains(termAtt.buffer(), 0, termAtt.length());
-	}
+  @Override
+  protected boolean accept() throws IOException {
+    return !punctuation.contains(termAtt.buffer(), 0, termAtt.length());
+  }
 
 }

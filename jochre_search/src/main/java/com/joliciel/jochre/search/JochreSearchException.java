@@ -26,22 +26,22 @@ import com.joliciel.jochre.utils.JochreException;
  *
  */
 public class JochreSearchException extends JochreException {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public JochreSearchException() {
-		
-	}
+  public JochreSearchException() {
+    
+  }
 
-	public JochreSearchException(String message) {
-		super(message);
-	}
+  public JochreSearchException(String message) {
+    super(message);
+  }
 
-	public JochreSearchException(Throwable cause) {
-		super(cause);
-	}
+  public JochreSearchException(Throwable cause) {
+    super(cause);
+  }
 
-	public JochreSearchException(String message, Throwable cause) {
-		super(message, cause);
-	}
+  public JochreSearchException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

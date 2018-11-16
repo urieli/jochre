@@ -24,11 +24,11 @@ package com.joliciel.jochre.graphics;
  *
  */
 public interface Rectangle {
-	public int getLeft();
-	public int getTop();
-	public int getRight();
-	public int getBottom();
-	
-	public int getWidth();
-	public int getHeight();
+  public int getLeft();
+  public int getTop();
+  public int getRight();
+  public int getBottom();
+  
+  public int getWidth();
+  public int getHeight();
 }

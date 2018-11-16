@@ -27,50 +27,50 @@ import java.util.ArrayList;
  *
  */
 final class VerticalLineGroup {
-	public VerticalLineGroup(Shape shape) {
-		this.leftBoundary = shape.getWidth()-1;
-		this.rightBoundary = 0;
-		this.topBoundary = shape.getHeight()-1;
-		this.bottomBoundary = 0;
-	}
-	/**
-	 * Total pixel count for this group.
-	 */
-	public int pixelCount = 0;
-	
-	/**
-	 * Left-hand boundary for this group.
-	 */
-	public int leftBoundary = -1;
-	/**
-	 * Right-hand boundary for this group.
-	 */
-	public int rightBoundary = -1;
-	
-	/**
-	 * Top boundary for this group.
-	 */
-	public int topBoundary = -1;
-	
-	/**
-	 * Bottom boundary for this group.
-	 */
-	public int bottomBoundary = -1;
-	
-	/**
-	 * Bridge candidates touching this group on the left.
-	 */
-	public List<BridgeCandidate> leftCandidates = new ArrayList<BridgeCandidate>();
-	
-	/**
-	 * Bridge candidates touching this group on the right.
-	 */
-	public List<BridgeCandidate> rightCandidates = new ArrayList<BridgeCandidate>();
-	
-	/**
-	 * An attribute useful when traversing the groups recursively.
-	 * Enables us to make sure we only touch this group once.
-	 */
-	public boolean touched = false;
-	
+  public VerticalLineGroup(Shape shape) {
+    this.leftBoundary = shape.getWidth()-1;
+    this.rightBoundary = 0;
+    this.topBoundary = shape.getHeight()-1;
+    this.bottomBoundary = 0;
+  }
+  /**
+   * Total pixel count for this group.
+   */
+  public int pixelCount = 0;
+  
+  /**
+   * Left-hand boundary for this group.
+   */
+  public int leftBoundary = -1;
+  /**
+   * Right-hand boundary for this group.
+   */
+  public int rightBoundary = -1;
+  
+  /**
+   * Top boundary for this group.
+   */
+  public int topBoundary = -1;
+  
+  /**
+   * Bottom boundary for this group.
+   */
+  public int bottomBoundary = -1;
+  
+  /**
+   * Bridge candidates touching this group on the left.
+   */
+  public List<BridgeCandidate> leftCandidates = new ArrayList<BridgeCandidate>();
+  
+  /**
+   * Bridge candidates touching this group on the right.
+   */
+  public List<BridgeCandidate> rightCandidates = new ArrayList<BridgeCandidate>();
+  
+  /**
+   * An attribute useful when traversing the groups recursively.
+   * Enables us to make sure we only touch this group once.
+   */
+  public boolean touched = false;
+  
 }

@@ -30,12 +30,12 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public final class HeightFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
-		
-		FeatureResult<Double> outcome = this.generateResult(ratio);
-		return outcome;
-	}
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
+    
+    FeatureResult<Double> outcome = this.generateResult(ratio);
+    return outcome;
+  }
 }

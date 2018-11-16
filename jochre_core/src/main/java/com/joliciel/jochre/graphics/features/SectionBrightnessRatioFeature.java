@@ -35,55 +35,55 @@ import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
  */
 public class SectionBrightnessRatioFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
     private static final Logger LOG = LoggerFactory.getLogger(SectionBrightnessRatioFeature.class);
-	private boolean[][] testSectors;
-		
-	public SectionBrightnessRatioFeature(boolean[][]testSectors) {
-		this.testSectors = testSectors;
-		
-		String name = super.getName();
-		name += "{";
-		for (int i = 0; i < testSectors.length; i++)
-			for (int j = 0; j<testSectors[0].length; j++)
-				if (testSectors[i][j])
-					name += "[" + i + "," + j + "]";
-		name += "}";
-		this.setName(name);
-	}
-	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double[][] totals = shape.getBrightnessBySection(5, 5, 1, SectionBrightnessMeasurementMethod.RAW);
-		
-		double testTotal = 0;
-		double fullTotal = 0;
-		
-		for (int i = 0; i < totals.length; i++) {
-			for (int j = 0; j<totals[0].length; j++) {
-				double brightness = totals[i][j];
-				if (testSectors[i][j])
-					testTotal += brightness;
-				fullTotal += brightness;
-			}
-		}
+  private boolean[][] testSectors;
+    
+  public SectionBrightnessRatioFeature(boolean[][]testSectors) {
+    this.testSectors = testSectors;
+    
+    String name = super.getName();
+    name += "{";
+    for (int i = 0; i < testSectors.length; i++)
+      for (int j = 0; j<testSectors[0].length; j++)
+        if (testSectors[i][j])
+          name += "[" + i + "," + j + "]";
+    name += "}";
+    this.setName(name);
+  }
+  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double[][] totals = shape.getBrightnessBySection(5, 5, 1, SectionBrightnessMeasurementMethod.RAW);
+    
+    double testTotal = 0;
+    double fullTotal = 0;
+    
+    for (int i = 0; i < totals.length; i++) {
+      for (int j = 0; j<totals[0].length; j++) {
+        double brightness = totals[i][j];
+        if (testSectors[i][j])
+          testTotal += brightness;
+        fullTotal += brightness;
+      }
+    }
 
-		double ratio = 0;
-		if (fullTotal > 0) {
-			ratio = testTotal / fullTotal;
-		}
-		
-		if (LOG.isDebugEnabled())
-			LOG.trace("Test: " + testTotal + "), Total: " + fullTotal + ", Ratio: " + ratio);
-		
-		FeatureResult<Double> outcome = this.generateResult(ratio);
-		return outcome;    
-	}
+    double ratio = 0;
+    if (fullTotal > 0) {
+      ratio = testTotal / fullTotal;
+    }
+    
+    if (LOG.isDebugEnabled())
+      LOG.trace("Test: " + testTotal + "), Total: " + fullTotal + ", Ratio: " + ratio);
+    
+    FeatureResult<Double> outcome = this.generateResult(ratio);
+    return outcome;    
+  }
 
-	public boolean[][] getTestSectors() {
-		return testSectors;
-	}
+  public boolean[][] getTestSectors() {
+    return testSectors;
+  }
 
-	protected void setTestSectors(boolean[][] testSectors) {
-		this.testSectors = testSectors;
-	}
+  protected void setTestSectors(boolean[][] testSectors) {
+    this.testSectors = testSectors;
+  }
 }

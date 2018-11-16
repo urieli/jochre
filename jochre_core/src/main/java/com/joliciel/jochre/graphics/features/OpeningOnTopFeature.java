@@ -34,60 +34,60 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class OpeningOnTopFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-	private static final Logger LOG = LoggerFactory.getLogger(OpeningOnTopFeature.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OpeningOnTopFeature.class);
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		int leftPoint = (int) ((double) shape.getWidth() * (1.0 / 8.0));
-		int rightPoint = (int) ((double) shape.getWidth() * (7.0 / 8.0));
-		int openingThreshold = shape.getHeight() / 4;
-		int wallThreshold = shape.getHeight() / 7;
-		
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("leftPoint: " + leftPoint);
-			LOG.trace("rightPoint: " + rightPoint);
-			LOG.trace("openingThreshold: " + openingThreshold);
-			LOG.trace("wallThreshold: " + wallThreshold);
-		}
-		boolean foundWall = false;
-		boolean foundOpening = false;
-		boolean foundAnotherWall = false;
-		for (int x = rightPoint; x >= leftPoint; x--) {
-			for (int y = 0; y <= openingThreshold; y++) {
-				if (!foundWall && y > wallThreshold) {
-					break;
-				}
-				else if (!foundWall && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
-					foundWall = true;
-					if (LOG.isTraceEnabled())
-						LOG.trace("foundWall x=" + x + ", y=" + y);
-					break;
-				}
-				else if (foundWall && !foundOpening && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
-					break;
-				}
-				else if (foundWall && !foundOpening && y == openingThreshold) {
-					foundOpening = true;
-					if (LOG.isTraceEnabled())
-						LOG.trace("foundOpening x=" + x + ", y=" + y);
-					break;
-				}
-				else if (foundOpening && !foundAnotherWall && y>= wallThreshold) {
-					break;
-				}
-				else if (foundOpening && !foundAnotherWall && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
-					foundAnotherWall = true;
-					if (LOG.isTraceEnabled())
-						LOG.trace("foundAnotherWall x=" + x + ", y=" + y);
-					break;
-				}
-			}
-			if (foundAnotherWall)
-				break;
-		}
-		
-		FeatureResult<Boolean> outcome = this.generateResult(foundAnotherWall);
-		return outcome;
-	}
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    int leftPoint = (int) ((double) shape.getWidth() * (1.0 / 8.0));
+    int rightPoint = (int) ((double) shape.getWidth() * (7.0 / 8.0));
+    int openingThreshold = shape.getHeight() / 4;
+    int wallThreshold = shape.getHeight() / 7;
+    
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("leftPoint: " + leftPoint);
+      LOG.trace("rightPoint: " + rightPoint);
+      LOG.trace("openingThreshold: " + openingThreshold);
+      LOG.trace("wallThreshold: " + wallThreshold);
+    }
+    boolean foundWall = false;
+    boolean foundOpening = false;
+    boolean foundAnotherWall = false;
+    for (int x = rightPoint; x >= leftPoint; x--) {
+      for (int y = 0; y <= openingThreshold; y++) {
+        if (!foundWall && y > wallThreshold) {
+          break;
+        }
+        else if (!foundWall && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
+          foundWall = true;
+          if (LOG.isTraceEnabled())
+            LOG.trace("foundWall x=" + x + ", y=" + y);
+          break;
+        }
+        else if (foundWall && !foundOpening && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
+          break;
+        }
+        else if (foundWall && !foundOpening && y == openingThreshold) {
+          foundOpening = true;
+          if (LOG.isTraceEnabled())
+            LOG.trace("foundOpening x=" + x + ", y=" + y);
+          break;
+        }
+        else if (foundOpening && !foundAnotherWall && y>= wallThreshold) {
+          break;
+        }
+        else if (foundOpening && !foundAnotherWall && shape.isPixelBlack(x, y, shape.getJochreImage().getBlackThreshold())) {
+          foundAnotherWall = true;
+          if (LOG.isTraceEnabled())
+            LOG.trace("foundAnotherWall x=" + x + ", y=" + y);
+          break;
+        }
+      }
+      if (foundAnotherWall)
+        break;
+    }
+    
+    FeatureResult<Boolean> outcome = this.generateResult(foundAnotherWall);
+    return outcome;
+  }
 }

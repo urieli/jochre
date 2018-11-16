@@ -1,4 +1,4 @@
 [#ftl]
-	</Layout>
+  </Layout>
 </alto>
 

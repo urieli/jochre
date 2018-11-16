@@ -17,23 +17,23 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  *
  */
 class JochreMetaDataAnalyser extends Analyzer {
-	private final TextNormaliser textNormaliser;
+  private final TextNormaliser textNormaliser;
 
-	public JochreMetaDataAnalyser(JochreSearchConfig config) {
-		textNormaliser = TextNormaliser.getInstance(config);
-	}
+  public JochreMetaDataAnalyser(JochreSearchConfig config) {
+    textNormaliser = TextNormaliser.getInstance(config);
+  }
 
-	@Override
-	protected TokenStreamComponents createComponents(final String fieldName) {
-		Tokenizer source = new StandardTokenizer();
-		TokenStream result = source;
-		if (textNormaliser != null)
-			result = new TextNormalisingFilter(result, textNormaliser);
-		else {
-			result = new ASCIIFoldingFilter(result);
-			result = new LowerCaseFilter(result);
-		}
-		result = new PunctuationFilter(result);
-		return new TokenStreamComponents(source, result);
-	}
+  @Override
+  protected TokenStreamComponents createComponents(final String fieldName) {
+    Tokenizer source = new StandardTokenizer();
+    TokenStream result = source;
+    if (textNormaliser != null)
+      result = new TextNormalisingFilter(result, textNormaliser);
+    else {
+      result = new ASCIIFoldingFilter(result);
+      result = new LowerCaseFilter(result);
+    }
+    result = new PunctuationFilter(result);
+    return new TokenStreamComponents(source, result);
+  }
 }

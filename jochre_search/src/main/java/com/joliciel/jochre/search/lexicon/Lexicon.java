@@ -39,52 +39,52 @@ import org.slf4j.LoggerFactory;
  *
  */
 public interface Lexicon {
-	static final Logger LOG = LoggerFactory.getLogger(Lexicon.class);
+  static final Logger LOG = LoggerFactory.getLogger(Lexicon.class);
 
-	static Map<String, Lexicon> lexiconMap = new HashMap<>();
+  static Map<String, Lexicon> lexiconMap = new HashMap<>();
 
-	public static Lexicon deserializeLexicon(File lexiconFile) {
-		try {
-			String path = lexiconFile.getAbsolutePath();
-			if (lexiconMap.containsKey(path))
-				return lexiconMap.get(path);
+  public static Lexicon deserializeLexicon(File lexiconFile) {
+    try {
+      String path = lexiconFile.getAbsolutePath();
+      if (lexiconMap.containsKey(path))
+        return lexiconMap.get(path);
 
-			LOG.info("Loading lexicon from: " + path);
+      LOG.info("Loading lexicon from: " + path);
 
-			TextFileLexicon lexicon = null;
-			FileInputStream fis = new FileInputStream(lexiconFile);
-			ZipInputStream zis = new ZipInputStream(fis);
-			ZipEntry ze = null;
-			while ((ze = zis.getNextEntry()) != null) {
-				LOG.debug(ze.getName());
-				if (ze.getName().endsWith(".obj")) {
-					LOG.debug("deserializing " + ze.getName());
-					@SuppressWarnings("resource")
-					ObjectInputStream in = new ObjectInputStream(zis);
-					lexicon = (TextFileLexicon) in.readObject();
-					break;
-				}
-			}
-			zis.close();
+      TextFileLexicon lexicon = null;
+      FileInputStream fis = new FileInputStream(lexiconFile);
+      ZipInputStream zis = new ZipInputStream(fis);
+      ZipEntry ze = null;
+      while ((ze = zis.getNextEntry()) != null) {
+        LOG.debug(ze.getName());
+        if (ze.getName().endsWith(".obj")) {
+          LOG.debug("deserializing " + ze.getName());
+          @SuppressWarnings("resource")
+          ObjectInputStream in = new ObjectInputStream(zis);
+          lexicon = (TextFileLexicon) in.readObject();
+          break;
+        }
+      }
+      zis.close();
 
-			lexiconMap.put(path, lexicon);
-			return lexicon;
-		} catch (IOException e) {
-			LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
-			throw new RuntimeException(e);
-		} catch (ClassNotFoundException e) {
-			LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
-			throw new RuntimeException(e);
-		}
-	}
+      lexiconMap.put(path, lexicon);
+      return lexicon;
+    } catch (IOException e) {
+      LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
+      throw new RuntimeException(e);
+    } catch (ClassNotFoundException e) {
+      LOG.error("Failed to deserialize lexicon " + lexiconFile.getAbsolutePath(), e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	/**
-	 * Return all lemmas associated with a given word.
-	 */
-	public Set<String> getLemmas(String word);
+  /**
+   * Return all lemmas associated with a given word.
+   */
+  public Set<String> getLemmas(String word);
 
-	/**
-	 * Return all words associated with a given lemma.
-	 */
-	public Set<String> getWords(String lemma);
+  /**
+   * Return all words associated with a given lemma.
+   */
+  public Set<String> getWords(String lemma);
 }

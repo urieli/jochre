@@ -65,284 +65,284 @@ import com.typesafe.config.Config;
  *
  */
 public class RecursiveShapeSplitter implements ShapeSplitter {
-	private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitter.class);
 
-	private final SplitCandidateFinder splitCandidateFinder;
+  private final SplitCandidateFinder splitCandidateFinder;
 
-	private final Set<SplitFeature<?>> splitFeatures;
-	private final DecisionMaker decisionMaker;
+  private final Set<SplitFeature<?>> splitFeatures;
+  private final DecisionMaker decisionMaker;
 
-	double minWidthRatio;
-	int beamWidth;
-	int maxDepth;
+  double minWidthRatio;
+  int beamWidth;
+  int maxDepth;
 
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder, Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker,
-			JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.splitCandidateFinder = splitCandidateFinder;
-		this.splitFeatures = splitFeatures;
-		this.decisionMaker = decisionMaker;
+  public RecursiveShapeSplitter(SplitCandidateFinder splitCandidateFinder, Set<SplitFeature<?>> splitFeatures, DecisionMaker decisionMaker,
+      JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.splitCandidateFinder = splitCandidateFinder;
+    this.splitFeatures = splitFeatures;
+    this.decisionMaker = decisionMaker;
 
-		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
-		minWidthRatio = splitterConfig.getDouble("min-width-ratio");
-		beamWidth = splitterConfig.getInt("beam-width");
-		maxDepth = splitterConfig.getInt("max-depth");
-	}
+    Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+    minWidthRatio = splitterConfig.getDouble("min-width-ratio");
+    beamWidth = splitterConfig.getInt("beam-width");
+    maxDepth = splitterConfig.getInt("max-depth");
+  }
 
-	@Override
-	public List<ShapeSequence> split(Shape shape) {
-		LOG.trace("Splitting shape: " + shape);
-		boolean leftToRight = shape.getJochreImage().isLeftToRight();
-		List<ShapeSequence> shapeSequences = this.split(shape, 0, shape, leftToRight);
-		int i = 0;
-		for (ShapeSequence shapeSequence : shapeSequences) {
-			LOG.debug("Sequence" + i + ", score=" + shapeSequence.getScore());
-			for (ShapeInSequence splitGuess : shapeSequence) {
-				LOG.debug("Shape, left(" + splitGuess.getShape().getLeft() + ")" + ", top(" + splitGuess.getShape().getTop() + ")" + ", right("
-						+ splitGuess.getShape().getRight() + ")" + ", bot(" + splitGuess.getShape().getBottom() + ")" + " [id=" + splitGuess.getShape().getId() + "]");
-			}
-			i++;
-		}
-		return shapeSequences;
-	}
+  @Override
+  public List<ShapeSequence> split(Shape shape) {
+    LOG.trace("Splitting shape: " + shape);
+    boolean leftToRight = shape.getJochreImage().isLeftToRight();
+    List<ShapeSequence> shapeSequences = this.split(shape, 0, shape, leftToRight);
+    int i = 0;
+    for (ShapeSequence shapeSequence : shapeSequences) {
+      LOG.debug("Sequence" + i + ", score=" + shapeSequence.getScore());
+      for (ShapeInSequence splitGuess : shapeSequence) {
+        LOG.debug("Shape, left(" + splitGuess.getShape().getLeft() + ")" + ", top(" + splitGuess.getShape().getTop() + ")" + ", right("
+            + splitGuess.getShape().getRight() + ")" + ", bot(" + splitGuess.getShape().getBottom() + ")" + " [id=" + splitGuess.getShape().getId() + "]");
+      }
+      i++;
+    }
+    return shapeSequences;
+  }
 
-	List<ShapeSequence> split(Shape shape, int depth, Shape originalShape, boolean leftToRight) {
-		String padding = "-";
-		for (int i = 0; i < depth; i++)
-			padding += "-";
-		padding += " ";
-		if (LOG.isTraceEnabled()) {
-			LOG.trace(padding + "Splitting shape: " + shape.getLeft() + " , " + shape.getRight());
-			LOG.trace(padding + "depth: " + depth);
-		}
-		List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
-		// check if shape is wide enough to bother with
-		double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
-		if (LOG.isTraceEnabled())
-			LOG.trace(padding + "widthRatio: " + widthRatio);
+  List<ShapeSequence> split(Shape shape, int depth, Shape originalShape, boolean leftToRight) {
+    String padding = "-";
+    for (int i = 0; i < depth; i++)
+      padding += "-";
+    padding += " ";
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(padding + "Splitting shape: " + shape.getLeft() + " , " + shape.getRight());
+      LOG.trace(padding + "depth: " + depth);
+    }
+    List<ShapeSequence> shapeSequences = new ArrayList<ShapeSequence>();
+    // check if shape is wide enough to bother with
+    double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
+    if (LOG.isTraceEnabled())
+      LOG.trace(padding + "widthRatio: " + widthRatio);
 
-		if (widthRatio < minWidthRatio || depth >= maxDepth) {
-			if (LOG.isTraceEnabled())
-				LOG.trace(padding + "too narrow or too deep");
-			ShapeSequence shapeSequence = new ShapeSequence();
-			shapeSequence.addShape(shape, originalShape);
-			shapeSequences.add(shapeSequence);
-		} else {
-			List<Split> splitCandidates = this.splitCandidateFinder.findSplitCandidates(shape);
-			TreeSet<ShapeSequence> myShapeSequences = new TreeSet<ShapeSequence>();
+    if (widthRatio < minWidthRatio || depth >= maxDepth) {
+      if (LOG.isTraceEnabled())
+        LOG.trace(padding + "too narrow or too deep");
+      ShapeSequence shapeSequence = new ShapeSequence();
+      shapeSequence.addShape(shape, originalShape);
+      shapeSequences.add(shapeSequence);
+    } else {
+      List<Split> splitCandidates = this.splitCandidateFinder.findSplitCandidates(shape);
+      TreeSet<ShapeSequence> myShapeSequences = new TreeSet<ShapeSequence>();
 
-			TreeSet<WeightedOutcome<Split>> weightedSplits = new TreeSet<WeightedOutcome<Split>>();
-			for (Split splitCandidate : splitCandidates) {
-				double splitProb = this.shouldSplit(splitCandidate);
-				WeightedOutcome<Split> weightedSplit = new WeightedOutcome<Split>(splitCandidate, splitProb);
-				weightedSplits.add(weightedSplit);
-			}
+      TreeSet<WeightedOutcome<Split>> weightedSplits = new TreeSet<WeightedOutcome<Split>>();
+      for (Split splitCandidate : splitCandidates) {
+        double splitProb = this.shouldSplit(splitCandidate);
+        WeightedOutcome<Split> weightedSplit = new WeightedOutcome<Split>(splitCandidate, splitProb);
+        weightedSplits.add(weightedSplit);
+      }
 
-			double maxSplitProb = 0.0;
-			if (weightedSplits.size() > 0)
-				maxSplitProb = weightedSplits.first().getWeight();
+      double maxSplitProb = 0.0;
+      if (weightedSplits.size() > 0)
+        maxSplitProb = weightedSplits.first().getWeight();
 
-			double noSplitProb = 1 - maxSplitProb;
-			if (noSplitProb > maxSplitProb)
-				maxSplitProb = noSplitProb;
+      double noSplitProb = 1 - maxSplitProb;
+      if (noSplitProb > maxSplitProb)
+        maxSplitProb = noSplitProb;
 
-			Split noSplit = new Split(shape, jochreSession);
-			noSplit.setPosition(-1);
-			WeightedOutcome<Split> weightedNoSplit = new WeightedOutcome<Split>(noSplit, noSplitProb);
-			weightedSplits.add(weightedNoSplit);
+      Split noSplit = new Split(shape, jochreSession);
+      noSplit.setPosition(-1);
+      WeightedOutcome<Split> weightedNoSplit = new WeightedOutcome<Split>(noSplit, noSplitProb);
+      weightedSplits.add(weightedNoSplit);
 
-			boolean topCandidate = true;
-			double topCandidateWeight = 1.0;
-			for (WeightedOutcome<Split> weightedSplit : weightedSplits) {
-				Split splitCandidate = weightedSplit.getOutcome();
-				double splitProb = weightedSplit.getWeight();
-				if (LOG.isTraceEnabled())
-					LOG.trace(padding + "splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition() + ", initial prob: "
-							+ splitProb);
+      boolean topCandidate = true;
+      double topCandidateWeight = 1.0;
+      for (WeightedOutcome<Split> weightedSplit : weightedSplits) {
+        Split splitCandidate = weightedSplit.getOutcome();
+        double splitProb = weightedSplit.getWeight();
+        if (LOG.isTraceEnabled())
+          LOG.trace(padding + "splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition() + ", initial prob: "
+              + splitProb);
 
-				if (LOG.isTraceEnabled()) {
-					if (topCandidate) {
-						LOG.trace(padding + "topCandidate");
-					}
-				}
+        if (LOG.isTraceEnabled()) {
+          if (topCandidate) {
+            LOG.trace(padding + "topCandidate");
+          }
+        }
 
-				if (splitCandidate.getPosition() < 0) {
-					// This is the no-split candidate
-					if (topCandidate)
-						topCandidateWeight = 1.0;
+        if (splitCandidate.getPosition() < 0) {
+          // This is the no-split candidate
+          if (topCandidate)
+            topCandidateWeight = 1.0;
 
-					ShapeSequence shapeSequence = new ShapeSequence();
-					shapeSequence.addShape(shape, originalShape);
-					double prob = (splitProb / maxSplitProb) * topCandidateWeight;
-					if (LOG.isTraceEnabled())
-						LOG.trace(padding + "noSplit prob=(" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
+          ShapeSequence shapeSequence = new ShapeSequence();
+          shapeSequence.addShape(shape, originalShape);
+          double prob = (splitProb / maxSplitProb) * topCandidateWeight;
+          if (LOG.isTraceEnabled())
+            LOG.trace(padding + "noSplit prob=(" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
 
-					Decision decision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), prob);
-					shapeSequence.addDecision(decision);
-					myShapeSequences.add(shapeSequence);
-				} else {
-					// a proper split
-					Shape leftShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getLeft() + splitCandidate.getPosition(), shape.getBottom());
-					Shape rightShape = shape.getJochreImage().getShape(shape.getLeft() + splitCandidate.getPosition() + 1, shape.getTop(), shape.getRight(),
-							shape.getBottom());
+          Decision decision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), prob);
+          shapeSequence.addDecision(decision);
+          myShapeSequences.add(shapeSequence);
+        } else {
+          // a proper split
+          Shape leftShape = shape.getJochreImage().getShape(shape.getLeft(), shape.getTop(), shape.getLeft() + splitCandidate.getPosition(), shape.getBottom());
+          Shape rightShape = shape.getJochreImage().getShape(shape.getLeft() + splitCandidate.getPosition() + 1, shape.getTop(), shape.getRight(),
+              shape.getBottom());
 
-					// for each split recursively try to split it again up to depth of m
-					// Note: m=2 is probably enough, since we're not expecting more than 4
-					// letters per shape (3 splits)
-					List<ShapeSequence> leftShapeSequences = this.split(leftShape, depth + 1, originalShape, leftToRight);
-					List<ShapeSequence> rightShapeSequences = this.split(rightShape, depth + 1, originalShape, leftToRight);
+          // for each split recursively try to split it again up to depth of m
+          // Note: m=2 is probably enough, since we're not expecting more than 4
+          // letters per shape (3 splits)
+          List<ShapeSequence> leftShapeSequences = this.split(leftShape, depth + 1, originalShape, leftToRight);
+          List<ShapeSequence> rightShapeSequences = this.split(rightShape, depth + 1, originalShape, leftToRight);
 
-					if (topCandidate) {
-						// find the no-split sequence in each sub-sequence
-						ShapeSequence noSplitLeft = null;
-						for (ShapeSequence leftShapeSequence : leftShapeSequences) {
-							if (leftShapeSequence.size() == 1) {
-								noSplitLeft = leftShapeSequence;
-								break;
-							}
-						}
+          if (topCandidate) {
+            // find the no-split sequence in each sub-sequence
+            ShapeSequence noSplitLeft = null;
+            for (ShapeSequence leftShapeSequence : leftShapeSequences) {
+              if (leftShapeSequence.size() == 1) {
+                noSplitLeft = leftShapeSequence;
+                break;
+              }
+            }
 
-						ShapeSequence noSplitRight = null;
-						for (ShapeSequence rightShapeSequence : rightShapeSequences) {
-							if (rightShapeSequence.size() == 1) {
-								noSplitRight = rightShapeSequence;
-								break;
-							}
-						}
+            ShapeSequence noSplitRight = null;
+            for (ShapeSequence rightShapeSequence : rightShapeSequences) {
+              if (rightShapeSequence.size() == 1) {
+                noSplitRight = rightShapeSequence;
+                break;
+              }
+            }
 
-						// we should be guaranteed to find a noSplitLeft and noSplitRight
-						// since a no-split candidate is always returned
-						topCandidateWeight = noSplitLeft.getScore() * noSplitRight.getScore();
-						if (LOG.isTraceEnabled())
-							LOG.trace(padding + "topCandidateWeight=" + noSplitLeft.getScore() + " *" + noSplitRight.getScore() + " = " + topCandidateWeight);
-					}
+            // we should be guaranteed to find a noSplitLeft and noSplitRight
+            // since a no-split candidate is always returned
+            topCandidateWeight = noSplitLeft.getScore() * noSplitRight.getScore();
+            if (LOG.isTraceEnabled())
+              LOG.trace(padding + "topCandidateWeight=" + noSplitLeft.getScore() + " *" + noSplitRight.getScore() + " = " + topCandidateWeight);
+          }
 
-					for (ShapeSequence leftShapeSequence : leftShapeSequences) {
-						for (ShapeSequence rightShapeSequence : rightShapeSequences) {
-							ShapeSequence newSequence = null;
-							if (leftToRight)
-								newSequence = new ShapeSequence(leftShapeSequence, rightShapeSequence);
-							else
-								newSequence = new ShapeSequence(rightShapeSequence, leftShapeSequence);
-							if (LOG.isTraceEnabled()) {
-								StringBuilder sb = new StringBuilder();
-								for (ShapeInSequence splitShape : newSequence) {
-									sb.append("(" + splitShape.getShape().getLeft() + "," + splitShape.getShape().getRight() + ") ");
-								}
-								LOG.trace(padding + sb.toString());
-							}
-							double totalProb = 1.0;
-							for (Decision decision : newSequence.getDecisions()) {
-								totalProb = totalProb * decision.getProbability();
-							}
-							newSequence.getDecisions().clear();
-							double prob = 0.0;
-							if (topCandidate) {
-								prob = totalProb * (splitProb / maxSplitProb);
-								if (LOG.isTraceEnabled())
-									LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") = " + prob);
-							} else {
-								prob = totalProb * (splitProb / maxSplitProb) * topCandidateWeight;
-								if (LOG.isTraceEnabled())
-									LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
-							}
+          for (ShapeSequence leftShapeSequence : leftShapeSequences) {
+            for (ShapeSequence rightShapeSequence : rightShapeSequences) {
+              ShapeSequence newSequence = null;
+              if (leftToRight)
+                newSequence = new ShapeSequence(leftShapeSequence, rightShapeSequence);
+              else
+                newSequence = new ShapeSequence(rightShapeSequence, leftShapeSequence);
+              if (LOG.isTraceEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                for (ShapeInSequence splitShape : newSequence) {
+                  sb.append("(" + splitShape.getShape().getLeft() + "," + splitShape.getShape().getRight() + ") ");
+                }
+                LOG.trace(padding + sb.toString());
+              }
+              double totalProb = 1.0;
+              for (Decision decision : newSequence.getDecisions()) {
+                totalProb = totalProb * decision.getProbability();
+              }
+              newSequence.getDecisions().clear();
+              double prob = 0.0;
+              if (topCandidate) {
+                prob = totalProb * (splitProb / maxSplitProb);
+                if (LOG.isTraceEnabled())
+                  LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") = " + prob);
+              } else {
+                prob = totalProb * (splitProb / maxSplitProb) * topCandidateWeight;
+                if (LOG.isTraceEnabled())
+                  LOG.trace(padding + "prob=" + totalProb + " * (" + splitProb + " / " + maxSplitProb + ") * " + topCandidateWeight + " = " + prob);
+              }
 
-							Decision decision = new Decision(SplitOutcome.DO_SPLIT.name(), prob);
-							newSequence.addDecision(decision);
-							myShapeSequences.add(newSequence);
-						}
-					}
-				}
+              Decision decision = new Decision(SplitOutcome.DO_SPLIT.name(), prob);
+              newSequence.addDecision(decision);
+              myShapeSequences.add(newSequence);
+            }
+          }
+        }
 
-				topCandidate = false;
-			}
+        topCandidate = false;
+      }
 
-			int i = 0;
-			for (ShapeSequence shapeSequence : myShapeSequences) {
-				// Note: we always return the no-split option, even it it's very low
-				// probability
-				if (shapeSequence.size() == 1 || i < beamWidth) {
-					shapeSequences.add(shapeSequence);
-				}
-				i++;
-			}
-		}
+      int i = 0;
+      for (ShapeSequence shapeSequence : myShapeSequences) {
+        // Note: we always return the no-split option, even it it's very low
+        // probability
+        if (shapeSequence.size() == 1 || i < beamWidth) {
+          shapeSequences.add(shapeSequence);
+        }
+        i++;
+      }
+    }
 
-		return shapeSequences;
-	}
+    return shapeSequences;
+  }
 
-	public double shouldSplit(Split splitCandidate) {
-		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+  public double shouldSplit(Split splitCandidate) {
+    List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-		// analyse features
-			for (SplitFeature<?> feature : splitFeatures) {
-					RuntimeEnvironment env = new RuntimeEnvironment();
-					FeatureResult<?> featureResult = feature.check(splitCandidate, env);
-					if (featureResult != null) {
-						featureResults.add(featureResult);
-						if (LOG.isTraceEnabled()) {
-							LOG.trace(featureResult.toString());
-						}
-					}
-			}
+    // analyse features
+      for (SplitFeature<?> feature : splitFeatures) {
+          RuntimeEnvironment env = new RuntimeEnvironment();
+          FeatureResult<?> featureResult = feature.check(splitCandidate, env);
+          if (featureResult != null) {
+            featureResults.add(featureResult);
+            if (LOG.isTraceEnabled()) {
+              LOG.trace(featureResult.toString());
+            }
+          }
+      }
 
-		List<Decision> decisions = decisionMaker.decide(featureResults);
+    List<Decision> decisions = decisionMaker.decide(featureResults);
 
-		double yesProb = 0.0;
-		for (Decision decision : decisions) {
-			if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT.name())) {
-				yesProb = decision.getProbability();
-				break;
-			}
-		}
+    double yesProb = 0.0;
+    for (Decision decision : decisions) {
+      if (decision.getOutcome().equals(SplitOutcome.DO_SPLIT.name())) {
+        yesProb = decision.getProbability();
+        break;
+      }
+    }
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition());
-			LOG.trace("yesProb: " + yesProb);
-		}
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("splitCandidate: left=" + splitCandidate.getShape().getLeft() + ", pos=" + splitCandidate.getPosition());
+      LOG.trace("yesProb: " + yesProb);
+    }
 
-		return yesProb;
-	}
+    return yesProb;
+  }
 
-	public SplitCandidateFinder getSplitCandidateFinder() {
-		return splitCandidateFinder;
-	}
+  public SplitCandidateFinder getSplitCandidateFinder() {
+    return splitCandidateFinder;
+  }
 
-	/**
-	 * The minimum ratio between the shape's width and it's x-height for the shape
-	 * to even be considered for splitting.
-	 */
-	public double getMinWidthRatio() {
-		return minWidthRatio;
-	}
+  /**
+   * The minimum ratio between the shape's width and it's x-height for the shape
+   * to even be considered for splitting.
+   */
+  public double getMinWidthRatio() {
+    return minWidthRatio;
+  }
 
-	public void setMinWidthRatio(double minWidthRatio) {
-		this.minWidthRatio = minWidthRatio;
-	}
+  public void setMinWidthRatio(double minWidthRatio) {
+    this.minWidthRatio = minWidthRatio;
+  }
 
-	/**
-	 * The beam width indicating the maximum possible decisions to return for each
-	 * shape (applies recursively as well).
-	 */
-	public int getBeamWidth() {
-		return beamWidth;
-	}
+  /**
+   * The beam width indicating the maximum possible decisions to return for each
+   * shape (applies recursively as well).
+   */
+  public int getBeamWidth() {
+    return beamWidth;
+  }
 
-	public void setBeamWidth(int beamWidth) {
-		this.beamWidth = beamWidth;
-	}
+  public void setBeamWidth(int beamWidth) {
+    this.beamWidth = beamWidth;
+  }
 
-	/**
-	 * The maximum recursive depth to search for splits in a single shape. The
-	 * maximum number of splits = 2^maxDepth.
-	 */
-	public int getMaxDepth() {
-		return maxDepth;
-	}
+  /**
+   * The maximum recursive depth to search for splits in a single shape. The
+   * maximum number of splits = 2^maxDepth.
+   */
+  public int getMaxDepth() {
+    return maxDepth;
+  }
 
-	public void setMaxDepth(int maxDepth) {
-		this.maxDepth = maxDepth;
-	}
+  public void setMaxDepth(int maxDepth) {
+    this.maxDepth = maxDepth;
+  }
 }

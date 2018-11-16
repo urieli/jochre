@@ -19,100 +19,100 @@ import com.typesafe.config.Config;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class JochreSearchConfig {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreSearchConfig.class);
-	private static final Set<String> RTL = new HashSet<>(Arrays.asList(new String[] { "ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi" }));
+  private static final Logger LOG = LoggerFactory.getLogger(JochreSearchConfig.class);
+  private static final Set<String> RTL = new HashSet<>(Arrays.asList(new String[] { "ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi" }));
 
-	private final Config config;
-	private final String configId;
-	private final Locale locale;
-	private final File contentDir;
-	private final int maxResults;
+  private final Config config;
+  private final String configId;
+  private final Locale locale;
+  private final File contentDir;
+  private final int maxResults;
 
-	public JochreSearchConfig(String configId, Config config) {
-		this.configId = configId;
-		this.config = config.getConfig("jochre.search." + configId);
-		this.locale = Locale.forLanguageTag(this.config.getString("locale"));
-		this.contentDir = new File(this.config.getString("content-dir"));
-		this.maxResults = this.config.getInt("max-results");
-	}
+  public JochreSearchConfig(String configId, Config config) {
+    this.configId = configId;
+    this.config = config.getConfig("jochre.search." + configId);
+    this.locale = Locale.forLanguageTag(this.config.getString("locale"));
+    this.contentDir = new File(this.config.getString("content-dir"));
+    this.maxResults = this.config.getInt("max-results");
+  }
 
-	public boolean isLeftToRight() {
-		return !RTL.contains(locale.getLanguage());
-	}
+  public boolean isLeftToRight() {
+    return !RTL.contains(locale.getLanguage());
+  }
 
-	public TokenFilter getQueryTokenFilter(TokenStream input) {
-		TokenFilter tokenFilter = null;
-		if (config.hasPath("query-token-filter.class")) {
-			try {
-				String className = config.getString("query-token-filter.class");
+  public TokenFilter getQueryTokenFilter(TokenStream input) {
+    TokenFilter tokenFilter = null;
+    if (config.hasPath("query-token-filter.class")) {
+      try {
+        String className = config.getString("query-token-filter.class");
 
-				@SuppressWarnings("unchecked")
-				Class<? extends TokenFilter> clazz = (Class<? extends TokenFilter>) Class.forName(className);
-				Constructor<? extends TokenFilter> cons = clazz.getConstructor(TokenStream.class);
+        @SuppressWarnings("unchecked")
+        Class<? extends TokenFilter> clazz = (Class<? extends TokenFilter>) Class.forName(className);
+        Constructor<? extends TokenFilter> cons = clazz.getConstructor(TokenStream.class);
 
-				tokenFilter = cons.newInstance(input);
-			} catch (ReflectiveOperationException e) {
-				LOG.error("Unable to construct TokenFilter", e);
-				throw new RuntimeException(e);
-			}
-		}
-		return tokenFilter;
-	}
+        tokenFilter = cons.newInstance(input);
+      } catch (ReflectiveOperationException e) {
+        LOG.error("Unable to construct TokenFilter", e);
+        throw new RuntimeException(e);
+      }
+    }
+    return tokenFilter;
+  }
 
-	public File getContentDir() {
-		return contentDir;
-	}
+  public File getContentDir() {
+    return contentDir;
+  }
 
-	public File getLexiconFile() {
-		String lexiconFilePath = config.getString("lexicon");
-		File lexiconFile = new File(lexiconFilePath);
-		return lexiconFile;
-	}
+  public File getLexiconFile() {
+    String lexiconFilePath = config.getString("lexicon");
+    File lexiconFile = new File(lexiconFilePath);
+    return lexiconFile;
+  }
 
-	public Lexicon getLexicon() {
-		Lexicon lexicon = null;
-		if (config.hasPath("lexicon")) {
-			File lexiconFile = this.getLexiconFile();
-			lexicon = Lexicon.deserializeLexicon(lexiconFile);
-		}
-		return lexicon;
-	}
+  public Lexicon getLexicon() {
+    Lexicon lexicon = null;
+    if (config.hasPath("lexicon")) {
+      File lexiconFile = this.getLexiconFile();
+      lexicon = Lexicon.deserializeLexicon(lexiconFile);
+    }
+    return lexicon;
+  }
 
-	public Locale getLocale() {
-		return locale;
-	}
+  public Locale getLocale() {
+    return locale;
+  }
 
-	public int getMaxResults() {
-		return maxResults;
-	}
+  public int getMaxResults() {
+    return maxResults;
+  }
 
-	public Config getConfig() {
-		return config;
-	}
+  public Config getConfig() {
+    return config;
+  }
 
-	public String getConfigId() {
-		return configId;
-	}
+  public String getConfigId() {
+    return configId;
+  }
 
-	public boolean hasDatabase() {
-		return config.hasPath("jdbc.url");
-	}
+  public boolean hasDatabase() {
+    return config.hasPath("jdbc.url");
+  }
 
-	public DataSource getDataSource() {
-		Config jdbcConfig = config.getConfig("jdbc");
-		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setDriverClassName(jdbcConfig.getString("driver-class-name"));
-		dataSource.setJdbcUrl(jdbcConfig.getString("url"));
-		dataSource.setUsername(jdbcConfig.getString("username"));
-		dataSource.setPassword(jdbcConfig.getString("password"));
-		dataSource.setConnectionTimeout(jdbcConfig.getDuration("checkout-timeout").toMillis());
-		dataSource.setMaximumPoolSize(jdbcConfig.getInt("max-pool-size"));
-		dataSource.setIdleTimeout(jdbcConfig.getDuration("idle-timeout").toMillis());
-		dataSource.setMinimumIdle(jdbcConfig.getInt("min-idle"));
-		dataSource.setMaxLifetime(jdbcConfig.getDuration("max-lifetime").toMillis());
-		dataSource.setPoolName("HikariPool-" + configId);
+  public DataSource getDataSource() {
+    Config jdbcConfig = config.getConfig("jdbc");
+    HikariDataSource dataSource = new HikariDataSource();
+    dataSource.setDriverClassName(jdbcConfig.getString("driver-class-name"));
+    dataSource.setJdbcUrl(jdbcConfig.getString("url"));
+    dataSource.setUsername(jdbcConfig.getString("username"));
+    dataSource.setPassword(jdbcConfig.getString("password"));
+    dataSource.setConnectionTimeout(jdbcConfig.getDuration("checkout-timeout").toMillis());
+    dataSource.setMaximumPoolSize(jdbcConfig.getInt("max-pool-size"));
+    dataSource.setIdleTimeout(jdbcConfig.getDuration("idle-timeout").toMillis());
+    dataSource.setMinimumIdle(jdbcConfig.getInt("min-idle"));
+    dataSource.setMaxLifetime(jdbcConfig.getDuration("max-lifetime").toMillis());
+    dataSource.setPoolName("HikariPool-" + configId);
 
-		return dataSource;
-	}
+    return dataSource;
+  }
 
 }

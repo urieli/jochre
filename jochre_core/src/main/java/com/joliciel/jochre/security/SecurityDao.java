@@ -41,221 +41,221 @@ import com.joliciel.jochre.utils.dao.DaoConfig;
 import com.joliciel.talismane.utils.DaoUtils;
 
 public class SecurityDao {
-	private static final Logger LOG = LoggerFactory.getLogger(SecurityDao.class);
-	private final DataSource dataSource;
+  private static final Logger LOG = LoggerFactory.getLogger(SecurityDao.class);
+  private final DataSource dataSource;
 
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	public static Map<String, SecurityDao> instances = new HashMap<>();
+  public static Map<String, SecurityDao> instances = new HashMap<>();
 
-	public static SecurityDao getInstance(JochreSession jochreSession) {
-		String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
-		SecurityDao instance = instances.get(key);
-		if (instance == null) {
-			instance = new SecurityDao(jochreSession);
-			instances.put(key, instance);
-		}
-		return instance;
-	}
+  public static SecurityDao getInstance(JochreSession jochreSession) {
+    String key = DaoConfig.getKey(jochreSession.getConfig().getConfig("jochre.jdbc"));
+    SecurityDao instance = instances.get(key);
+    if (instance == null) {
+      instance = new SecurityDao(jochreSession);
+      instances.put(key, instance);
+    }
+    return instance;
+  }
 
-	private SecurityDao(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
-	}
+  private SecurityDao(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.dataSource = DaoConfig.getDataSource(jochreSession.getConfig().getConfig("jochre.jdbc"));
+  }
 
-	private static final String SELECT_USER = "user_id, user_username, user_password"
-			+ ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins";
-	private static final String SELECT_PARAM = "param_id, param_last_failed_login" + ", param_captcha_interval";
+  private static final String SELECT_USER = "user_id, user_username, user_password"
+      + ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins";
+  private static final String SELECT_PARAM = "param_id, param_last_failed_login" + ", param_captcha_interval";
 
-	public User loadUser(int userId) {
-		User user = this.jochreSession.getObjectCache().getEntity(User.class, userId);
-		if (user == null) {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-			String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_id=:user_id";
-			MapSqlParameterSource paramSource = new MapSqlParameterSource();
-			paramSource.addValue("user_id", userId);
+  public User loadUser(int userId) {
+    User user = this.jochreSession.getObjectCache().getEntity(User.class, userId);
+    if (user == null) {
+      NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+      String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_id=:user_id";
+      MapSqlParameterSource paramSource = new MapSqlParameterSource();
+      paramSource.addValue("user_id", userId);
 
-			LOG.info(sql);
-			logParameters(paramSource);
-			try {
-				user = jt.queryForObject(sql, paramSource, new UserMapper());
-			} catch (EmptyResultDataAccessException ex) {
-				throw new EntityNotFoundException("No User found for user id " + userId);
-			}
+      LOG.info(sql);
+      logParameters(paramSource);
+      try {
+        user = jt.queryForObject(sql, paramSource, new UserMapper());
+      } catch (EmptyResultDataAccessException ex) {
+        throw new EntityNotFoundException("No User found for user id " + userId);
+      }
 
-			this.jochreSession.getObjectCache().putEntity(User.class, userId, user);
-		}
-		return user;
+      this.jochreSession.getObjectCache().putEntity(User.class, userId, user);
+    }
+    return user;
 
-	}
+  }
 
-	public User findUser(String username) {
-		User user = this.jochreSession.getObjectCache().getEntity(User.class, username);
-		if (user == null) {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-			String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_username=:user_username";
-			MapSqlParameterSource paramSource = new MapSqlParameterSource();
-			paramSource.addValue("user_username", username);
+  public User findUser(String username) {
+    User user = this.jochreSession.getObjectCache().getEntity(User.class, username);
+    if (user == null) {
+      NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+      String sql = "SELECT " + SELECT_USER + " FROM ocr_user WHERE user_username=:user_username";
+      MapSqlParameterSource paramSource = new MapSqlParameterSource();
+      paramSource.addValue("user_username", username);
 
-			LOG.info(sql);
-			logParameters(paramSource);
+      LOG.info(sql);
+      logParameters(paramSource);
 
-			try {
-				user = jt.queryForObject(sql, paramSource, new UserMapper());
-			} catch (EmptyResultDataAccessException ex) {
-				throw new EntityNotFoundException("No User found for username " + username);
-			}
+      try {
+        user = jt.queryForObject(sql, paramSource, new UserMapper());
+      } catch (EmptyResultDataAccessException ex) {
+        throw new EntityNotFoundException("No User found for username " + username);
+      }
 
-			this.jochreSession.getObjectCache().putEntity(User.class, username, user);
-		}
-		return user;
-	}
+      this.jochreSession.getObjectCache().putEntity(User.class, username, user);
+    }
+    return user;
+  }
 
-	/**
-	 * Return all users in the system.
-	 */
-	public List<User> findUsers() {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		String sql = "SELECT " + SELECT_USER + " FROM ocr_user" + " ORDER BY user_last_name, user_first_name";
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+  /**
+   * Return all users in the system.
+   */
+  public List<User> findUsers() {
+    NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+    String sql = "SELECT " + SELECT_USER + " FROM ocr_user" + " ORDER BY user_last_name, user_first_name";
+    MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
-		LOG.info(sql);
-		logParameters(paramSource);
-		List<User> users = jt.query(sql, paramSource, new UserMapper());
-		return users;
-	}
+    LOG.info(sql);
+    logParameters(paramSource);
+    List<User> users = jt.query(sql, paramSource, new UserMapper());
+    return users;
+  }
 
-	private final class UserMapper implements RowMapper<User> {
-		UserMapper() {
-		}
+  private final class UserMapper implements RowMapper<User> {
+    UserMapper() {
+    }
 
-		@Override
-		public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
-		}
+    @Override
+    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+      return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
+    }
 
-		public User mapRow(SqlRowSet rs) {
-			User user = new User(jochreSession);
-			user.setId(rs.getInt("user_id"));
-			user.setUsername(rs.getString("user_username"));
-			user.setPassword(rs.getString("user_password"));
-			user.setFirstName(rs.getString("user_first_name"));
-			user.setLastName(rs.getString("user_last_name"));
-			user.setRole(UserRole.forId(rs.getInt("user_role")));
-			user.setFailedLoginCount(rs.getInt("user_failed_logins"));
-			user.setLoginCount(rs.getInt("user_logins"));
-			return user;
-		}
-	}
+    public User mapRow(SqlRowSet rs) {
+      User user = new User(jochreSession);
+      user.setId(rs.getInt("user_id"));
+      user.setUsername(rs.getString("user_username"));
+      user.setPassword(rs.getString("user_password"));
+      user.setFirstName(rs.getString("user_first_name"));
+      user.setLastName(rs.getString("user_last_name"));
+      user.setRole(UserRole.forId(rs.getInt("user_role")));
+      user.setFailedLoginCount(rs.getInt("user_failed_logins"));
+      user.setLoginCount(rs.getInt("user_logins"));
+      return user;
+    }
+  }
 
-	void saveUserInternal(User user) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+  void saveUserInternal(User user) {
+    NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+    MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
-		paramSource.addValue("user_username", user.getUsername());
-		paramSource.addValue("user_password", user.getPassword());
-		paramSource.addValue("user_first_name", user.getFirstName());
-		paramSource.addValue("user_last_name", user.getLastName());
-		paramSource.addValue("user_role", user.getRole().getId());
-		paramSource.addValue("user_failed_logins", user.getFailedLoginCount());
-		paramSource.addValue("user_logins", user.getLoginCount());
-		String sql = null;
+    paramSource.addValue("user_username", user.getUsername());
+    paramSource.addValue("user_password", user.getPassword());
+    paramSource.addValue("user_first_name", user.getFirstName());
+    paramSource.addValue("user_last_name", user.getLastName());
+    paramSource.addValue("user_role", user.getRole().getId());
+    paramSource.addValue("user_failed_logins", user.getFailedLoginCount());
+    paramSource.addValue("user_logins", user.getLoginCount());
+    String sql = null;
 
-		if (user.getId() == 0) {
-			sql = "SELECT nextval('ocr_user_id_seq')";
-			LOG.info(sql);
-			int userId = jt.queryForObject(sql, paramSource, Integer.class);
-			paramSource.addValue("user_id", userId);
+    if (user.getId() == 0) {
+      sql = "SELECT nextval('ocr_user_id_seq')";
+      LOG.info(sql);
+      int userId = jt.queryForObject(sql, paramSource, Integer.class);
+      paramSource.addValue("user_id", userId);
 
-			sql = "INSERT INTO ocr_user (user_id, user_username, user_password"
-					+ ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins) " + "VALUES (:user_id, :user_username, :user_password"
-					+ ", :user_first_name, :user_last_name, :user_role, :user_failed_logins, :user_logins)";
+      sql = "INSERT INTO ocr_user (user_id, user_username, user_password"
+          + ", user_first_name, user_last_name, user_role, user_failed_logins, user_logins) " + "VALUES (:user_id, :user_username, :user_password"
+          + ", :user_first_name, :user_last_name, :user_role, :user_failed_logins, :user_logins)";
 
-			LOG.info(sql);
-			logParameters(paramSource);
-			jt.update(sql, paramSource);
+      LOG.info(sql);
+      logParameters(paramSource);
+      jt.update(sql, paramSource);
 
-			user.setId(userId);
-		} else {
-			paramSource.addValue("user_id", user.getId());
+      user.setId(userId);
+    } else {
+      paramSource.addValue("user_id", user.getId());
 
-			sql = "UPDATE ocr_user" + " SET user_username = :user_username" + ", user_password = :user_password" + ", user_first_name = :user_first_name"
-					+ ", user_last_name = :user_last_name" + ", user_role = :user_role" + ", user_failed_logins = :user_failed_logins"
-					+ ", user_logins = :user_logins" + " WHERE user_id = :user_id";
+      sql = "UPDATE ocr_user" + " SET user_username = :user_username" + ", user_password = :user_password" + ", user_first_name = :user_first_name"
+          + ", user_last_name = :user_last_name" + ", user_role = :user_role" + ", user_failed_logins = :user_failed_logins"
+          + ", user_logins = :user_logins" + " WHERE user_id = :user_id";
 
-			LOG.info(sql);
-			logParameters(paramSource);
-			jt.update(sql, paramSource);
-		}
+      LOG.info(sql);
+      logParameters(paramSource);
+      jt.update(sql, paramSource);
+    }
 
-	}
+  }
 
-	public Parameters loadParameters() {
-		int parametersId = 1;
-		Parameters parameters = this.jochreSession.getObjectCache().getEntity(Parameters.class, parametersId);
-		if (parameters == null) {
-			NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-			String sql = "SELECT " + SELECT_PARAM + " FROM ocr_param WHERE param_id=:param_id";
-			MapSqlParameterSource paramSource = new MapSqlParameterSource();
-			paramSource.addValue("param_id", parametersId);
+  public Parameters loadParameters() {
+    int parametersId = 1;
+    Parameters parameters = this.jochreSession.getObjectCache().getEntity(Parameters.class, parametersId);
+    if (parameters == null) {
+      NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+      String sql = "SELECT " + SELECT_PARAM + " FROM ocr_param WHERE param_id=:param_id";
+      MapSqlParameterSource paramSource = new MapSqlParameterSource();
+      paramSource.addValue("param_id", parametersId);
 
-			LOG.info(sql);
-			logParameters(paramSource);
+      LOG.info(sql);
+      logParameters(paramSource);
 
-			try {
-				parameters = jt.queryForObject(sql, paramSource, new ParametersMapper());
-			} catch (EmptyResultDataAccessException ex) {
-				throw new EntityNotFoundException("No Parameters found for parameters id " + parametersId);
-			}
+      try {
+        parameters = jt.queryForObject(sql, paramSource, new ParametersMapper());
+      } catch (EmptyResultDataAccessException ex) {
+        throw new EntityNotFoundException("No Parameters found for parameters id " + parametersId);
+      }
 
-			this.jochreSession.getObjectCache().putEntity(Parameters.class, parametersId, parameters);
-		}
-		return parameters;
+      this.jochreSession.getObjectCache().putEntity(Parameters.class, parametersId, parameters);
+    }
+    return parameters;
 
-	}
+  }
 
-	private final class ParametersMapper implements RowMapper<Parameters> {
-		protected ParametersMapper() {
-		}
+  private final class ParametersMapper implements RowMapper<Parameters> {
+    protected ParametersMapper() {
+    }
 
-		@Override
-		public Parameters mapRow(ResultSet rs, int rowNum) throws SQLException {
-			return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
-		}
+    @Override
+    public Parameters mapRow(ResultSet rs, int rowNum) throws SQLException {
+      return this.mapRow(new ResultSetWrappingSqlRowSet(rs));
+    }
 
-		public Parameters mapRow(SqlRowSet rs) {
-			Parameters parameters = new Parameters(jochreSession);
-			parameters.setId(rs.getInt("param_id"));
-			parameters.setLastFailedLoginAttempt(rs.getDate("param_last_failed_login"));
-			parameters.setCaptachaIntervalSeconds(rs.getInt("param_captcha_interval"));
-			return parameters;
-		}
-	}
+    public Parameters mapRow(SqlRowSet rs) {
+      Parameters parameters = new Parameters(jochreSession);
+      parameters.setId(rs.getInt("param_id"));
+      parameters.setLastFailedLoginAttempt(rs.getDate("param_last_failed_login"));
+      parameters.setCaptachaIntervalSeconds(rs.getInt("param_captcha_interval"));
+      return parameters;
+    }
+  }
 
-	void saveParametersInternal(Parameters parameters) {
-		NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
-		MapSqlParameterSource paramSource = new MapSqlParameterSource();
+  void saveParametersInternal(Parameters parameters) {
+    NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(this.getDataSource());
+    MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
-		paramSource.addValue("param_last_failed_login", parameters.getLastFailedLoginAttempt());
-		paramSource.addValue("param_captcha_interval", parameters.getCaptachaIntervalSeconds());
-		String sql = null;
+    paramSource.addValue("param_last_failed_login", parameters.getLastFailedLoginAttempt());
+    paramSource.addValue("param_captcha_interval", parameters.getCaptachaIntervalSeconds());
+    String sql = null;
 
-		paramSource.addValue("param_id", parameters.getId());
+    paramSource.addValue("param_id", parameters.getId());
 
-		sql = "UPDATE ocr_param" + " SET param_last_failed_login = :param_last_failed_login" + ", param_captcha_interval = :param_captcha_interval"
-				+ " WHERE param_id = :param_id";
+    sql = "UPDATE ocr_param" + " SET param_last_failed_login = :param_last_failed_login" + ", param_captcha_interval = :param_captcha_interval"
+        + " WHERE param_id = :param_id";
 
-		LOG.info(sql);
-		logParameters(paramSource);
-		jt.update(sql, paramSource);
+    LOG.info(sql);
+    logParameters(paramSource);
+    jt.update(sql, paramSource);
 
-	}
+  }
 
-	private DataSource getDataSource() {
-		return dataSource;
-	}
+  private DataSource getDataSource() {
+    return dataSource;
+  }
 
-	private static void logParameters(MapSqlParameterSource paramSource) {
-		DaoUtils.LogParameters(paramSource.getValues());
-	}
+  private static void logParameters(MapSqlParameterSource paramSource) {
+    DaoUtils.LogParameters(paramSource.getValues());
+  }
 }

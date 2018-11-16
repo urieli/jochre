@@ -31,25 +31,25 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public final class BaselineDistanceFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
-	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		int lineHeight = shape.getBaseLine() - shape.getMeanLine();
-		int zeroPoint = (shape.getTop() + shape.getBaseLine());
-		int onePoint = (shape.getTop() + shape.getBaseLine()) + lineHeight;
-		
-		double relativeBottom = 0;
-		
-		if (shape.getBottom() <= zeroPoint)
-			relativeBottom = 0;
-		else if (shape.getBottom()>= onePoint)
-			relativeBottom = 1;
-		else {
-			relativeBottom = ((double)(shape.getBottom() - zeroPoint) / (onePoint - zeroPoint));
-		}
-		
-		FeatureResult<Double> outcome = this.generateResult(relativeBottom);
-		return outcome;
-	}
+  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    int lineHeight = shape.getBaseLine() - shape.getMeanLine();
+    int zeroPoint = (shape.getTop() + shape.getBaseLine());
+    int onePoint = (shape.getTop() + shape.getBaseLine()) + lineHeight;
+    
+    double relativeBottom = 0;
+    
+    if (shape.getBottom() <= zeroPoint)
+      relativeBottom = 0;
+    else if (shape.getBottom()>= onePoint)
+      relativeBottom = 1;
+    else {
+      relativeBottom = ((double)(shape.getBottom() - zeroPoint) / (onePoint - zeroPoint));
+    }
+    
+    FeatureResult<Double> outcome = this.generateResult(relativeBottom);
+    return outcome;
+  }
 }

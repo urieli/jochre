@@ -22,31 +22,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AltoDocument {
-	private String name;
-	private List<AltoPage> pages = new ArrayList<>();
-	private int wordCount = -1;
+  private String name;
+  private List<AltoPage> pages = new ArrayList<>();
+  private int wordCount = -1;
 
-	public AltoDocument(String name) {
-		super();
-		this.name = name;
-	}
+  public AltoDocument(String name) {
+    super();
+    this.name = name;
+  }
 
-	public List<AltoPage> getPages() {
-		return pages;
-	}
+  public List<AltoPage> getPages() {
+    return pages;
+  }
 
-	public int wordCount() {
-		if (wordCount < 0) {
-			wordCount = 0;
-			for (AltoPage page : this.getPages()) {
-				wordCount += page.wordCount();
-			}
-		}
-		return wordCount;
-	}
+  public int wordCount() {
+    if (wordCount < 0) {
+      wordCount = 0;
+      for (AltoPage page : this.getPages()) {
+        wordCount += page.wordCount();
+      }
+    }
+    return wordCount;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
 }

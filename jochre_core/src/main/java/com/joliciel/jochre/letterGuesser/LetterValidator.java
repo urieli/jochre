@@ -27,9 +27,9 @@ package com.joliciel.jochre.letterGuesser;
  *
  */
 public interface LetterValidator {
-	/**
-	 * Return true if this letter is valid for training/guessing/evaluating, false
-	 * otherwise.
-	 */
-	public boolean validate(String letter);
+  /**
+   * Return true if this letter is valid for training/guessing/evaluating, false
+   * otherwise.
+   */
+  public boolean validate(String letter);
 }

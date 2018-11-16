@@ -29,15 +29,15 @@ import java.util.Iterator;
  *
  */
 public interface Lexicon {
-	/**
-	 * Frequency of occurrence for a given word. If the word break certain
-	 * locale-specific constraints (e.g. letters of a certain type at impossible
-	 * places), can return a frequency of -1.
-	 */
-	public int getFrequency(String word);
+  /**
+   * Frequency of occurrence for a given word. If the word break certain
+   * locale-specific constraints (e.g. letters of a certain type at impossible
+   * places), can return a frequency of -1.
+   */
+  public int getFrequency(String word);
 
-	/**
-	 * Return all words in this lexicon.
-	 */
-	public Iterator<String> getWords();
+  /**
+   * Return all words in this lexicon.
+   */
+  public Iterator<String> getWords();
 }

@@ -28,8 +28,8 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  * @author Assaf Urieli
  */
 public interface ShapeFeature<Y> extends Feature<ShapeWrapper,Y> {
-	/**
-	 * Check the feature on this shape and return the result.
-	 */
-	public FeatureResult<Y> check(ShapeWrapper shapeWrapper, RuntimeEnvironment env);
+  /**
+   * Check the feature on this shape and return the result.
+   */
+  public FeatureResult<Y> check(ShapeWrapper shapeWrapper, RuntimeEnvironment env);
 }

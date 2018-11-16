@@ -28,13 +28,13 @@ import java.util.Comparator;
  */
 public class CardinalityComparator<T> implements Comparator<Collection<T>> {
 
-	@Override
-	public int compare(Collection<T> o1, Collection<T> o2) {
-		if (o1.equals(o2))
-			return 0;
-		if (o1.size()==o2.size())
-			return 1;
-		return o2.size()-o1.size();
-	}
+  @Override
+  public int compare(Collection<T> o1, Collection<T> o2) {
+    if (o1.equals(o2))
+      return 0;
+    if (o1.size()==o2.size())
+      return 1;
+    return o2.size()-o1.size();
+  }
 
 }

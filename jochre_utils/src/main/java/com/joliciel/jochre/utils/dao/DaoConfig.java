@@ -33,49 +33,49 @@ import com.zaxxer.hikari.HikariDataSource;
  *
  */
 public class DaoConfig {
-	public static Map<String, DataSource> dataSources = new HashMap<>();
+  public static Map<String, DataSource> dataSources = new HashMap<>();
 
-	/**
-	 * Return a unique key defining the datasource in this config.
-	 * 
-	 * @param config
-	 * @return
-	 */
-	public static String getKey(Config jdbcConfig) {
+  /**
+   * Return a unique key defining the datasource in this config.
+   * 
+   * @param config
+   * @return
+   */
+  public static String getKey(Config jdbcConfig) {
 
-		if (!jdbcConfig.hasPath("url"))
-			return null;
-		String driverClass = jdbcConfig.getString("driver-class-name");
-		String url = jdbcConfig.getString("url");
-		String user = jdbcConfig.getString("username");
-		String key = driverClass + "|" + url + "|" + user;
-		return key;
-	}
+    if (!jdbcConfig.hasPath("url"))
+      return null;
+    String driverClass = jdbcConfig.getString("driver-class-name");
+    String url = jdbcConfig.getString("url");
+    String user = jdbcConfig.getString("username");
+    String key = driverClass + "|" + url + "|" + user;
+    return key;
+  }
 
-	/**
-	 * Get a datasource from the jochre.jdbc key in the configuration file.
-	 */
-	public static DataSource getDataSource(Config jdbcConfig) {
-		String key = getKey(jdbcConfig);
-		if (key == null)
-			return null;
+  /**
+   * Get a datasource from the jochre.jdbc key in the configuration file.
+   */
+  public static DataSource getDataSource(Config jdbcConfig) {
+    String key = getKey(jdbcConfig);
+    if (key == null)
+      return null;
 
-		if (dataSources.containsKey(key))
-			return dataSources.get(key);
+    if (dataSources.containsKey(key))
+      return dataSources.get(key);
 
-		HikariDataSource dataSource = new HikariDataSource();
-		dataSource.setDriverClassName(jdbcConfig.getString("driver-class-name"));
-		dataSource.setJdbcUrl(jdbcConfig.getString("url"));
-		dataSource.setUsername(jdbcConfig.getString("username"));
-		dataSource.setPassword(jdbcConfig.getString("password"));
-		dataSource.setConnectionTimeout(jdbcConfig.getDuration("checkout-timeout").toMillis());
-		dataSource.setMaximumPoolSize(jdbcConfig.getInt("max-pool-size"));
-		dataSource.setIdleTimeout(jdbcConfig.getDuration("idle-timeout").toMillis());
-		dataSource.setMinimumIdle(jdbcConfig.getInt("min-idle"));
-		dataSource.setMaxLifetime(jdbcConfig.getDuration("max-lifetime").toMillis());
-		dataSource.setPoolName("HikariPool-" + key);
+    HikariDataSource dataSource = new HikariDataSource();
+    dataSource.setDriverClassName(jdbcConfig.getString("driver-class-name"));
+    dataSource.setJdbcUrl(jdbcConfig.getString("url"));
+    dataSource.setUsername(jdbcConfig.getString("username"));
+    dataSource.setPassword(jdbcConfig.getString("password"));
+    dataSource.setConnectionTimeout(jdbcConfig.getDuration("checkout-timeout").toMillis());
+    dataSource.setMaximumPoolSize(jdbcConfig.getInt("max-pool-size"));
+    dataSource.setIdleTimeout(jdbcConfig.getDuration("idle-timeout").toMillis());
+    dataSource.setMinimumIdle(jdbcConfig.getInt("min-idle"));
+    dataSource.setMaxLifetime(jdbcConfig.getDuration("max-lifetime").toMillis());
+    dataSource.setPoolName("HikariPool-" + key);
 
-		dataSources.put(key, dataSource);
-		return dataSource;
-	}
+    dataSources.put(key, dataSource);
+    return dataSource;
+  }
 }

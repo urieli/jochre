@@ -64,23 +64,23 @@ public enum ImageStatus  {
         throw new IllegalArgumentException("No imageStatus found for code " + code);
     }
 
-	@Override
-	public String toString() {
-		if (this.equals(TRAINING_NEW))
-			return "training - new";
-		else if (this.equals(TRAINING_VALIDATED))
-			return "training - validated";
-		else if (this.equals(TRAINING_HELD_OUT))
-			return "training - held-out";
-		else if (this.equals(TRAINING_TEST))
-			return "training - test";
-		else if (this.equals(AUTO_NEW))
-			return "auto - new";
-		else if (this.equals(AUTO_VALIDATED))
-			return "auto - validated";
-		else
-			return "";
-	}
+  @Override
+  public String toString() {
+    if (this.equals(TRAINING_NEW))
+      return "training - new";
+    else if (this.equals(TRAINING_VALIDATED))
+      return "training - validated";
+    else if (this.equals(TRAINING_HELD_OUT))
+      return "training - held-out";
+    else if (this.equals(TRAINING_TEST))
+      return "training - test";
+    else if (this.equals(AUTO_NEW))
+      return "auto - new";
+    else if (this.equals(AUTO_VALIDATED))
+      return "auto - validated";
+    else
+      return "";
+  }
     
     
 }

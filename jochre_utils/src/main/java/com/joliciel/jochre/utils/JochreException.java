@@ -24,10 +24,10 @@ package com.joliciel.jochre.utils;
  */
 public class JochreException extends RuntimeException
 {
-	private static final long serialVersionUID = 1L;
-	public JochreException() { super(); }
-	public JochreException(String s) { super(s); }
-	public JochreException(Exception e) { super(e); }
-	public JochreException(Throwable cause) { super(cause);}
-	public JochreException(String message, Throwable cause) { super(message, cause);}
+  private static final long serialVersionUID = 1L;
+  public JochreException() { super(); }
+  public JochreException(String s) { super(s); }
+  public JochreException(Exception e) { super(e); }
+  public JochreException(Throwable cause) { super(cause);}
+  public JochreException(String message, Throwable cause) { super(message, cause);}
 }

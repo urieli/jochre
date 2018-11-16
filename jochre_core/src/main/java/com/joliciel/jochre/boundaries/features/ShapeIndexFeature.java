@@ -30,10 +30,10 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public final class ShapeIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequenceWrapper> {
-	@Override
-	public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
-		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
-		FeatureResult<Integer> outcome = this.generateResult(shapeInSequence.getIndex());
-		return outcome;
-	}
+  @Override
+  public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+    ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
+    FeatureResult<Integer> outcome = this.generateResult(shapeInSequence.getIndex());
+    return outcome;
+  }
 }

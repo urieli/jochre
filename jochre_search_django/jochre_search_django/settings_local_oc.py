@@ -115,7 +115,7 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 SHOW_SECTION = False
 
 def PAGE_URL_TRANSFORM(pageNumber):
-	return pageNumber
+  return pageNumber
 
 KEYBOARD_MAPPINGS_ENABLED = False
 

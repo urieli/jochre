@@ -30,37 +30,37 @@ import com.joliciel.jochre.search.JochreSearchException;
  *
  */
 public enum FeedbackCriterion {
-	text(1),
-	author(2),
-	title(3),
-	strict(4),
-	includeAuthors(5),
-	fromYear(6),
-	toYear(7),
-	sortBy(8),
-	sortAscending(9);
+  text(1),
+  author(2),
+  title(3),
+  strict(4),
+  includeAuthors(5),
+  fromYear(6),
+  toYear(7),
+  sortBy(8),
+  sortAscending(9);
 
-	private final int id;
-	private static Map<Integer, FeedbackCriterion> idMap = null;
+  private final int id;
+  private static Map<Integer, FeedbackCriterion> idMap = null;
 
-	FeedbackCriterion(int id) {
-		this.id = id;
-	}
+  FeedbackCriterion(int id) {
+    this.id = id;
+  }
 
-	public int getId() {
-		return id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public static FeedbackCriterion forId(int id) {
-		if (idMap == null) {
-			idMap = new HashMap<>();
-			for (FeedbackCriterion crit : FeedbackCriterion.values()) {
-				idMap.put(crit.id, crit);
-			}
-		}
-		FeedbackCriterion criterion = idMap.get(id);
-		if (criterion == null)
-			throw new JochreSearchException("Unknown criterion for id: " + id);
-		return criterion;
-	}
+  public static FeedbackCriterion forId(int id) {
+    if (idMap == null) {
+      idMap = new HashMap<>();
+      for (FeedbackCriterion crit : FeedbackCriterion.values()) {
+        idMap.put(crit.id, crit);
+      }
+    }
+    FeedbackCriterion criterion = idMap.get(id);
+    if (criterion == null)
+      throw new JochreSearchException("Unknown criterion for id: " + id);
+    return criterion;
+  }
 }

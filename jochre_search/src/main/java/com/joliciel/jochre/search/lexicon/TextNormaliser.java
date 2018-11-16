@@ -35,30 +35,30 @@ import com.joliciel.jochre.search.highlight.SnippetFinder;
  *
  */
 public interface TextNormaliser {
-	static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
-	static Map<String, TextNormaliser> instances = new HashMap<>();
+  static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
+  static Map<String, TextNormaliser> instances = new HashMap<>();
 
-	public static TextNormaliser getInstance(JochreSearchConfig config) {
-		TextNormaliser instance = instances.get(config.getConfigId());
-		if (instance == null) {
-			try {
-				if (config.getConfig().hasPath("text-normaliser.class")) {
-					String className = config.getConfig().getString("text-normaliser.class");
+  public static TextNormaliser getInstance(JochreSearchConfig config) {
+    TextNormaliser instance = instances.get(config.getConfigId());
+    if (instance == null) {
+      try {
+        if (config.getConfig().hasPath("text-normaliser.class")) {
+          String className = config.getConfig().getString("text-normaliser.class");
 
-					@SuppressWarnings("unchecked")
-					Class<? extends TextNormaliser> clazz = (Class<? extends TextNormaliser>) Class.forName(className);
-					Constructor<? extends TextNormaliser> cons = clazz.getConstructor(JochreSearchConfig.class);
+          @SuppressWarnings("unchecked")
+          Class<? extends TextNormaliser> clazz = (Class<? extends TextNormaliser>) Class.forName(className);
+          Constructor<? extends TextNormaliser> cons = clazz.getConstructor(JochreSearchConfig.class);
 
-					instance = cons.newInstance(config);
-				}
-				instances.put(config.getConfigId(), instance);
-			} catch (ReflectiveOperationException e) {
-				LOG.error("Unable to construct TextNormaliser", e);
-				throw new RuntimeException(e);
-			}
-		}
-		return instance;
-	}
+          instance = cons.newInstance(config);
+        }
+        instances.put(config.getConfigId(), instance);
+      } catch (ReflectiveOperationException e) {
+        LOG.error("Unable to construct TextNormaliser", e);
+        throw new RuntimeException(e);
+      }
+    }
+    return instance;
+  }
 
-	public String normalise(String text);
+  public String normalise(String text);
 }

@@ -30,65 +30,65 @@ import com.joliciel.jochre.JochreSession;
  *
  */
 public class JochreCorpusGroupReader extends JochreCorpusReader {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusGroupReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusGroupReader.class);
 
-	private int imageIndex = 0;
-	private int paragraphIndex = 0;
-	private int rowIndex = 0;
-	private int groupIndex = 0;
+  private int imageIndex = 0;
+  private int paragraphIndex = 0;
+  private int rowIndex = 0;
+  private int groupIndex = 0;
 
-	private GroupOfShapes group = null;
+  private GroupOfShapes group = null;
 
-	public JochreCorpusGroupReader(JochreSession jochreSession) {
-		super(jochreSession);
-	}
+  public JochreCorpusGroupReader(JochreSession jochreSession) {
+    super(jochreSession);
+  }
 
-	public GroupOfShapes next() {
-		GroupOfShapes nextGroup = null;
-		if (this.hasNext()) {
-			LOG.debug("next group: " + this.group);
-			nextGroup = this.group;
+  public GroupOfShapes next() {
+    GroupOfShapes nextGroup = null;
+    if (this.hasNext()) {
+      LOG.debug("next group: " + this.group);
+      nextGroup = this.group;
 
-			this.group = null;
-		}
-		return nextGroup;
-	}
+      this.group = null;
+    }
+    return nextGroup;
+  }
 
-	public boolean hasNext() {
-		this.initialiseStream();
-		while (group == null && imageIndex < this.getImages().size()) {
-			JochreImage image = this.getImages().get(imageIndex);
-			while (group == null && paragraphIndex < image.getParagraphs().size()) {
-				Paragraph paragraph = image.getParagraphs().get(paragraphIndex);
-				while (group == null && rowIndex < paragraph.getRows().size()) {
-					RowOfShapes row = paragraph.getRows().get(rowIndex);
-					while (group == null && groupIndex < row.getGroups().size()) {
-						group = row.getGroups().get(groupIndex);
-						if (group.isSkip())
-							group = null;
-						groupIndex++;
-					}
-					if (group == null) {
-						rowIndex++;
-						groupIndex = 0;
-					}
-				}
-				if (group == null) {
-					paragraphIndex++;
-					rowIndex = 0;
-					groupIndex = 0;
-				}
-			}
-			if (group == null) {
-				image.clearMemory();
-				imageIndex++;
-				paragraphIndex = 0;
-				rowIndex = 0;
-				groupIndex = 0;
-			}
-		}
+  public boolean hasNext() {
+    this.initialiseStream();
+    while (group == null && imageIndex < this.getImages().size()) {
+      JochreImage image = this.getImages().get(imageIndex);
+      while (group == null && paragraphIndex < image.getParagraphs().size()) {
+        Paragraph paragraph = image.getParagraphs().get(paragraphIndex);
+        while (group == null && rowIndex < paragraph.getRows().size()) {
+          RowOfShapes row = paragraph.getRows().get(rowIndex);
+          while (group == null && groupIndex < row.getGroups().size()) {
+            group = row.getGroups().get(groupIndex);
+            if (group.isSkip())
+              group = null;
+            groupIndex++;
+          }
+          if (group == null) {
+            rowIndex++;
+            groupIndex = 0;
+          }
+        }
+        if (group == null) {
+          paragraphIndex++;
+          rowIndex = 0;
+          groupIndex = 0;
+        }
+      }
+      if (group == null) {
+        image.clearMemory();
+        imageIndex++;
+        paragraphIndex = 0;
+        rowIndex = 0;
+        groupIndex = 0;
+      }
+    }
 
-		return group != null;
-	}
+    return group != null;
+  }
 
 }

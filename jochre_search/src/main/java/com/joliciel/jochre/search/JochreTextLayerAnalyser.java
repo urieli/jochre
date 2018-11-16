@@ -38,29 +38,29 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
  *
  */
 class JochreTextLayerAnalyser extends Analyzer {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreTextLayerAnalyser.class);
-	private final TokenExtractor tokenExtractor;
-	private final TextNormaliser textNormaliser;
+  private static final Logger LOG = LoggerFactory.getLogger(JochreTextLayerAnalyser.class);
+  private final TokenExtractor tokenExtractor;
+  private final TextNormaliser textNormaliser;
 
-	public JochreTextLayerAnalyser(TokenExtractor tokenExtractor, JochreSearchConfig config) {
-		super(Analyzer.PER_FIELD_REUSE_STRATEGY);
-		this.tokenExtractor = tokenExtractor;
-		this.textNormaliser = TextNormaliser.getInstance(config);
-	}
+  public JochreTextLayerAnalyser(TokenExtractor tokenExtractor, JochreSearchConfig config) {
+    super(Analyzer.PER_FIELD_REUSE_STRATEGY);
+    this.tokenExtractor = tokenExtractor;
+    this.textNormaliser = TextNormaliser.getInstance(config);
+  }
 
-	@Override
-	protected TokenStreamComponents createComponents(String fieldName) {
-		if (LOG.isTraceEnabled())
-			LOG.trace("Analysing field " + fieldName);
+  @Override
+  protected TokenStreamComponents createComponents(String fieldName) {
+    if (LOG.isTraceEnabled())
+      LOG.trace("Analysing field " + fieldName);
 
-		Tokenizer source = new JochreTokeniser(tokenExtractor, fieldName);
-		TokenStream result = source;
-		if (textNormaliser != null)
-			result = new TextNormalisingFilter(result, textNormaliser);
-		else {
-			result = new ASCIIFoldingFilter(result);
-			result = new LowerCaseFilter(result);
-		}
-		return new TokenStreamComponents(source, result);
-	}
+    Tokenizer source = new JochreTokeniser(tokenExtractor, fieldName);
+    TokenStream result = source;
+    if (textNormaliser != null)
+      result = new TextNormalisingFilter(result, textNormaliser);
+    else {
+      result = new ASCIIFoldingFilter(result);
+      result = new LowerCaseFilter(result);
+    }
+    return new TokenStreamComponents(source, result);
+  }
 }

@@ -18,41 +18,41 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class JochreIndexBuilderTest {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilderTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilderTest.class);
 
-	@Test
-	public void testUpdateIndex() throws IOException {
-		System.setProperty("config.file", "src/test/resources/test.conf");
-		ConfigFactory.invalidateCaches();
+  @Test
+  public void testUpdateIndex() throws IOException {
+    System.setProperty("config.file", "src/test/resources/test.conf");
+    ConfigFactory.invalidateCaches();
 
-		Config testConfig = ConfigFactory.load();
-		JochreSearchConfig config = new JochreSearchConfig("yiddish", testConfig);
-		JochreSearchManager manager = JochreSearchManager.getInstance(config);
-		SearchStatusHolder searchStatusHolder = SearchStatusHolder.getInstance();
+    Config testConfig = ConfigFactory.load();
+    JochreSearchConfig config = new JochreSearchConfig("yiddish", testConfig);
+    JochreSearchManager manager = JochreSearchManager.getInstance(config);
+    SearchStatusHolder searchStatusHolder = SearchStatusHolder.getInstance();
 
-		JochreIndexBuilder builder = new JochreIndexBuilder(config, manager, false, null, searchStatusHolder);
-		builder.updateIndex();
+    JochreIndexBuilder builder = new JochreIndexBuilder(config, manager, false, null, searchStatusHolder);
+    builder.updateIndex();
 
-		IndexSearcher indexSearcher = manager.getManager().acquire();
-		try {
-			JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
-			Map<Integer, Document> docs = searcher.findDocuments("MotlPeysiDemKhazns");
-			assertEquals(1, docs.size());
-			int docId = docs.keySet().iterator().next();
-			JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
-			assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
-			LOG.debug(jochreDoc.toString());
+    IndexSearcher indexSearcher = manager.getManager().acquire();
+    try {
+      JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+      Map<Integer, Document> docs = searcher.findDocuments("MotlPeysiDemKhazns");
+      assertEquals(1, docs.size());
+      int docId = docs.keySet().iterator().next();
+      JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+      assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
+      LOG.debug(jochreDoc.toString());
 
-			JochreQuery query = new JochreQuery(config, "זיך");
-			Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
-			assertEquals(1, results.getRight().intValue());
-			for (ScoreDoc scoreDoc : results.getLeft().scoreDocs) {
-				jochreDoc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, config);
-				assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
-			}
-		} finally {
-			manager.getManager().release(indexSearcher);
-		}
-	}
+      JochreQuery query = new JochreQuery(config, "זיך");
+      Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
+      assertEquals(1, results.getRight().intValue());
+      for (ScoreDoc scoreDoc : results.getLeft().scoreDocs) {
+        jochreDoc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, config);
+        assertEquals("MotlPeysiDemKhazns", jochreDoc.getName());
+      }
+    } finally {
+      manager.getManager().release(indexSearcher);
+    }
+  }
 
 }

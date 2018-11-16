@@ -13,36 +13,36 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class JochreSetupListener implements ServletContextListener {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreSetupListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreSetupListener.class);
 
-	public JochreSetupListener() {
-	}
+  public JochreSetupListener() {
+  }
 
-	@Override
-	public void contextDestroyed(ServletContextEvent servletContextEvent) {
-	}
+  @Override
+  public void contextDestroyed(ServletContextEvent servletContextEvent) {
+  }
 
-	@Override
-	public void contextInitialized(ServletContextEvent servletContextEvent) {
-		long startTime = System.currentTimeMillis();
-		try {
-			ImageIO.scanForPlugins();
+  @Override
+  public void contextInitialized(ServletContextEvent servletContextEvent) {
+    long startTime = System.currentTimeMillis();
+    try {
+      ImageIO.scanForPlugins();
 
-			Config config = ConfigFactory.load();
-			String configId = config.getString("jochre.search.webapp.config-id");
-			JochreSearchConfig searchConfig = new JochreSearchConfig(configId, config);
+      Config config = ConfigFactory.load();
+      String configId = config.getString("jochre.search.webapp.config-id");
+      JochreSearchConfig searchConfig = new JochreSearchConfig(configId, config);
 
-			LOG.info("Content dir: " + searchConfig.getContentDir().getAbsolutePath());
+      LOG.info("Content dir: " + searchConfig.getContentDir().getAbsolutePath());
 
-			// preload the lexicon
-			searchConfig.getLexicon();
+      // preload the lexicon
+      searchConfig.getLexicon();
 
-			// preload the search manager
-			JochreSearchManager.getInstance(searchConfig);
-		} finally {
-			long duration = System.currentTimeMillis() - startTime;
-			LOG.info(this.getClass().getSimpleName() + ".contextInitialized Duration: " + duration);
-		}
-	}
+      // preload the search manager
+      JochreSearchManager.getInstance(searchConfig);
+    } finally {
+      long duration = System.currentTimeMillis() - startTime;
+      LOG.info(this.getClass().getSimpleName() + ".contextInitialized Duration: " + duration);
+    }
+  }
 
 }

@@ -35,31 +35,31 @@ import com.joliciel.jochre.search.JochreSearchConfig;
  *
  */
 public interface AltoStringFixer {
-	static final Logger LOG = LoggerFactory.getLogger(AltoStringFixer.class);
-	static Map<String, AltoStringFixer> instances = new HashMap<>();
+  static final Logger LOG = LoggerFactory.getLogger(AltoStringFixer.class);
+  static Map<String, AltoStringFixer> instances = new HashMap<>();
 
-	public static AltoStringFixer getInstance(JochreSearchConfig config) {
-		AltoStringFixer instance = instances.get(config.getConfigId());
-		if (instance == null) {
-			try {
-				String className = config.getConfig().getString("alto-string-fixer.class");
+  public static AltoStringFixer getInstance(JochreSearchConfig config) {
+    AltoStringFixer instance = instances.get(config.getConfigId());
+    if (instance == null) {
+      try {
+        String className = config.getConfig().getString("alto-string-fixer.class");
 
-				@SuppressWarnings("unchecked")
-				Class<? extends AltoStringFixer> clazz = (Class<? extends AltoStringFixer>) Class.forName(className);
-				Constructor<? extends AltoStringFixer> cons = clazz.getConstructor(JochreSearchConfig.class);
+        @SuppressWarnings("unchecked")
+        Class<? extends AltoStringFixer> clazz = (Class<? extends AltoStringFixer>) Class.forName(className);
+        Constructor<? extends AltoStringFixer> cons = clazz.getConstructor(JochreSearchConfig.class);
 
-				instance = cons.newInstance(config);
-				instances.put(config.getConfigId(), instance);
-			} catch (ReflectiveOperationException e) {
-				LOG.error("Unable to construct AltoStringFixer", e);
-				throw new RuntimeException(e);
-			}
-		}
-		return instance;
-	}
+        instance = cons.newInstance(config);
+        instances.put(config.getConfigId(), instance);
+      } catch (ReflectiveOperationException e) {
+        LOG.error("Unable to construct AltoStringFixer", e);
+        throw new RuntimeException(e);
+      }
+    }
+    return instance;
+  }
 
-	public String getHyphenatedContent(String content1, String content2);
+  public String getHyphenatedContent(String content1, String content2);
 
-	public void fix(AltoTextBlock block);
+  public void fix(AltoTextBlock block);
 
 }

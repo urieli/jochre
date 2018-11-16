@@ -31,22 +31,22 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public final class LastShapeInRowFeature extends AbstractShapeInSequenceFeature<Boolean> implements BooleanFeature<ShapeInSequenceWrapper> {
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
-		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
-		boolean lastShapeInSequence = false;
-		if (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex() + 1))
-			lastShapeInSequence = true;
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+    ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
+    boolean lastShapeInSequence = false;
+    if (shapeInSequence.getShapeSequence().size() == (shapeInSequence.getIndex() + 1))
+      lastShapeInSequence = true;
 
-		boolean lastShapeInRow = false;
-		if (lastShapeInSequence) {
-			GroupOfShapes group = shapeInSequence.getShape().getGroup();
-			if (group.getIndex() == group.getRow().getGroups().size() - 1)
-				lastShapeInRow = true;
-		}
+    boolean lastShapeInRow = false;
+    if (lastShapeInSequence) {
+      GroupOfShapes group = shapeInSequence.getShape().getGroup();
+      if (group.getIndex() == group.getRow().getGroups().size() - 1)
+        lastShapeInRow = true;
+    }
 
-		FeatureResult<Boolean> outcome = this.generateResult(lastShapeInRow);
+    FeatureResult<Boolean> outcome = this.generateResult(lastShapeInRow);
 
-		return outcome;
-	}
+    return outcome;
+  }
 }

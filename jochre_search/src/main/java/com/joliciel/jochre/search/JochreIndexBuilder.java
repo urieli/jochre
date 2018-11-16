@@ -56,423 +56,423 @@ import com.joliciel.jochre.search.feedback.FeedbackDAO;
 import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
 
 public class JochreIndexBuilder implements Runnable, TokenExtractor {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilder.class);
-	private final File contentDir;
-	private final FeedbackDAO feedbackDAO;
-	private final SearchStatusHolder searchStatusHolder;
-	private final JochreSearchConfig config;
-	private final JochreSearchManager manager;
+  private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilder.class);
+  private final File contentDir;
+  private final FeedbackDAO feedbackDAO;
+  private final SearchStatusHolder searchStatusHolder;
+  private final JochreSearchConfig config;
+  private final JochreSearchManager manager;
 
-	private final boolean forceUpdate;
+  private final boolean forceUpdate;
 
-	private final int wordsPerDoc;
-	private final IndexWriter indexWriter;
+  private final int wordsPerDoc;
+  private final IndexWriter indexWriter;
 
-	private List<JochreToken> currentStrings = null;
+  private List<JochreToken> currentStrings = null;
 
-	/**
-	 * 
-	 * @param config
-	 * @param manager
-	 * @param forceUpdate
-	 *            should all documents in the index be updated, or only those with
-	 *            changes more recent than the last update date.
-	 * @param feedbackDAO
-	 *            if not null, will read suggestions from the database
-	 * @param searchStatusHolder
-	 * @throws IOException
-	 */
-	public JochreIndexBuilder(JochreSearchConfig config, JochreSearchManager manager, boolean forceUpdate, FeedbackDAO feedbackDAO,
-			SearchStatusHolder searchStatusHolder) throws IOException {
-		this.contentDir = config.getContentDir();
-		this.feedbackDAO = feedbackDAO;
-		this.searchStatusHolder = searchStatusHolder;
-		this.config = config;
-		this.manager = manager;
-		this.wordsPerDoc = config.getConfig().getInt("index-builder.words-per-document");
-		this.forceUpdate = forceUpdate;
+  /**
+   * 
+   * @param config
+   * @param manager
+   * @param forceUpdate
+   *            should all documents in the index be updated, or only those with
+   *            changes more recent than the last update date.
+   * @param feedbackDAO
+   *            if not null, will read suggestions from the database
+   * @param searchStatusHolder
+   * @throws IOException
+   */
+  public JochreIndexBuilder(JochreSearchConfig config, JochreSearchManager manager, boolean forceUpdate, FeedbackDAO feedbackDAO,
+      SearchStatusHolder searchStatusHolder) throws IOException {
+    this.contentDir = config.getContentDir();
+    this.feedbackDAO = feedbackDAO;
+    this.searchStatusHolder = searchStatusHolder;
+    this.config = config;
+    this.manager = manager;
+    this.wordsPerDoc = config.getConfig().getInt("index-builder.words-per-document");
+    this.forceUpdate = forceUpdate;
 
-		Map<String, Analyzer> analyzerPerField = new HashMap<>();
-		analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, config));
-		analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(config));
-		analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(config));
-		analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(config));
+    Map<String, Analyzer> analyzerPerField = new HashMap<>();
+    analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, config));
+    analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(config));
+    analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(config));
+    analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(config));
 
-		PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(config), analyzerPerField);
-		IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-		iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		this.indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
-	}
+    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(config), analyzerPerField);
+    IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+    iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+    this.indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
+  }
 
-	@Override
-	public void run() {
-		if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
-			throw new JochreSearchException("Search index construction already underway. Try again later.");
-		}
+  @Override
+  public void run() {
+    if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
+      throw new JochreSearchException("Search index construction already underway. Try again later.");
+    }
 
-		this.updateIndex();
-	}
+    this.updateIndex();
+  }
 
-	/**
-	 * Update the index by scanning all of the sub-directories of this contentDir
-	 * for updates. The sub-directory path is considered to uniquely identify a
-	 * work. Sub-directory contents are described in {@link JochreIndexDirectory}. A
-	 * work will only be updated if the date of it's text layer is later than the
-	 * previous index date (stored in the index), or if forceUpdate=true. If the
-	 * work is updated, any previous documents with the same path are first deleted.
-	 * Multiple Lucene documents can be created from a single work, if
-	 * {@link #getWordsPerDoc()}&gt;0.
-	 */
-	public void updateIndex() {
-		long startTime = System.currentTimeMillis();
-		try {
-			searchStatusHolder.setStatus(SearchStatus.PREPARING);
+  /**
+   * Update the index by scanning all of the sub-directories of this contentDir
+   * for updates. The sub-directory path is considered to uniquely identify a
+   * work. Sub-directory contents are described in {@link JochreIndexDirectory}. A
+   * work will only be updated if the date of it's text layer is later than the
+   * previous index date (stored in the index), or if forceUpdate=true. If the
+   * work is updated, any previous documents with the same path are first deleted.
+   * Multiple Lucene documents can be created from a single work, if
+   * {@link #getWordsPerDoc()}&gt;0.
+   */
+  public void updateIndex() {
+    long startTime = System.currentTimeMillis();
+    try {
+      searchStatusHolder.setStatus(SearchStatus.PREPARING);
 
-			File[] subdirs = contentDir.listFiles(new FileFilter() {
+      File[] subdirs = contentDir.listFiles(new FileFilter() {
 
-				@Override
-				public boolean accept(File pathname) {
-					return pathname.isDirectory();
-				}
-			});
+        @Override
+        public boolean accept(File pathname) {
+          return pathname.isDirectory();
+        }
+      });
 
-			if (subdirs.length == 0)
-				throw new IllegalArgumentException("content dir is empty: " + contentDir.getPath());
+      if (subdirs.length == 0)
+        throw new IllegalArgumentException("content dir is empty: " + contentDir.getPath());
 
-			Arrays.sort(subdirs);
+      Arrays.sort(subdirs);
 
-			searchStatusHolder.setStatus(SearchStatus.BUSY);
-			searchStatusHolder.setTotalCount(subdirs.length);
+      searchStatusHolder.setStatus(SearchStatus.BUSY);
+      searchStatusHolder.setTotalCount(subdirs.length);
 
-			List<FeedbackSuggestion> suggestionList = FeedbackSuggestion.findUnappliedSuggestions(feedbackDAO);
-			Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
-			for (FeedbackSuggestion suggestion : suggestionList) {
-				String docPath = suggestion.getWord().getRow().getDocument().getPath();
-				int pageIndex = suggestion.getWord().getRow().getPageIndex();
-				Map<Integer, List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
-				if (docSuggestions == null) {
-					docSuggestions = new HashMap<>();
-					unappliedSuggestions.put(docPath, docSuggestions);
-				}
-				List<FeedbackSuggestion> pageSuggestions = docSuggestions.get(pageIndex);
-				if (pageSuggestions == null) {
-					pageSuggestions = new ArrayList<>();
-					docSuggestions.put(pageIndex, pageSuggestions);
-				}
-				pageSuggestions.add(suggestion);
-			}
+      List<FeedbackSuggestion> suggestionList = FeedbackSuggestion.findUnappliedSuggestions(feedbackDAO);
+      Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
+      for (FeedbackSuggestion suggestion : suggestionList) {
+        String docPath = suggestion.getWord().getRow().getDocument().getPath();
+        int pageIndex = suggestion.getWord().getRow().getPageIndex();
+        Map<Integer, List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
+        if (docSuggestions == null) {
+          docSuggestions = new HashMap<>();
+          unappliedSuggestions.put(docPath, docSuggestions);
+        }
+        List<FeedbackSuggestion> pageSuggestions = docSuggestions.get(pageIndex);
+        if (pageSuggestions == null) {
+          pageSuggestions = new ArrayList<>();
+          docSuggestions.put(pageIndex, pageSuggestions);
+        }
+        pageSuggestions.add(suggestion);
+      }
 
-			for (File subdir : subdirs) {
-				try {
-					searchStatusHolder.setAction("Indexing " + subdir.getName());
-					this.processDocument(subdir, forceUpdate, unappliedSuggestions);
-					searchStatusHolder.incrementSuccessCount(1);
-				} catch (Exception e) {
-					LOG.error("Failed to index " + subdir.getName(), e);
-					searchStatusHolder.incrementFailureCount(1);
-				}
-			}
+      for (File subdir : subdirs) {
+        try {
+          searchStatusHolder.setAction("Indexing " + subdir.getName());
+          this.processDocument(subdir, forceUpdate, unappliedSuggestions);
+          searchStatusHolder.incrementSuccessCount(1);
+        } catch (Exception e) {
+          LOG.error("Failed to index " + subdir.getName(), e);
+          searchStatusHolder.incrementFailureCount(1);
+        }
+      }
 
-			LOG.info("Commiting index...");
-			searchStatusHolder.setStatus(SearchStatus.COMMITING);
-			indexWriter.commit();
-			indexWriter.close();
-			manager.getManager().maybeRefresh();
+      LOG.info("Commiting index...");
+      searchStatusHolder.setStatus(SearchStatus.COMMITING);
+      indexWriter.commit();
+      indexWriter.close();
+      manager.getManager().maybeRefresh();
 
-		} catch (IOException e) {
-			LOG.error("Failed to commit indexWriter", e);
-			throw new RuntimeException(e);
-		} finally {
-			searchStatusHolder.setStatus(SearchStatus.WAITING);
-			long endTime = System.currentTimeMillis();
-			long totalTime = endTime - startTime;
-			LOG.info("Total time (ms): " + totalTime);
-		}
-	}
+    } catch (IOException e) {
+      LOG.error("Failed to commit indexWriter", e);
+      throw new RuntimeException(e);
+    } finally {
+      searchStatusHolder.setStatus(SearchStatus.WAITING);
+      long endTime = System.currentTimeMillis();
+      long totalTime = endTime - startTime;
+      LOG.info("Total time (ms): " + totalTime);
+    }
+  }
 
-	/**
-	 * Add or update a single directory to the index.
-	 * 
-	 * @param documentDir
-	 *            the directory containing the document set
-	 * @param startPage
-	 *            the first page to process, or all if -1
-	 * @param endPage
-	 *            the last page to process, or all if -1
-	 */
-	public void updateDocument(File documentDir, int startPage, int endPage) {
-		long startTime = System.currentTimeMillis();
-		try {
-			JochreIndexDirectory directory = new JochreIndexDirectory(contentDir, documentDir);
-			this.updateDocumentInternal(directory, startPage, endPage);
-			indexWriter.commit();
-			indexWriter.close();
-			manager.getManager().maybeRefresh();
+  /**
+   * Add or update a single directory to the index.
+   * 
+   * @param documentDir
+   *            the directory containing the document set
+   * @param startPage
+   *            the first page to process, or all if -1
+   * @param endPage
+   *            the last page to process, or all if -1
+   */
+  public void updateDocument(File documentDir, int startPage, int endPage) {
+    long startTime = System.currentTimeMillis();
+    try {
+      JochreIndexDirectory directory = new JochreIndexDirectory(contentDir, documentDir);
+      this.updateDocumentInternal(directory, startPage, endPage);
+      indexWriter.commit();
+      indexWriter.close();
+      manager.getManager().maybeRefresh();
 
-		} catch (IOException e) {
-			LOG.error("Failed to commit indexWriter", e);
-			throw new RuntimeException(e);
-		} finally {
-			long endTime = System.currentTimeMillis();
-			long totalTime = endTime - startTime;
-			LOG.info("Total time (ms): " + totalTime);
-		}
-	}
+    } catch (IOException e) {
+      LOG.error("Failed to commit indexWriter", e);
+      throw new RuntimeException(e);
+    } finally {
+      long endTime = System.currentTimeMillis();
+      long totalTime = endTime - startTime;
+      LOG.info("Total time (ms): " + totalTime);
+    }
+  }
 
-	/**
-	 * Delete a single work from the index. The directory path is considered to
-	 * identify the work.
-	 * 
-	 * @param documentDir
-	 *            the directory containing the document set
-	 */
-	public void deleteDocument(File documentDir) {
-		try {
-			JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
-			this.deleteDocumentInternal(jochreIndexDirectory);
-			indexWriter.commit();
-			indexWriter.close();
-			manager.getManager().maybeRefresh();
-		} catch (IOException e) {
-			LOG.error("Failed to commit indexWriter", e);
-			throw new RuntimeException(e);
+  /**
+   * Delete a single work from the index. The directory path is considered to
+   * identify the work.
+   * 
+   * @param documentDir
+   *            the directory containing the document set
+   */
+  public void deleteDocument(File documentDir) {
+    try {
+      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
+      this.deleteDocumentInternal(jochreIndexDirectory);
+      indexWriter.commit();
+      indexWriter.close();
+      manager.getManager().maybeRefresh();
+    } catch (IOException e) {
+      LOG.error("Failed to commit indexWriter", e);
+      throw new RuntimeException(e);
 
-		}
-	}
+    }
+  }
 
-	private void processDocument(File documentDir, boolean forceUpdate, Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
-		try {
-			boolean updateIndex = false;
+  private void processDocument(File documentDir, boolean forceUpdate, Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
+    try {
+      boolean updateIndex = false;
 
-			JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
-			switch (jochreIndexDirectory.getInstructions()) {
-			case Delete:
-				this.deleteDocumentInternal(jochreIndexDirectory);
-				return;
-			case Skip:
-				return;
-			case Update:
-				updateIndex = true;
-			case None:
-				// do nothing
-				break;
-			}
+      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
+      switch (jochreIndexDirectory.getInstructions()) {
+      case Delete:
+        this.deleteDocumentInternal(jochreIndexDirectory);
+        return;
+      case Skip:
+        return;
+      case Update:
+        updateIndex = true;
+      case None:
+        // do nothing
+        break;
+      }
 
-			if (forceUpdate)
-				updateIndex = true;
+      if (forceUpdate)
+        updateIndex = true;
 
-			if (!updateIndex) {
-				if (unappliedSuggestions.containsKey(jochreIndexDirectory.getPath()))
-					updateIndex = true;
-			}
+      if (!updateIndex) {
+        if (unappliedSuggestions.containsKey(jochreIndexDirectory.getPath()))
+          updateIndex = true;
+      }
 
-			if (!updateIndex) {
-				long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
-				if (jochreIndexDirectory.getMetaDataFile() != null) {
-					long metaDate = jochreIndexDirectory.getMetaDataFile().lastModified();
-					if (metaDate > ocrDate)
-						ocrDate = metaDate;
-				}
-				long lastIndexDate = Long.MIN_VALUE;
+      if (!updateIndex) {
+        long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
+        if (jochreIndexDirectory.getMetaDataFile() != null) {
+          long metaDate = jochreIndexDirectory.getMetaDataFile().lastModified();
+          if (metaDate > ocrDate)
+            ocrDate = metaDate;
+        }
+        long lastIndexDate = Long.MIN_VALUE;
 
-				IndexSearcher indexSearcher = manager.getManager().acquire();
-				try {
-					Term term = new Term(JochreIndexField.name.name(), jochreIndexDirectory.getName());
-					Query termQuery = new TermQuery(term);
-					TopDocs topDocs = indexSearcher.search(termQuery, 1);
-					if (topDocs.scoreDocs.length > 0) {
-						Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
-						lastIndexDate = doc.getField(JochreIndexField.indexTime.name()).numericValue().longValue();
-					}
-				} finally {
-					manager.getManager().release(indexSearcher);
-				}
+        IndexSearcher indexSearcher = manager.getManager().acquire();
+        try {
+          Term term = new Term(JochreIndexField.name.name(), jochreIndexDirectory.getName());
+          Query termQuery = new TermQuery(term);
+          TopDocs topDocs = indexSearcher.search(termQuery, 1);
+          if (topDocs.scoreDocs.length > 0) {
+            Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+            lastIndexDate = doc.getField(JochreIndexField.indexTime.name()).numericValue().longValue();
+          }
+        } finally {
+          manager.getManager().release(indexSearcher);
+        }
 
-				LOG.debug("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
-				if (ocrDate > lastIndexDate)
-					updateIndex = true;
-			}
+        LOG.debug("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
+        if (ocrDate > lastIndexDate)
+          updateIndex = true;
+      }
 
-			if (updateIndex) {
-				this.updateDocumentInternal(jochreIndexDirectory, -1, -1);
-			} else {
-				LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
-			} // should update index?
+      if (updateIndex) {
+        this.updateDocumentInternal(jochreIndexDirectory, -1, -1);
+      } else {
+        LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
+      } // should update index?
 
-		} catch (IOException e) {
-			LOG.error("Failed to process " + documentDir.getName(), e);
-			throw new RuntimeException(e);
-		}
-	}
+    } catch (IOException e) {
+      LOG.error("Failed to process " + documentDir.getName(), e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory, int startPage, int endPage) {
-		try {
-			LOG.info("Updating index for " + jochreIndexDirectory.getName());
+  private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory, int startPage, int endPage) {
+    try {
+      LOG.info("Updating index for " + jochreIndexDirectory.getName());
 
-			this.deleteDocumentInternal(jochreIndexDirectory);
+      this.deleteDocumentInternal(jochreIndexDirectory);
 
-			AltoDocument altoDoc = new AltoDocument(jochreIndexDirectory.getName());
-			AltoReader reader = new AltoReader(altoDoc);
-			AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory, startPage, endPage);
-			reader.addConsumer(altoPageIndexer);
+      AltoDocument altoDoc = new AltoDocument(jochreIndexDirectory.getName());
+      AltoReader reader = new AltoReader(altoDoc);
+      AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory, startPage, endPage);
+      reader.addConsumer(altoPageIndexer);
 
-			UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
-			reader.parseFile(uis, jochreIndexDirectory.getName());
-			uis.reallyClose();
-		} catch (IOException e) {
-			LOG.error("Failed to update jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
-			throw new RuntimeException(e);
-		}
-	}
+      UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
+      reader.parseFile(uis, jochreIndexDirectory.getName());
+      uis.reallyClose();
+    } catch (IOException e) {
+      LOG.error("Failed to update jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	private final class AltoPageIndexer implements AltoPageConsumer {
-		private JochreIndexBuilder parent;
-		private int docCount = 0;
-		private int cumulWordCount = 0;
-		private List<AltoPage> currentPages = new ArrayList<>();
-		private List<AltoPage> previousPages = new ArrayList<>();
-		private List<JochreToken> previousStrings = new ArrayList<>();
-		private List<JochreToken> currentStrings = new ArrayList<>();
-		private int startPage = -1;
-		private int endPage = -1;
-		private AltoStringFixer altoStringFixer;
+  private final class AltoPageIndexer implements AltoPageConsumer {
+    private JochreIndexBuilder parent;
+    private int docCount = 0;
+    private int cumulWordCount = 0;
+    private List<AltoPage> currentPages = new ArrayList<>();
+    private List<AltoPage> previousPages = new ArrayList<>();
+    private List<JochreToken> previousStrings = new ArrayList<>();
+    private List<JochreToken> currentStrings = new ArrayList<>();
+    private int startPage = -1;
+    private int endPage = -1;
+    private AltoStringFixer altoStringFixer;
 
-		private JochreIndexDirectory directory;
-		private Map<Integer, List<FeedbackSuggestion>> pageSuggestionMap;
+    private JochreIndexDirectory directory;
+    private Map<Integer, List<FeedbackSuggestion>> pageSuggestionMap;
 
-		public AltoPageIndexer(JochreIndexBuilder parent, JochreIndexDirectory directory, int startPage, int endPage) {
-			super();
-			this.parent = parent;
-			this.directory = directory;
-			this.startPage = startPage;
-			this.endPage = endPage;
-			this.altoStringFixer = AltoStringFixer.getInstance(config);
-			this.pageSuggestionMap = FeedbackSuggestion.findSuggestions(directory.getPath(), feedbackDAO);
-		}
+    public AltoPageIndexer(JochreIndexBuilder parent, JochreIndexDirectory directory, int startPage, int endPage) {
+      super();
+      this.parent = parent;
+      this.directory = directory;
+      this.startPage = startPage;
+      this.endPage = endPage;
+      this.altoStringFixer = AltoStringFixer.getInstance(config);
+      this.pageSuggestionMap = FeedbackSuggestion.findSuggestions(directory.getPath(), feedbackDAO);
+    }
 
-		@Override
-		public void onNextPage(AltoPage page) {
-			if (startPage >= 0 && page.getIndex() < startPage)
-				return;
-			if (endPage >= 0 && page.getIndex() > endPage)
-				return;
-			LOG.debug("Processing page: " + page.getIndex());
-			currentPages.add(page);
+    @Override
+    public void onNextPage(AltoPage page) {
+      if (startPage >= 0 && page.getIndex() < startPage)
+        return;
+      if (endPage >= 0 && page.getIndex() > endPage)
+        return;
+      LOG.debug("Processing page: " + page.getIndex());
+      currentPages.add(page);
 
-			List<FeedbackSuggestion> suggestions = pageSuggestionMap.get(page.getIndex());
+      List<FeedbackSuggestion> suggestions = pageSuggestionMap.get(page.getIndex());
 
-			Map<Rectangle, List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
-			if (suggestions != null) {
-				for (FeedbackSuggestion suggestion : suggestions) {
-					Rectangle rectangle = suggestion.getWord().getRectangle();
-					List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
-					if (wordSuggestions == null) {
-						wordSuggestions = new ArrayList<>();
-						suggestionMap.put(rectangle, wordSuggestions);
-					}
-					wordSuggestions.add(suggestion);
-				}
-			}
+      Map<Rectangle, List<FeedbackSuggestion>> suggestionMap = new HashMap<>();
+      if (suggestions != null) {
+        for (FeedbackSuggestion suggestion : suggestions) {
+          Rectangle rectangle = suggestion.getWord().getRectangle();
+          List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(rectangle);
+          if (wordSuggestions == null) {
+            wordSuggestions = new ArrayList<>();
+            suggestionMap.put(rectangle, wordSuggestions);
+          }
+          wordSuggestions.add(suggestion);
+        }
+      }
 
-			for (AltoTextBlock textBlock : page.getTextBlocks()) {
-				textBlock.joinHyphens();
-				if (this.altoStringFixer != null)
-					this.altoStringFixer.fix(textBlock);
+      for (AltoTextBlock textBlock : page.getTextBlocks()) {
+        textBlock.joinHyphens();
+        if (this.altoStringFixer != null)
+          this.altoStringFixer.fix(textBlock);
 
-				for (AltoTextLine textLine : textBlock.getTextLines()) {
-					for (AltoString string : textLine.getStrings()) {
-						if (string.isWhiteSpace())
-							continue;
+        for (AltoTextLine textLine : textBlock.getTextLines()) {
+          for (AltoString string : textLine.getStrings()) {
+            if (string.isWhiteSpace())
+              continue;
 
-						List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(string.getRectangle());
-						if (wordSuggestions != null) {
-							FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size() - 1);
-							LOG.debug("Applying suggestion: " + lastSuggestion.getText() + " instead of " + string.getContent());
-							string.setContent(lastSuggestion.getText());
-							for (FeedbackSuggestion suggestion : wordSuggestions) {
-								if (!suggestion.isApplied()) {
-									suggestion.setApplied(true);
-									suggestion.save();
-								}
-							}
-						}
-						currentStrings.add(string);
-					}
-				}
-			}
+            List<FeedbackSuggestion> wordSuggestions = suggestionMap.get(string.getRectangle());
+            if (wordSuggestions != null) {
+              FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size() - 1);
+              LOG.debug("Applying suggestion: " + lastSuggestion.getText() + " instead of " + string.getContent());
+              string.setContent(lastSuggestion.getText());
+              for (FeedbackSuggestion suggestion : wordSuggestions) {
+                if (!suggestion.isApplied()) {
+                  suggestion.setApplied(true);
+                  suggestion.save();
+                }
+              }
+            }
+            currentStrings.add(string);
+          }
+        }
+      }
 
-			int wordCount = page.wordCount();
-			cumulWordCount += wordCount;
-			LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount);
-			if (wordsPerDoc > 0 && cumulWordCount >= wordsPerDoc) {
-				if (previousPages.size() > 0) {
-					parent.setCurrentStrings(previousStrings);
-					LOG.debug("Creating new index doc: " + docCount);
-					JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
-					indexDoc.save(parent.getIndexWriter());
-					docCount++;
-				}
+      int wordCount = page.wordCount();
+      cumulWordCount += wordCount;
+      LOG.debug("Word count: " + wordCount + ", cumul word count: " + cumulWordCount);
+      if (wordsPerDoc > 0 && cumulWordCount >= wordsPerDoc) {
+        if (previousPages.size() > 0) {
+          parent.setCurrentStrings(previousStrings);
+          LOG.debug("Creating new index doc: " + docCount);
+          JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
+          indexDoc.save(parent.getIndexWriter());
+          docCount++;
+        }
 
-				previousPages = currentPages;
-				previousStrings = currentStrings;
+        previousPages = currentPages;
+        previousStrings = currentStrings;
 
-				cumulWordCount = 0;
-				parent.setCurrentStrings(new ArrayList<JochreToken>());
-				currentPages = new ArrayList<>();
-				currentStrings = new ArrayList<>();
-			}
-		}
+        cumulWordCount = 0;
+        parent.setCurrentStrings(new ArrayList<JochreToken>());
+        currentPages = new ArrayList<>();
+        currentStrings = new ArrayList<>();
+      }
+    }
 
-		@Override
-		public void onComplete() {
-			previousPages.addAll(currentPages);
-			previousStrings.addAll(currentStrings);
-			parent.setCurrentStrings(previousStrings);
-			if (previousPages.size() > 0) {
-				LOG.debug("Creating new index doc: " + docCount);
-				JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
-				indexDoc.save(parent.getIndexWriter());
-				docCount++;
-			}
-		}
-	}
+    @Override
+    public void onComplete() {
+      previousPages.addAll(currentPages);
+      previousStrings.addAll(currentStrings);
+      parent.setCurrentStrings(previousStrings);
+      if (previousPages.size() > 0) {
+        LOG.debug("Creating new index doc: " + docCount);
+        JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
+        indexDoc.save(parent.getIndexWriter());
+        docCount++;
+      }
+    }
+  }
 
-	private void deleteDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
-		try {
-			Term term = new Term(JochreIndexField.path.name(), jochreIndexDirectory.getPath());
-			indexWriter.deleteDocuments(term);
-		} catch (IOException e) {
-			LOG.error("Failed to delete jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
-			throw new RuntimeException(e);
-		}
-	}
+  private void deleteDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
+    try {
+      Term term = new Term(JochreIndexField.path.name(), jochreIndexDirectory.getPath());
+      indexWriter.deleteDocuments(term);
+    } catch (IOException e) {
+      LOG.error("Failed to delete jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	public IndexWriter getIndexWriter() {
-		return indexWriter;
-	}
+  public IndexWriter getIndexWriter() {
+    return indexWriter;
+  }
 
-	@Override
-	public List<JochreToken> findTokens(String fieldName, Reader input) {
-		return currentStrings;
-	}
+  @Override
+  public List<JochreToken> findTokens(String fieldName, Reader input) {
+    return currentStrings;
+  }
 
-	public List<JochreToken> getCurrentStrings() {
-		return currentStrings;
-	}
+  public List<JochreToken> getCurrentStrings() {
+    return currentStrings;
+  }
 
-	public void setCurrentStrings(List<JochreToken> currentStrings) {
-		this.currentStrings = currentStrings;
-	}
+  public void setCurrentStrings(List<JochreToken> currentStrings) {
+    this.currentStrings = currentStrings;
+  }
 
-	/**
-	 * By default should all documents in the index be updated, or only those with
-	 * changes more recent than the update date.
-	 */
-	public boolean isForceUpdate() {
-		return forceUpdate;
-	}
+  /**
+   * By default should all documents in the index be updated, or only those with
+   * changes more recent than the update date.
+   */
+  public boolean isForceUpdate() {
+    return forceUpdate;
+  }
 
-	public File getContentDir() {
-		return contentDir;
-	}
+  public File getContentDir() {
+    return contentDir;
+  }
 }

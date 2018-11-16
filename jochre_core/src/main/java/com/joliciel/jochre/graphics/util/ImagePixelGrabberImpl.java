@@ -34,10 +34,10 @@ import com.joliciel.jochre.utils.JochreException;
 public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGrabber
 {
     private Object pixels=null; // will contains either array of bytes (for gif) or int (for jpeg)
-	byte[] bytePixels = null;
-	int[] intPixels = null;
-	boolean isBytes = true;
-	
+  byte[] bytePixels = null;
+  int[] intPixels = null;
+  boolean isBytes = true;
+  
     private int numColors=0;  
     private int width, height;
     private ColorModel colorModel;
@@ -55,20 +55,20 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
                 width, height, false);  
 
         try {
-			pixelGrabber.grabPixels();
-		} catch (InterruptedException e) {
-			throw new JochreException(e);
-		}
+      pixelGrabber.grabPixels();
+    } catch (InterruptedException e) {
+      throw new JochreException(e);
+    }
 
         pixels=(Object)pixelGrabber.getPixels();
         
-		try {
-			bytePixels = (byte[]) pixelGrabber.getPixels();
-		} catch (ClassCastException cce) {
-			intPixels = (int[]) pixelGrabber.getPixels();
-			isBytes = false;
-		}
-		
+    try {
+      bytePixels = (byte[]) pixelGrabber.getPixels();
+    } catch (ClassCastException cce) {
+      intPixels = (int[]) pixelGrabber.getPixels();
+      isBytes = false;
+    }
+    
         // get the palette of the image, if possible
         colorModel=pixelGrabber.getColorModel();
         
@@ -84,46 +84,46 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getPixels()
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getPixels()
+   */
     @Override
-	public Object getPixels()
+  public Object getPixels()
     {
         return pixels; 
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getWidth()
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getWidth()
+   */
     @Override
-	public int getWidth()
+  public int getWidth()
     {
         return width;
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getHeight()
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getHeight()
+   */
     @Override
-	public int getHeight()
+  public int getHeight()
     {
         return height;
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getNumOfColors()
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getNumOfColors()
+   */
     @Override
-	public int getNumColors()
+  public int getNumColors()
     {
         return numColors;
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getRed(int)
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getRed(int)
+   */
     @Override
-	public int getRed(int pixel)
+  public int getRed(int pixel)
     {
         if ((colorModel instanceof IndexColorModel))    
             return ((IndexColorModel)colorModel).getRed(pixel);
@@ -132,10 +132,10 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getGreen(int)
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getGreen(int)
+   */
     @Override
-	public int getGreen(int pixel)
+  public int getGreen(int pixel)
     {
         if ((colorModel instanceof IndexColorModel))    
             return ((IndexColorModel)colorModel).getGreen(pixel);
@@ -144,10 +144,10 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
     }
 
     /* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getBlue(int)
-	 */
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getBlue(int)
+   */
     @Override
-	public int getBlue(int pixel)
+  public int getBlue(int pixel)
     {
         if ((colorModel instanceof IndexColorModel))    
             return ((IndexColorModel)colorModel).getBlue(pixel);
@@ -155,23 +155,23 @@ public final class ImagePixelGrabberImpl implements ImageObserver, ImagePixelGra
             return ((DirectColorModel)colorModel).getBlue(pixel);
     }
 
-	/* (non-Javadoc)
-	 * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getPixelBrightness(int, int)
-	 */
-	@Override
-	public int getPixelBrightness(int x, int y) {
-		int index = y * this.getWidth() + x;
-		int pixel;
-		if (isBytes)
-			pixel = bytePixels[index];
-		else
-			pixel = intPixels[index];
-		int red = this.getRed(pixel);
-		int green = this.getGreen(pixel);
-		int blue = this.getBlue(pixel);
-		int brightness = ( 11 * red + 16 * green + 5 * blue) / 32;
-		return brightness;
-	}
+  /* (non-Javadoc)
+   * @see com.joliciel.jochre.graphics.util.ImagePixelGrabber#getPixelBrightness(int, int)
+   */
+  @Override
+  public int getPixelBrightness(int x, int y) {
+    int index = y * this.getWidth() + x;
+    int pixel;
+    if (isBytes)
+      pixel = bytePixels[index];
+    else
+      pixel = intPixels[index];
+    int red = this.getRed(pixel);
+    int green = this.getGreen(pixel);
+    int blue = this.getBlue(pixel);
+    int brightness = ( 11 * red + 16 * green + 5 * blue) / 32;
+    return brightness;
+  }
 
     @Override
     public boolean imageUpdate(Image img, int infoflags, int x, int y, 

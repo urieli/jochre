@@ -35,19 +35,19 @@ import com.joliciel.jochre.graphics.Shape;
  */
 public class SplitShapeWidthRatioFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
 
-	@Override
-	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		Shape shape = split.getShape();
-		int rightWidth = (shape.getWidth() - 1) - (split.getPosition()+1);
-		int leftWidth = split.getPosition() - 1;
-		
-		double ratio = (double) leftWidth / (double) rightWidth;
-		if (ratio > 1)
-			ratio = 1 / ratio;
-		
-		result = this.generateResult(ratio);
-		return result;
-	}
+  @Override
+  public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    Shape shape = split.getShape();
+    int rightWidth = (shape.getWidth() - 1) - (split.getPosition()+1);
+    int leftWidth = split.getPosition() - 1;
+    
+    double ratio = (double) leftWidth / (double) rightWidth;
+    if (ratio > 1)
+      ratio = 1 / ratio;
+    
+    result = this.generateResult(ratio);
+    return result;
+  }
 
 }

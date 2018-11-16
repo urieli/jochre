@@ -42,157 +42,157 @@ import com.typesafe.config.Config;
  *
  */
 public class DeterministicBoundaryDetector implements BoundaryDetector {
-	private final ShapeSplitter shapeSplitter;
-	private final ShapeMerger shapeMerger;
-	private double minWidthRatioForSplit;
-	private double minHeightRatioForSplit;
-	private double maxWidthRatioForMerge;
-	private double maxDistanceRatioForMerge;
-	private double minProbabilityForDecision;
+  private final ShapeSplitter shapeSplitter;
+  private final ShapeMerger shapeMerger;
+  private double minWidthRatioForSplit;
+  private double minHeightRatioForSplit;
+  private double maxWidthRatioForMerge;
+  private double maxDistanceRatioForMerge;
+  private double minProbabilityForDecision;
 
-	private void configure(JochreSession jochreSession) {
-		Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
-		minWidthRatioForSplit = splitterConfig.getDouble("min-width-ratio");
-		minHeightRatioForSplit = splitterConfig.getDouble("min-height-ratio");
+  private void configure(JochreSession jochreSession) {
+    Config splitterConfig = jochreSession.getConfig().getConfig("jochre.boundaries.splitter");
+    minWidthRatioForSplit = splitterConfig.getDouble("min-width-ratio");
+    minHeightRatioForSplit = splitterConfig.getDouble("min-height-ratio");
 
-		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
-		maxWidthRatioForMerge = mergerConfig.getDouble("max-width-ratio");
-		maxDistanceRatioForMerge = mergerConfig.getDouble("max-distance-ratio");
+    Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+    maxWidthRatioForMerge = mergerConfig.getDouble("max-width-ratio");
+    maxDistanceRatioForMerge = mergerConfig.getDouble("max-distance-ratio");
 
-		Config boundaryConfig = jochreSession.getConfig().getConfig("jochre.boundaries");
-		minProbabilityForDecision = boundaryConfig.getDouble("min-prob-for-decision");
-	}
+    Config boundaryConfig = jochreSession.getConfig().getConfig("jochre.boundaries");
+    minProbabilityForDecision = boundaryConfig.getDouble("min-prob-for-decision");
+  }
 
-	public DeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
-		this.shapeSplitter = shapeSplitter;
-		this.shapeMerger = shapeMerger;
-		this.configure(jochreSession);
-	}
+  public DeterministicBoundaryDetector(ShapeSplitter shapeSplitter, ShapeMerger shapeMerger, JochreSession jochreSession) {
+    this.shapeSplitter = shapeSplitter;
+    this.shapeMerger = shapeMerger;
+    this.configure(jochreSession);
+  }
 
-	public DeterministicBoundaryDetector(ClassificationModel splitModel, ClassificationModel mergeModel, JochreSession jochreSession) throws IOException {
-		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
+  public DeterministicBoundaryDetector(ClassificationModel splitModel, ClassificationModel mergeModel, JochreSession jochreSession) throws IOException {
+    SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
 
-		List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
-		SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
-		Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
-		ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
+    List<String> splitFeatureDescriptors = splitModel.getFeatureDescriptors();
+    SplitFeatureParser splitFeatureParser = new SplitFeatureParser();
+    Set<SplitFeature<?>> splitFeatures = splitFeatureParser.getSplitFeatureSet(splitFeatureDescriptors);
+    ShapeSplitter shapeSplitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, splitModel.getDecisionMaker(), jochreSession);
 
-		List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
-		MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
-		Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
-		ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
+    List<String> mergeFeatureDescriptors = mergeModel.getFeatureDescriptors();
+    MergeFeatureParser mergeFeatureParser = new MergeFeatureParser();
+    Set<MergeFeature<?>> mergeFeatures = mergeFeatureParser.getMergeFeatureSet(mergeFeatureDescriptors);
+    ShapeMerger shapeMerger = new ShapeMerger(mergeFeatures, mergeModel.getDecisionMaker());
 
-		this.shapeSplitter = shapeSplitter;
-		this.shapeMerger = shapeMerger;
+    this.shapeSplitter = shapeSplitter;
+    this.shapeMerger = shapeMerger;
 
-		this.configure(jochreSession);
-	}
+    this.configure(jochreSession);
+  }
 
-	@Override
-	public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
-		// find the possible shape sequences that make up this group
-		ShapeSequence bestSequence = new ShapeSequence();
-		for (Shape shape : group.getShapes()) {
-			// check if shape is wide enough to bother with
-			double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
-			double heightRatio = (double) shape.getHeight() / (double) shape.getXHeight();
+  @Override
+  public List<ShapeSequence> findBoundaries(GroupOfShapes group) {
+    // find the possible shape sequences that make up this group
+    ShapeSequence bestSequence = new ShapeSequence();
+    for (Shape shape : group.getShapes()) {
+      // check if shape is wide enough to bother with
+      double widthRatio = (double) shape.getWidth() / (double) shape.getXHeight();
+      double heightRatio = (double) shape.getHeight() / (double) shape.getXHeight();
 
-			// Splitting/merging shapes as required
-			ShapeSequence bestSplitSequence = null;
-			if (this.shapeSplitter != null && widthRatio >= minWidthRatioForSplit && heightRatio >= minHeightRatioForSplit) {
-				List<ShapeSequence> splitSequences = shapeSplitter.split(shape);
-				double bestProb = 0;
-				for (ShapeSequence splitSequence : splitSequences) {
-					if (splitSequence.getScore() > bestProb) {
-						bestSplitSequence = splitSequence;
-						bestProb = splitSequence.getScore();
-					}
-				}
-				if (bestProb < minProbabilityForDecision) {
-					// create a sequence containing only this shape
-					ShapeSequence singleShapeSequence = new ShapeSequence();
-					singleShapeSequence.addShape(shape);
-					bestSplitSequence = singleShapeSequence;
-				}
-			} else {
-				// create a sequence containing only this shape
-				ShapeSequence singleShapeSequence = new ShapeSequence();
-				singleShapeSequence.addShape(shape);
-				bestSplitSequence = singleShapeSequence;
-			}
+      // Splitting/merging shapes as required
+      ShapeSequence bestSplitSequence = null;
+      if (this.shapeSplitter != null && widthRatio >= minWidthRatioForSplit && heightRatio >= minHeightRatioForSplit) {
+        List<ShapeSequence> splitSequences = shapeSplitter.split(shape);
+        double bestProb = 0;
+        for (ShapeSequence splitSequence : splitSequences) {
+          if (splitSequence.getScore() > bestProb) {
+            bestSplitSequence = splitSequence;
+            bestProb = splitSequence.getScore();
+          }
+        }
+        if (bestProb < minProbabilityForDecision) {
+          // create a sequence containing only this shape
+          ShapeSequence singleShapeSequence = new ShapeSequence();
+          singleShapeSequence.addShape(shape);
+          bestSplitSequence = singleShapeSequence;
+        }
+      } else {
+        // create a sequence containing only this shape
+        ShapeSequence singleShapeSequence = new ShapeSequence();
+        singleShapeSequence.addShape(shape);
+        bestSplitSequence = singleShapeSequence;
+      }
 
-			ShapeInSequence previousShapeInSequence = null;
-			Shape previousShape = null;
-			if (bestSequence.size() > 0) {
-				previousShapeInSequence = bestSequence.get(bestSequence.size() - 1);
-				previousShape = previousShapeInSequence.getShape();
-			}
+      ShapeInSequence previousShapeInSequence = null;
+      Shape previousShape = null;
+      if (bestSequence.size() > 0) {
+        previousShapeInSequence = bestSequence.get(bestSequence.size() - 1);
+        previousShape = previousShapeInSequence.getShape();
+      }
 
-			ShapeInSequence firstShapeInSequence = bestSplitSequence.get(0);
-			Shape firstShape = firstShapeInSequence.getShape();
+      ShapeInSequence firstShapeInSequence = bestSplitSequence.get(0);
+      Shape firstShape = firstShapeInSequence.getShape();
 
-			double mergeProb = 0;
-			if (this.shapeMerger != null && previousShape != null) {
-				ShapePair mergeCandidate = new ShapePair(previousShape, shape);
-				double mergeCandidateWidthRatio = 0;
-				double mergeCandidateDistanceRatio = 0;
+      double mergeProb = 0;
+      if (this.shapeMerger != null && previousShape != null) {
+        ShapePair mergeCandidate = new ShapePair(previousShape, shape);
+        double mergeCandidateWidthRatio = 0;
+        double mergeCandidateDistanceRatio = 0;
 
-				mergeCandidateWidthRatio = (double) mergeCandidate.getWidth() / (double) mergeCandidate.getXHeight();
-				mergeCandidateDistanceRatio = (double) mergeCandidate.getInnerDistance() / (double) mergeCandidate.getXHeight();
+        mergeCandidateWidthRatio = (double) mergeCandidate.getWidth() / (double) mergeCandidate.getXHeight();
+        mergeCandidateDistanceRatio = (double) mergeCandidate.getInnerDistance() / (double) mergeCandidate.getXHeight();
 
-				if (mergeCandidateWidthRatio <= maxWidthRatioForMerge && mergeCandidateDistanceRatio <= maxDistanceRatioForMerge) {
-					mergeProb = shapeMerger.checkMerge(previousShape, firstShape);
-				}
-			}
-			if (mergeProb > minProbabilityForDecision) {
-				Shape mergedShape = shapeMerger.merge(previousShape, firstShape);
-				bestSequence.remove(bestSequence.size() - 1);
+        if (mergeCandidateWidthRatio <= maxWidthRatioForMerge && mergeCandidateDistanceRatio <= maxDistanceRatioForMerge) {
+          mergeProb = shapeMerger.checkMerge(previousShape, firstShape);
+        }
+      }
+      if (mergeProb > minProbabilityForDecision) {
+        Shape mergedShape = shapeMerger.merge(previousShape, firstShape);
+        bestSequence.remove(bestSequence.size() - 1);
 
-				List<Shape> originalShapesForMerge = new ArrayList<Shape>();
-				originalShapesForMerge.addAll(previousShapeInSequence.getOriginalShapes());
-				originalShapesForMerge.addAll(firstShapeInSequence.getOriginalShapes());
-				bestSequence.addShape(mergedShape, originalShapesForMerge);
-				boolean isFirstShape = true;
-				for (ShapeInSequence splitShape : bestSplitSequence) {
-					if (!isFirstShape)
-						bestSequence.add(splitShape);
-					isFirstShape = false;
-				}
+        List<Shape> originalShapesForMerge = new ArrayList<Shape>();
+        originalShapesForMerge.addAll(previousShapeInSequence.getOriginalShapes());
+        originalShapesForMerge.addAll(firstShapeInSequence.getOriginalShapes());
+        bestSequence.addShape(mergedShape, originalShapesForMerge);
+        boolean isFirstShape = true;
+        for (ShapeInSequence splitShape : bestSplitSequence) {
+          if (!isFirstShape)
+            bestSequence.add(splitShape);
+          isFirstShape = false;
+        }
 
-				Decision mergeDecision = new Decision(MergeOutcome.DO_MERGE.name(), mergeProb);
-				bestSequence.addDecision(mergeDecision);
-				for (Decision splitDecision : bestSplitSequence.getDecisions())
-					bestSequence.addDecision(splitDecision);
-			} else {
-				if (mergeProb > 0) {
-					Decision mergeDecision = new Decision(MergeOutcome.DO_NOT_MERGE.name(), 1 - mergeProb);
-					bestSequence.addDecision(mergeDecision);
-				}
-				for (Decision splitDecision : bestSplitSequence.getDecisions())
-					bestSequence.addDecision(splitDecision);
+        Decision mergeDecision = new Decision(MergeOutcome.DO_MERGE.name(), mergeProb);
+        bestSequence.addDecision(mergeDecision);
+        for (Decision splitDecision : bestSplitSequence.getDecisions())
+          bestSequence.addDecision(splitDecision);
+      } else {
+        if (mergeProb > 0) {
+          Decision mergeDecision = new Decision(MergeOutcome.DO_NOT_MERGE.name(), 1 - mergeProb);
+          bestSequence.addDecision(mergeDecision);
+        }
+        for (Decision splitDecision : bestSplitSequence.getDecisions())
+          bestSequence.addDecision(splitDecision);
 
-				for (ShapeInSequence splitShape : bestSplitSequence) {
-					bestSequence.add(splitShape);
-				}
-			}
-		} // next shape in group
+        for (ShapeInSequence splitShape : bestSplitSequence) {
+          bestSequence.add(splitShape);
+        }
+      }
+    } // next shape in group
 
-		List<ShapeSequence> result = new ArrayList<ShapeSequence>();
-		result.add(bestSequence);
+    List<ShapeSequence> result = new ArrayList<ShapeSequence>();
+    result.add(bestSequence);
 
-		return result;
-	}
+    return result;
+  }
 
-	public ShapeSplitter getShapeSplitter() {
-		return shapeSplitter;
-	}
+  public ShapeSplitter getShapeSplitter() {
+    return shapeSplitter;
+  }
 
-	public ShapeMerger getShapeMerger() {
-		return shapeMerger;
-	}
+  public ShapeMerger getShapeMerger() {
+    return shapeMerger;
+  }
 
-	public double getMinProbabilityForDecision() {
-		return minProbabilityForDecision;
-	}
+  public double getMinProbabilityForDecision() {
+    return minProbabilityForDecision;
+  }
 
 }

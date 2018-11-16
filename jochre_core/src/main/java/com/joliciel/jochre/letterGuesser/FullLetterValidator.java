@@ -27,16 +27,16 @@ import com.joliciel.jochre.JochreSession;
  *
  */
 public class FullLetterValidator implements LetterValidator {
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	public FullLetterValidator(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-	}
+  public FullLetterValidator(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+  }
 
-	@Override
-	public boolean validate(String letter) {
-		return (letter.length() == 0 || (jochreSession.getLinguistics().isCharacterValidationActive()
-				&& jochreSession.getLinguistics().getValidLetters().contains(letter)));
-	}
+  @Override
+  public boolean validate(String letter) {
+    return (letter.length() == 0 || (jochreSession.getLinguistics().isCharacterValidationActive()
+        && jochreSession.getLinguistics().getValidLetters().contains(letter)));
+  }
 
 }

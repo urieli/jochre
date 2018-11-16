@@ -31,14 +31,14 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public final class ShapeReverseIndexFeature extends AbstractShapeInSequenceFeature<Integer> implements IntegerFeature<ShapeInSequenceWrapper> {
-	@Override
-	public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
-		ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
-		FeatureResult<Integer> outcome = null;
-		int reverseIndex = shapeInSequence.getShapeSequence().size() - (shapeInSequence.getIndex() + 1);
-		if (reverseIndex <= 1) {
-			outcome = this.generateResult(reverseIndex);
-		}
-		return outcome;
-	}
+  @Override
+  public FeatureResult<Integer> checkInternal(ShapeInSequenceWrapper wrapper, RuntimeEnvironment env) {
+    ShapeInSequence shapeInSequence = wrapper.getShapeInSequence();
+    FeatureResult<Integer> outcome = null;
+    int reverseIndex = shapeInSequence.getShapeSequence().size() - (shapeInSequence.getIndex() + 1);
+    if (reverseIndex <= 1) {
+      outcome = this.generateResult(reverseIndex);
+    }
+    return outcome;
+  }
 }

@@ -24,7 +24,7 @@ package com.joliciel.jochre.search.lexicon;
  *
  */
 public enum LexicalAttribute {
-	Word,
-	Lemma,
-	Category;
+  Word,
+  Lemma,
+  Category;
 }

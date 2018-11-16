@@ -25,15 +25,15 @@ package com.joliciel.jochre.graphics.features;
  *
  */
 public final class EmptyCentreFeature extends EmptySectorsBinaryFeature {
-	public EmptyCentreFeature() {
-		super(new boolean[][] { { false, false, false, false, false, false, false }, // row
-				{ false, false, false, false, false, false, false }, // row
-				{ false, false, false, false, false, false, false }, // row
-				{ false, false, false, true, false, false, false }, // row
-				{ false, false, false, false, false, false, false }, // row
-				{ false, false, false, false, false, false, false }, // row
-				{ false, false, false, false, false, false, false }, // row
+  public EmptyCentreFeature() {
+    super(new boolean[][] { { false, false, false, false, false, false, false }, // row
+        { false, false, false, false, false, false, false }, // row
+        { false, false, false, false, false, false, false }, // row
+        { false, false, false, true, false, false, false }, // row
+        { false, false, false, false, false, false, false }, // row
+        { false, false, false, false, false, false, false }, // row
+        { false, false, false, false, false, false, false }, // row
 
-		});
-	}
+    });
+  }
 }

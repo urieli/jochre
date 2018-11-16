@@ -23,9 +23,9 @@ import java.util.List;
 import com.joliciel.jochre.graphics.GroupOfShapes;
 
 public interface BoundaryDetector {
-	/**
-	 * Find the n most likely shape sequences forming this group of shapes, after
-	 * splitting and merging have been attempted.
-	 */
-	public List<ShapeSequence> findBoundaries(GroupOfShapes group);
+  /**
+   * Find the n most likely shape sequences forming this group of shapes, after
+   * splitting and merging have been attempted.
+   */
+  public List<ShapeSequence> findBoundaries(GroupOfShapes group);
 }

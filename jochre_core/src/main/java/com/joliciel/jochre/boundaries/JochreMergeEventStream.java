@@ -40,186 +40,186 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.typesafe.config.Config;
 
 public class JochreMergeEventStream implements ClassificationEventStream {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreMergeEventStream.class);
 
-	private SplitCandidateFinder splitCandidateFinder;
+  private SplitCandidateFinder splitCandidateFinder;
 
-	private final Set<MergeFeature<?>> mergeFeatures;
-	private final JochreSession jochreSession;
+  private final Set<MergeFeature<?>> mergeFeatures;
+  private final JochreSession jochreSession;
 
-	private double maxWidthRatio = 1.2;
-	private double maxDistanceRatio = 0.15;
+  private double maxWidthRatio = 1.2;
+  private double maxDistanceRatio = 0.15;
 
-	private int shapeIndex = 0;
+  private int shapeIndex = 0;
 
-	private int belowRatioCount = 0;
-	private int aboveRatioCount = 0;
-	private int yesCount = 0;
-	private int noCount = 0;
+  private int belowRatioCount = 0;
+  private int aboveRatioCount = 0;
+  private int yesCount = 0;
+  private int noCount = 0;
 
-	private ShapePair mergeCandidate;
+  private ShapePair mergeCandidate;
 
-	private JochreCorpusGroupReader groupReader;
-	private GroupOfShapes group = null;
+  private JochreCorpusGroupReader groupReader;
+  private GroupOfShapes group = null;
 
-	private final CorpusSelectionCriteria criteria;
+  private final CorpusSelectionCriteria criteria;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param mergeFeatures
-	 *            the features to analyse when training
-	 */
-	public JochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.criteria = criteria;
-		this.mergeFeatures = mergeFeatures;
+  /**
+   * Constructor.
+   * 
+   * @param mergeFeatures
+   *            the features to analyse when training
+   */
+  public JochreMergeEventStream(CorpusSelectionCriteria criteria, Set<MergeFeature<?>> mergeFeatures, JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.criteria = criteria;
+    this.mergeFeatures = mergeFeatures;
 
-		Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
-		maxWidthRatio = mergerConfig.getDouble("max-width-ratio");
-		maxDistanceRatio = mergerConfig.getDouble("max-distance-ratio");
-	}
+    Config mergerConfig = jochreSession.getConfig().getConfig("jochre.boundaries.merger");
+    maxWidthRatio = mergerConfig.getDouble("max-width-ratio");
+    maxDistanceRatio = mergerConfig.getDouble("max-distance-ratio");
+  }
 
-	@Override
-	public ClassificationEvent next() {
-		ClassificationEvent event = null;
-		if (this.hasNext()) {
-			LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
+  @Override
+  public ClassificationEvent next() {
+    ClassificationEvent event = null;
+    if (this.hasNext()) {
+      LOG.debug("next event, " + mergeCandidate.getFirstShape() + ", " + mergeCandidate.getSecondShape());
 
-			List<FeatureResult<?>> featureResults = new ArrayList<>();
+      List<FeatureResult<?>> featureResults = new ArrayList<>();
 
-			// analyse features
-			for (MergeFeature<?> feature : mergeFeatures) {
-				RuntimeEnvironment env = new RuntimeEnvironment();
-				FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-				if (featureResult != null) {
-					featureResults.add(featureResult);
-					if (LOG.isTraceEnabled()) {
-						LOG.trace(featureResult.toString());
-					}
-				}
-			}
+      // analyse features
+      for (MergeFeature<?> feature : mergeFeatures) {
+        RuntimeEnvironment env = new RuntimeEnvironment();
+        FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
+        if (featureResult != null) {
+          featureResults.add(featureResult);
+          if (LOG.isTraceEnabled()) {
+            LOG.trace(featureResult.toString());
+          }
+        }
+      }
 
-			MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
-			boolean shouldMerge = false;
-			if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
-				if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
-					shouldMerge = true;
-			} else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
-				if (mergeCandidate.getFirstShape().getLetter().length() == 0)
-					shouldMerge = true;
-			}
-			if (shouldMerge)
-				outcome = MergeOutcome.DO_MERGE;
+      MergeOutcome outcome = MergeOutcome.DO_NOT_MERGE;
+      boolean shouldMerge = false;
+      if (mergeCandidate.getFirstShape().getLetter().startsWith("|")) {
+        if (mergeCandidate.getSecondShape().getLetter().length() == 0 || mergeCandidate.getSecondShape().getLetter().endsWith("|"))
+          shouldMerge = true;
+      } else if (mergeCandidate.getSecondShape().getLetter().endsWith("|")) {
+        if (mergeCandidate.getFirstShape().getLetter().length() == 0)
+          shouldMerge = true;
+      }
+      if (shouldMerge)
+        outcome = MergeOutcome.DO_MERGE;
 
-			if (outcome.equals(MergeOutcome.DO_MERGE))
-				yesCount++;
-			else
-				noCount++;
+      if (outcome.equals(MergeOutcome.DO_MERGE))
+        yesCount++;
+      else
+        noCount++;
 
-			LOG.debug("Outcome: " + outcome);
-			event = new ClassificationEvent(featureResults, outcome.name());
+      LOG.debug("Outcome: " + outcome);
+      event = new ClassificationEvent(featureResults, outcome.name());
 
-			// set mergeCandidate to null so that hasNext can retrieve the next
-			// one.
-			this.mergeCandidate = null;
-		}
-		return event;
-	}
+      // set mergeCandidate to null so that hasNext can retrieve the next
+      // one.
+      this.mergeCandidate = null;
+    }
+    return event;
+  }
 
-	@Override
-	public boolean hasNext() {
-		this.initialiseStream();
+  @Override
+  public boolean hasNext() {
+    this.initialiseStream();
 
-		while (mergeCandidate == null && group != null) {
-			if (shapeIndex < group.getShapes().size() - 1) {
-				Shape shape1 = group.getShapes().get(shapeIndex);
-				Shape shape2 = group.getShapes().get(shapeIndex + 1);
+    while (mergeCandidate == null && group != null) {
+      if (shapeIndex < group.getShapes().size() - 1) {
+        Shape shape1 = group.getShapes().get(shapeIndex);
+        Shape shape2 = group.getShapes().get(shapeIndex + 1);
 
-				ShapePair shapePair = new ShapePair(shape1, shape2);
-				double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
-				double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
-				if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
-					belowRatioCount++;
-					mergeCandidate = shapePair;
-				} else {
-					aboveRatioCount++;
-					mergeCandidate = null;
-				}
-				shapeIndex++;
-			} else {
-				group = null;
-				shapeIndex = 0;
-				if (groupReader.hasNext())
-					group = groupReader.next();
-			}
-		}
+        ShapePair shapePair = new ShapePair(shape1, shape2);
+        double widthRatio = (double) shapePair.getWidth() / (double) shapePair.getXHeight();
+        double distanceRatio = (double) shapePair.getInnerDistance() / (double) shapePair.getXHeight();
+        if (widthRatio <= maxWidthRatio && distanceRatio <= maxDistanceRatio) {
+          belowRatioCount++;
+          mergeCandidate = shapePair;
+        } else {
+          aboveRatioCount++;
+          mergeCandidate = null;
+        }
+        shapeIndex++;
+      } else {
+        group = null;
+        shapeIndex = 0;
+        if (groupReader.hasNext())
+          group = groupReader.next();
+      }
+    }
 
-		if (mergeCandidate == null) {
+    if (mergeCandidate == null) {
 
-			LOG.debug("aboveRatioCount: " + aboveRatioCount);
-			LOG.debug("belowRatioCount: " + belowRatioCount);
-			LOG.debug("yesCount: " + yesCount);
-			LOG.debug("noCount: " + noCount);
-		}
+      LOG.debug("aboveRatioCount: " + aboveRatioCount);
+      LOG.debug("belowRatioCount: " + belowRatioCount);
+      LOG.debug("yesCount: " + yesCount);
+      LOG.debug("noCount: " + noCount);
+    }
 
-		return mergeCandidate != null;
-	}
+    return mergeCandidate != null;
+  }
 
-	void initialiseStream() {
-		if (groupReader == null) {
-			groupReader = new JochreCorpusGroupReader(jochreSession);
-			groupReader.setSelectionCriteria(criteria);
-			if (groupReader.hasNext())
-				group = groupReader.next();
-		}
-	}
+  void initialiseStream() {
+    if (groupReader == null) {
+      groupReader = new JochreCorpusGroupReader(jochreSession);
+      groupReader.setSelectionCriteria(criteria);
+      if (groupReader.hasNext())
+        group = groupReader.next();
+    }
+  }
 
-	public SplitCandidateFinder getSplitCandidateFinder() {
-		return splitCandidateFinder;
-	}
+  public SplitCandidateFinder getSplitCandidateFinder() {
+    return splitCandidateFinder;
+  }
 
-	public void setSplitCandidateFinder(SplitCandidateFinder splitCandidateFinder) {
-		this.splitCandidateFinder = splitCandidateFinder;
-	}
+  public void setSplitCandidateFinder(SplitCandidateFinder splitCandidateFinder) {
+    this.splitCandidateFinder = splitCandidateFinder;
+  }
 
-	/**
-	 * The maximum ratio between the merged shape candidate's width and x-height
-	 * to even be considered for merging.
-	 */
-	public double getMaxWidthRatio() {
-		return maxWidthRatio;
-	}
+  /**
+   * The maximum ratio between the merged shape candidate's width and x-height
+   * to even be considered for merging.
+   */
+  public double getMaxWidthRatio() {
+    return maxWidthRatio;
+  }
 
-	public void setMaxWidthRatio(double maxWidthRatio) {
-		this.maxWidthRatio = maxWidthRatio;
-	}
+  public void setMaxWidthRatio(double maxWidthRatio) {
+    this.maxWidthRatio = maxWidthRatio;
+  }
 
-	/**
-	 * The maximum ratio of the distance between the two inner shapes and the
-	 * x-height to even be considered for merging.
-	 */
-	public double getMaxDistanceRatio() {
-		return maxDistanceRatio;
-	}
+  /**
+   * The maximum ratio of the distance between the two inner shapes and the
+   * x-height to even be considered for merging.
+   */
+  public double getMaxDistanceRatio() {
+    return maxDistanceRatio;
+  }
 
-	public void setMaxDistanceRatio(double maxDistanceRatio) {
-		this.maxDistanceRatio = maxDistanceRatio;
-	}
+  public void setMaxDistanceRatio(double maxDistanceRatio) {
+    this.maxDistanceRatio = maxDistanceRatio;
+  }
 
-	@Override
-	public Map<String, String> getAttributes() {
-		Map<String, String> attributes = new LinkedHashMap<>();
-		attributes.put("eventStream", this.getClass().getSimpleName());
-		attributes.put("maxDistanceRatio", "" + maxDistanceRatio);
-		attributes.put("maxWidthRatio", "" + maxWidthRatio);
-		attributes.putAll(this.criteria.getAttributes());
+  @Override
+  public Map<String, String> getAttributes() {
+    Map<String, String> attributes = new LinkedHashMap<>();
+    attributes.put("eventStream", this.getClass().getSimpleName());
+    attributes.put("maxDistanceRatio", "" + maxDistanceRatio);
+    attributes.put("maxWidthRatio", "" + maxWidthRatio);
+    attributes.putAll(this.criteria.getAttributes());
 
-		return attributes;
-	}
+    return attributes;
+  }
 
-	public CorpusSelectionCriteria getCriteria() {
-		return criteria;
-	}
+  public CorpusSelectionCriteria getCriteria() {
+    return criteria;
+  }
 
 }

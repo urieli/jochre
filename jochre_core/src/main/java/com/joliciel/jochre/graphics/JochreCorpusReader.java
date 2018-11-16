@@ -31,89 +31,89 @@ import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochrePage;
 
 public abstract class JochreCorpusReader {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusReader.class);
 
-	private List<JochreImage> images = null;
+  private List<JochreImage> images = null;
 
-	private CorpusSelectionCriteria selectionCriteria = null;
+  private CorpusSelectionCriteria selectionCriteria = null;
 
-	protected final JochreSession jochreSession;
-	private final GraphicsDao graphicsDao;
+  protected final JochreSession jochreSession;
+  private final GraphicsDao graphicsDao;
 
-	public JochreCorpusReader(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.graphicsDao = GraphicsDao.getInstance(jochreSession);
-	}
+  public JochreCorpusReader(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.graphicsDao = GraphicsDao.getInstance(jochreSession);
+  }
 
-	protected void initialiseStream() {
-		if (images == null) {
-			images = new ArrayList<JochreImage>();
-			if (selectionCriteria.getImageId() != 0) {
-				JochreImage jochreImage = this.graphicsDao.loadJochreImage(selectionCriteria.getImageId());
-				images.add(jochreImage);
-			} else if (selectionCriteria.getDocumentSelections() != null) {
-				for (String docName : selectionCriteria.getDocumentSelections().keySet()) {
-					DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
-					JochreDocument doc = documentDao.loadJochreDocument(docName);
-					Set<Integer> pageIds = selectionCriteria.getDocumentSelections().get(docName);
-					for (JochrePage page : doc.getPages()) {
-						if (pageIds.size() == 0 || pageIds.contains(page.getIndex())) {
-							for (JochreImage jochreImage : page.getImages()) {
-								images.add(jochreImage);
-							}
-						}
-					}
-				}
-			} else {
-				List<JochreImage> myImages = this.graphicsDao.findImages(selectionCriteria.getImageStatusesToInclude());
-				int i = 0;
-				for (JochreImage image : myImages) {
-					if (selectionCriteria.getImageCount() > 0 && images.size() >= selectionCriteria.getImageCount())
-						break;
-					if (image.getId() == selectionCriteria.getExcludeImageId())
-						continue;
-					if (selectionCriteria.getDocumentId() > 0 && image.getPage().getDocumentId() != selectionCriteria.getDocumentId())
-						continue;
-					if (selectionCriteria.getDocumentIds() != null && !selectionCriteria.getDocumentIds().contains(image.getPage().getDocumentId()))
-						continue;
-					if (selectionCriteria.getCrossValidationSize() > 0) {
-						i++;
-						if (selectionCriteria.getIncludeIndex() >= 0) {
-							if (i % selectionCriteria.getCrossValidationSize() != selectionCriteria.getIncludeIndex()) {
-								continue;
-							}
-						} else if (selectionCriteria.getExcludeIndex() >= 0) {
-							if (i % selectionCriteria.getCrossValidationSize() == selectionCriteria.getExcludeIndex()) {
-								continue;
-							}
-						}
-					}
-					images.add(image);
-				}
-			}
-			
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Added images: ");
-				for (JochreImage image : images) {
-					LOG.debug("Image " + image.getId() + ", page " + image.getPageId() + ", doc " + image.getPage().getDocumentId() + ", status: " + image.getImageStatus().name());
-				}
-			}
-		}
-	}
+  protected void initialiseStream() {
+    if (images == null) {
+      images = new ArrayList<JochreImage>();
+      if (selectionCriteria.getImageId() != 0) {
+        JochreImage jochreImage = this.graphicsDao.loadJochreImage(selectionCriteria.getImageId());
+        images.add(jochreImage);
+      } else if (selectionCriteria.getDocumentSelections() != null) {
+        for (String docName : selectionCriteria.getDocumentSelections().keySet()) {
+          DocumentDao documentDao = DocumentDao.getInstance(jochreSession);
+          JochreDocument doc = documentDao.loadJochreDocument(docName);
+          Set<Integer> pageIds = selectionCriteria.getDocumentSelections().get(docName);
+          for (JochrePage page : doc.getPages()) {
+            if (pageIds.size() == 0 || pageIds.contains(page.getIndex())) {
+              for (JochreImage jochreImage : page.getImages()) {
+                images.add(jochreImage);
+              }
+            }
+          }
+        }
+      } else {
+        List<JochreImage> myImages = this.graphicsDao.findImages(selectionCriteria.getImageStatusesToInclude());
+        int i = 0;
+        for (JochreImage image : myImages) {
+          if (selectionCriteria.getImageCount() > 0 && images.size() >= selectionCriteria.getImageCount())
+            break;
+          if (image.getId() == selectionCriteria.getExcludeImageId())
+            continue;
+          if (selectionCriteria.getDocumentId() > 0 && image.getPage().getDocumentId() != selectionCriteria.getDocumentId())
+            continue;
+          if (selectionCriteria.getDocumentIds() != null && !selectionCriteria.getDocumentIds().contains(image.getPage().getDocumentId()))
+            continue;
+          if (selectionCriteria.getCrossValidationSize() > 0) {
+            i++;
+            if (selectionCriteria.getIncludeIndex() >= 0) {
+              if (i % selectionCriteria.getCrossValidationSize() != selectionCriteria.getIncludeIndex()) {
+                continue;
+              }
+            } else if (selectionCriteria.getExcludeIndex() >= 0) {
+              if (i % selectionCriteria.getCrossValidationSize() == selectionCriteria.getExcludeIndex()) {
+                continue;
+              }
+            }
+          }
+          images.add(image);
+        }
+      }
+      
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Added images: ");
+        for (JochreImage image : images) {
+          LOG.debug("Image " + image.getId() + ", page " + image.getPageId() + ", doc " + image.getPage().getDocumentId() + ", status: " + image.getImageStatus().name());
+        }
+      }
+    }
+  }
 
-	public List<JochreImage> getImages() {
-		return images;
-	}
+  public List<JochreImage> getImages() {
+    return images;
+  }
 
-	/**
-	 * The selection criteria driving the choice of images in this reader.
-	 */
-	public CorpusSelectionCriteria getSelectionCriteria() {
-		return selectionCriteria;
-	}
+  /**
+   * The selection criteria driving the choice of images in this reader.
+   */
+  public CorpusSelectionCriteria getSelectionCriteria() {
+    return selectionCriteria;
+  }
 
-	public void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria) {
-		this.selectionCriteria = selectionCriteria;
-	}
+  public void setSelectionCriteria(CorpusSelectionCriteria selectionCriteria) {
+    this.selectionCriteria = selectionCriteria;
+  }
 
 }

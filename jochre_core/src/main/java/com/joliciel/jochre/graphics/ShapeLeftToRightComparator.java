@@ -22,20 +22,20 @@ import java.util.Comparator;
 
 public class ShapeLeftToRightComparator implements Comparator<Shape> {
 
-	@Override
-	public int compare(Shape shape1, Shape shape2) {
-		if (shape1.equals(shape2))
-			return 0;
-		if (shape1.getRight()!=shape2.getRight())
-			return (shape1.getRight() - shape2.getRight());
-		if (shape1.getTop()!=shape2.getTop())
-			return (shape1.getTop()-shape2.getTop());
-		if (shape1.getLeft()!=shape2.getLeft())
-			return (shape1.getLeft() - shape2.getLeft());
-		if (shape1.getBottom()!=shape2.getBottom())
-			return (shape1.getBottom()-shape2.getBottom());
-		return 1;
-	}
-	
+  @Override
+  public int compare(Shape shape1, Shape shape2) {
+    if (shape1.equals(shape2))
+      return 0;
+    if (shape1.getRight()!=shape2.getRight())
+      return (shape1.getRight() - shape2.getRight());
+    if (shape1.getTop()!=shape2.getTop())
+      return (shape1.getTop()-shape2.getTop());
+    if (shape1.getLeft()!=shape2.getLeft())
+      return (shape1.getLeft() - shape2.getLeft());
+    if (shape1.getBottom()!=shape2.getBottom())
+      return (shape1.getBottom()-shape2.getBottom());
+    return 1;
+  }
+  
 
 }

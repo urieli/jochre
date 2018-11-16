@@ -37,56 +37,56 @@ import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
  *
  */
 public class PdfImageSaver extends AbstractPdfImageVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(PdfImageSaver.class);
-	private static String SUFFIX = "png";
+  private static final Logger LOG = LoggerFactory.getLogger(PdfImageSaver.class);
+  private static String SUFFIX = "png";
 
-	private final File outputDir;
-	private final int firstPage;
-	private final int lastPage;
+  private final File outputDir;
+  private final int firstPage;
+  private final int lastPage;
 
-	/**
-	 * 
-	 * @param pdfFile
-	 *            File to read
-	 * @param outputDirectory
-	 *            Where to save the pages.
-	 * @param firstPage
-	 *            a value of -1 means no first page
-	 * @param lastPage
-	 *            a value of -1 means no last page
-	 */
-	public PdfImageSaver(File pdfFile, String outputDirectory, int firstPage, int lastPage) {
-		super(pdfFile);
-		// Create the output directory if it doesn't exist
-		this.outputDir = new File(outputDirectory);
+  /**
+   * 
+   * @param pdfFile
+   *            File to read
+   * @param outputDirectory
+   *            Where to save the pages.
+   * @param firstPage
+   *            a value of -1 means no first page
+   * @param lastPage
+   *            a value of -1 means no last page
+   */
+  public PdfImageSaver(File pdfFile, String outputDirectory, int firstPage, int lastPage) {
+    super(pdfFile);
+    // Create the output directory if it doesn't exist
+    this.outputDir = new File(outputDirectory);
 
-		LOG.debug("Images will be stored to " + outputDirectory);
-		if (outputDir.exists() == false)
-			outputDir.mkdirs();
-		this.firstPage = firstPage;
-		this.lastPage = lastPage;
-	}
+    LOG.debug("Images will be stored to " + outputDirectory);
+    if (outputDir.exists() == false)
+      outputDir.mkdirs();
+    this.firstPage = firstPage;
+    this.lastPage = lastPage;
+  }
 
-	/**
-	 * Save the images to the outputDirectory indicated.
-	 */
-	public void saveImages() {
-		this.visitImages(firstPage, lastPage);
-	}
+  /**
+   * Save the images to the outputDirectory indicated.
+   */
+  public void saveImages() {
+    this.visitImages(firstPage, lastPage);
+  }
 
-	@Override
-	protected void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex) {
-		String fileName = this.getPdfFile().getName().substring(0, this.getPdfFile().getName().lastIndexOf('.'));
-		if (imageIndex > 0) {
-			fileName += "_" + String.format("%04d", pageIndex) + "_" + String.format("%02d", imageIndex) + "." + SUFFIX;
-		} else {
-			fileName += "_" + String.format("%04d", pageIndex) + "." + SUFFIX;
-		}
-		try {
-			ImageIO.write(image, SUFFIX, new File(outputDir, fileName));
-		} catch (IOException e) {
-			throw new JochreException(e);
-		}
-	}
+  @Override
+  protected void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex) {
+    String fileName = this.getPdfFile().getName().substring(0, this.getPdfFile().getName().lastIndexOf('.'));
+    if (imageIndex > 0) {
+      fileName += "_" + String.format("%04d", pageIndex) + "_" + String.format("%02d", imageIndex) + "." + SUFFIX;
+    } else {
+      fileName += "_" + String.format("%04d", pageIndex) + "." + SUFFIX;
+    }
+    try {
+      ImageIO.write(image, SUFFIX, new File(outputDir, fileName));
+    } catch (IOException e) {
+      throw new JochreException(e);
+    }
+  }
 
 }
