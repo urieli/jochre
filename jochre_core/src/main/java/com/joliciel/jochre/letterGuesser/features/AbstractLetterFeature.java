@@ -27,5 +27,5 @@ import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
  *
  */
 public abstract class AbstractLetterFeature<Y> extends AbstractCachableFeature<LetterGuesserContext,Y> implements LetterFeature<Y> {
-	
+  
 }

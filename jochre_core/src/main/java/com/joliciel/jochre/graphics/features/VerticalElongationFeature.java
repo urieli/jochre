@@ -31,12 +31,12 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  */
 public final class VerticalElongationFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
 
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double ratio = (double)shape.getHeight() / (double)shape.getWidth();
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double ratio = (double)shape.getHeight() / (double)shape.getWidth();
 
-		FeatureResult<Double> outcome = this.generateResult(ratio);
-		return outcome;
-	}
+    FeatureResult<Double> outcome = this.generateResult(ratio);
+    return outcome;
+  }
 }

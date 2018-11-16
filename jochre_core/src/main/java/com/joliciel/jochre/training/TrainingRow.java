@@ -29,13 +29,13 @@ import java.awt.image.BufferedImage;
  */
 public interface TrainingRow {
 
-	/**
-	 * This row's rectangle within the page.
-	 */
-	public Rectangle getRectangle();
+  /**
+   * This row's rectangle within the page.
+   */
+  public Rectangle getRectangle();
 
-	/**
-	 * This row's image.
-	 */
-	public BufferedImage getImage();
+  /**
+   * This row's image.
+   */
+  public BufferedImage getImage();
 }

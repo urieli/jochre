@@ -28,8 +28,8 @@ import com.joliciel.jochre.graphics.Shape;
  *
  */
 public interface ShapeSplitter {
-	/**
-	 * Given a shape, returns a list of possible splits, each with a probability.
-	 */
-	public List<ShapeSequence> split(Shape shape);
+  /**
+   * Given a shape, returns a list of possible splits, each with a probability.
+   */
+  public List<ShapeSequence> split(Shape shape);
 }

@@ -24,8 +24,8 @@ package com.joliciel.jochre.search.lexicon;
  *
  */
 public interface LexicalEntryReader {
-	/**
-	 * Read a lexical entry directly from a block of text.
-	 */
-	public LexicalEntry readEntry(String text);
+  /**
+   * Read a lexical entry directly from a block of text.
+   */
+  public LexicalEntry readEntry(String text);
 }

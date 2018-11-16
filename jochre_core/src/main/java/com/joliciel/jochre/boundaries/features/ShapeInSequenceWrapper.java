@@ -28,5 +28,5 @@ import com.joliciel.jochre.boundaries.ShapeInSequence;
  *
  */
 public interface ShapeInSequenceWrapper {
-	public ShapeInSequence getShapeInSequence();
+  public ShapeInSequence getShapeInSequence();
 }

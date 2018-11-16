@@ -4,6 +4,25 @@
 # Sample settings in Occitan
 
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s',
+                    datefmt='%y-%m-%d %H:%M',
+                    filename='/var/log/jochreSearchDjango/django.log',
+                    filemode='a')
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +77,13 @@ JOCHRE_UI_STRINGS = {
 "titleField" : u"Títol",
 "authorField" : u"Autor",
 "strictField" : u"Forma exacta",
+"clear" : u"Clear",
+"fromYearField" : u"Annada despuòi",
+"toYearField" : u"dusca",
+"sortBy" : u"Sort by",
+"sortByScore" : u"score",
+"sortByYearAscending" : u"year ↑",
+"sortByYearDescending" : u"year ↓",
 "unableToProcessQuery" : u"Unable to process query",
 "noResults" : u"No results",
 "foundResults" : u"%d resultats. Resultats %d a %d",
@@ -81,4 +107,19 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "fixWordFont" : u"Font",
 "fixWordFontExample" : u"Font example",
 "fixWordLanguage" : u"Language",
+"prefsTitle" : u"Preferences",
+"prefsDocsPerPage" : u"Results per page",
+"prefsSnippetsPerDoc" : u"Snippets per result",
 }
+
+SHOW_SECTION = False
+
+def PAGE_URL_TRANSFORM(pageNumber):
+  return pageNumber
+
+KEYBOARD_MAPPINGS_ENABLED = False
+
+KEYBOARD_MAPPINGS = {}
+
+DOCS_PER_PAGE = 10
+SNIPPETS_PER_DOC = 20

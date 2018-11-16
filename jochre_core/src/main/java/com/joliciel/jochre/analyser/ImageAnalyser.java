@@ -29,20 +29,20 @@ import com.joliciel.jochre.graphics.JochreImage;
  *
  */
 public interface ImageAnalyser extends DocumentObserver {
-	/**
-	 * Analyse the letters in an image.
-	 */
-	public abstract void analyse(JochreImage image);
+  /**
+   * Analyse the letters in an image.
+   */
+  public abstract void analyse(JochreImage image);
 
-	public abstract void addObserver(LetterGuessObserver letterGuessObserver);
+  public abstract void addObserver(LetterGuessObserver letterGuessObserver);
 
-	/**
-	 * Only retain those guesses whose probability is &gt;= this value.
-	 */
-	public abstract double getMinOutcomeWeight();
+  /**
+   * Only retain those guesses whose probability is &gt;= this value.
+   */
+  public abstract double getMinOutcomeWeight();
 
-	/**
-	 * The number of guesses to retain per analysis step.
-	 */
-	public abstract int getBeamWidth();
+  /**
+   * The number of guesses to retain per analysis step.
+   */
+  public abstract int getBeamWidth();
 }

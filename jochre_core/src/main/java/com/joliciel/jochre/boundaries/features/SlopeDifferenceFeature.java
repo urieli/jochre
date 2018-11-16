@@ -47,90 +47,90 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class SlopeDifferenceFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
-	private static final Logger LOG = LoggerFactory.getLogger(SlopeDifferenceFeature.class);
-	private IntegerFeature<Split> contourDistanceFeature;
+  private static final Logger LOG = LoggerFactory.getLogger(SlopeDifferenceFeature.class);
+  private IntegerFeature<Split> contourDistanceFeature;
 
-	/**
-	 * 
-	 * @param contourDistanceFeature
-	 *            the distance to travel along the contour when calculating the
-	 *            slope
-	 */
-	public SlopeDifferenceFeature(IntegerFeature<Split> contourDistanceFeature) {
-		super();
-		this.contourDistanceFeature = contourDistanceFeature;
-		this.setName(super.getName() + "(" + contourDistanceFeature.getName() + ")");
-	}
+  /**
+   * 
+   * @param contourDistanceFeature
+   *            the distance to travel along the contour when calculating the
+   *            slope
+   */
+  public SlopeDifferenceFeature(IntegerFeature<Split> contourDistanceFeature) {
+    super();
+    this.contourDistanceFeature = contourDistanceFeature;
+    this.setName(super.getName() + "(" + contourDistanceFeature.getName() + ")");
+  }
 
-	@Override
-	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		FeatureResult<Integer> contourDistanceResult = contourDistanceFeature.check(split, env);
-		if (contourDistanceResult != null) {
-			int contourDistance = contourDistanceResult.getOutcome();
+  @Override
+  public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    FeatureResult<Integer> contourDistanceResult = contourDistanceFeature.check(split, env);
+    if (contourDistanceResult != null) {
+      int contourDistance = contourDistanceResult.getOutcome();
 
-			int[][] verticalContour = split.getShape().getVerticalContour();
-			int x = split.getPosition();
-			Shape shape = split.getShape();
-			int topStart = verticalContour[x][0];
-			int bottomStart = verticalContour[x][1];
+      int[][] verticalContour = split.getShape().getVerticalContour();
+      int x = split.getPosition();
+      Shape shape = split.getShape();
+      int topStart = verticalContour[x][0];
+      int bottomStart = verticalContour[x][1];
 
-			SimpleRegression topRightRegression = new SimpleRegression();
-			SimpleRegression bottomRightRegression = new SimpleRegression();
-			SimpleRegression topLeftRegression = new SimpleRegression();
-			SimpleRegression bottomLeftRegression = new SimpleRegression();
+      SimpleRegression topRightRegression = new SimpleRegression();
+      SimpleRegression bottomRightRegression = new SimpleRegression();
+      SimpleRegression topLeftRegression = new SimpleRegression();
+      SimpleRegression bottomLeftRegression = new SimpleRegression();
 
-			topRightRegression.addData(x, topStart);
-			topLeftRegression.addData(x, topStart);
-			bottomRightRegression.addData(x, bottomStart);
-			bottomLeftRegression.addData(x, bottomStart);
+      topRightRegression.addData(x, topStart);
+      topLeftRegression.addData(x, topStart);
+      bottomRightRegression.addData(x, bottomStart);
+      bottomLeftRegression.addData(x, bottomStart);
 
-			for (int i = 1; i <= contourDistance; i++) {
-				if (x + i < shape.getWidth()) {
-					topRightRegression.addData(x + i, verticalContour[x + i][0]);
-					bottomRightRegression.addData(x + i, verticalContour[x + i][1]);
-				}
-				if (x - i >= 0) {
-					topLeftRegression.addData(x - i, verticalContour[x - i][0]);
-					bottomLeftRegression.addData(x - i, verticalContour[x - i][1]);
-				}
-			}
+      for (int i = 1; i <= contourDistance; i++) {
+        if (x + i < shape.getWidth()) {
+          topRightRegression.addData(x + i, verticalContour[x + i][0]);
+          bottomRightRegression.addData(x + i, verticalContour[x + i][1]);
+        }
+        if (x - i >= 0) {
+          topLeftRegression.addData(x - i, verticalContour[x - i][0]);
+          bottomLeftRegression.addData(x - i, verticalContour[x - i][1]);
+        }
+      }
 
-			// get the slopes
-			double topRightSlope = topRightRegression.getSlope();
-			double bottomRightSlope = bottomRightRegression.getSlope();
-			double topLeftSlope = topLeftRegression.getSlope();
-			double bottomLeftSlope = bottomLeftRegression.getSlope();
+      // get the slopes
+      double topRightSlope = topRightRegression.getSlope();
+      double bottomRightSlope = bottomRightRegression.getSlope();
+      double topLeftSlope = topLeftRegression.getSlope();
+      double bottomLeftSlope = bottomLeftRegression.getSlope();
 
-			// convert slopes to angles
-			double topRightAngle = Math.atan(topRightSlope);
-			double bottomRightAngle = Math.atan(bottomRightSlope);
-			double topLeftAngle = Math.atan(topLeftSlope);
-			double bottomLeftAngle = Math.atan(bottomLeftSlope);
+      // convert slopes to angles
+      double topRightAngle = Math.atan(topRightSlope);
+      double bottomRightAngle = Math.atan(bottomRightSlope);
+      double topLeftAngle = Math.atan(topLeftSlope);
+      double bottomLeftAngle = Math.atan(bottomLeftSlope);
 
-			// calculate the right & left-hand differences
-			double rightDiff = Math.abs(topRightAngle - bottomRightAngle);
-			double leftDiff = Math.abs(topLeftAngle - bottomLeftAngle);
+      // calculate the right & left-hand differences
+      double rightDiff = Math.abs(topRightAngle - bottomRightAngle);
+      double leftDiff = Math.abs(topLeftAngle - bottomLeftAngle);
 
-			// normalise the differences from 0 to 1
-			rightDiff = rightDiff / Math.PI;
-			leftDiff = leftDiff / Math.PI;
+      // normalise the differences from 0 to 1
+      rightDiff = rightDiff / Math.PI;
+      leftDiff = leftDiff / Math.PI;
 
-			double product = rightDiff * leftDiff;
+      double product = rightDiff * leftDiff;
 
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("topRightAngle: " + topRightAngle);
-				LOG.trace("bottomRightAngle: " + bottomRightAngle);
-				LOG.trace("topLeftAngle: " + topLeftAngle);
-				LOG.trace("bottomLeftAngle: " + bottomLeftAngle);
-				LOG.trace("rightDiff: " + rightDiff);
-				LOG.trace("leftDiff: " + leftDiff);
-				LOG.trace("product: " + product);
-			}
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("topRightAngle: " + topRightAngle);
+        LOG.trace("bottomRightAngle: " + bottomRightAngle);
+        LOG.trace("topLeftAngle: " + topLeftAngle);
+        LOG.trace("bottomLeftAngle: " + bottomLeftAngle);
+        LOG.trace("rightDiff: " + rightDiff);
+        LOG.trace("leftDiff: " + leftDiff);
+        LOG.trace("product: " + product);
+      }
 
-			result = this.generateResult(product);
-		}
-		return result;
-	}
+      result = this.generateResult(product);
+    }
+    return result;
+  }
 
 }

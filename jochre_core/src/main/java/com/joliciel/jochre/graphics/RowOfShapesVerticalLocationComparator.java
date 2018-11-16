@@ -22,19 +22,19 @@ import java.util.Comparator;
 
 class RowOfShapesVerticalLocationComparator implements Comparator<RowOfShapes> {
 
-	@Override
-	public int compare(RowOfShapes row1, RowOfShapes row2) {
-		if (row1.equals(row2))
-			return 0;
-		double row1MidPoint = (double)(row1.getTop() + row1.getBottom()) / 2.0;
-		double row2MidPoint = (double)(row2.getTop() + row2.getBottom()) / 2.0;
-		
-		double distance = row1MidPoint - row2MidPoint;
-		if (distance<0)
-			return -1;
-		if (distance>0)
-			return 1;
-		return 1;
-	}
+  @Override
+  public int compare(RowOfShapes row1, RowOfShapes row2) {
+    if (row1.equals(row2))
+      return 0;
+    double row1MidPoint = (double)(row1.getTop() + row1.getBottom()) / 2.0;
+    double row2MidPoint = (double)(row2.getTop() + row2.getBottom()) / 2.0;
+    
+    double distance = row1MidPoint - row2MidPoint;
+    if (distance<0)
+      return -1;
+    if (distance>0)
+      return 1;
+    return 1;
+  }
 
 }

@@ -12,34 +12,28 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 
 /**
  * The analyser used to analyse tokenised metadata.
+ * 
  * @author Assaf Urieli
  *
  */
 class JochreMetaDataAnalyser extends Analyzer {
-	TextNormaliser textNormaliser;
+  private final TextNormaliser textNormaliser;
 
-	public JochreMetaDataAnalyser() {
-	}
+  public JochreMetaDataAnalyser(JochreSearchConfig config) {
+    textNormaliser = TextNormaliser.getInstance(config);
+  }
 
-	@Override
-	protected TokenStreamComponents createComponents(final String fieldName) {
-		Tokenizer source = new StandardTokenizer();
-		TokenStream result = source;
-		if (textNormaliser!=null)
-			result = new TextNormalisingFilter(result, textNormaliser);
-		else {
-			result = new ASCIIFoldingFilter(result);
-			result = new LowerCaseFilter(result);
-		}
-		result = new PunctuationFilter(result);
-		return new TokenStreamComponents(source, result);
-	}
-
-	public TextNormaliser getTextNormaliser() {
-		return textNormaliser;
-	}
-
-	public void setTextNormaliser(TextNormaliser textNormaliser) {
-		this.textNormaliser = textNormaliser;
-	}
+  @Override
+  protected TokenStreamComponents createComponents(final String fieldName) {
+    Tokenizer source = new StandardTokenizer();
+    TokenStream result = source;
+    if (textNormaliser != null)
+      result = new TextNormalisingFilter(result, textNormaliser);
+    else {
+      result = new ASCIIFoldingFilter(result);
+      result = new LowerCaseFilter(result);
+    }
+    result = new PunctuationFilter(result);
+    return new TokenStreamComponents(source, result);
+  }
 }

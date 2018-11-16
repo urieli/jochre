@@ -40,70 +40,70 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class LetterGuesser {
-	private static final Logger LOG = LoggerFactory.getLogger(LetterGuesser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LetterGuesser.class);
 
-	private static final double MIN_PROB_TO_STORE = 0.001;
+  private static final double MIN_PROB_TO_STORE = 0.001;
 
-	private final DecisionMaker decisionMaker;
-	private final Set<LetterFeature<?>> features;
+  private final DecisionMaker decisionMaker;
+  private final Set<LetterFeature<?>> features;
 
-	public LetterGuesser(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
-		this.decisionMaker = decisionMaker;
-		this.features = features;
-	}
+  public LetterGuesser(Set<LetterFeature<?>> features, DecisionMaker decisionMaker) {
+    this.decisionMaker = decisionMaker;
+    this.features = features;
+  }
 
-	public String guessLetter(ShapeInSequence shapeInSequence) {
-		return this.guessLetter(shapeInSequence, null);
-	}
+  public String guessLetter(ShapeInSequence shapeInSequence) {
+    return this.guessLetter(shapeInSequence, null);
+  }
 
-	/**
-	 * Analyses this shape, using the context provided for features that are not
-	 * intrinsic. Updates shape.getWeightedOutcomes to include all outcomes
-	 * above a certain threshold of probability.
-	 * 
-	 * @return the best outcome for this shape.
-	 */
-	public String guessLetter(ShapeInSequence shapeInSequence, LetterSequence history) {
-		Shape shape = shapeInSequence.getShape();
-		if (LOG.isTraceEnabled())
-			LOG.trace("guessLetter, shape: " + shape);
+  /**
+   * Analyses this shape, using the context provided for features that are not
+   * intrinsic. Updates shape.getWeightedOutcomes to include all outcomes
+   * above a certain threshold of probability.
+   * 
+   * @return the best outcome for this shape.
+   */
+  public String guessLetter(ShapeInSequence shapeInSequence, LetterSequence history) {
+    Shape shape = shapeInSequence.getShape();
+    if (LOG.isTraceEnabled())
+      LOG.trace("guessLetter, shape: " + shape);
 
-		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+    List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-		// analyse features
-		for (LetterFeature<?> feature : features) {
-			LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
-			RuntimeEnvironment env = new RuntimeEnvironment();
-			FeatureResult<?> featureResult = feature.check(context, env);
-			if (featureResult != null) {
-				featureResults.add(featureResult);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(featureResult.toString());
-				}
-			}
-		}
+    // analyse features
+    for (LetterFeature<?> feature : features) {
+      LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
+      RuntimeEnvironment env = new RuntimeEnvironment();
+      FeatureResult<?> featureResult = feature.check(context, env);
+      if (featureResult != null) {
+        featureResults.add(featureResult);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(featureResult.toString());
+        }
+      }
+    }
 
-		List<Decision> letterGuesses = decisionMaker.decide(featureResults);
+    List<Decision> letterGuesses = decisionMaker.decide(featureResults);
 
-		// store outcomes
-		String bestOutcome = null;
-		shape.getLetterGuesses().clear();
+    // store outcomes
+    String bestOutcome = null;
+    shape.getLetterGuesses().clear();
 
-		for (Decision letterGuess : letterGuesses) {
-			if (letterGuess.getProbability() >= MIN_PROB_TO_STORE) {
-				shape.getLetterGuesses().add(letterGuess);
-			}
-		}
+    for (Decision letterGuess : letterGuesses) {
+      if (letterGuess.getProbability() >= MIN_PROB_TO_STORE) {
+        shape.getLetterGuesses().add(letterGuess);
+      }
+    }
 
-		bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
+    bestOutcome = shape.getLetterGuesses().iterator().next().getOutcome();
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("Shape: " + shape);
-			LOG.trace("Letter: " + shape.getLetter());
-			LOG.trace("Best outcome: " + bestOutcome);
-		}
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Shape: " + shape);
+      LOG.trace("Letter: " + shape.getLetter());
+      LOG.trace("Best outcome: " + bestOutcome);
+    }
 
-		return bestOutcome;
-	}
+    return bestOutcome;
+  }
 
 }

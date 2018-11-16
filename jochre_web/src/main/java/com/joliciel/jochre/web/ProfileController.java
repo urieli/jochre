@@ -20,80 +20,80 @@ import org.zkoss.zul.Window;
 import com.joliciel.jochre.security.User;
 
 public class ProfileController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ProfileController.class);
 
-	@Wire
-	Window winProfile;
-	@Wire
-	Label lblUsername;
-	@Wire
-	Textbox txtPassword;
-	@Wire
-	Textbox txtPassword2;
-	@Wire
-	Textbox txtFirstName;
-	@Wire
-	Textbox txtLastName;
-	@Wire
-	Label lblPwdError;
+  @Wire
+  Window winProfile;
+  @Wire
+  Label lblUsername;
+  @Wire
+  Textbox txtPassword;
+  @Wire
+  Textbox txtPassword2;
+  @Wire
+  Textbox txtFirstName;
+  @Wire
+  Textbox txtLastName;
+  @Wire
+  Label lblPwdError;
 
-	public ProfileController() {
-	}
+  public ProfileController() {
+  }
 
-	@Override
-	public void doAfterCompose(Window window) throws Exception {
-		LOG.debug("doAfterCompose");
-		super.doAfterCompose(window);
-		String pageTitle = Labels.getLabel("profile.title");
-		winProfile.getPage().setTitle(pageTitle);
+  @Override
+  public void doAfterCompose(Window window) throws Exception {
+    LOG.debug("doAfterCompose");
+    super.doAfterCompose(window);
+    String pageTitle = Labels.getLabel("profile.title");
+    winProfile.getPage().setTitle(pageTitle);
 
-		Session session = Sessions.getCurrent();
-		User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-		if (user == null) {
-			Executions.sendRedirect("login.zul");
-			return;
-		}
+    Session session = Sessions.getCurrent();
+    User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
+    if (user == null) {
+      Executions.sendRedirect("login.zul");
+      return;
+    }
 
-		lblUsername.setValue(user.getUsername());
-		txtFirstName.setText(user.getFirstName());
-		txtLastName.setText(user.getLastName());
+    lblUsername.setValue(user.getUsername());
+    txtFirstName.setText(user.getFirstName());
+    txtLastName.setText(user.getLastName());
 
-	}
+  }
 
-	@Listen("onClick = #btnSave")
-	public void onClick$btnSave(Event event) {
-		LOG.debug("onClick$btnsave");
-		try {
-			Session session = Sessions.getCurrent();
-			User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
-			if (txtPassword.getText().length() > 0) {
-				if (!txtPassword.getText().equals(txtPassword2.getText())) {
-					lblPwdError.setVisible(true);
-					return;
-				}
-				user.setPassword(txtPassword.getText());
-			}
-			user.setFirstName(txtFirstName.getText());
-			user.setLastName(txtLastName.getText());
-			user.save();
+  @Listen("onClick = #btnSave")
+  public void onClick$btnSave(Event event) {
+    LOG.debug("onClick$btnsave");
+    try {
+      Session session = Sessions.getCurrent();
+      User user = (User) session.getAttribute(LoginController.SESSION_JOCHRE_USER);
+      if (txtPassword.getText().length() > 0) {
+        if (!txtPassword.getText().equals(txtPassword2.getText())) {
+          lblPwdError.setVisible(true);
+          return;
+        }
+        user.setPassword(txtPassword.getText());
+      }
+      user.setFirstName(txtFirstName.getText());
+      user.setLastName(txtLastName.getText());
+      user.save();
 
-			Messagebox.show(Labels.getLabel("button.saveComplete"));
+      Messagebox.show(Labels.getLabel("button.saveComplete"));
 
-		} catch (Exception e) {
-			LOG.error("Failure in onClick$btnsave", e);
-			throw new RuntimeException(e);
-		}
-	}
+    } catch (Exception e) {
+      LOG.error("Failure in onClick$btnsave", e);
+      throw new RuntimeException(e);
+    }
+  }
 
-	public void onClick$btnCancel(Event event) {
-		LOG.debug("onClick$btnCancel");
-		Executions.sendRedirect("docs.zul");
-	}
+  public void onClick$btnCancel(Event event) {
+    LOG.debug("onClick$btnCancel");
+    Executions.sendRedirect("docs.zul");
+  }
 
-	public Constraint getNoEmpty() {
-		Constraint noEmpty = SimpleConstraint.getInstance("no empty");
-		return noEmpty;
-	}
+  public Constraint getNoEmpty() {
+    Constraint noEmpty = SimpleConstraint.getInstance("no empty");
+    return noEmpty;
+  }
 }

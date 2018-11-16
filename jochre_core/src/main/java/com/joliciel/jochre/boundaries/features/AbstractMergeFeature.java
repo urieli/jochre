@@ -22,6 +22,6 @@ import com.joliciel.jochre.boundaries.ShapePair;
 import com.joliciel.talismane.machineLearning.features.AbstractCachableFeature;
 
 abstract class AbstractMergeFeature<Y> extends AbstractCachableFeature<ShapePair,Y> implements
-		MergeFeature<Y> {
+    MergeFeature<Y> {
 
 }

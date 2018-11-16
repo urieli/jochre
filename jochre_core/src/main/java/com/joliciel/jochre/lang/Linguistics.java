@@ -32,44 +32,44 @@ import com.joliciel.talismane.utils.CountedOutcome;
  *
  */
 public interface Linguistics {
-	public void setJochreSession(JochreSession jochreSession);
+  public void setJochreSession(JochreSession jochreSession);
 
-	/**
-	 * For a given word (not necessarily in standard spelling for the lexicon),
-	 * returns a list of any equivalent words found in the lexicon (in their
-	 * standard spelling) with the associated frequencies.
-	 */
-	public List<CountedOutcome<String>> getFrequencies(String word);
+  /**
+   * For a given word (not necessarily in standard spelling for the lexicon),
+   * returns a list of any equivalent words found in the lexicon (in their
+   * standard spelling) with the associated frequencies.
+   */
+  public List<CountedOutcome<String>> getFrequencies(String word);
 
-	/**
-	 * Is character validation active for the current configuration.
-	 */
-	public boolean isCharacterValidationActive();
+  /**
+   * Is character validation active for the current configuration.
+   */
+  public boolean isCharacterValidationActive();
 
-	public Set<String> getValidLetters();
+  public Set<String> getValidLetters();
 
-	public Set<Character> getValidCharacters();
+  public Set<Character> getValidCharacters();
 
-	public Set<String> getDualCharacterLetters();
+  public Set<String> getDualCharacterLetters();
 
-	public Set<Character> getPunctuation();
+  public Set<Character> getPunctuation();
 
-	public boolean isLeftToRight();
+  public boolean isLeftToRight();
 
-	public String standardiseWord(String originalWord);
+  public String standardiseWord(String originalWord);
 
-	public boolean isWordPossible(String word);
+  public boolean isWordPossible(String word);
 
-	/**
-	 * Splits a text (not containing any whitespace) into one or more words,
-	 * depending on punctuation inside a word, e.g. quotation marks, a long
-	 * dash.
-	 */
-	public List<String> splitText(String wordText);
+  /**
+   * Splits a text (not containing any whitespace) into one or more words,
+   * depending on punctuation inside a word, e.g. quotation marks, a long
+   * dash.
+   */
+  public List<String> splitText(String wordText);
 
-	/**
-	 * Returns possible spelling variants of the original word. If null is
-	 * returned, assumes there are no other possible spelling variants.
-	 */
-	public Set<String> findVariants(String originalWord);
+  /**
+   * Returns possible spelling variants of the original word. If null is
+   * returned, assumes there are no other possible spelling variants.
+   */
+  public Set<String> findVariants(String originalWord);
 }

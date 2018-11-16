@@ -28,19 +28,19 @@ import java.util.Comparator;
  */
 class RectangleTopToBottomComparator implements Comparator<Rectangle> {
 
-	@Override
-	public int compare(Rectangle rect1, Rectangle rect2) {
-		if (rect1.equals(rect2))
-			return 0;
-		if (rect1.getTop()!=rect2.getTop())
-			return (rect1.getTop()-rect2.getTop());
-		if (rect1.getBottom()!=rect2.getBottom())
-			return (rect1.getBottom()-rect2.getBottom());
-		if (rect1.getLeft()!=rect2.getLeft())
-			return (rect1.getLeft() - rect2.getLeft());
-		if (rect1.getRight()!=rect2.getRight())
-			return (rect1.getRight() - rect2.getRight());
-		return 1;
-	}
+  @Override
+  public int compare(Rectangle rect1, Rectangle rect2) {
+    if (rect1.equals(rect2))
+      return 0;
+    if (rect1.getTop()!=rect2.getTop())
+      return (rect1.getTop()-rect2.getTop());
+    if (rect1.getBottom()!=rect2.getBottom())
+      return (rect1.getBottom()-rect2.getBottom());
+    if (rect1.getLeft()!=rect2.getLeft())
+      return (rect1.getLeft() - rect2.getLeft());
+    if (rect1.getRight()!=rect2.getRight())
+      return (rect1.getRight() - rect2.getRight());
+    return 1;
+  }
 
 }

@@ -25,46 +25,46 @@ package com.joliciel.jochre.graphics;
  *
  */
 public interface ImageGrid {
-	/**
-	 * The image width.
-	 */
-	int getWidth();
-	
-	/**
-	 * The image height.
-	 */
-	int getHeight();
-	
-	/**
-	 * Get a normalised brightness value from 0 to 255. Top-left corner is 0,0.
-	 */
-	int getPixel(int x, int y);
-	
-	/**
-	 * Pixel based on absolute pixels, in this image grid's container
-	 * (if the image grid is inside a container).
-	 */
-	public int getAbsolutePixel(int x, int y);
-	
-	/**
-	 * Returns the raw (un-normalised) value of the pixel.
-	 */
-	int getRawPixel(int x, int y);
-	
-	/**
-	 * Returns the raw (un-normalised) value of the pixel,
-	 * based on absolute coordinates, in this image grid's container
-	 * (if the image grid is inside a container).
-	 */
-	int getRawAbsolutePixel(int x, int y);
-	
-	/**
-	 * Returns a certain pixel as a black-or-white value,
-	 * where true = black pixel (brightness &lt;= threshold)
-	 * and false = white pixel (brightness &gt; threshold).
-	 * If the pixel falls outside the image borders, will always return 
-	 * white (false).
-	 * @param threshold a value from 0 (black) to 255 (white)
-	 */
-	public boolean isPixelBlack(int x, int y, int threshold);
+  /**
+   * The image width.
+   */
+  int getWidth();
+  
+  /**
+   * The image height.
+   */
+  int getHeight();
+  
+  /**
+   * Get a normalised brightness value from 0 to 255. Top-left corner is 0,0.
+   */
+  int getPixel(int x, int y);
+  
+  /**
+   * Pixel based on absolute pixels, in this image grid's container
+   * (if the image grid is inside a container).
+   */
+  public int getAbsolutePixel(int x, int y);
+  
+  /**
+   * Returns the raw (un-normalised) value of the pixel.
+   */
+  int getRawPixel(int x, int y);
+  
+  /**
+   * Returns the raw (un-normalised) value of the pixel,
+   * based on absolute coordinates, in this image grid's container
+   * (if the image grid is inside a container).
+   */
+  int getRawAbsolutePixel(int x, int y);
+  
+  /**
+   * Returns a certain pixel as a black-or-white value,
+   * where true = black pixel (brightness &lt;= threshold)
+   * and false = white pixel (brightness &gt; threshold).
+   * If the pixel falls outside the image borders, will always return 
+   * white (false).
+   * @param threshold a value from 0 (black) to 255 (white)
+   */
+  public boolean isPixelBlack(int x, int y, int threshold);
 }

@@ -34,25 +34,25 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  *
  */
 public class ThinRowFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-	private static final Logger LOG = LoggerFactory.getLogger(ThinRowFeature.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ThinRowFeature.class);
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double threshold = 0.75;
-		JochreImage image = shape.getJochreImage();
-		double averageRowHeight = image.getAverageRowHeight();
-		double shapeHeight = shape.getGroup().getRow().getXHeight();
-		
-		double ratio = shapeHeight / averageRowHeight;
-		
-		LOG.trace("averageRowHeight: " + averageRowHeight);
-		LOG.trace("shapeHeight: " + shapeHeight);
-		LOG.trace("ratio: " + ratio);
-		LOG.trace("threshold: " + threshold);
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double threshold = 0.75;
+    JochreImage image = shape.getJochreImage();
+    double averageRowHeight = image.getAverageRowHeight();
+    double shapeHeight = shape.getGroup().getRow().getXHeight();
+    
+    double ratio = shapeHeight / averageRowHeight;
+    
+    LOG.trace("averageRowHeight: " + averageRowHeight);
+    LOG.trace("shapeHeight: " + shapeHeight);
+    LOG.trace("ratio: " + ratio);
+    LOG.trace("threshold: " + threshold);
 
-		FeatureResult<Boolean> outcome = this.generateResult(ratio < threshold);
-		return outcome;
-	}
+    FeatureResult<Boolean> outcome = this.generateResult(ratio < threshold);
+    return outcome;
+  }
 
 }

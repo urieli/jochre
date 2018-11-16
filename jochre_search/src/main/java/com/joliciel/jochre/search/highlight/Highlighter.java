@@ -27,8 +27,8 @@ import java.util.Set;
  * the document was retrieved.
  */
 public interface Highlighter {
-	/**
-	 * Find all of the terms to highlight in a given set of doc ids.
-	 */
-	public Map<Integer, NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds, Set<String> fields);
+  /**
+   * Find all of the terms to highlight in a given set of doc ids.
+   */
+  public Map<Integer, NavigableSet<HighlightTerm>> highlight(Set<Integer> docIds);
 }

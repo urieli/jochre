@@ -29,44 +29,44 @@ import java.awt.Rectangle;
  *
  */
 public interface TrainingWord {
-	/**
-	 * The row on which this word is found.
-	 */
-	public TrainingRow getRow();
+  /**
+   * The row on which this word is found.
+   */
+  public TrainingRow getRow();
 
-	/**
-	 * The word's rectangle within the page containing it.
-	 */
-	public Rectangle getRectangle();
+  /**
+   * The word's rectangle within the page containing it.
+   */
+  public Rectangle getRectangle();
 
-	/**
-	 * The row containing the second half of a hyphenated word.
-	 */
-	public TrainingRow getSecondRow();
+  /**
+   * The row containing the second half of a hyphenated word.
+   */
+  public TrainingRow getSecondRow();
 
-	/**
-	 * The rectangle containing the 2nd half of a hyphenated word, within the
-	 * page containing it.
-	 */
-	public Rectangle getSecondRectangle();
+  /**
+   * The rectangle containing the 2nd half of a hyphenated word, within the
+   * page containing it.
+   */
+  public Rectangle getSecondRectangle();
 
-	/**
-	 * The font which the user indicated for this word.
-	 */
-	String getFont();
+  /**
+   * The font which the user indicated for this word.
+   */
+  String getFont();
 
-	/**
-	 * The language which the user indicated for this word.
-	 */
-	String getLanguage();
+  /**
+   * The language which the user indicated for this word.
+   */
+  String getLanguage();
 
-	/**
-	 * The text.
-	 */
-	String getText();
+  /**
+   * The text.
+   */
+  String getText();
 
-	/**
-	 * The text for the second half in the case of a hyphenated word.
-	 */
-	String getSecondText();
+  /**
+   * The text for the second half in the case of a hyphenated word.
+   */
+  String getSecondText();
 }

@@ -28,67 +28,67 @@ import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.letterGuesser.LetterSequence;
 
 public class LetterAssigner implements LetterGuessObserver {
-	JochreImage jochreImage = null;
-	private boolean save;
-	
-	public LetterAssigner() {
-		super();
-	}
+  JochreImage jochreImage = null;
+  private boolean save;
+  
+  public LetterAssigner() {
+    super();
+  }
 
-	@Override
-	public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess) {
-		Shape shape = shapeInSequence.getShape();
-		if (jochreImage.getImageStatus().equals(ImageStatus.AUTO_NEW)) {
-			// if the image is brand new, we assign both the letter and the original guess
-			// for all other images, we assign only the original guess
-			// so as not to override the letter selected by the user
-			shape.setLetter(bestGuess);
-		}
-		shape.setOriginalGuess(bestGuess);
-	}
+  @Override
+  public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess) {
+    Shape shape = shapeInSequence.getShape();
+    if (jochreImage.getImageStatus().equals(ImageStatus.AUTO_NEW)) {
+      // if the image is brand new, we assign both the letter and the original guess
+      // for all other images, we assign only the original guess
+      // so as not to override the letter selected by the user
+      shape.setLetter(bestGuess);
+    }
+    shape.setOriginalGuess(bestGuess);
+  }
 
 
-	@Override
-	public void onImageStart(JochreImage jochreImage) {
-		this.jochreImage = jochreImage;
-	}
+  @Override
+  public void onImageStart(JochreImage jochreImage) {
+    this.jochreImage = jochreImage;
+  }
 
-	@Override
-	public void onImageEnd() {
-	}
+  @Override
+  public void onImageEnd() {
+  }
 
-	@Override
-	public void onFinish() {
-	}
+  @Override
+  public void onFinish() {
+  }
 
-	@Override
-	public void onGuessSequence(LetterSequence letterSequence) {
-		if (save) {
-			ShapeSequence shapeSequence = letterSequence.getUnderlyingShapeSequence();
-			for (ShapeInSequence shapeInSequence : shapeSequence) {
-				Shape shape = shapeInSequence.getShape();
-				shape.save();
-			}
-		}
-	}
+  @Override
+  public void onGuessSequence(LetterSequence letterSequence) {
+    if (save) {
+      ShapeSequence shapeSequence = letterSequence.getUnderlyingShapeSequence();
+      for (ShapeInSequence shapeInSequence : shapeSequence) {
+        Shape shape = shapeInSequence.getShape();
+        shape.save();
+      }
+    }
+  }
 
-	@Override
-	public void onStartSequence(LetterSequence letterSequence) {
-		
-	}
+  @Override
+  public void onStartSequence(LetterSequence letterSequence) {
+    
+  }
 
-	public boolean isSave() {
-		return save;
-	}
+  public boolean isSave() {
+    return save;
+  }
 
-	public void setSave(boolean save) {
-		this.save = save;
-	}
+  public void setSave(boolean save) {
+    this.save = save;
+  }
 
-	@Override
-	public void onBeamSearchEnd(LetterSequence bestSequence,
-			List<LetterSequence> finalSequences,
-			List<LetterSequence> holdoverSequences) {
-	}
+  @Override
+  public void onBeamSearchEnd(LetterSequence bestSequence,
+      List<LetterSequence> finalSequences,
+      List<LetterSequence> holdoverSequences) {
+  }
 
 }

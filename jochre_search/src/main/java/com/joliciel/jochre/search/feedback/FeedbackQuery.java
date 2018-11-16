@@ -19,29 +19,89 @@
 package com.joliciel.jochre.search.feedback;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A single search query executed by a user.
+ * 
  * @author Assaf Urieli
  *
  */
-public interface FeedbackQuery {
-	public void addClause(FeedbackCriterion criterion, String text);
+public class FeedbackQuery {
+  private int id;
+  private String user;
+  private String ip;
+  private Date date;
+  private int resultCount;
+  private Map<FeedbackCriterion, String> clauses = new HashMap<>();
 
-	public Map<FeedbackCriterion, String> getClauses();
+  private final FeedbackDAO feedbackDAO;
 
-	public Date getDate();
+  public FeedbackQuery(String user, String ip, FeedbackDAO feedbackDAO) {
+    this(feedbackDAO);
+    this.user = user;
+    this.ip = ip;
+  }
 
-	public String getIp();
+  FeedbackQuery(FeedbackDAO feedbackDAO) {
+    this.feedbackDAO = feedbackDAO;
+  }
 
-	public String getUser();
+  public int getId() {
+    return id;
+  }
 
-	public int getId();
+  void setId(int id) {
+    this.id = id;
+  }
 
-	public int getResultCount();
+  public String getUser() {
+    return user;
+  }
 
-	public void setResultCount(int resultCount);
-	
-	public void save();
+  void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getIp() {
+    return ip;
+  }
+
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
+
+  public Date getDate() {
+    return date;
+  }
+
+  void setDate(Date date) {
+    this.date = date;
+  }
+
+  public int getResultCount() {
+    return resultCount;
+  }
+
+  public void setResultCount(int resultCount) {
+    this.resultCount = resultCount;
+  }
+
+  public Map<FeedbackCriterion, String> getClauses() {
+    return clauses;
+  }
+
+  public void addClause(FeedbackCriterion criterion, String text) {
+    this.clauses.put(criterion, text);
+  }
+
+  boolean isNew() {
+    return id == 0;
+  }
+
+  public void save() {
+    this.feedbackDAO.saveQuery(this);
+  }
+
 }

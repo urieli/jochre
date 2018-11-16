@@ -30,37 +30,37 @@ import com.joliciel.jochre.boundaries.ShapePair;
  *
  */
 public class MergeDistanceFeature extends AbstractMergeFeature<Double> implements DoubleFeature<ShapePair> {
-	DoubleFeature<ShapePair> maxDistanceFeature;
-	
-	public MergeDistanceFeature(DoubleFeature<ShapePair> maxDistanceFeature) {
-		super();
-		this.maxDistanceFeature = maxDistanceFeature;
-		this.setName(super.getName() + "(" + maxDistanceFeature.getName() + ")");
-	}
+  DoubleFeature<ShapePair> maxDistanceFeature;
+  
+  public MergeDistanceFeature(DoubleFeature<ShapePair> maxDistanceFeature) {
+    super();
+    this.maxDistanceFeature = maxDistanceFeature;
+    this.setName(super.getName() + "(" + maxDistanceFeature.getName() + ")");
+  }
 
 
-	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		FeatureResult<Double> maxDistanceResult = maxDistanceFeature.check(pair, env);
-		if (maxDistanceResult!=null) {
-			double maxDistance = maxDistanceResult.getOutcome();
-			double distance = pair.getInnerDistance();
-	
-			double xHeight = pair.getXHeight();
-	
-			double ratio = (distance / xHeight);
-			ratio = ratio / maxDistance;
-			
-			if (ratio < 0)
-				ratio = 0.0;
-			if (ratio > 1)
-				ratio = 1.0;
-			
-			result = this.generateResult(ratio);
-		}
-		return result;
+  @Override
+  public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    FeatureResult<Double> maxDistanceResult = maxDistanceFeature.check(pair, env);
+    if (maxDistanceResult!=null) {
+      double maxDistance = maxDistanceResult.getOutcome();
+      double distance = pair.getInnerDistance();
+  
+      double xHeight = pair.getXHeight();
+  
+      double ratio = (distance / xHeight);
+      ratio = ratio / maxDistance;
+      
+      if (ratio < 0)
+        ratio = 0.0;
+      if (ratio > 1)
+        ratio = 1.0;
+      
+      result = this.generateResult(ratio);
+    }
+    return result;
 
-	}
+  }
 
 }

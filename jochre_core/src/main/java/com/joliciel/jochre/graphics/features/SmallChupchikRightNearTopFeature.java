@@ -35,85 +35,85 @@ import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
  *
  */
 public class SmallChupchikRightNearTopFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-	private static final Logger LOG = LoggerFactory.getLogger(SmallChupchikRightNearTopFeature.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SmallChupchikRightNearTopFeature.class);
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		int xSectors = 11;
-		int centreSectors = 13;
-		int marginSectors = 1;
-		double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    int xSectors = 11;
+    int centreSectors = 13;
+    int marginSectors = 1;
+    double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
 
-		boolean foundChupchik = false;
-		int ySectors = grid[0].length;
-		boolean foundBlack = false;
-		boolean foundMoreBlack = false;
+    boolean foundChupchik = false;
+    int ySectors = grid[0].length;
+    boolean foundBlack = false;
+    boolean foundMoreBlack = false;
 
-		int testColumn = xSectors-1;
-		boolean foundStuff = false;
-		while (!foundStuff) {
-			for (int i = 0; i<ySectors;i++) {
-				if (grid[testColumn][i]>=0.5) {
-					foundStuff = true;
-					break;
-				}
-			}
-			if (!foundStuff) {
-				testColumn = testColumn - 1;
-			}
-		}
-		
-		int startChupchik = 0;
-		int startWhite = 0;
-		int numBlackBelowChupchik = 0;
-		int chupchikSize = 0;
-		int gapSize = 0;
-		double maxChupchikStart = ySectors/3;
-		
-		for (int i = 0; i<ySectors; i++) {
-			if (!foundBlack && i<maxChupchikStart) {
-				if (grid[testColumn][i]>=0.5) {
-					foundBlack = true;
-					startChupchik = i;
-				}
-			}
-			else if (!foundChupchik && foundBlack && grid[testColumn][i]<0.5){
-				chupchikSize = i-startChupchik;
-				if (LOG.isTraceEnabled())	
-					LOG.trace("Found chupchick, start=" + startChupchik + ", size=" + chupchikSize);
-				foundChupchik = true;
-				startWhite = i;
-			}
-			else if (foundChupchik && grid[testColumn][i]>=0.5) {
-				if (!foundMoreBlack) {
-					gapSize = i-startWhite;
-					foundMoreBlack = true;
-				}
-				numBlackBelowChupchik++;
-			}
-		}
-		if (foundChupchik&&!foundMoreBlack) {
-			gapSize = ySectors - startChupchik;
-		}
-		
-		int maxBlackBelowGap = gapSize+3;
-		
-		if (chupchikSize>5) {
-			if (LOG.isTraceEnabled())
-				LOG.trace("Chupchik too big: " + chupchikSize);
-			foundChupchik = false;
-		} else if (gapSize<3) {
-			if (LOG.isTraceEnabled())
-				LOG.trace("Gap size too small: "+ gapSize);
-			foundChupchik = false;
-		} else if (numBlackBelowChupchik>maxBlackBelowGap) {
-			if (LOG.isTraceEnabled())
-				LOG.trace("Too much black below gap, max: " + maxBlackBelowGap + ", found: " + numBlackBelowChupchik);
-			foundChupchik = false;
-		}
+    int testColumn = xSectors-1;
+    boolean foundStuff = false;
+    while (!foundStuff) {
+      for (int i = 0; i<ySectors;i++) {
+        if (grid[testColumn][i]>=0.5) {
+          foundStuff = true;
+          break;
+        }
+      }
+      if (!foundStuff) {
+        testColumn = testColumn - 1;
+      }
+    }
+    
+    int startChupchik = 0;
+    int startWhite = 0;
+    int numBlackBelowChupchik = 0;
+    int chupchikSize = 0;
+    int gapSize = 0;
+    double maxChupchikStart = ySectors/3;
+    
+    for (int i = 0; i<ySectors; i++) {
+      if (!foundBlack && i<maxChupchikStart) {
+        if (grid[testColumn][i]>=0.5) {
+          foundBlack = true;
+          startChupchik = i;
+        }
+      }
+      else if (!foundChupchik && foundBlack && grid[testColumn][i]<0.5){
+        chupchikSize = i-startChupchik;
+        if (LOG.isTraceEnabled())  
+          LOG.trace("Found chupchick, start=" + startChupchik + ", size=" + chupchikSize);
+        foundChupchik = true;
+        startWhite = i;
+      }
+      else if (foundChupchik && grid[testColumn][i]>=0.5) {
+        if (!foundMoreBlack) {
+          gapSize = i-startWhite;
+          foundMoreBlack = true;
+        }
+        numBlackBelowChupchik++;
+      }
+    }
+    if (foundChupchik&&!foundMoreBlack) {
+      gapSize = ySectors - startChupchik;
+    }
+    
+    int maxBlackBelowGap = gapSize+3;
+    
+    if (chupchikSize>5) {
+      if (LOG.isTraceEnabled())
+        LOG.trace("Chupchik too big: " + chupchikSize);
+      foundChupchik = false;
+    } else if (gapSize<3) {
+      if (LOG.isTraceEnabled())
+        LOG.trace("Gap size too small: "+ gapSize);
+      foundChupchik = false;
+    } else if (numBlackBelowChupchik>maxBlackBelowGap) {
+      if (LOG.isTraceEnabled())
+        LOG.trace("Too much black below gap, max: " + maxBlackBelowGap + ", found: " + numBlackBelowChupchik);
+      foundChupchik = false;
+    }
 
-		FeatureResult<Boolean> outcome = this.generateResult(foundChupchik);
-		return outcome;
-	}
+    FeatureResult<Boolean> outcome = this.generateResult(foundChupchik);
+    return outcome;
+  }
 }

@@ -33,61 +33,61 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class JochreYiddish {
-	public static void main(String[] args) throws Exception {
-		Map<String, String> argMap = StringUtils.convertArgs(args);
+  public static void main(String[] args) throws Exception {
+    Map<String, String> argMap = StringUtils.convertArgs(args);
 
-		String logConfigPath = argMap.get("logConfigFile");
-		if (logConfigPath != null) {
-			argMap.remove("logConfigFile");
-			JochreLogUtils.configureLogging(logConfigPath);
-		}
+    String logConfigPath = argMap.get("logConfigFile");
+    if (logConfigPath != null) {
+      argMap.remove("logConfigFile");
+      JochreLogUtils.configureLogging(logConfigPath);
+    }
 
-		String command = argMap.get("command");
-		if (command != null && (command.equals("metadata") || command.equals("booklist"))) {
-			String inDirPath = null;
-			boolean forceUpdate = false;
-			String outFilePath = null;
+    String command = argMap.get("command");
+    if (command != null && (command.equals("metadata") || command.equals("booklist"))) {
+      String inDirPath = null;
+      boolean forceUpdate = false;
+      String outFilePath = null;
 
-			argMap.remove("command");
+      argMap.remove("command");
 
-			for (Entry<String, String> argMapEntry : argMap.entrySet()) {
-				String argName = argMapEntry.getKey();
-				String argValue = argMapEntry.getValue();
-				if (argName.equals("inDir"))
-					inDirPath = argValue;
-				else if (argName.equals("outFile"))
-					outFilePath = argValue;
-				else if (argName.equals("forceUpdate"))
-					forceUpdate = argValue.equals("true");
-				else
-					throw new RuntimeException("Unknown argument: " + argName);
-			}
+      for (Entry<String, String> argMapEntry : argMap.entrySet()) {
+        String argName = argMapEntry.getKey();
+        String argValue = argMapEntry.getValue();
+        if (argName.equals("inDir"))
+          inDirPath = argValue;
+        else if (argName.equals("outFile"))
+          outFilePath = argValue;
+        else if (argName.equals("forceUpdate"))
+          forceUpdate = argValue.equals("true");
+        else
+          throw new RuntimeException("Unknown argument: " + argName);
+      }
 
-			if (inDirPath == null)
-				throw new RuntimeException("For command " + command + ", inDir is required");
+      if (inDirPath == null)
+        throw new RuntimeException("For command " + command + ", inDir is required");
 
-			File inDir = new File(inDirPath);
-			if (!inDir.exists() || !inDir.isDirectory()) {
-				throw new RuntimeException("inDir does not exist or is not a directory: " + inDir.getAbsolutePath());
-			}
-			YiddishMetaFetcher fetcher = new YiddishMetaFetcher();
+      File inDir = new File(inDirPath);
+      if (!inDir.exists() || !inDir.isDirectory()) {
+        throw new RuntimeException("inDir does not exist or is not a directory: " + inDir.getAbsolutePath());
+      }
+      YiddishMetaFetcher fetcher = new YiddishMetaFetcher();
 
-			if (command.equals("metadata")) {
+      if (command.equals("metadata")) {
 
-				fetcher.setForceUpdate(forceUpdate);
-				fetcher.fetchMetaData(inDir);
-			} else {
-				if (outFilePath == null)
-					throw new RuntimeException("For command " + command + ", outFile is required");
+        fetcher.setForceUpdate(forceUpdate);
+        fetcher.fetchMetaData(inDir);
+      } else {
+        if (outFilePath == null)
+          throw new RuntimeException("For command " + command + ", outFile is required");
 
-				File outFile = new File(outFilePath);
-				Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile, false), "UTF-8"));
-				fetcher.buildBookHtml(inDir, writer);
-			}
-		} else {
-			Config config = ConfigFactory.load();
-			Jochre jochre = new Jochre(config, argMap);
-			jochre.execute(argMap);
-		}
-	}
+        File outFile = new File(outFilePath);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile, false), "UTF-8"));
+        fetcher.buildBookHtml(inDir, writer);
+      }
+    } else {
+      Config config = ConfigFactory.load();
+      Jochre jochre = new Jochre(config, argMap);
+      jochre.execute(argMap);
+    }
+  }
 }

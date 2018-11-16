@@ -30,56 +30,56 @@ import com.joliciel.jochre.JochreSession;
  *
  */
 public class JochreCorpusShapeReader extends JochreCorpusReader {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusShapeReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusShapeReader.class);
 
-	private int shapeIndex = 0;
+  private int shapeIndex = 0;
 
-	private GroupOfShapes group = null;
-	private Shape shape = null;
+  private GroupOfShapes group = null;
+  private Shape shape = null;
 
-	private JochreCorpusGroupReader groupReader;
+  private JochreCorpusGroupReader groupReader;
 
-	public JochreCorpusShapeReader(JochreSession jochreSession) {
-		super(jochreSession);
-	}
+  public JochreCorpusShapeReader(JochreSession jochreSession) {
+    super(jochreSession);
+  }
 
-	public Shape next() {
-		Shape nextShape = null;
-		if (this.hasNext()) {
-			LOG.debug("next shape: " + shape);
-			nextShape = this.shape;
+  public Shape next() {
+    Shape nextShape = null;
+    if (this.hasNext()) {
+      LOG.debug("next shape: " + shape);
+      nextShape = this.shape;
 
-			this.shape = null;
-		}
-		return nextShape;
-	}
+      this.shape = null;
+    }
+    return nextShape;
+  }
 
-	public boolean hasNext() {
-		this.initialiseStream();
-		while (shape == null && group != null) {
-			if (shapeIndex < group.getShapes().size()) {
-				shape = group.getShapes().get(shapeIndex);
-				shapeIndex++;
-			} else {
-				group = null;
-				shapeIndex = 0;
-				if (groupReader.hasNext())
-					group = groupReader.next();
-			}
-		}
+  public boolean hasNext() {
+    this.initialiseStream();
+    while (shape == null && group != null) {
+      if (shapeIndex < group.getShapes().size()) {
+        shape = group.getShapes().get(shapeIndex);
+        shapeIndex++;
+      } else {
+        group = null;
+        shapeIndex = 0;
+        if (groupReader.hasNext())
+          group = groupReader.next();
+      }
+    }
 
-		return shape != null;
-	}
+    return shape != null;
+  }
 
-	@Override
-	protected void initialiseStream() {
-		if (groupReader == null) {
-			groupReader = new JochreCorpusGroupReader(jochreSession);
-			groupReader.setSelectionCriteria(this.getSelectionCriteria());
+  @Override
+  protected void initialiseStream() {
+    if (groupReader == null) {
+      groupReader = new JochreCorpusGroupReader(jochreSession);
+      groupReader.setSelectionCriteria(this.getSelectionCriteria());
 
-			if (groupReader.hasNext())
-				group = groupReader.next();
-		}
-	}
+      if (groupReader.hasNext())
+        group = groupReader.next();
+    }
+  }
 
 }

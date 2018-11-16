@@ -30,36 +30,36 @@ import com.joliciel.jochre.JochreSession;
  *
  */
 public class JochreCorpusImageReader extends JochreCorpusReader {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageReader.class);
 
-	private JochreImage image = null;
-	private int imageIndex = 0;
+  private JochreImage image = null;
+  private int imageIndex = 0;
 
-	public JochreCorpusImageReader(JochreSession jochreSession) {
-		super(jochreSession);
-	}
+  public JochreCorpusImageReader(JochreSession jochreSession) {
+    super(jochreSession);
+  }
 
-	public JochreImage next() {
-		if (this.image != null) {
-			this.image.clearMemory();
-		}
-		JochreImage nextImage = null;
-		if (this.hasNext()) {
-			LOG.debug("next image: " + this.image);
-			nextImage = this.image;
+  public JochreImage next() {
+    if (this.image != null) {
+      this.image.clearMemory();
+    }
+    JochreImage nextImage = null;
+    if (this.hasNext()) {
+      LOG.debug("next image: " + this.image);
+      nextImage = this.image;
 
-			this.image = null;
-		}
-		return nextImage;
-	}
+      this.image = null;
+    }
+    return nextImage;
+  }
 
-	public boolean hasNext() {
-		this.initialiseStream();
-		if (image == null && imageIndex < this.getImages().size()) {
-			image = this.getImages().get(imageIndex);
-			imageIndex++;
-		}
+  public boolean hasNext() {
+    this.initialiseStream();
+    if (image == null && imageIndex < this.getImages().size()) {
+      image = this.getImages().get(imageIndex);
+      imageIndex++;
+    }
 
-		return image != null;
-	}
+    return image != null;
+  }
 }

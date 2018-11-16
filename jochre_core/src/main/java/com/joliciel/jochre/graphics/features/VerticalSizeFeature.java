@@ -30,13 +30,13 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  *
  */
 public final class VerticalSizeFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper>  {
-	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
-		
-		FeatureResult<Double> outcome = this.generateResult(ratio);
-		return outcome;
-	}
+  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    double ratio = (double)shape.getHeight() / (double) (shape.getBaseLine() - shape.getMeanLine());
+    
+    FeatureResult<Double> outcome = this.generateResult(ratio);
+    return outcome;
+  }
 }

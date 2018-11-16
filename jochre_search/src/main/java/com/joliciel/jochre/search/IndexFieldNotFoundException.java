@@ -19,9 +19,9 @@
 package com.joliciel.jochre.search;
 
 public final class IndexFieldNotFoundException extends JochreSearchException {
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public IndexFieldNotFoundException(String message) {
-		super(message);
-	}
+  public IndexFieldNotFoundException(String message) {
+    super(message);
+  }
 }

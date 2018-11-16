@@ -32,19 +32,19 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  */
 public class WidthToXHeightRatioFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
 
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		FeatureResult<Double> result = null;
-		double width = shape.getWidth();
-		double xHeight = shape.getXHeight();
-		if (xHeight==0) xHeight = 1;
-		double ratio = width / xHeight;
-		ratio = ratio * 0.5;
-		if (ratio > 1)
-			ratio = 1.0;
-		result = this.generateResult(ratio);
-		return result;
-	}
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    FeatureResult<Double> result = null;
+    double width = shape.getWidth();
+    double xHeight = shape.getXHeight();
+    if (xHeight==0) xHeight = 1;
+    double ratio = width / xHeight;
+    ratio = ratio * 0.5;
+    if (ratio > 1)
+      ratio = 1.0;
+    result = this.generateResult(ratio);
+    return result;
+  }
 
 }

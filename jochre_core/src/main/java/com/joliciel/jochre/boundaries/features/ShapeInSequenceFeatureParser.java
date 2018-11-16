@@ -15,45 +15,45 @@ import com.joliciel.talismane.machineLearning.features.FunctionDescriptor;
  *
  */
 public class ShapeInSequenceFeatureParser extends AbstractFeatureParser<ShapeInSequence> {
-	FeatureClassContainer container;
+  FeatureClassContainer container;
 
-	public ShapeInSequenceFeatureParser() {
-		super();
-	}
+  public ShapeInSequenceFeatureParser() {
+    super();
+  }
 
-	@Override
-	public void addFeatureClasses(FeatureClassContainer container) {
-		container.addFeatureClass("LastShapeInRow", LastShapeInRowFeature.class);
-		container.addFeatureClass("LastShapeInSequence", LastShapeInSequenceFeature.class);
-		container.addFeatureClass("ShapeIndex", ShapeIndexFeature.class);
-		container.addFeatureClass("ShapeReverseIndex", ShapeReverseIndexFeature.class);
+  @Override
+  public void addFeatureClasses(FeatureClassContainer container) {
+    container.addFeatureClass("LastShapeInRow", LastShapeInRowFeature.class);
+    container.addFeatureClass("LastShapeInSequence", LastShapeInSequenceFeature.class);
+    container.addFeatureClass("ShapeIndex", ShapeIndexFeature.class);
+    container.addFeatureClass("ShapeReverseIndex", ShapeReverseIndexFeature.class);
 
-		this.container = container;
-	}
+    this.container = container;
+  }
 
-	@Override
-	public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
-		return null;
-	}
+  @Override
+  public List<FunctionDescriptor> getModifiedDescriptors(FunctionDescriptor functionDescriptor) {
+    return null;
+  }
 
-	@Override
-	public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
-		// no dependencies to inject
-	}
+  @Override
+  public void injectDependencies(@SuppressWarnings("rawtypes") Feature feature) {
+    // no dependencies to inject
+  }
 
-	@Override
-	protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
-		return false;
-	}
+  @Override
+  protected boolean canConvert(Class<?> parameterType, Class<?> originalArgumentType) {
+    return false;
+  }
 
-	@Override
-	protected Feature<ShapeInSequence, ?> convertArgument(Class<?> parameterType, Feature<ShapeInSequence, ?> originalArgument) {
-		return null;
-	}
+  @Override
+  protected Feature<ShapeInSequence, ?> convertArgument(Class<?> parameterType, Feature<ShapeInSequence, ?> originalArgument) {
+    return null;
+  }
 
-	@Override
-	public Feature<ShapeInSequence, ?> convertFeatureCustomType(Feature<ShapeInSequence, ?> feature) {
-		return null;
-	}
+  @Override
+  public Feature<ShapeInSequence, ?> convertFeatureCustomType(Feature<ShapeInSequence, ?> feature) {
+    return null;
+  }
 
 }

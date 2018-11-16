@@ -20,29 +20,30 @@ package com.joliciel.jochre.search;
 
 import java.io.IOException;
 
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.FilteringTokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.util.CharArraySet;
-import org.apache.lucene.analysis.util.FilteringTokenFilter;
 
 /**
  * Filters out any tokens that contain only punctuation.
+ * 
  * @author Assaf Urieli
  *
  */
 public class PunctuationFilter extends FilteringTokenFilter {
-	private final CharArraySet punctuation =
-			StopFilter.makeStopSet(".", ",", ";", ":", "?", "!", "|", "(", ")", "[", "]", "{", "}", "-", "\"", "'", "*", "„", "“", "_", "‒", "—", "―");
-	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-	
-	public PunctuationFilter(TokenStream in) {
-		super(in);
-	}
+  private final CharArraySet punctuation = StopFilter.makeStopSet(".", ",", ";", ":", "?", "!", "|", "(", ")", "[", "]", "{", "}", "-", "\"", "'", "*", "„",
+      "“", "_", "‒", "—", "―");
+  private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 
-	@Override
-	protected boolean accept() throws IOException {
-		return !punctuation.contains(termAtt.buffer(), 0, termAtt.length());
-	}
+  public PunctuationFilter(TokenStream in) {
+    super(in);
+  }
+
+  @Override
+  protected boolean accept() throws IOException {
+    return !punctuation.contains(termAtt.buffer(), 0, termAtt.length());
+  }
 
 }

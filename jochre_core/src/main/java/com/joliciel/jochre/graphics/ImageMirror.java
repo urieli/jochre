@@ -23,59 +23,59 @@ package com.joliciel.jochre.graphics;
  * processed.
  */
 public class ImageMirror implements WritableImageGrid {
-	private ImageGrid imageGrid;
-	private boolean[] pixels;
+  private ImageGrid imageGrid;
+  private boolean[] pixels;
 
-	public ImageMirror(ImageGrid imageGrid) {
-		this.imageGrid = imageGrid;
-		pixels = new boolean[imageGrid.getWidth() * imageGrid.getHeight()];
-	}
+  public ImageMirror(ImageGrid imageGrid) {
+    this.imageGrid = imageGrid;
+    pixels = new boolean[imageGrid.getWidth() * imageGrid.getHeight()];
+  }
 
-	@Override
-	public void setPixel(int x, int y, int value) {
-		pixels[y * imageGrid.getWidth() + x] = (value != 0);
-	}
+  @Override
+  public void setPixel(int x, int y, int value) {
+    pixels[y * imageGrid.getWidth() + x] = (value != 0);
+  }
 
-	@Override
-	public int getAbsolutePixel(int x, int y) {
-		if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
-			return 0;
-		return pixels[y * imageGrid.getWidth() + x] ? 1 : 0;
-	}
+  @Override
+  public int getAbsolutePixel(int x, int y) {
+    if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
+      return 0;
+    return pixels[y * imageGrid.getWidth() + x] ? 1 : 0;
+  }
 
-	@Override
-	public int getHeight() {
-		return imageGrid.getHeight();
-	}
+  @Override
+  public int getHeight() {
+    return imageGrid.getHeight();
+  }
 
-	@Override
-	public int getPixel(int x, int y) {
-		return this.getAbsolutePixel(x, y);
-	}
+  @Override
+  public int getPixel(int x, int y) {
+    return this.getAbsolutePixel(x, y);
+  }
 
-	@Override
-	public int getRawPixel(int x, int y) {
-		return this.getAbsolutePixel(x, y);
-	}
+  @Override
+  public int getRawPixel(int x, int y) {
+    return this.getAbsolutePixel(x, y);
+  }
 
-	@Override
-	public int getRawAbsolutePixel(int x, int y) {
-		return this.getAbsolutePixel(x, y);
-	}
+  @Override
+  public int getRawAbsolutePixel(int x, int y) {
+    return this.getAbsolutePixel(x, y);
+  }
 
-	@Override
-	public int getWidth() {
-		return imageGrid.getWidth();
-	}
+  @Override
+  public int getWidth() {
+    return imageGrid.getWidth();
+  }
 
-	@Override
-	public boolean isPixelBlack(int x, int y, int threshold) {
-		if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
-			return false;
-		if (this.getPixel(x, y) == 1)
-			return true;
-		else
-			return false;
-	}
+  @Override
+  public boolean isPixelBlack(int x, int y, int threshold) {
+    if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight())
+      return false;
+    if (this.getPixel(x, y) == 1)
+      return true;
+    else
+      return false;
+  }
 
 }

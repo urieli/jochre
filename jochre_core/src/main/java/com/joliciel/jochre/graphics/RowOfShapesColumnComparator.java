@@ -21,38 +21,38 @@ package com.joliciel.jochre.graphics;
 import java.util.Comparator;
 
 class RowOfShapesColumnComparator implements Comparator<RowOfShapes> {
-	private boolean leftToRight = true;
-	public RowOfShapesColumnComparator(boolean leftToRight) {
-		this.leftToRight = leftToRight;
-	}
-	
-	@Override
-	public int compare(RowOfShapes row1, RowOfShapes row2) {
-		if (row1.equals(row2))
-			return 0;
-		
-		if (leftToRight) {
-			if (row1.getRight()<row2.getLeft()) {
-				return -1;
-			} else if (row2.getRight()<row1.getLeft()) {
-				return 1;
-			} else if (row1.getTop()<row2.getTop()) {
-				return -1;
-			} else {
-				return 1;
-			}
-		} else {
-			if (row1.getLeft()>row2.getRight()) {
-				return -1;
-			} else if (row2.getLeft()>row1.getRight()) {
-				return 1;
-			} else if (row1.getTop()<row2.getTop()) {
-				return -1;
-			} else {
-				return 1;
-			}
-			
-		}
-	}
+  private boolean leftToRight = true;
+  public RowOfShapesColumnComparator(boolean leftToRight) {
+    this.leftToRight = leftToRight;
+  }
+  
+  @Override
+  public int compare(RowOfShapes row1, RowOfShapes row2) {
+    if (row1.equals(row2))
+      return 0;
+    
+    if (leftToRight) {
+      if (row1.getRight()<row2.getLeft()) {
+        return -1;
+      } else if (row2.getRight()<row1.getLeft()) {
+        return 1;
+      } else if (row1.getTop()<row2.getTop()) {
+        return -1;
+      } else {
+        return 1;
+      }
+    } else {
+      if (row1.getLeft()>row2.getRight()) {
+        return -1;
+      } else if (row2.getLeft()>row1.getRight()) {
+        return 1;
+      } else if (row1.getTop()<row2.getTop()) {
+        return -1;
+      } else {
+        return 1;
+      }
+      
+    }
+  }
 
 }

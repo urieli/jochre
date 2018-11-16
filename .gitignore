@@ -15,6 +15,8 @@ jochre_search/webapp/
 jochre_occitan/webapp/
 jochre_yiddish/webapp/
 jochre_search_django/jochre_search_django/settings_local.py
+jochre_search_django/jochre/templates/header-local.html
+jochre_search_django/jochre/templates/privacy-local.html
 jochre_search_django/jochre/static/images/serif.png
 jochre_search_django/jochre/static/images/sansSerif.png
 jochre_search_django/jochre/static/images/serifItalics.png
@@ -25,3 +27,5 @@ jochre_search_django/static/
 logs/
 ant/conf.xml
 target/
+jochre_search_django/jochre/migrations
+

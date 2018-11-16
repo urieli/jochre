@@ -23,31 +23,31 @@ import java.util.Iterator;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class SqlRowSetIterator<T> implements Iterator<T> {
-	SqlRowSet rowSet;
-	SqlRowSetMapper<T> mapper;
-	boolean checkedNext = false;
-	boolean hasNext = false;
-	
-	public SqlRowSetIterator(SqlRowSet rowSet, SqlRowSetMapper<T> mapper) {
-		this.rowSet = rowSet;
-		this.mapper = mapper;
-	}
-	@Override
-	public boolean hasNext() {
-		if (!checkedNext) {
-			hasNext = rowSet.next();
-		}
-		return hasNext;
-	}
+  SqlRowSet rowSet;
+  SqlRowSetMapper<T> mapper;
+  boolean checkedNext = false;
+  boolean hasNext = false;
+  
+  public SqlRowSetIterator(SqlRowSet rowSet, SqlRowSetMapper<T> mapper) {
+    this.rowSet = rowSet;
+    this.mapper = mapper;
+  }
+  @Override
+  public boolean hasNext() {
+    if (!checkedNext) {
+      hasNext = rowSet.next();
+    }
+    return hasNext;
+  }
 
-	@Override
-	public T next() {
-		return mapper.mapRow(rowSet);
-	}
+  @Override
+  public T next() {
+    return mapper.mapRow(rowSet);
+  }
 
-	@Override
-	public void remove() {
-		throw new RuntimeException("Unsupported opertion: Iterator.remove()");
-	}
+  @Override
+  public void remove() {
+    throw new RuntimeException("Unsupported opertion: Iterator.remove()");
+  }
 
 }

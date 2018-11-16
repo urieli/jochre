@@ -19,9 +19,9 @@ import com.joliciel.jochre.utils.JochreException;
  * <p>For example, if the input string looked like "word\tlemma\tcategory\tg=f|p=3|n=s" (for gender=female, person=3, number=singular), we might 
  * have the following input:</p>
  * <pre>
- * Word	^(.+)\t.+\t.+\t.+$
- * Lemma	^.+\t(.+)\t.+\t.+$
- * Category	^.+\t.+\t(.+)\t.+$
+ * Word  ^(.+)\t.+\t.+\t.+$
+ * Lemma  ^.+\t(.+)\t.+\t.+$
+ * Category  ^.+\t.+\t(.+)\t.+$
  * </pre>
  * <p>By default, it is assumed the actual value is indicated by the first capturing group, and that only one value can be added per lexical attribute.</p>
  * <p>Various comma-separated modifiers can be added in parentheses after the attribute name. These include:</p>
@@ -32,7 +32,7 @@ import com.joliciel.jochre.utils.JochreException;
  * </ul>
  * <p>For example:</p>
  * <pre>
- * Gender(group=2,stop=false)	\b([123])([mf])[ps]\b
+ * Gender(group=2,stop=false)  \b([123])([mf])[ps]\b
  * </pre>
  * <p>Indicates that the gender is found in the 2nd capturing group, and that further genders can be found if matched by other regex patterns
  * further downstream in the file.</p>
@@ -40,165 +40,165 @@ import com.joliciel.jochre.utils.JochreException;
  * If a lexical entry spans more than one line (e.g. an XML file where each entry spans multiple lines), there needs to be a special entry in the file called Entry, giving
  * the start of a new entry, as follows:</p>
  * <pre>
- * Entry	(&lt;entry&gt;)
+ * Entry  (&lt;entry&gt;)
  * </pre>
  * @author Assaf Urieli
  *
  */
 public class RegexLexicalEntryReader implements LexicalEntryReader {
-	private Map<LexicalAttribute,List<LexicalAttributePattern>> attributePatternMap = new HashMap<LexicalAttribute, List<LexicalAttributePattern>>();
-	private Map<String,List<LexicalAttributePattern>> otherAttributeMap = new HashMap<String, List<LexicalAttributePattern>>();
-	private List<LexicalAttributePattern> entryStartMap = new ArrayList<LexicalAttributePattern>();
-	
-	public RegexLexicalEntryReader(Scanner regexScanner) {
-		while (regexScanner.hasNextLine()) {
-			String line = regexScanner.nextLine();
-			if (line.length()>0 && !line.startsWith("#")) {
-				String[] parts = line.split("\t");
-				String attributeString = parts[0];
-				Map<String,String> modifiers = new HashMap<String, String>();
-				if (attributeString.indexOf('(')>=0) {
-					String modifierString = attributeString.substring(attributeString.indexOf('(')+1, attributeString.lastIndexOf(')'));
-					attributeString = attributeString.substring(0, attributeString.indexOf('('));
-					String[] modifierParts = modifierString.split(",");
-					for (String modifierPart : modifierParts) {
-						String modifier = modifierPart.substring(0, modifierPart.indexOf('='));
-						String value = modifierPart.substring(modifierPart.indexOf('=')+1);
-						modifiers.put(modifier, value);
-					}
-				}
-				
-				boolean entryAttribute =(attributeString.equals("Entry"));
+  private Map<LexicalAttribute,List<LexicalAttributePattern>> attributePatternMap = new HashMap<LexicalAttribute, List<LexicalAttributePattern>>();
+  private Map<String,List<LexicalAttributePattern>> otherAttributeMap = new HashMap<String, List<LexicalAttributePattern>>();
+  private List<LexicalAttributePattern> entryStartMap = new ArrayList<LexicalAttributePattern>();
+  
+  public RegexLexicalEntryReader(Scanner regexScanner) {
+    while (regexScanner.hasNextLine()) {
+      String line = regexScanner.nextLine();
+      if (line.length()>0 && !line.startsWith("#")) {
+        String[] parts = line.split("\t");
+        String attributeString = parts[0];
+        Map<String,String> modifiers = new HashMap<String, String>();
+        if (attributeString.indexOf('(')>=0) {
+          String modifierString = attributeString.substring(attributeString.indexOf('(')+1, attributeString.lastIndexOf(')'));
+          attributeString = attributeString.substring(0, attributeString.indexOf('('));
+          String[] modifierParts = modifierString.split(",");
+          for (String modifierPart : modifierParts) {
+            String modifier = modifierPart.substring(0, modifierPart.indexOf('='));
+            String value = modifierPart.substring(modifierPart.indexOf('=')+1);
+            modifiers.put(modifier, value);
+          }
+        }
+        
+        boolean entryAttribute =(attributeString.equals("Entry"));
 
-				LexicalAttribute attribute = null;
-				String otherAttribute = null;
-				
-				if (!entryAttribute) {
-					try {
-						attribute = LexicalAttribute.valueOf(attributeString);
-					} catch (IllegalArgumentException e) {
-						otherAttribute = attributeString;
-					}
-				}
-				
-				Pattern pattern = Pattern.compile(parts[1], Pattern.UNICODE_CHARACTER_CLASS);
-				
-				int group = 1;
-				if (modifiers.containsKey("group")) {
-					group = Integer.parseInt(modifiers.get("group"));
-				}
-				
-				boolean stop = true;
-				if (modifiers.containsKey("stop")) {
-					stop = modifiers.get("stop").equals("true");
-				}
-				
-				String replacement = null;
-				if (parts.length>2)
-					replacement = parts[2];
-				
-				List<LexicalAttributePattern> patterns = null;
-				if (entryAttribute) {
-					patterns = entryStartMap;
-				} else if (attribute!=null) {
-					patterns = attributePatternMap.get(attribute);
-					if (patterns==null) {
-						patterns = new ArrayList<RegexLexicalEntryReader.LexicalAttributePattern>();
-						attributePatternMap.put(attribute, patterns);
-					}
-				} else {
-					patterns = otherAttributeMap.get(otherAttribute);
-					if (patterns==null) {
-						patterns = new ArrayList<RegexLexicalEntryReader.LexicalAttributePattern>();
-						otherAttributeMap.put(otherAttribute, patterns);
-					}
-				}
-				LexicalAttributePattern myPattern = new LexicalAttributePattern(pattern, group);
-				myPattern.setStop(stop);
-				myPattern.setReplacement(replacement);
-				patterns.add(myPattern);
-			}
-		}
-		
-		if (!attributePatternMap.containsKey(LexicalAttribute.Word))
-			throw new JochreException("A lexical entry must contain a Word attribute");
-		
-	}
-	
-	public LexicalEntry readEntry(String text) {
-		LexicalEntry lexicalEntry = new SimpleLexicalEntry();
+        LexicalAttribute attribute = null;
+        String otherAttribute = null;
+        
+        if (!entryAttribute) {
+          try {
+            attribute = LexicalAttribute.valueOf(attributeString);
+          } catch (IllegalArgumentException e) {
+            otherAttribute = attributeString;
+          }
+        }
+        
+        Pattern pattern = Pattern.compile(parts[1], Pattern.UNICODE_CHARACTER_CLASS);
+        
+        int group = 1;
+        if (modifiers.containsKey("group")) {
+          group = Integer.parseInt(modifiers.get("group"));
+        }
+        
+        boolean stop = true;
+        if (modifiers.containsKey("stop")) {
+          stop = modifiers.get("stop").equals("true");
+        }
+        
+        String replacement = null;
+        if (parts.length>2)
+          replacement = parts[2];
+        
+        List<LexicalAttributePattern> patterns = null;
+        if (entryAttribute) {
+          patterns = entryStartMap;
+        } else if (attribute!=null) {
+          patterns = attributePatternMap.get(attribute);
+          if (patterns==null) {
+            patterns = new ArrayList<RegexLexicalEntryReader.LexicalAttributePattern>();
+            attributePatternMap.put(attribute, patterns);
+          }
+        } else {
+          patterns = otherAttributeMap.get(otherAttribute);
+          if (patterns==null) {
+            patterns = new ArrayList<RegexLexicalEntryReader.LexicalAttributePattern>();
+            otherAttributeMap.put(otherAttribute, patterns);
+          }
+        }
+        LexicalAttributePattern myPattern = new LexicalAttributePattern(pattern, group);
+        myPattern.setStop(stop);
+        myPattern.setReplacement(replacement);
+        patterns.add(myPattern);
+      }
+    }
+    
+    if (!attributePatternMap.containsKey(LexicalAttribute.Word))
+      throw new JochreException("A lexical entry must contain a Word attribute");
+    
+  }
+  
+  public LexicalEntry readEntry(String text) {
+    LexicalEntry lexicalEntry = new SimpleLexicalEntry();
 
-		boolean foundWord = false;
-		for (LexicalAttribute attribute : this.attributePatternMap.keySet()) {
-			for (LexicalAttributePattern myPattern : this.attributePatternMap.get(attribute)) {
-				Matcher matcher = myPattern.getPattern().matcher(text);
-				if (matcher.find()) {
-					String value = matcher.group(myPattern.getGroup());
-					if (myPattern.getReplacement()!=null)
-						value = myPattern.getReplacement();
-					
-					switch (attribute) {
-					case Word:
-						lexicalEntry.setWord(value);
-						foundWord = true;
-						break;
-					case Lemma:
-						lexicalEntry.setLemma(value);
-						break;
-					case Category:
-						lexicalEntry.setCategory(value);
-						break;
-					default:
-						break;
-					}
-					
-					if (myPattern.isStop())
-						break;
-				} // match found?
-			} // next pattern
-		} // next attribute
-		
-		if (!foundWord)
-			throw new JochreException("No Word found in lexical entry: " + text);
-		
-		return lexicalEntry;
-	}
+    boolean foundWord = false;
+    for (LexicalAttribute attribute : this.attributePatternMap.keySet()) {
+      for (LexicalAttributePattern myPattern : this.attributePatternMap.get(attribute)) {
+        Matcher matcher = myPattern.getPattern().matcher(text);
+        if (matcher.find()) {
+          String value = matcher.group(myPattern.getGroup());
+          if (myPattern.getReplacement()!=null)
+            value = myPattern.getReplacement();
+          
+          switch (attribute) {
+          case Word:
+            lexicalEntry.setWord(value);
+            foundWord = true;
+            break;
+          case Lemma:
+            lexicalEntry.setLemma(value);
+            break;
+          case Category:
+            lexicalEntry.setCategory(value);
+            break;
+          default:
+            break;
+          }
+          
+          if (myPattern.isStop())
+            break;
+        } // match found?
+      } // next pattern
+    } // next attribute
+    
+    if (!foundWord)
+      throw new JochreException("No Word found in lexical entry: " + text);
+    
+    return lexicalEntry;
+  }
 
-	private static final class LexicalAttributePattern {
-		private Pattern pattern;
-		private int group;
-		private boolean stop = true;
-		private String replacement = null;
-		
-		public LexicalAttributePattern(Pattern pattern, int group) {
-			super();
-			this.pattern = pattern;
-			this.group = group;
-		}
+  private static final class LexicalAttributePattern {
+    private Pattern pattern;
+    private int group;
+    private boolean stop = true;
+    private String replacement = null;
+    
+    public LexicalAttributePattern(Pattern pattern, int group) {
+      super();
+      this.pattern = pattern;
+      this.group = group;
+    }
 
-		public Pattern getPattern() {
-			return pattern;
-		}
+    public Pattern getPattern() {
+      return pattern;
+    }
 
-		public int getGroup() {
-			return group;
-		}
+    public int getGroup() {
+      return group;
+    }
 
-		public boolean isStop() {
-			return stop;
-		}
+    public boolean isStop() {
+      return stop;
+    }
 
-		public void setStop(boolean stop) {
-			this.stop = stop;
-		}
+    public void setStop(boolean stop) {
+      this.stop = stop;
+    }
 
-		public String getReplacement() {
-			return replacement;
-		}
+    public String getReplacement() {
+      return replacement;
+    }
 
-		public void setReplacement(String replacement) {
-			this.replacement = replacement;
-		}
-	}
-	
+    public void setReplacement(String replacement) {
+      this.replacement = replacement;
+    }
+  }
+  
 }

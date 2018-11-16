@@ -21,14 +21,14 @@ package com.joliciel.jochre.search;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A very simple "dummy" tokeniser wrapping a TokenExtractor, which is in charge
@@ -37,113 +37,103 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
  * @author Assaf Urieli
  *
  */
-class JochreTokeniser extends Tokenizer {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreTokeniser.class);
+final class JochreTokeniser extends Tokenizer {
+  private static final Logger LOG = LoggerFactory.getLogger(JochreTokeniser.class);
 
-	private SearchServiceInternal searchService;
+  private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+  private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
+  private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
+  private final PositionLengthAttribute posLengthAtt = addAttribute(PositionLengthAttribute.class);
+  private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
 
-	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
-	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
-	private final PositionLengthAttribute posLengthAtt = addAttribute(PositionLengthAttribute.class);
-	private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
+  private TokenExtractor tokenExtractor;
+  private List<JochreToken> tokens;
+  private int currentIndex = 0;
+  private JochreToken currentToken;
+  private List<String> currentAlternatives = null;
+  private int currentAlternativeIndex = 0;
+  private String fieldName;
 
-	private TokenExtractor tokenExtractor;
-	private List<JochreToken> tokens;
-	private int currentIndex = 0;
-	private JochreToken currentToken;
-	private List<String> currentAlternatives = null;
-	private int currentAlternativeIndex = 0;
-	private String fieldName;
+  /**
+   * Constructor including the tokenExtractor, the current fieldName being
+   * analysed (for Lucene fields) and a Reader containing the input.
+   * 
+   * a place to get the tokens the text field contents, ignored since we've
+   * already analysed them
+   */
+  protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
+    super();
+    this.tokenExtractor = tokenExtractor;
+    this.fieldName = fieldName;
+  }
 
-	/**
-	 * Constructor including the tokenExtractor, the current fieldName being
-	 * analysed (for Lucene fields) and a Reader containing the input.
-	 * 
-	 * a place to get the tokens the text field contents, ignored since we've
-	 * already analysed them
-	 */
-	protected JochreTokeniser(TokenExtractor tokenExtractor, String fieldName) {
-		super();
-		this.tokenExtractor = tokenExtractor;
-		this.fieldName = fieldName;
-	}
+  @Override
+  public boolean incrementToken() throws IOException {
+    clearAttributes();
+    if (this.tokens == null) {
+      this.tokens = this.tokenExtractor.findTokens(fieldName, this.input);
+      this.currentIndex = 0;
+    }
 
-	@Override
-	public boolean incrementToken() throws IOException {
-		clearAttributes();
-		if (this.tokens == null) {
-			this.tokens = this.tokenExtractor.findTokens(fieldName, this.input);
-			this.currentIndex = 0;
-		}
+    if (currentToken != null && currentAlternativeIndex >= currentAlternatives.size()) {
+      currentToken = null;
+    }
 
-		if (currentToken != null && currentAlternativeIndex >= currentAlternatives.size()) {
-			currentToken = null;
-		}
+    if (currentToken == null && currentIndex < tokens.size()) {
+      currentToken = tokens.get(currentIndex++);
 
-		if (currentToken == null && currentIndex < tokens.size()) {
-			currentToken = tokens.get(currentIndex++);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(currentToken.toString());
+      }
 
-			if (LOG.isTraceEnabled()) {
-				LOG.trace(currentToken.toString());
-			}
+      currentAlternatives = currentToken.getContentStrings();
+      currentAlternativeIndex = 0;
+    }
 
-			currentAlternatives = currentToken.getContentStrings();
-			currentAlternativeIndex = 0;
-		}
+    if (currentToken != null) {
+      String content = currentAlternatives.get(currentAlternativeIndex);
 
-		if (currentToken != null) {
-			String content = currentAlternatives.get(currentAlternativeIndex);
+      // add the term itself
+      if (currentToken.isPunctuation())
+        content = JochreSearchConstants.INDEX_PUNCT_PREFIX + content;
+      termAtt.append(content);
 
-			// add the term itself
-			if (currentToken.isPunctuation())
-				content = JochreSearchConstants.INDEX_PUNCT_PREFIX + content;
-			termAtt.append(content);
+      posLengthAtt.setPositionLength(1);
 
-			posLengthAtt.setPositionLength(1);
+      if (currentAlternativeIndex == 0) {
+        if (currentToken.isPunctuation() && currentIndex > 1) {
+          // we currently don't want punctuation to block phrase
+          // queries, but we do
+          // need it in the index, so that it can be corrected.
+          // The search query should remove any punctuation to avoid
+          // ever returning it.
+          posIncrAtt.setPositionIncrement(0);
+        } else {
+          posIncrAtt.setPositionIncrement(1);
+        }
+      } else {
+        posIncrAtt.setPositionIncrement(0);
+      }
 
-			if (currentAlternativeIndex == 0) {
-				if (currentToken.isPunctuation() && currentIndex > 1) {
-					// we currently don't want punctuation to block phrase
-					// queries, but we do
-					// need it in the index, so that it can be corrected.
-					// The search query should remove any punctuation to avoid
-					// ever returning it.
-					posIncrAtt.setPositionIncrement(0);
-				} else {
-					posIncrAtt.setPositionIncrement(1);
-				}
-			} else {
-				posIncrAtt.setPositionIncrement(0);
-			}
+      offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
 
-			offsetAtt.setOffset(currentToken.getSpanStart(), currentToken.getSpanEnd());
+      // store the coordinates in the payload
+      JochrePayload payload = new JochrePayload(currentToken);
+      payloadAtt.setPayload(payload.getBytesRef());
 
-			// store the coordinates in the payload
-			JochrePayload payload = new JochrePayload(currentToken);
-			payloadAtt.setPayload(payload.getBytesRef());
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength() + ", increment: " + posIncrAtt.getPositionIncrement()
+            + ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
+            + currentIndex);
+      }
 
-			if (LOG.isTraceEnabled()) {
-				LOG.trace("Added \"" + content + "\"" + ", length: " + posLengthAtt.getPositionLength() + ", increment: " + posIncrAtt.getPositionIncrement()
-						+ ", offset: " + offsetAtt.startOffset() + "-" + offsetAtt.endOffset() + ", payload: " + payload.toString() + ", currentIndex: "
-						+ currentIndex);
-			}
+      currentAlternativeIndex++;
 
-			currentAlternativeIndex++;
-
-			return true;
-		} else {
-			tokens = null;
-			return false;
-		}
-	}
-
-	public SearchServiceInternal getSearchService() {
-		return searchService;
-	}
-
-	public void setSearchService(SearchServiceInternal searchService) {
-		this.searchService = searchService;
-	}
+      return true;
+    } else {
+      tokens = null;
+      return false;
+    }
+  }
 
 }

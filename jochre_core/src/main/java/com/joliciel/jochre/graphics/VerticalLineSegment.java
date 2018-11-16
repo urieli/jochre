@@ -28,85 +28,85 @@ import java.util.Set;
  *
  */
 public class VerticalLineSegment implements Comparable<VerticalLineSegment> {
-	VerticalLineSegment(int x, int y) {
-		this.x = x;
-		this.yTop = y;
-		this.yBottom = y;
-	}
-	/**
-	 * x coordinate of this vertical line segment
-	 */
-	public int x;
-	
-	/**
-	 * top y coordinate of this vertical line segment
-	 */
-	public int yTop;
-	
-	/**
-	 * bottom y coordinate of this vertical line segment
-	 */
-	public int yBottom;
-	
-	/**
-	 * Vertical line segments touching this line segment on the left
-	 * (could be several, if they're separated by white space).
-	 */
-	public Set<VerticalLineSegment> leftSegments = new HashSet<VerticalLineSegment>();
-	
-	/**
-	 * Vertical line segments touching this line segment on the right
-	 * (could be several, if they're separated by white space).
-	 */
-	public Set<VerticalLineSegment> rightSegments = new HashSet<VerticalLineSegment>();
-	
-	/**
-	 * Length of this line segment.
-	 */
-	public int length() { return yBottom - yTop + 1; }
-	
-	/**
-	 * When traversing line segments recursively, this attribute
-	 * allows us to make sure we only touch this line segment once.
-	 */
-	public boolean touched = false;
-	
-	@Override
-	public int compareTo(VerticalLineSegment line2) {
-		if (this.x<line2.x)
-			return -1;
-		else if (this.x>line2.x)
-			return 1;
-		else if (this.yTop<line2.yTop)
-			return -1;
-		else if (this.yTop>line2.yTop)
-			return 1;
-		else
-			return 0;
-	}
+  VerticalLineSegment(int x, int y) {
+    this.x = x;
+    this.yTop = y;
+    this.yBottom = y;
+  }
+  /**
+   * x coordinate of this vertical line segment
+   */
+  public int x;
+  
+  /**
+   * top y coordinate of this vertical line segment
+   */
+  public int yTop;
+  
+  /**
+   * bottom y coordinate of this vertical line segment
+   */
+  public int yBottom;
+  
+  /**
+   * Vertical line segments touching this line segment on the left
+   * (could be several, if they're separated by white space).
+   */
+  public Set<VerticalLineSegment> leftSegments = new HashSet<VerticalLineSegment>();
+  
+  /**
+   * Vertical line segments touching this line segment on the right
+   * (could be several, if they're separated by white space).
+   */
+  public Set<VerticalLineSegment> rightSegments = new HashSet<VerticalLineSegment>();
+  
+  /**
+   * Length of this line segment.
+   */
+  public int length() { return yBottom - yTop + 1; }
+  
+  /**
+   * When traversing line segments recursively, this attribute
+   * allows us to make sure we only touch this line segment once.
+   */
+  public boolean touched = false;
+  
+  @Override
+  public int compareTo(VerticalLineSegment line2) {
+    if (this.x<line2.x)
+      return -1;
+    else if (this.x>line2.x)
+      return 1;
+    else if (this.yTop<line2.yTop)
+      return -1;
+    else if (this.yTop>line2.yTop)
+      return 1;
+    else
+      return 0;
+  }
 
-	@Override
-	public int hashCode() {
-		String hash = x + "|" + yTop;
-		return hash.hashCode();
-	}
+  @Override
+  public int hashCode() {
+    String hash = x + "|" + yTop;
+    return hash.hashCode();
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (obj instanceof VerticalLineSegment) {
-			VerticalLineSegment line2 = (VerticalLineSegment) obj;
-			return (line2.x==this.x && line2.yTop==this.yTop);
-		}
-		return false;
-	}
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (obj instanceof VerticalLineSegment) {
+      VerticalLineSegment line2 = (VerticalLineSegment) obj;
+      return (line2.x==this.x && line2.yTop==this.yTop);
+    }
+    return false;
+  }
 
-	@Override
-	public String toString() {
-		return "VerticalLineSegment [x=" + x + ", yTop=" + yTop + ", yBottom="
-				+ yBottom + "]";
-	}
-	
-	
+  @Override
+  public String toString() {
+    return "VerticalLineSegment [x=" + x + ", yTop=" + yTop + ", yBottom="
+        + yBottom + "]";
+  }
+  
+  
 }

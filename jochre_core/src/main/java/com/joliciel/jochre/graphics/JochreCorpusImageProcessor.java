@@ -37,87 +37,87 @@ import com.joliciel.jochre.doc.JochrePage;
  *
  */
 public class JochreCorpusImageProcessor extends JochreCorpusReader {
-	private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageProcessor.class);
-	private List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
+  private static final Logger LOG = LoggerFactory.getLogger(JochreCorpusImageProcessor.class);
+  private List<DocumentObserver> observers = new ArrayList<DocumentObserver>();
 
-	public JochreCorpusImageProcessor(CorpusSelectionCriteria corpusSelectionCriteria, JochreSession jochreSession) {
-		super(jochreSession);
-		super.setSelectionCriteria(corpusSelectionCriteria);
-	}
+  public JochreCorpusImageProcessor(CorpusSelectionCriteria corpusSelectionCriteria, JochreSession jochreSession) {
+    super(jochreSession);
+    super.setSelectionCriteria(corpusSelectionCriteria);
+  }
 
-	public void process() {
-		this.initialiseStream();
-		JochreDocument currentDoc = null;
-		JochrePage currentPage = null;
-		for (JochreImage image : this.getImages()) {
-			if (!image.getPage().equals(currentPage)) {
-				if (currentPage != null) {
-					for (DocumentObserver observer : observers) {
-						observer.onPageComplete(currentPage);
-					}
-					LOG.debug("completed page: " + currentPage);
-				}
-			}
+  public void process() {
+    this.initialiseStream();
+    JochreDocument currentDoc = null;
+    JochrePage currentPage = null;
+    for (JochreImage image : this.getImages()) {
+      if (!image.getPage().equals(currentPage)) {
+        if (currentPage != null) {
+          for (DocumentObserver observer : observers) {
+            observer.onPageComplete(currentPage);
+          }
+          LOG.debug("completed page: " + currentPage);
+        }
+      }
 
-			if (!image.getPage().getDocument().equals(currentDoc)) {
-				if (currentDoc != null) {
-					for (DocumentObserver observer : observers) {
-						observer.onDocumentComplete(currentDoc);
-					}
-					LOG.debug("completed doc: " + currentDoc);
-				}
-				currentDoc = image.getPage().getDocument();
-				LOG.debug("next doc: " + currentDoc);
-				for (DocumentObserver observer : observers) {
-					observer.onDocumentStart(currentDoc);
-				}
-			}
+      if (!image.getPage().getDocument().equals(currentDoc)) {
+        if (currentDoc != null) {
+          for (DocumentObserver observer : observers) {
+            observer.onDocumentComplete(currentDoc);
+          }
+          LOG.debug("completed doc: " + currentDoc);
+        }
+        currentDoc = image.getPage().getDocument();
+        LOG.debug("next doc: " + currentDoc);
+        for (DocumentObserver observer : observers) {
+          observer.onDocumentStart(currentDoc);
+        }
+      }
 
-			if (!image.getPage().equals(currentPage)) {
-				currentPage = image.getPage();
-				LOG.debug("next page: " + currentPage);
-				for (DocumentObserver observer : observers) {
-					observer.onPageStart(currentPage);
-				}
-			}
+      if (!image.getPage().equals(currentPage)) {
+        currentPage = image.getPage();
+        LOG.debug("next page: " + currentPage);
+        for (DocumentObserver observer : observers) {
+          observer.onPageStart(currentPage);
+        }
+      }
 
-			LOG.debug("next image: " + image);
+      LOG.debug("next image: " + image);
 
-			for (DocumentObserver observer : observers) {
-				observer.onImageStart(image);
-			}
+      for (DocumentObserver observer : observers) {
+        observer.onImageStart(image);
+      }
 
-			for (DocumentObserver observer : observers) {
-				observer.onImageComplete(image);
-			}
-			LOG.debug("completed image: " + image);
-			image.clearMemory();
-		}
+      for (DocumentObserver observer : observers) {
+        observer.onImageComplete(image);
+      }
+      LOG.debug("completed image: " + image);
+      image.clearMemory();
+    }
 
-		if (currentPage != null) {
-			for (DocumentObserver observer : observers) {
-				observer.onPageComplete(currentPage);
-			}
-			LOG.debug("completed page: " + currentPage);
-		}
+    if (currentPage != null) {
+      for (DocumentObserver observer : observers) {
+        observer.onPageComplete(currentPage);
+      }
+      LOG.debug("completed page: " + currentPage);
+    }
 
-		if (currentDoc != null) {
-			for (DocumentObserver observer : observers) {
-				observer.onDocumentComplete(currentDoc);
-			}
-			LOG.debug("completed doc: " + currentDoc);
-		}
-		
-		for (DocumentObserver observer : observers) {
-			observer.onAnalysisComplete();
-		}
-	}
+    if (currentDoc != null) {
+      for (DocumentObserver observer : observers) {
+        observer.onDocumentComplete(currentDoc);
+      }
+      LOG.debug("completed doc: " + currentDoc);
+    }
+    
+    for (DocumentObserver observer : observers) {
+      observer.onAnalysisComplete();
+    }
+  }
 
-	public List<DocumentObserver> getObservers() {
-		return observers;
-	}
+  public List<DocumentObserver> getObservers() {
+    return observers;
+  }
 
-	public void addObserver(DocumentObserver observer) {
-		this.observers.add(observer);
-	}
+  public void addObserver(DocumentObserver observer) {
+    this.observers.add(observer);
+  }
 }

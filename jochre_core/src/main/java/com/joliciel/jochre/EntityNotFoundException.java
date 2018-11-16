@@ -21,8 +21,8 @@ package com.joliciel.jochre;
 import com.joliciel.jochre.utils.JochreException;
 
 public class EntityNotFoundException extends JochreException {
-	private static final long serialVersionUID = -3790802787786313800L;
-	public EntityNotFoundException() { super(); }
+  private static final long serialVersionUID = -3790802787786313800L;
+  public EntityNotFoundException() { super(); }
     public EntityNotFoundException(String s) { super(s); }
     public EntityNotFoundException(Exception e) { super(e); }
 

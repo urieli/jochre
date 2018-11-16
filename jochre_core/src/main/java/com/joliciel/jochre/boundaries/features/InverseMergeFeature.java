@@ -29,28 +29,28 @@ import com.joliciel.jochre.boundaries.ShapePair;
  *
  */
 public class InverseMergeFeature extends AbstractMergeFeature<Double> implements
-		DoubleFeature<ShapePair> {
+    DoubleFeature<ShapePair> {
 
-	MergeFeature<Double> feature;
-	
-	public InverseMergeFeature(MergeFeature<Double> feature) {
-		super();
-		this.feature = feature;
-		this.setName(this.feature.getName() + "{inverse}");
-	}
+  MergeFeature<Double> feature;
+  
+  public InverseMergeFeature(MergeFeature<Double> feature) {
+    super();
+    this.feature = feature;
+    this.setName(this.feature.getName() + "{inverse}");
+  }
 
-	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
-		FeatureResult<Double> rawOutcome = feature.check(pair, env);
-		FeatureResult<Double> outcome = null;
-		if (rawOutcome!=null) {
-			double weight = rawOutcome.getOutcome();
-			double inverseWeight = 1 - weight;
-			if (inverseWeight<0)
-				inverseWeight = 0;
-			outcome = this.generateResult(inverseWeight);
-		}
-		return outcome;
-	}
+  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapePair pair, RuntimeEnvironment env) {
+    FeatureResult<Double> rawOutcome = feature.check(pair, env);
+    FeatureResult<Double> outcome = null;
+    if (rawOutcome!=null) {
+      double weight = rawOutcome.getOutcome();
+      double inverseWeight = 1 - weight;
+      if (inverseWeight<0)
+        inverseWeight = 0;
+      outcome = this.generateResult(inverseWeight);
+    }
+    return outcome;
+  }
 }

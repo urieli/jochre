@@ -19,5 +19,5 @@
 package com.joliciel.jochre.graphics;
 
 public interface WritableImageGrid extends ImageGrid {
-	public void setPixel(int x, int y, int value);
+  public void setPixel(int x, int y, int value);
 }

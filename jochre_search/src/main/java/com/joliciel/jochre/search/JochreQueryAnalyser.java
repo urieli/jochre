@@ -15,69 +15,42 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 
 /**
  * The analyser used to analyse user queries.
+ * 
  * @author Assaf Urieli
  *
  */
 class JochreQueryAnalyser extends Analyzer {
-	private Lexicon lexicon;
-	private SearchServiceInternal searchService;
-	private boolean expandInflections = true;
-	private TextNormaliser textNormaliser;
-	
-	public JochreQueryAnalyser() {
-	}
+  private final Lexicon lexicon;
+  private final boolean expandInflections;
+  private final TextNormaliser textNormaliser;
+  private final JochreSearchConfig config;
 
-	@Override
-	protected TokenStreamComponents createComponents(final String fieldName) {
-		Tokenizer source = new WhitespaceTokenizer();
-		TokenStream result = source;
-		
-		if (textNormaliser!=null)
-			result = new TextNormalisingFilter(result, textNormaliser);
-		else {
-			result = new ASCIIFoldingFilter(result);
-			result = new LowerCaseFilter(result);
-		}
-		
-		TokenFilter queryTokenFilter = searchService.getQueryTokenFilter(result);
-		if (queryTokenFilter!=null)
-			result = queryTokenFilter;
-		
-		if (lexicon!=null && expandInflections)
-			result = new InflectedFormFilter(result, lexicon);
-		result = new PunctuationFilter(result);
-		return new TokenStreamComponents(source, result);
-	}
+  public JochreQueryAnalyser(JochreSearchConfig config, boolean expandInflections) {
+    this.textNormaliser = TextNormaliser.getInstance(config);
+    this.config = config;
+    this.lexicon = config.getLexicon();
+    this.expandInflections = expandInflections;
+  }
 
-	public Lexicon getLexicon() {
-		return lexicon;
-	}
+  @Override
+  protected TokenStreamComponents createComponents(final String fieldName) {
+    Tokenizer source = new WhitespaceTokenizer();
+    TokenStream result = source;
 
-	public void setLexicon(Lexicon lexicon) {
-		this.lexicon = lexicon;
-	}
+    if (textNormaliser != null)
+      result = new TextNormalisingFilter(result, textNormaliser);
+    else {
+      result = new ASCIIFoldingFilter(result);
+      result = new LowerCaseFilter(result);
+    }
 
-	public SearchServiceInternal getSearchService() {
-		return searchService;
-	}
+    TokenFilter queryTokenFilter = config.getQueryTokenFilter(result);
+    if (queryTokenFilter != null)
+      result = queryTokenFilter;
 
-	public void setSearchService(SearchServiceInternal searchService) {
-		this.searchService = searchService;
-	}
-
-	public boolean isExpandInflections() {
-		return expandInflections;
-	}
-
-	public void setExpandInflections(boolean expandInflections) {
-		this.expandInflections = expandInflections;
-	}
-
-	public TextNormaliser getTextNormaliser() {
-		return textNormaliser;
-	}
-
-	public void setTextNormaliser(TextNormaliser textNormaliser) {
-		this.textNormaliser = textNormaliser;
-	}
+    if (lexicon != null && expandInflections)
+      result = new InflectedFormFilter(result, lexicon);
+    result = new PunctuationFilter(result);
+    return new TokenStreamComponents(source, result);
+  }
 }

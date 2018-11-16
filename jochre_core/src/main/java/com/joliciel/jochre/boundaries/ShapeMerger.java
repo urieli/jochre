@@ -39,61 +39,61 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class ShapeMerger {
-	private static final Logger LOG = LoggerFactory.getLogger(ShapeMerger.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ShapeMerger.class);
 
-	private final DecisionMaker decisionMaker;
-	private final Set<MergeFeature<?>> mergeFeatures;
+  private final DecisionMaker decisionMaker;
+  private final Set<MergeFeature<?>> mergeFeatures;
 
-	public ShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker decisionMaker) {
-		this.decisionMaker = decisionMaker;
-		this.mergeFeatures = mergeFeatures;
-	}
+  public ShapeMerger(Set<MergeFeature<?>> mergeFeatures, DecisionMaker decisionMaker) {
+    this.decisionMaker = decisionMaker;
+    this.mergeFeatures = mergeFeatures;
+  }
 
-	/**
-	 * Given two sequential shape, returns the probability of a merge.
-	 */
-	public double checkMerge(Shape shape1, Shape shape2) {
-		ShapePair mergeCandidate = new ShapePair(shape1, shape2);
-		if (LOG.isTraceEnabled())
-			LOG.trace("mergeCandidate: " + mergeCandidate);
+  /**
+   * Given two sequential shape, returns the probability of a merge.
+   */
+  public double checkMerge(Shape shape1, Shape shape2) {
+    ShapePair mergeCandidate = new ShapePair(shape1, shape2);
+    if (LOG.isTraceEnabled())
+      LOG.trace("mergeCandidate: " + mergeCandidate);
 
-		List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
+    List<FeatureResult<?>> featureResults = new ArrayList<FeatureResult<?>>();
 
-		// analyse features
-		for (MergeFeature<?> feature : mergeFeatures) {
-			RuntimeEnvironment env = new RuntimeEnvironment();
-			FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
-			if (featureResult != null) {
-				featureResults.add(featureResult);
-				if (LOG.isTraceEnabled()) {
-					LOG.trace(featureResult.toString());
-				}
-			}
-		}
+    // analyse features
+    for (MergeFeature<?> feature : mergeFeatures) {
+      RuntimeEnvironment env = new RuntimeEnvironment();
+      FeatureResult<?> featureResult = feature.check(mergeCandidate, env);
+      if (featureResult != null) {
+        featureResults.add(featureResult);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace(featureResult.toString());
+        }
+      }
+    }
 
-		List<Decision> decisions = decisionMaker.decide(featureResults);
+    List<Decision> decisions = decisionMaker.decide(featureResults);
 
-		double yesProb = 0.0;
-		for (Decision decision : decisions) {
-			if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
-				yesProb = decision.getProbability();
-				break;
-			}
-		}
+    double yesProb = 0.0;
+    for (Decision decision : decisions) {
+      if (decision.getOutcome().equals(MergeOutcome.DO_MERGE)) {
+        yesProb = decision.getProbability();
+        break;
+      }
+    }
 
-		if (LOG.isTraceEnabled()) {
-			LOG.trace("yesProb: " + yesProb);
-		}
-		return yesProb;
-	}
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("yesProb: " + yesProb);
+    }
+    return yesProb;
+  }
 
-	/**
-	 * Merge two sequential shapes into a single shape.
-	 */
-	public Shape merge(Shape shape1, Shape shape2) {
-		ShapePair pair = new ShapePair(shape1, shape2);
-		Shape mergedShape = shape1.getJochreImage().getShape(pair.getLeft(), pair.getTop(), pair.getRight(), pair.getBottom());
-		return mergedShape;
-	}
+  /**
+   * Merge two sequential shapes into a single shape.
+   */
+  public Shape merge(Shape shape1, Shape shape2) {
+    ShapePair pair = new ShapePair(shape1, shape2);
+    Shape mergedShape = shape1.getJochreImage().getShape(pair.getLeft(), pair.getTop(), pair.getRight(), pair.getBottom());
+    return mergedShape;
+  }
 
 }

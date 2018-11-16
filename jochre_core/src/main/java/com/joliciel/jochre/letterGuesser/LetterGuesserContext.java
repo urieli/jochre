@@ -33,42 +33,42 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  *
  */
 public class LetterGuesserContext implements ShapeWrapper, ShapeInSequenceWrapper {
-	private final ShapeInSequence shapeInSequence;
-	private final LetterSequence history;
+  private final ShapeInSequence shapeInSequence;
+  private final LetterSequence history;
 
-	public LetterGuesserContext(ShapeInSequence shapeInSequence, LetterSequence history) {
-		this.shapeInSequence = shapeInSequence;
-		this.history = history;
-	}
+  public LetterGuesserContext(ShapeInSequence shapeInSequence, LetterSequence history) {
+    this.shapeInSequence = shapeInSequence;
+    this.history = history;
+  }
 
-	@Override
-	public ShapeInSequence getShapeInSequence() {
-		return shapeInSequence;
-	}
+  @Override
+  public ShapeInSequence getShapeInSequence() {
+    return shapeInSequence;
+  }
 
-	/**
-	 * The letter sequence assigned during the current analysis to shapes
-	 * preceding the current shape within the same word.
-	 */
-	public LetterSequence getHistory() {
-		return history;
-	}
+  /**
+   * The letter sequence assigned during the current analysis to shapes
+   * preceding the current shape within the same word.
+   */
+  public LetterSequence getHistory() {
+    return history;
+  }
 
-	@Override
-	public Shape getShape() {
-		return this.shapeInSequence.getShape();
-	}
+  @Override
+  public Shape getShape() {
+    return this.shapeInSequence.getShape();
+  }
 
-	public int getIndex() {
-		return this.shapeInSequence.getIndex();
-	}
+  public int getIndex() {
+    return this.shapeInSequence.getIndex();
+  }
 
-	public ShapeSequence getShapeSequence() {
-		return this.shapeInSequence.getShapeSequence();
-	}
+  public ShapeSequence getShapeSequence() {
+    return this.shapeInSequence.getShapeSequence();
+  }
 
-	public List<Shape> getOriginalShapes() {
-		return this.shapeInSequence.getOriginalShapes();
-	}
+  public List<Shape> getOriginalShapes() {
+    return this.shapeInSequence.getOriginalShapes();
+  }
 
 }

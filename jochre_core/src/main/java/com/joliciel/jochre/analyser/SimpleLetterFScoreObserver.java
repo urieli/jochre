@@ -36,85 +36,85 @@ import com.joliciel.jochre.stats.FScoreCalculator;
  *
  */
 public class SimpleLetterFScoreObserver implements FScoreObserver {
-	private final FScoreCalculator<String> fScoreCalculator;
-	private final LetterValidator letterValidator;
-	private final JochreSession jochreSession;
+  private final FScoreCalculator<String> fScoreCalculator;
+  private final LetterValidator letterValidator;
+  private final JochreSession jochreSession;
 
-	boolean hasError = false;
-	boolean stillValid = true;
-	boolean currentImageWritten = false;
-	JochreImage currentImage = null;
+  boolean hasError = false;
+  boolean stillValid = true;
+  boolean currentImageWritten = false;
+  JochreImage currentImage = null;
 
-	public SimpleLetterFScoreObserver(LetterValidator letterValidator, JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-		this.letterValidator = letterValidator;
-		this.fScoreCalculator = new FScoreCalculator<String>();
-	}
+  public SimpleLetterFScoreObserver(LetterValidator letterValidator, JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+    this.letterValidator = letterValidator;
+    this.fScoreCalculator = new FScoreCalculator<String>();
+  }
 
-	@Override
-	public void onImageStart(JochreImage jochreImage) {
-		currentImage = jochreImage;
-		currentImageWritten = false;
-	}
+  @Override
+  public void onImageStart(JochreImage jochreImage) {
+    currentImage = jochreImage;
+    currentImageWritten = false;
+  }
 
-	@Override
-	public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess) {
-		if (stillValid) {
-			Shape shape = shapeInSequence.getShape();
-			String realLetter = shape.getLetter();
-			if (letterValidator.validate(realLetter)) {
+  @Override
+  public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess) {
+    if (stillValid) {
+      Shape shape = shapeInSequence.getShape();
+      String realLetter = shape.getLetter();
+      if (letterValidator.validate(realLetter)) {
 
-				if (realLetter.length() == 0)
-					realLetter = "■";
-				else if (!jochreSession.getLinguistics().getValidLetters().contains(realLetter)) {
-					if (realLetter.contains("|"))
-						realLetter = "□" + realLetter;
-					else
-						realLetter = "■" + realLetter;
-				}
-				if (bestGuess.length() == 0)
-					bestGuess = "■";
-				else if (!jochreSession.getLinguistics().getValidLetters().contains(bestGuess))
-					if (bestGuess.contains("|"))
-						bestGuess = "□" + bestGuess;
-					else
-						bestGuess = "■" + bestGuess;
+        if (realLetter.length() == 0)
+          realLetter = "■";
+        else if (!jochreSession.getLinguistics().getValidLetters().contains(realLetter)) {
+          if (realLetter.contains("|"))
+            realLetter = "□" + realLetter;
+          else
+            realLetter = "■" + realLetter;
+        }
+        if (bestGuess.length() == 0)
+          bestGuess = "■";
+        else if (!jochreSession.getLinguistics().getValidLetters().contains(bestGuess))
+          if (bestGuess.contains("|"))
+            bestGuess = "□" + bestGuess;
+          else
+            bestGuess = "■" + bestGuess;
 
-				fScoreCalculator.increment(realLetter, bestGuess);
-				if (!realLetter.equals(bestGuess))
-					hasError = true;
-			} else {
-				stillValid = false;
-			}
-		}
-	}
+        fScoreCalculator.increment(realLetter, bestGuess);
+        if (!realLetter.equals(bestGuess))
+          hasError = true;
+      } else {
+        stillValid = false;
+      }
+    }
+  }
 
-	@Override
-	public FScoreCalculator<String> getFScoreCalculator() {
-		return fScoreCalculator;
-	}
+  @Override
+  public FScoreCalculator<String> getFScoreCalculator() {
+    return fScoreCalculator;
+  }
 
-	@Override
-	public void onFinish() {
-	}
+  @Override
+  public void onFinish() {
+  }
 
-	@Override
-	public void onImageEnd() {
-	}
+  @Override
+  public void onImageEnd() {
+  }
 
-	@Override
-	public void onGuessSequence(LetterSequence letterSequence) {
+  @Override
+  public void onGuessSequence(LetterSequence letterSequence) {
 
-	}
+  }
 
-	@Override
-	public void onStartSequence(LetterSequence letterSequence) {
-		hasError = false;
-		stillValid = true;
-	}
+  @Override
+  public void onStartSequence(LetterSequence letterSequence) {
+    hasError = false;
+    stillValid = true;
+  }
 
-	@Override
-	public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences) {
-	}
+  @Override
+  public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences) {
+  }
 
 }

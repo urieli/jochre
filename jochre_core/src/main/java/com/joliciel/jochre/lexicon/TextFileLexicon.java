@@ -53,170 +53,170 @@ import com.joliciel.jochre.utils.JochreException;
  */
 public class TextFileLexicon implements Lexicon, Serializable {
 
-	private static final long serialVersionUID = 1278484873657866572L;
-	private static final Logger LOG = LoggerFactory.getLogger(TextFileLexicon.class);
-	private Map<String, Integer> entries = new HashMap<String, Integer>();
+  private static final long serialVersionUID = 1278484873657866572L;
+  private static final Logger LOG = LoggerFactory.getLogger(TextFileLexicon.class);
+  private Map<String, Integer> entries = new HashMap<String, Integer>();
 
-	public TextFileLexicon() {
-	}
+  public TextFileLexicon() {
+  }
 
-	public TextFileLexicon(Map<String, Integer> entries) {
-		this.entries = entries;
-	}
+  public TextFileLexicon(Map<String, Integer> entries) {
+    this.entries = entries;
+  }
 
-	public TextFileLexicon(File textFile) {
-		this(textFile, Charset.defaultCharset());
-	}
+  public TextFileLexicon(File textFile) {
+    this(textFile, Charset.defaultCharset());
+  }
 
-	public TextFileLexicon(File textFile, Charset charset) {
-		Scanner scanner;
-		try {
-			scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(textFile), charset)));
+  public TextFileLexicon(File textFile, Charset charset) {
+    Scanner scanner;
+    try {
+      scanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(textFile), charset)));
 
-			try {
-				while (scanner.hasNextLine()) {
-					String line = scanner.nextLine();
-					if (!line.startsWith("#")) {
-						String[] parts = line.split("\t");
+      try {
+        while (scanner.hasNextLine()) {
+          String line = scanner.nextLine();
+          if (!line.startsWith("#")) {
+            String[] parts = line.split("\t");
 
-						if (parts.length > 0) {
-							String word = parts[0];
-							int frequency = 1;
-							if (parts.length > 1)
-								frequency = Integer.parseInt(parts[1]);
-							entries.put(word, frequency);
-						}
+            if (parts.length > 0) {
+              String word = parts[0];
+              int frequency = 1;
+              if (parts.length > 1)
+                frequency = Integer.parseInt(parts[1]);
+              entries.put(word, frequency);
+            }
 
-					}
+          }
 
-				}
-			} finally {
-				scanner.close();
-			}
-		} catch (IOException e) {
-			throw new JochreException(e);
-		}
-	}
+        }
+      } finally {
+        scanner.close();
+      }
+    } catch (IOException e) {
+      throw new JochreException(e);
+    }
+  }
 
-	public void writeFile(Writer writer) {
-		for (Entry<String, Integer> entry : entries.entrySet()) {
-			try {
-				writer.write(entry.getKey() + "\t" + entry.getValue() + "\n");
-			} catch (IOException e) {
-				throw new JochreException(e);
-			}
-		}
-	}
+  public void writeFile(Writer writer) {
+    for (Entry<String, Integer> entry : entries.entrySet()) {
+      try {
+        writer.write(entry.getKey() + "\t" + entry.getValue() + "\n");
+      } catch (IOException e) {
+        throw new JochreException(e);
+      }
+    }
+  }
 
-	public void incrementEntry(String word) {
-		Integer freqObj = entries.get(word);
-		if (freqObj == null)
-			entries.put(word, 1);
-		else
-			entries.put(word, freqObj.intValue() + 1);
-	}
+  public void incrementEntry(String word) {
+    Integer freqObj = entries.get(word);
+    if (freqObj == null)
+      entries.put(word, 1);
+    else
+      entries.put(word, freqObj.intValue() + 1);
+  }
 
-	public void setEntry(String word, int frequency) {
-		entries.put(word, frequency);
-	}
+  public void setEntry(String word, int frequency) {
+    entries.put(word, frequency);
+  }
 
-	@Override
-	public int getFrequency(String word) {
-		Integer freqObj = entries.get(word);
-		if (freqObj != null)
-			return freqObj.intValue();
-		else
-			return 0;
-	}
+  @Override
+  public int getFrequency(String word) {
+    Integer freqObj = entries.get(word);
+    if (freqObj != null)
+      return freqObj.intValue();
+    else
+      return 0;
+  }
 
-	public void serialize(File memoryBaseFile) {
-		LOG.debug("serialize");
-		boolean isZip = false;
-		if (memoryBaseFile.getName().endsWith(".zip"))
-			isZip = true;
+  public void serialize(File memoryBaseFile) {
+    LOG.debug("serialize");
+    boolean isZip = false;
+    if (memoryBaseFile.getName().endsWith(".zip"))
+      isZip = true;
 
-		FileOutputStream fos = null;
-		ObjectOutputStream out = null;
-		ZipOutputStream zos = null;
-		try {
-			fos = new FileOutputStream(memoryBaseFile);
-			if (isZip) {
-				zos = new ZipOutputStream(fos);
-				zos.putNextEntry(new ZipEntry("lexicon.obj"));
-				out = new ObjectOutputStream(zos);
-			} else {
-				out = new ObjectOutputStream(fos);
-			}
+    FileOutputStream fos = null;
+    ObjectOutputStream out = null;
+    ZipOutputStream zos = null;
+    try {
+      fos = new FileOutputStream(memoryBaseFile);
+      if (isZip) {
+        zos = new ZipOutputStream(fos);
+        zos.putNextEntry(new ZipEntry("lexicon.obj"));
+        out = new ObjectOutputStream(zos);
+      } else {
+        out = new ObjectOutputStream(fos);
+      }
 
-			try {
-				out.writeObject(this);
-			} finally {
-				out.flush();
-				out.close();
-			}
-		} catch (IOException ioe) {
-			throw new JochreException(ioe);
-		}
-	}
+      try {
+        out.writeObject(this);
+      } finally {
+        out.flush();
+        out.close();
+      }
+    } catch (IOException ioe) {
+      throw new JochreException(ioe);
+    }
+  }
 
-	public static TextFileLexicon deserialize(ZipInputStream zis) {
-		TextFileLexicon memoryBase = null;
-		try {
-			ZipEntry zipEntry;
-			if ((zipEntry = zis.getNextEntry()) != null) {
-				LOG.debug("Scanning zip entry " + zipEntry.getName());
+  public static TextFileLexicon deserialize(ZipInputStream zis) {
+    TextFileLexicon memoryBase = null;
+    try {
+      ZipEntry zipEntry;
+      if ((zipEntry = zis.getNextEntry()) != null) {
+        LOG.debug("Scanning zip entry " + zipEntry.getName());
 
-				ObjectInputStream in = new ObjectInputStream(zis);
-				memoryBase = (TextFileLexicon) in.readObject();
-				zis.closeEntry();
-				in.close();
-			} else {
-				throw new RuntimeException("No zip entry in input stream");
-			}
-		} catch (IOException ioe) {
-			throw new JochreException(ioe);
-		} catch (ClassNotFoundException cnfe) {
-			throw new JochreException(cnfe);
-		}
+        ObjectInputStream in = new ObjectInputStream(zis);
+        memoryBase = (TextFileLexicon) in.readObject();
+        zis.closeEntry();
+        in.close();
+      } else {
+        throw new RuntimeException("No zip entry in input stream");
+      }
+    } catch (IOException ioe) {
+      throw new JochreException(ioe);
+    } catch (ClassNotFoundException cnfe) {
+      throw new JochreException(cnfe);
+    }
 
-		return memoryBase;
-	}
+    return memoryBase;
+  }
 
-	public static TextFileLexicon deserialize(File memoryBaseFile) {
-		LOG.debug("deserializeMemoryBase");
-		boolean isZip = false;
-		if (memoryBaseFile.getName().endsWith(".zip"))
-			isZip = true;
+  public static TextFileLexicon deserialize(File memoryBaseFile) {
+    LOG.debug("deserializeMemoryBase");
+    boolean isZip = false;
+    if (memoryBaseFile.getName().endsWith(".zip"))
+      isZip = true;
 
-		TextFileLexicon memoryBase = null;
-		ZipInputStream zis = null;
-		FileInputStream fis = null;
-		ObjectInputStream in = null;
+    TextFileLexicon memoryBase = null;
+    ZipInputStream zis = null;
+    FileInputStream fis = null;
+    ObjectInputStream in = null;
 
-		try {
-			fis = new FileInputStream(memoryBaseFile);
-			if (isZip) {
-				zis = new ZipInputStream(fis);
-				memoryBase = TextFileLexicon.deserialize(zis);
-			} else {
-				in = new ObjectInputStream(fis);
-				try {
-					memoryBase = (TextFileLexicon) in.readObject();
-				} finally {
-					in.close();
-				}
-			}
-		} catch (IOException ioe) {
-			throw new JochreException(ioe);
-		} catch (ClassNotFoundException cnfe) {
-			throw new JochreException(cnfe);
-		}
+    try {
+      fis = new FileInputStream(memoryBaseFile);
+      if (isZip) {
+        zis = new ZipInputStream(fis);
+        memoryBase = TextFileLexicon.deserialize(zis);
+      } else {
+        in = new ObjectInputStream(fis);
+        try {
+          memoryBase = (TextFileLexicon) in.readObject();
+        } finally {
+          in.close();
+        }
+      }
+    } catch (IOException ioe) {
+      throw new JochreException(ioe);
+    } catch (ClassNotFoundException cnfe) {
+      throw new JochreException(cnfe);
+    }
 
-		return memoryBase;
-	}
+    return memoryBase;
+  }
 
-	@Override
-	public Iterator<String> getWords() {
-		return entries.keySet().iterator();
-	}
+  @Override
+  public Iterator<String> getWords() {
+    return entries.keySet().iterator();
+  }
 }

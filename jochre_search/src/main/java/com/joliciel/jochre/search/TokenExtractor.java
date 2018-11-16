@@ -23,5 +23,5 @@ import java.util.List;
 
 interface TokenExtractor {
 
-	List<JochreToken> findTokens(String fieldName, Reader input);
+  List<JochreToken> findTokens(String fieldName, Reader input);
 }

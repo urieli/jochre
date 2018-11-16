@@ -33,19 +33,19 @@ import com.joliciel.jochre.boundaries.Split;
  */
 public class BridgeWidthFeature extends AbstractSplitFeature<Double> implements DoubleFeature<Split> {
 
-	@Override
-	public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
-		int[] verticalCounts = split.getShape().getVerticalCounts();
-		double verticalCount = (double) verticalCounts[split.getPosition()] / 255;
-		if (verticalCount==0)
-			verticalCount = 1;
-		double width = ((double) split.getShape().getXHeight() / 2.0) / verticalCount;
-		if (width > 1.0)
-			width = 1.0;
-		result = this.generateResult(width);
+  @Override
+  public FeatureResult<Double> checkInternal(Split split, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
+    int[] verticalCounts = split.getShape().getVerticalCounts();
+    double verticalCount = (double) verticalCounts[split.getPosition()] / 255;
+    if (verticalCount==0)
+      verticalCount = 1;
+    double width = ((double) split.getShape().getXHeight() / 2.0) / verticalCount;
+    if (width > 1.0)
+      width = 1.0;
+    result = this.generateResult(width);
 
-		return result;
-	}
+    return result;
+  }
 
 }

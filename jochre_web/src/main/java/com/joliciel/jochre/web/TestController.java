@@ -6,14 +6,14 @@ import org.zkoss.zul.Button;
 import org.zkoss.zul.Window;
 
 public class TestController extends GenericForwardComposer<Window> {
-	private static final long serialVersionUID = 1L;
-	@Wire
-	Button btnTest;
+  private static final long serialVersionUID = 1L;
+  @Wire
+  Button btnTest;
 
-	@Override
-	public void doAfterCompose(Window window) throws Exception {
-		super.doAfterCompose(window);
+  @Override
+  public void doAfterCompose(Window window) throws Exception {
+    super.doAfterCompose(window);
 
-		btnTest.setWidgetListener("onClick", "testAlert();");
-	}
+    btnTest.setWidgetListener("onClick", "testAlert();");
+  }
 }

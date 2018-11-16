@@ -45,57 +45,57 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class LetterFeatureTester {
-	@SuppressWarnings("unused")
-	private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureTester.class);
+  @SuppressWarnings("unused")
+  private static final Logger LOG = LoggerFactory.getLogger(LetterFeatureTester.class);
 
-	private final JochreSession jochreSession;
+  private final JochreSession jochreSession;
 
-	public LetterFeatureTester(JochreSession jochreSession) {
-		this.jochreSession = jochreSession;
-	}
+  public LetterFeatureTester(JochreSession jochreSession) {
+    this.jochreSession = jochreSession;
+  }
 
-	/**
-	 * Apply the features provided to all images currently marked as
-	 * ImageStatus.TRAINING_VALIDATED.
-	 * 
-	 * @param minShapeId
-	 *            the first shape id to apply features to
-	 */
-	public void applyFeatures(Set<LetterFeature<?>> features, Set<String> letters, int minImageId, int minShapeId) {
-		GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
-		List<JochreImage> images = graphicsDao.findImages(new ImageStatus[] { ImageStatus.TRAINING_VALIDATED });
-		for (JochreImage image : images) {
-			if (image.getId() >= minImageId) {
-				this.testFeatures(image, features, letters, minShapeId);
-			}
-			image.clearMemory();
-		}
-	}
+  /**
+   * Apply the features provided to all images currently marked as
+   * ImageStatus.TRAINING_VALIDATED.
+   * 
+   * @param minShapeId
+   *            the first shape id to apply features to
+   */
+  public void applyFeatures(Set<LetterFeature<?>> features, Set<String> letters, int minImageId, int minShapeId) {
+    GraphicsDao graphicsDao = GraphicsDao.getInstance(jochreSession);
+    List<JochreImage> images = graphicsDao.findImages(new ImageStatus[] { ImageStatus.TRAINING_VALIDATED });
+    for (JochreImage image : images) {
+      if (image.getId() >= minImageId) {
+        this.testFeatures(image, features, letters, minShapeId);
+      }
+      image.clearMemory();
+    }
+  }
 
-	void testFeatures(JochreImage jochreImage, Set<LetterFeature<?>> features, Set<String> letters, int minShapeId) {
-		for (Paragraph paragraph : jochreImage.getParagraphs()) {
-			for (RowOfShapes row : paragraph.getRows()) {
-				for (GroupOfShapes group : row.getGroups()) {
-					// simply add this group's shapes
-					ShapeSequence shapeSequence = new ShapeSequence();
-					for (Shape shape : group.getShapes())
-						shapeSequence.addShape(shape);
-					for (ShapeInSequence shapeInSequence : shapeSequence) {
-						Shape shape = shapeInSequence.getShape();
-						if (shape.getId() >= minShapeId && (letters == null || letters.size() == 0 || letters.contains(shape.getLetter())))
-							this.testFeatures(shapeInSequence, features);
-					} // next shape
-				} // next group
-			} // next row
-		} // next paragraph
-	}
+  void testFeatures(JochreImage jochreImage, Set<LetterFeature<?>> features, Set<String> letters, int minShapeId) {
+    for (Paragraph paragraph : jochreImage.getParagraphs()) {
+      for (RowOfShapes row : paragraph.getRows()) {
+        for (GroupOfShapes group : row.getGroups()) {
+          // simply add this group's shapes
+          ShapeSequence shapeSequence = new ShapeSequence();
+          for (Shape shape : group.getShapes())
+            shapeSequence.addShape(shape);
+          for (ShapeInSequence shapeInSequence : shapeSequence) {
+            Shape shape = shapeInSequence.getShape();
+            if (shape.getId() >= minShapeId && (letters == null || letters.size() == 0 || letters.contains(shape.getLetter())))
+              this.testFeatures(shapeInSequence, features);
+          } // next shape
+        } // next group
+      } // next row
+    } // next paragraph
+  }
 
-	void testFeatures(ShapeInSequence shapeInSequence, Set<LetterFeature<?>> features) {
-		LetterSequence history = null;
-		LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
-		for (LetterFeature<?> feature : features) {
-			RuntimeEnvironment env = new RuntimeEnvironment();
-			feature.check(context, env);
-		}
-	}
+  void testFeatures(ShapeInSequence shapeInSequence, Set<LetterFeature<?>> features) {
+    LetterSequence history = null;
+    LetterGuesserContext context = new LetterGuesserContext(shapeInSequence, history);
+    for (LetterFeature<?> feature : features) {
+      RuntimeEnvironment env = new RuntimeEnvironment();
+      feature.check(context, env);
+    }
+  }
 }

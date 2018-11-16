@@ -18,16 +18,68 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search.alto;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface AltoPage {
-	public AltoDocument getDocument();
-	public List<AltoTextBlock> getTextBlocks();
-	public List<AltoTextLine> getTextLines();
-	public int getWidth();
-	public int getHeight();
-	public int getIndex();
-	public int wordCount();
-	public double getConfidence();
-	public void setConfidence(double confidence);
+public class AltoPage {
+  private AltoDocument document;
+  private List<AltoTextBlock> textBlocks = new ArrayList<>();
+  private List<AltoTextLine> textLines = new ArrayList<>();
+  private int pageIndex;
+  private int width;
+  private int height;
+  private int wordCount = -1;
+  private double confidence = 0;
+
+  public AltoPage(AltoDocument doc, int pageIndex, int width, int height) {
+    super();
+    this.document = doc;
+    this.pageIndex = pageIndex;
+    this.width = width;
+    this.height = height;
+    this.document.getPages().add(this);
+  }
+
+  public List<AltoTextBlock> getTextBlocks() {
+    return textBlocks;
+  }
+
+  public List<AltoTextLine> getTextLines() {
+    return textLines;
+  }
+
+  public int getWidth() {
+    return width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
+  public int getIndex() {
+    return pageIndex;
+  }
+
+  public AltoDocument getDocument() {
+    return document;
+  }
+
+  public int wordCount() {
+    if (wordCount < 0) {
+      wordCount = 0;
+      for (AltoTextBlock block : this.getTextBlocks()) {
+        wordCount += block.wordCount();
+      }
+    }
+    return wordCount;
+  }
+
+  public double getConfidence() {
+    return confidence;
+  }
+
+  public void setConfidence(double confidence) {
+    this.confidence = confidence;
+  }
+
 }

@@ -42,43 +42,43 @@ import com.typesafe.config.ConfigFactory;
 import mockit.Mocked;
 
 public class SplitCandidateFinderImplTest {
-	private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImplTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImplTest.class);
 
-	@Test
-	public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {
-		System.setProperty("config.file", "src/test/resources/test.conf");
-		ConfigFactory.invalidateCaches();
-		Config config = ConfigFactory.load();
-		JochreSession jochreSession = new JochreSession(config);
-		InputStream imageFileStream = getClass().getResourceAsStream("shape_370454.png");
-		assertNotNull(imageFileStream);
-		BufferedImage image = ImageIO.read(imageFileStream);
+  @Test
+  public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {
+    System.setProperty("config.file", "src/test/resources/test.conf");
+    ConfigFactory.invalidateCaches();
+    Config config = ConfigFactory.load();
+    JochreSession jochreSession = new JochreSession(config);
+    InputStream imageFileStream = getClass().getResourceAsStream("shape_370454.png");
+    assertNotNull(imageFileStream);
+    BufferedImage image = ImageIO.read(imageFileStream);
 
-		JochreImage jochreImage = new SourceImage(page, "name", image, jochreSession);
-		Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth() - 1, jochreImage.getHeight() - 1);
+    JochreImage jochreImage = new SourceImage(page, "name", image, jochreSession);
+    Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth() - 1, jochreImage.getHeight() - 1);
 
-		SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
-		List<Split> splits = splitCandidateFinder.findSplitCandidates(shape);
+    SplitCandidateFinder splitCandidateFinder = new SplitCandidateFinder(jochreSession);
+    List<Split> splits = splitCandidateFinder.findSplitCandidates(shape);
 
-		int[] trueSplitPositions = new int[] { 38, 59, 82 };
-		boolean[] foundSplit = new boolean[] { false, false, false };
-		for (Split splitCandidate : splits) {
-			LOG.debug("Split candidate at " + splitCandidate.getPosition());
-			for (int i = 0; i < trueSplitPositions.length; i++) {
-				int truePos = trueSplitPositions[i];
-				int distance = splitCandidate.getPosition() - truePos;
-				if (distance < 0)
-					distance = 0 - distance;
-				if (distance < splitCandidateFinder.getMinDistanceBetweenSplits()) {
-					foundSplit[i] = true;
-					LOG.debug("Found split: " + truePos + ", distance " + distance);
-				}
-			}
-		}
+    int[] trueSplitPositions = new int[] { 38, 59, 82 };
+    boolean[] foundSplit = new boolean[] { false, false, false };
+    for (Split splitCandidate : splits) {
+      LOG.debug("Split candidate at " + splitCandidate.getPosition());
+      for (int i = 0; i < trueSplitPositions.length; i++) {
+        int truePos = trueSplitPositions[i];
+        int distance = splitCandidate.getPosition() - truePos;
+        if (distance < 0)
+          distance = 0 - distance;
+        if (distance < splitCandidateFinder.getMinDistanceBetweenSplits()) {
+          foundSplit[i] = true;
+          LOG.debug("Found split: " + truePos + ", distance " + distance);
+        }
+      }
+    }
 
-		for (int i = 0; i < trueSplitPositions.length; i++) {
-			assertTrue("didn't find split " + trueSplitPositions[i], foundSplit[i]);
-		}
-	}
+    for (int i = 0; i < trueSplitPositions.length; i++) {
+      assertTrue("didn't find split " + trueSplitPositions[i], foundSplit[i]);
+    }
+  }
 
 }

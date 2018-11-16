@@ -35,44 +35,44 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class ChupchikLowerRightFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
-	private static final Logger LOG = LoggerFactory.getLogger(ChupchikLowerRightFeature.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ChupchikLowerRightFeature.class);
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		int xSectors = 11;
-		int centreSectors = 13;
-		int marginSectors = 1;
-		double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    int xSectors = 11;
+    int centreSectors = 13;
+    int marginSectors = 1;
+    double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
 
-		double minChupchikStart = 8;
-		
-		boolean foundChupchik = false;
-		for (int j = grid[0].length - 1; j>=grid[0].length-5; j--) {
-			boolean foundBlack = false;
-			int chupchikSize = 0;
-			for (int i = grid.length-1; i>0;i--) {
-				if (!foundBlack && i<minChupchikStart)
-					break;
-				if (grid[i][j]>=0.5) {
-					foundBlack = true;
-					chupchikSize++;
-				}
-				else if (grid[i][j]<0.5 && foundBlack) {
-					break;
-				}
-			}
-			if (LOG.isTraceEnabled())
-				LOG.trace("Row " + j + ", chupchickSize: " + chupchikSize);
-			if (foundBlack&&chupchikSize<=3) {
-				foundChupchik = true;
-				break;
-			} else if (foundBlack) {
-				break;
-			}
-		}
-		
-		FeatureResult<Boolean> outcome = this.generateResult(foundChupchik);
-		return outcome;
-	}
+    double minChupchikStart = 8;
+    
+    boolean foundChupchik = false;
+    for (int j = grid[0].length - 1; j>=grid[0].length-5; j--) {
+      boolean foundBlack = false;
+      int chupchikSize = 0;
+      for (int i = grid.length-1; i>0;i--) {
+        if (!foundBlack && i<minChupchikStart)
+          break;
+        if (grid[i][j]>=0.5) {
+          foundBlack = true;
+          chupchikSize++;
+        }
+        else if (grid[i][j]<0.5 && foundBlack) {
+          break;
+        }
+      }
+      if (LOG.isTraceEnabled())
+        LOG.trace("Row " + j + ", chupchickSize: " + chupchikSize);
+      if (foundBlack&&chupchikSize<=3) {
+        foundChupchik = true;
+        break;
+      } else if (foundBlack) {
+        break;
+      }
+    }
+    
+    FeatureResult<Boolean> outcome = this.generateResult(foundChupchik);
+    return outcome;
+  }
 }

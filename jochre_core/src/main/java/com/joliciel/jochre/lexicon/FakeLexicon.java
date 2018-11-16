@@ -30,15 +30,15 @@ import java.util.List;
  */
 public class FakeLexicon implements Lexicon {
 
-	@Override
-	public int getFrequency(String word) {
-		return 1;
-	}
+  @Override
+  public int getFrequency(String word) {
+    return 1;
+  }
 
-	@Override
-	public Iterator<String> getWords() {
-		List<String> words = new ArrayList<String>();
-		return words.iterator();
-	}
+  @Override
+  public Iterator<String> getWords() {
+    List<String> words = new ArrayList<String>();
+    return words.iterator();
+  }
 
 }

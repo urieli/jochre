@@ -32,20 +32,20 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
  *
  */
 public class LowerRightCornerFullFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper>  {
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		int xSectors = 5;
-		int centreSectors = 7;
-		int marginSectors = 1;
-		double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    int xSectors = 5;
+    int centreSectors = 7;
+    int marginSectors = 1;
+    double[][] grid = shape.getBrightnessBySection(xSectors, centreSectors, marginSectors, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
 
-		boolean cornerFull = false;
-		int cornerY = grid[0].length-(2*marginSectors);
-		
-		cornerFull = (grid[grid.length-1][cornerY] >= 0.5);
+    boolean cornerFull = false;
+    int cornerY = grid[0].length-(2*marginSectors);
+    
+    cornerFull = (grid[grid.length-1][cornerY] >= 0.5);
 
-		FeatureResult<Boolean> outcome = this.generateResult(cornerFull);
-		return outcome;
-	}
+    FeatureResult<Boolean> outcome = this.generateResult(cornerFull);
+    return outcome;
+  }
 }

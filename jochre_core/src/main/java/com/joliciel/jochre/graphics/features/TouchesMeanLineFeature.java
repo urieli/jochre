@@ -31,12 +31,12 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  */
 public final class TouchesMeanLineFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
 
-		boolean result = ((shape.getMeanLine()>=0) && (shape.getHeight() >= shape.getMeanLine()));
-		FeatureResult<Boolean> outcome = this.generateResult(result);
-		return outcome;
-	}
+    boolean result = ((shape.getMeanLine()>=0) && (shape.getHeight() >= shape.getMeanLine()));
+    FeatureResult<Boolean> outcome = this.generateResult(result);
+    return outcome;
+  }
 }

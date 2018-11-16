@@ -36,57 +36,57 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  *
  */
 public class ShapeInSequence implements ShapeWrapper, ShapeInSequenceWrapper {
-	private final Shape shape;
-	private int index;
-	private final ShapeSequence shapeSequence;
-	private final List<Shape> originalShapes = new ArrayList<Shape>();
+  private final Shape shape;
+  private int index;
+  private final ShapeSequence shapeSequence;
+  private final List<Shape> originalShapes = new ArrayList<Shape>();
 
-	public ShapeInSequence(Shape shape, ShapeSequence shapeSequence, int index) {
-		super();
-		this.shape = shape;
-		this.index = index;
-		this.shapeSequence = shapeSequence;
-	}
+  public ShapeInSequence(Shape shape, ShapeSequence shapeSequence, int index) {
+    super();
+    this.shape = shape;
+    this.index = index;
+    this.shapeSequence = shapeSequence;
+  }
 
-	@Override
-	public Shape getShape() {
-		return shape;
-	}
+  @Override
+  public Shape getShape() {
+    return shape;
+  }
 
-	/**
-	 * The index within this sequence.
-	 */
-	public int getIndex() {
-		return index;
-	}
+  /**
+   * The index within this sequence.
+   */
+  public int getIndex() {
+    return index;
+  }
 
-	void setIndex(int index) {
-		this.index = index;
-	}
+  void setIndex(int index) {
+    this.index = index;
+  }
 
-	/**
-	 * The sequence containing this shape.
-	 */
-	public ShapeSequence getShapeSequence() {
-		return shapeSequence;
-	}
+  /**
+   * The sequence containing this shape.
+   */
+  public ShapeSequence getShapeSequence() {
+    return shapeSequence;
+  }
 
-	/**
-	 * Get the shape or shapes from which this shape was formed by splitting,
-	 * merging, or simply placing it in the sequence.
-	 */
-	public List<Shape> getOriginalShapes() {
-		return originalShapes;
-	}
+  /**
+   * Get the shape or shapes from which this shape was formed by splitting,
+   * merging, or simply placing it in the sequence.
+   */
+  public List<Shape> getOriginalShapes() {
+    return originalShapes;
+  }
 
-	@Override
-	public ShapeInSequence getShapeInSequence() {
-		return this;
-	}
+  @Override
+  public ShapeInSequence getShapeInSequence() {
+    return this;
+  }
 
-	@Override
-	public String toString() {
-		return "ShapeInSequence [shape=" + shape + ", index=" + index + "]";
-	}
+  @Override
+  public String toString() {
+    return "ShapeInSequence [shape=" + shape + ", index=" + index + "]";
+  }
 
 }

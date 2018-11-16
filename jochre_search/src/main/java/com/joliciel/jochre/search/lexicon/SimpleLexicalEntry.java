@@ -19,43 +19,43 @@
 package com.joliciel.jochre.search.lexicon;
 
 class SimpleLexicalEntry implements LexicalEntry {
-	private static final long serialVersionUID = 1L;
-	
-	private String word;
-	private String lemma = "";
-	private String category = "";
-	private String lexiconName = "";
+  private static final long serialVersionUID = 1L;
+  
+  private String word;
+  private String lemma = "";
+  private String category = "";
+  private String lexiconName = "";
 
-	public String getWord() {
-		return word;
-	}
+  public String getWord() {
+    return word;
+  }
 
-	public void setWord(String word) {
-		this.word = word;
-	}
+  public void setWord(String word) {
+    this.word = word;
+  }
 
-	public String getLemma() {
-		return lemma;
-	}
+  public String getLemma() {
+    return lemma;
+  }
 
-	public void setLemma(String lemma) {
-		this.lemma = lemma;
-	}
+  public void setLemma(String lemma) {
+    this.lemma = lemma;
+  }
 
-	public String getCategory() {
-		return category;
-	}
+  public String getCategory() {
+    return category;
+  }
 
-	public void setCategory(String category) {
-		this.category = category;
-	}
+  public void setCategory(String category) {
+    this.category = category;
+  }
 
-	public String getLexiconName() {
-		return lexiconName;
-	}
+  public String getLexiconName() {
+    return lexiconName;
+  }
 
-	public void setLexiconName(String lexiconName) {
-		this.lexiconName = lexiconName;
-	}
+  public void setLexiconName(String lexiconName) {
+    this.lexiconName = lexiconName;
+  }
 
 }

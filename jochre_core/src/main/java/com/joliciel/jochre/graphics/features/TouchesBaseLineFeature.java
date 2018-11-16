@@ -31,11 +31,11 @@ import com.joliciel.jochre.graphics.ShapeWrapper;
  */
 public final class TouchesBaseLineFeature extends AbstractShapeFeature<Boolean> implements BooleanFeature<ShapeWrapper> {
 
-	@Override
-	public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		Shape shape = shapeWrapper.getShape();
-		boolean result = ((shape.getBaseLine()>=0) && (shape.getHeight() >= shape.getBaseLine()));
-		FeatureResult<Boolean> outcome = this.generateResult(result);
-		return outcome;
-	}
+  @Override
+  public FeatureResult<Boolean> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    Shape shape = shapeWrapper.getShape();
+    boolean result = ((shape.getBaseLine()>=0) && (shape.getHeight() >= shape.getBaseLine()));
+    FeatureResult<Boolean> outcome = this.generateResult(result);
+    return outcome;
+  }
 }

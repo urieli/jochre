@@ -32,59 +32,59 @@ public class MultiTaskProgressMonitorTest {
 
     @Test
     public void testMonitor() {
-    	MonitorableParentClass parentClass = new MonitorableParentClass();
-    	ProgressMonitor progressMonitor = parentClass.monitorTask();
-    	new Thread(parentClass).start();
-    	while (!progressMonitor.isFinished()) {
-    		LOG.debug("Progress: " + progressMonitor.getPercentComplete());
-    	}
+      MonitorableParentClass parentClass = new MonitorableParentClass();
+      ProgressMonitor progressMonitor = parentClass.monitorTask();
+      new Thread(parentClass).start();
+      while (!progressMonitor.isFinished()) {
+        LOG.debug("Progress: " + progressMonitor.getPercentComplete());
+      }
     }
     
     private static class MonitorableParentClass implements Runnable, Monitorable {
-    	MultiTaskProgressMonitor monitor = null;
-    	
-		@Override
-		public ProgressMonitor monitorTask() {
-			monitor = new MultiTaskProgressMonitor();
-			return monitor;
-		}
+      MultiTaskProgressMonitor monitor = null;
+      
+    @Override
+    public ProgressMonitor monitorTask() {
+      monitor = new MultiTaskProgressMonitor();
+      return monitor;
+    }
 
-		@Override
-		public void run() {
-			MonitorableChildClass childClass = new MonitorableChildClass();
-			ProgressMonitor childMonitor = childClass.monitorTask();
-			monitor.startTask(childMonitor, 0.4);
-			childClass.run();
-			monitor.endTask();
-			
-			childClass = new MonitorableChildClass();
-			childMonitor = childClass.monitorTask();
-			monitor.startTask(childMonitor, 0.6);
-			childClass.run();
-			monitor.endTask();
-			
-			monitor.setFinished(true);
-			monitor.setFinished(true);
-		}
-    	
+    @Override
+    public void run() {
+      MonitorableChildClass childClass = new MonitorableChildClass();
+      ProgressMonitor childMonitor = childClass.monitorTask();
+      monitor.startTask(childMonitor, 0.4);
+      childClass.run();
+      monitor.endTask();
+      
+      childClass = new MonitorableChildClass();
+      childMonitor = childClass.monitorTask();
+      monitor.startTask(childMonitor, 0.6);
+      childClass.run();
+      monitor.endTask();
+      
+      monitor.setFinished(true);
+      monitor.setFinished(true);
+    }
+      
     }
     
     private static class MonitorableChildClass implements Monitorable {
-    	SimpleProgressMonitor monitor = null;
-		@Override
-		public ProgressMonitor monitorTask() {
-			monitor = new SimpleProgressMonitor();
-			return monitor;
-		}
-		
-		public void run() {
-			monitor.setCurrentAction("blah");
-			for (int i = 0; i<50000; i++) {
-				monitor.setPercentComplete((double)i / 50000);
-			}
-		}
-    	
-		
+      SimpleProgressMonitor monitor = null;
+    @Override
+    public ProgressMonitor monitorTask() {
+      monitor = new SimpleProgressMonitor();
+      return monitor;
+    }
+    
+    public void run() {
+      monitor.setCurrentAction("blah");
+      for (int i = 0; i<50000; i++) {
+        monitor.setPercentComplete((double)i / 50000);
+      }
+    }
+      
+    
     }
     
 }

@@ -22,16 +22,16 @@ import java.util.Comparator;
 
 class RowOfShapesFirstShapeTopComparator implements Comparator<RowOfShapes> {
 
-	@Override
-	public int compare(RowOfShapes row1, RowOfShapes row2) {
-		if (row1.equals(row2))
-			return 0;
-		int distance = row1.getShapes().iterator().next().getTop() - row2.getShapes().iterator().next().getTop();
-		if (distance<0)
-			return -1;
-		if (distance>0)
-			return 1;
-		return 1;
-	}
+  @Override
+  public int compare(RowOfShapes row1, RowOfShapes row2) {
+    if (row1.equals(row2))
+      return 0;
+    int distance = row1.getShapes().iterator().next().getTop() - row2.getShapes().iterator().next().getTop();
+    if (distance<0)
+      return -1;
+    if (distance>0)
+      return 1;
+    return 1;
+  }
 
 }

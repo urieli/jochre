@@ -30,39 +30,39 @@ import com.joliciel.jochre.letterGuesser.LetterSequence;
  *
  */
 public interface LetterGuessObserver {
-	/**
-	 * Called when we start analysing the next image.
-	 */
-	public void onImageStart(JochreImage jochreImage);
-	
-	/**
-	 * Called each time the final letter is guessed for a given shape.
-	 */
-	public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess);
-	
-	/**
-	 * Called when a new sequence is about to be guessed, before any calls to onGuessLetter.
-	 */
-	public void onStartSequence(LetterSequence letterSequence);
+  /**
+   * Called when we start analysing the next image.
+   */
+  public void onImageStart(JochreImage jochreImage);
+  
+  /**
+   * Called each time the final letter is guessed for a given shape.
+   */
+  public void onGuessLetter(ShapeInSequence shapeInSequence, String bestGuess);
+  
+  /**
+   * Called when a new sequence is about to be guessed, before any calls to onGuessLetter.
+   */
+  public void onStartSequence(LetterSequence letterSequence);
 
-	/**
-	 * Called when the beam search has completed and we have the n most likely sequences,
-	 * as well as the best sequence selected from among them.
-	 */
-	public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences);
-	
-	/**
-	 * Called when the best letter sequence has been chosen for a given group, after all calls to onGuessLetter.
-	 */
-	public void onGuessSequence(LetterSequence bestSequence);
-	
-	/**
-	 * Called whenever processing ends for the previous image.
-	 */
-	public void onImageEnd();
-	
-	/**
-	 * Called when analysis is complete.
-	 */
-	public void onFinish();
+  /**
+   * Called when the beam search has completed and we have the n most likely sequences,
+   * as well as the best sequence selected from among them.
+   */
+  public void onBeamSearchEnd(LetterSequence bestSequence, List<LetterSequence> finalSequences, List<LetterSequence> holdoverSequences);
+  
+  /**
+   * Called when the best letter sequence has been chosen for a given group, after all calls to onGuessLetter.
+   */
+  public void onGuessSequence(LetterSequence bestSequence);
+  
+  /**
+   * Called whenever processing ends for the previous image.
+   */
+  public void onImageEnd();
+  
+  /**
+   * Called when analysis is complete.
+   */
+  public void onFinish();
 }

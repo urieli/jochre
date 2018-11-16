@@ -40,49 +40,49 @@ import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
  */
 public class SectionRelativeBrightnessNoMarginsFeature extends AbstractShapeFeature<Double> implements DoubleFeature<ShapeWrapper> {
     @SuppressWarnings("unused")
-	private static final Logger LOG = LoggerFactory.getLogger(SectionRelativeBrightnessNoMarginsFeature.class);
-	private IntegerFeature<ShapeWrapper> xFeature;
-	private IntegerFeature<ShapeWrapper> yFeature;
-	private IntegerFeature<ShapeWrapper> verticalSectionsFeature;
-	private IntegerFeature<ShapeWrapper> horizontalSectionsFeature;
-	
-	public SectionRelativeBrightnessNoMarginsFeature(IntegerFeature<ShapeWrapper> xFeature, IntegerFeature<ShapeWrapper> yFeature,
-			IntegerFeature<ShapeWrapper> verticalSectionsFeature, IntegerFeature<ShapeWrapper> horizontalSectionsFeature) {
-		super();
-		this.xFeature = xFeature;
-		this.yFeature = yFeature;
-		this.verticalSectionsFeature = verticalSectionsFeature;
-		this.horizontalSectionsFeature = horizontalSectionsFeature;
-		
-		this.setName(super.getName()
-				+ "(" + this.xFeature.getName()
-				+ "," + this.yFeature.getName()
-				+ "," + this.verticalSectionsFeature.getName()
-				+ "," + this.horizontalSectionsFeature.getName()
-				+ ")");
-	}
-	
-	@Override
-	public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
-		FeatureResult<Double> result = null;
+  private static final Logger LOG = LoggerFactory.getLogger(SectionRelativeBrightnessNoMarginsFeature.class);
+  private IntegerFeature<ShapeWrapper> xFeature;
+  private IntegerFeature<ShapeWrapper> yFeature;
+  private IntegerFeature<ShapeWrapper> verticalSectionsFeature;
+  private IntegerFeature<ShapeWrapper> horizontalSectionsFeature;
+  
+  public SectionRelativeBrightnessNoMarginsFeature(IntegerFeature<ShapeWrapper> xFeature, IntegerFeature<ShapeWrapper> yFeature,
+      IntegerFeature<ShapeWrapper> verticalSectionsFeature, IntegerFeature<ShapeWrapper> horizontalSectionsFeature) {
+    super();
+    this.xFeature = xFeature;
+    this.yFeature = yFeature;
+    this.verticalSectionsFeature = verticalSectionsFeature;
+    this.horizontalSectionsFeature = horizontalSectionsFeature;
+    
+    this.setName(super.getName()
+        + "(" + this.xFeature.getName()
+        + "," + this.yFeature.getName()
+        + "," + this.verticalSectionsFeature.getName()
+        + "," + this.horizontalSectionsFeature.getName()
+        + ")");
+  }
+  
+  @Override
+  public FeatureResult<Double> checkInternal(ShapeWrapper shapeWrapper, RuntimeEnvironment env) {
+    FeatureResult<Double> result = null;
 
-		FeatureResult<Integer> xResult = xFeature.check(shapeWrapper, env);
-		FeatureResult<Integer> yResult = yFeature.check(shapeWrapper, env);
-		FeatureResult<Integer> verticalSectionsResult = verticalSectionsFeature.check(shapeWrapper, env);
-		FeatureResult<Integer> horizontalSectionsResult = horizontalSectionsFeature.check(shapeWrapper, env);
-		
-		if (xResult!=null && yResult!=null && verticalSectionsResult!=null && horizontalSectionsResult!=null) {
-			int x = xResult.getOutcome();
-			int y = yResult.getOutcome();
-			int verticalSections = verticalSectionsResult.getOutcome();
-			int horizontalSections = horizontalSectionsResult.getOutcome();	
-			
-			Shape shape = shapeWrapper.getShape();
-			double[][] graduatedBrightnessGrid = shape.getBrightnessBySection(verticalSections, horizontalSections, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
-			double graduatedBrightness = graduatedBrightnessGrid[x][y];
-			
-			result = this.generateResult(graduatedBrightness);
-		}
-		return result;
-	}
+    FeatureResult<Integer> xResult = xFeature.check(shapeWrapper, env);
+    FeatureResult<Integer> yResult = yFeature.check(shapeWrapper, env);
+    FeatureResult<Integer> verticalSectionsResult = verticalSectionsFeature.check(shapeWrapper, env);
+    FeatureResult<Integer> horizontalSectionsResult = horizontalSectionsFeature.check(shapeWrapper, env);
+    
+    if (xResult!=null && yResult!=null && verticalSectionsResult!=null && horizontalSectionsResult!=null) {
+      int x = xResult.getOutcome();
+      int y = yResult.getOutcome();
+      int verticalSections = verticalSectionsResult.getOutcome();
+      int horizontalSections = horizontalSectionsResult.getOutcome();  
+      
+      Shape shape = shapeWrapper.getShape();
+      double[][] graduatedBrightnessGrid = shape.getBrightnessBySection(verticalSections, horizontalSections, SectionBrightnessMeasurementMethod.RELATIVE_TO_MAX_SECTION);
+      double graduatedBrightness = graduatedBrightnessGrid[x][y];
+      
+      result = this.generateResult(graduatedBrightness);
+    }
+    return result;
+  }
 }

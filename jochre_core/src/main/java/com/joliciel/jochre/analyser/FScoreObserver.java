@@ -21,5 +21,5 @@ package com.joliciel.jochre.analyser;
 import com.joliciel.jochre.stats.FScoreCalculator;
 
 public interface FScoreObserver extends LetterGuessObserver {
-	public FScoreCalculator<String> getFScoreCalculator();
+  public FScoreCalculator<String> getFScoreCalculator();
 }
