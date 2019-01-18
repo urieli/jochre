@@ -173,50 +173,50 @@
 {% elif not haveResults %}
   <p>{{ Strings.noResults }}</p>
 {% else %}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="col"><div class="author"><b>{{ foundResults }}:</b></div></div>
+    <div class="col-6"><div class="author"><b>{{ foundResults }}:</b></div></div>
     {% if RTL %}
-    <div class="col"><div class="authorRtl rtl">{{ foundResultsRTL }}:</div></div>
+    <div class="col-6"><div class="authorRtl rtl">{{ foundResultsRTL }}:</div></div>
     {% endif %}
   </div>
 {% for result in results %}
   <div class="row mt-1 mb-1">
-    <div class="col"><div class="black-separator"></div></div>
+    <div class="col-12"><div class="black-separator"></div></div>
   </div>
   <div class="row">
-    <div class="col"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+    <div class="col-6"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
     {% if RTL %}
-      <div class="col"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
+      <div class="col-6"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
     {% endif %}
   </div>
   <div class="row">
-    <div class="col"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}</div></div>
+    <div class="col-6"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}</div></div>
     {% if RTL %}
-      <div class="col"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}</div></div>
+      <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}</div></div>
     {% endif %}
   </div>
   {% if showSection %}
     <div class="row">
-      <div class="col" class="author"><b>{{ Strings.section }}:</b> {{ result.doc.pages }}</div>
+      <div class="col-6" class="author"><b>{{ Strings.section }}:</b> {{ result.doc.pages }}</div>
       {% if RTL %}
-        <div class="col""><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ result.doc.pagesRTL }}</div></div>
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ result.doc.pagesRTL }}</div></div>
       {% endif %}
     </div>
   {% endif %}
   {% if result.doc.publisher %}
     <div class="row">
-      <div class="col"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div>
+      <div class="col-6"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div>
       {% if RTL %}
-        <div class="col"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span></div></div>
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span></div></div>
       {% endif %}
       </div>
   {% endif %}
   {% if result.doc.date %}
     <div class="row">
-      <div class="col"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div>
+      <div class="col-6"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div>
       {% if RTL %}
-        <div class="col"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span></div></div>
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span></div></div>
       {% endif %}
     </div>
   {% endif %}

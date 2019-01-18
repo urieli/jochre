@@ -1,4 +1,17 @@
-Before contributing, please send a signed and scanned individual contributor license agreement to Joliciel Informatique: contact@joli-ciel.com
+# How to contribute
+
+## Getting started
+
+* Make sure you have a [GitHub account](https://github.com/signup/free).
+
+## Reporting issues
+
+* Clearly describe the issue including steps to reproduce when it is a bug.
+* If applicable, include a URL where the issue occurred.
+
+## Submitting Changes
+
+Before submitting code or related changes, please send a signed and scanned individual contributor license agreement to Joliciel Informatique: contact@joli-ciel.com
 
 If you are contributing as an employee, please make sure your employer sends a signed and scanned corporate contributor license agreement, with your name listed in schedule A.
 
