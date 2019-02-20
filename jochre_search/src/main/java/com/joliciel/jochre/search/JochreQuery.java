@@ -31,6 +31,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.slf4j.Logger;
@@ -132,6 +133,9 @@ public class JochreQuery {
   public Query getLuceneTextQuery() {
     try {
       if (luceneTextQuery == null) {
+        if (this.queryString == null || this.queryString.length() == 0) {
+          throw new JochreSearchException("Cannot get a text query without a querystring.");
+        }
         LOG.debug("Parsing query: " + this.getQueryString());
         LOG.debug("expandInflections: " + expandInflections);
         JochreQueryAnalyser analyzer = new JochreQueryAnalyser(config, expandInflections);
@@ -158,7 +162,11 @@ public class JochreQuery {
       Analyzer jochreAnalyzer = new JochreMetaDataAnalyser(config);
       if (luceneQuery == null) {
         Builder builder = new Builder();
-        builder.add(this.getLuceneTextQuery(), Occur.MUST);
+        boolean hasQuery = false;
+        if (this.queryString != null && this.queryString.length() > 0) {
+          builder.add(this.getLuceneTextQuery(), Occur.MUST);
+          hasQuery = true;
+        }
         if (this.authors.size() > 0) {
           Builder authorBuilder = new Builder();
           TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
@@ -176,6 +184,7 @@ public class JochreQuery {
           BooleanQuery authorQuery = authorBuilder.build();
           BooleanClause authorClause = new BooleanClause(authorQuery, this.authorInclude ? Occur.MUST : Occur.MUST_NOT);
           builder.add(authorClause);
+          hasQuery = true;
         }
         if (this.titleQueryString != null && this.titleQueryString.length() > 0) {
           MultiFieldQueryParser titleParser = new MultiFieldQueryParser(
@@ -188,20 +197,26 @@ public class JochreQuery {
 
           Query titleQuery = titleParser.parse(queryString);
           builder.add(titleQuery, Occur.MUST);
+          hasQuery = true;
         }
         if (this.fromYear != null || this.toYear != null) {
           Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(),
               this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
               this.toYear == null ? Integer.MAX_VALUE : this.toYear.intValue());
           builder.add(new BooleanClause(yearQuery, Occur.MUST));
+          hasQuery = true;
         }
-        if (this.reference != null) {
+        if (this.reference != null && this.reference.length() > 0) {
           TermQuery refQuery = new TermQuery(new Term(JochreIndexField.id.name(), reference));
           builder.add(new BooleanClause(refQuery, Occur.MUST));
+          hasQuery = true;
         }
-
-        luceneQuery = builder.build();
-        LOG.debug(luceneQuery.toString());
+        if (hasQuery)
+          luceneQuery = builder.build();
+        else
+          luceneQuery = new MatchNoDocsQuery();
+        if (LOG.isDebugEnabled())
+          LOG.debug(luceneQuery.toString());
       }
       return luceneQuery;
     } catch (ParseException e) {
@@ -238,4 +253,10 @@ public class JochreQuery {
     return reference;
   }
 
+  /**
+   * Can this query return highlights inside the books.
+   */
+  public boolean hasHighlights() {
+    return this.queryString != null && this.queryString.length() > 0;
+  }
 }

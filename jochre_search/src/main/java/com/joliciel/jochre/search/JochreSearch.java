@@ -409,9 +409,6 @@ public class JochreSearch {
       case snippets: {
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          if (queryString == null)
-            throw new RuntimeException("For command " + command + " query is required");
-
           JochreQuery query = new JochreQuery(config, queryString, authors, authorInclude, titleQueryString, fromYear,
               toYear, expandInflections, sortBy, sortAscending, reference);
 
@@ -427,6 +424,7 @@ public class JochreSearch {
               jsonGen.writeStartObject();
               jsonGen.writeNumberField("totalHits", results.getRight());
               jsonGen.writeNumberField("maxResults", config.getMaxResults());
+              jsonGen.writeBooleanField("highlights", query.hasHighlights());
               jsonGen.writeArrayFieldStart("results");
 
               TopDocs topDocs = results.getLeft();
@@ -436,8 +434,12 @@ public class JochreSearch {
                 jsonGen.writeFieldName("doc");
                 doc.toJson(jsonGen);
 
-                double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
-                jsonGen.writeNumberField("score", roundedScore);
+                if (Float.isNaN(scoreDoc.score)) {
+                  jsonGen.writeNumberField("score", 0.0);
+                } else {
+                  double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
+                  jsonGen.writeNumberField("score", roundedScore);
+                }
 
                 jsonGen.writeEndObject();
               }
@@ -474,6 +476,10 @@ public class JochreSearch {
               break;
             }
             default: {
+              if (!query.hasHighlights())
+                throw new RuntimeException(
+                    "For command " + command + " a query is required - no highlights available.");
+
               if (docIds == null) {
                 Pair<TopDocs, Integer> result = searcher.search(query, pageNumber, resultsPerPage);
 
