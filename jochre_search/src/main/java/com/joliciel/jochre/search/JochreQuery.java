@@ -46,8 +46,7 @@ import com.joliciel.jochre.search.lexicon.TextNormaliser;
  */
 public class JochreQuery {
   public enum SortBy {
-    Score,
-    Year
+    Score, Year
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
@@ -64,18 +63,21 @@ public class JochreQuery {
   private final boolean sortAscending;
   private final Integer fromYear;
   private final Integer toYear;
+  private final String reference;
 
   public JochreQuery(JochreSearchConfig config, String queryString) {
-    this(config, queryString, new ArrayList<>(), true, "", null, null, true);
+    this(config, queryString, new ArrayList<>(), true, "", null, null, true, null);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-      Integer toYear, boolean expandInflections) {
-    this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections, SortBy.Score, true);
+  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+      String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, String reference) {
+    this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections,
+        SortBy.Score, true, reference);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-      Integer toYear, boolean expandInflections, SortBy sortBy, boolean sortAscending) {
+  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+      String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, SortBy sortBy,
+      boolean sortAscending, String reference) {
     this.config = config;
     this.queryString = queryString;
     this.authors = authors;
@@ -86,6 +88,7 @@ public class JochreQuery {
     this.expandInflections = expandInflections;
     this.sortBy = sortBy;
     this.sortAscending = sortAscending;
+    this.reference = reference;
   }
 
   /**
@@ -187,9 +190,14 @@ public class JochreQuery {
           builder.add(titleQuery, Occur.MUST);
         }
         if (this.fromYear != null || this.toYear != null) {
-          Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(), this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
+          Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(),
+              this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
               this.toYear == null ? Integer.MAX_VALUE : this.toYear.intValue());
           builder.add(new BooleanClause(yearQuery, Occur.MUST));
+        }
+        if (this.reference != null) {
+          TermQuery refQuery = new TermQuery(new Term(JochreIndexField.id.name(), reference));
+          builder.add(new BooleanClause(refQuery, Occur.MUST));
         }
 
         luceneQuery = builder.build();
@@ -224,6 +232,10 @@ public class JochreQuery {
 
   public boolean isSortAscending() {
     return sortAscending;
+  }
+
+  public String getReference() {
+    return reference;
   }
 
 }
