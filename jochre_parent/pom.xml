@@ -212,6 +212,16 @@
         <artifactId>config</artifactId>
         <version>1.3.0</version>
       </dependency>
+      <dependency>
+        <groupId>com.github.jai-imageio</groupId>
+        <artifactId>jai-imageio-core</artifactId>
+        <version>1.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.jai-imageio</groupId>
+        <artifactId>jai-imageio-jpeg2000</artifactId>
+        <version>1.3.0</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <modules>
