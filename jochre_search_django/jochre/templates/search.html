@@ -77,7 +77,7 @@
 <div class="container">
   <div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
     <div class="input-group input-group-sm m-1">
-      <input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" required />
+      <input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" />
       <div class="input-group-append">
         <button type="submit" class="btn btn-primary btn-sm">{{ Strings.searchButton }}</button>&nbsp;
         <span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
@@ -159,6 +159,14 @@
   <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
     <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
       <div class="input-group input-group-sm m-1">
+        <label for="txtReference">{{ Strings.referenceField }}:&nbsp;</label>
+        <input type="text" id="txtReference" name="reference" class="form-control" value="{{ reference }}" placeholder="{{ Strings.referenceField }}" />
+      </div>
+    </div>
+  </div>
+  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
+    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+      <div class="input-group input-group-sm m-1">
         <a class="btn btn-secondary" href="/" role="button">{{ Strings.clear }}</a>
       </div>
     </div>
@@ -169,7 +177,7 @@
 {% if parseException %}
   <p>{{ Strings.unableToProcessQuery }}:</p>
   <p>{% autoescape off %}{{ parseException }}{% endautoescape %}</p>
-{% elif query|length == 0 %}
+{% elif not haveSearch %}
 {% elif not haveResults %}
   <p>{{ Strings.noResults }}</p>
 {% else %}
@@ -220,6 +228,15 @@
       {% endif %}
     </div>
   {% endif %}
+  {% if result.doc.id %}
+    <div class="row">
+      <div class="col-6"><div class="author"><b>{{ Strings.referenceNumber }}:</b> {{ result.doc.id }} </div></div>
+      {% if RTL %}
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.referenceNumberRTL }}:</b>  <span class="ltr">{{ result.doc.id }}</span></div></div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if highlights %}
   {% if result.snippetError %}
      <p style="color:red;">{{ result.snippetError.message }}</p>
      <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
@@ -264,6 +281,14 @@
       });
     </script>
   {% endfor %}
+  {% endif %}
+  {% else %}
+  <div class="row">
+    <div class="col-6"><div class="author"><a href="/contents?doc={{ result.doc.name }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></div></div>
+    {% if RTL %}
+      <div class="col-6"><div class="authorRtl rtl"><a href="/contents?doc={{ result.doc.name }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></div></div>
+    {% endif %}
+  </div>
   {% endif %}
   <div class="row"><div class="col" height="10px"></div></div>
 {% endfor %}

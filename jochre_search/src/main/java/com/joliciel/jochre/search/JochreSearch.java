@@ -231,6 +231,7 @@ public class JochreSearch {
       boolean sortAscending = true;
       Integer fromYear = null;
       Integer toYear = null;
+      String reference = null;
       int pageNumber = 0;
       int resultsPerPage = config.getConfig().getInt("results-per-page");
 
@@ -344,6 +345,8 @@ public class JochreSearch {
           fromYear = Integer.parseInt(argValue);
         } else if (argName.equals("toYear")) {
           toYear = Integer.parseInt(argValue);
+        } else if (argName.equals("reference")) {
+          reference = argValue;
         } else if (argName.equals("page")) {
           pageNumber = Integer.parseInt(argValue);
         } else if (argName.equals("resultsPerPage")) {
@@ -406,11 +409,8 @@ public class JochreSearch {
       case snippets: {
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          if (queryString == null)
-            throw new RuntimeException("For command " + command + " query is required");
-
-          JochreQuery query = new JochreQuery(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections,
-              sortBy, sortAscending);
+          JochreQuery query = new JochreQuery(config, queryString, authors, authorInclude, titleQueryString, fromYear,
+              toYear, expandInflections, sortBy, sortAscending, reference);
 
           try {
             JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
@@ -424,6 +424,7 @@ public class JochreSearch {
               jsonGen.writeStartObject();
               jsonGen.writeNumberField("totalHits", results.getRight());
               jsonGen.writeNumberField("maxResults", config.getMaxResults());
+              jsonGen.writeBooleanField("highlights", query.hasHighlights());
               jsonGen.writeArrayFieldStart("results");
 
               TopDocs topDocs = results.getLeft();
@@ -433,8 +434,12 @@ public class JochreSearch {
                 jsonGen.writeFieldName("doc");
                 doc.toJson(jsonGen);
 
-                double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
-                jsonGen.writeNumberField("score", roundedScore);
+                if (Float.isNaN(scoreDoc.score)) {
+                  jsonGen.writeNumberField("score", 0.0);
+                } else {
+                  double roundedScore = df.parse(df.format(scoreDoc.score)).doubleValue();
+                  jsonGen.writeNumberField("score", roundedScore);
+                }
 
                 jsonGen.writeEndObject();
               }
@@ -463,12 +468,18 @@ public class JochreSearch {
                   feedbackQuery.addClause(FeedbackCriterion.sortBy, query.getSortBy().name());
                   feedbackQuery.addClause(FeedbackCriterion.sortAscending, "" + query.isSortAscending());
                 }
+                if (query.getReference() != null)
+                  feedbackQuery.addClause(FeedbackCriterion.reference, query.getReference());
 
                 feedbackQuery.save();
               }
               break;
             }
             default: {
+              if (!query.hasHighlights())
+                throw new RuntimeException(
+                    "For command " + command + " a query is required - no highlights available.");
+
               if (docIds == null) {
                 Pair<TopDocs, Integer> result = searcher.search(query, pageNumber, resultsPerPage);
 
@@ -478,7 +489,8 @@ public class JochreSearch {
                   LOG.debug("### Next document");
                   Document doc = indexSearcher.doc(scoreDoc.doc);
                   for (IndexableField oneField : doc.getFields()) {
-                    if (!oneField.name().equals(JochreIndexField.text.name()) && !oneField.name().startsWith(JochreIndexField.rect.name())
+                    if (!oneField.name().equals(JochreIndexField.text.name())
+                        && !oneField.name().startsWith(JochreIndexField.rect.name())
                         && !oneField.name().startsWith(JochreIndexField.start.name()))
                       LOG.debug(oneField.toString());
                   }
@@ -576,7 +588,8 @@ public class JochreSearch {
         if (startOffset < 0)
           throw new JochreException("Command " + command + " requires a startOffset");
         if (docId < 0 && (docName == null || docIndex < 0))
-          throw new RuntimeException("For command " + command + " either a docName and docIndex, or a docId is required");
+          throw new RuntimeException(
+              "For command " + command + " either a docName and docIndex, or a docId is required");
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
@@ -741,8 +754,8 @@ public class JochreSearch {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
             docId = docs.keySet().iterator().next();
           }
-          FeedbackSuggestion sug = new FeedbackSuggestion(indexSearcher, docId, startOffset, fullSuggestion, user, ip, fontCode, languageCode,
-              feedbackDAO, config);
+          FeedbackSuggestion sug = new FeedbackSuggestion(indexSearcher, docId, startOffset, fullSuggestion, user, ip,
+              fontCode, languageCode, feedbackDAO, config);
           sug.save();
         } finally {
           searchManager.getManager().release(indexSearcher);
@@ -874,7 +887,8 @@ public class JochreSearch {
         TextFileLexicon lexicon = new TextFileLexicon(config);
 
         File regexFile = new File(lexiconRegexPath);
-        Scanner regexScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(regexFile), "UTF-8")));
+        Scanner regexScanner = new Scanner(
+            new BufferedReader(new InputStreamReader(new FileInputStream(regexFile), "UTF-8")));
         LexicalEntryReader lexicalEntryReader = new RegexLexicalEntryReader(regexScanner);
 
         for (File file : lexiconFiles) {

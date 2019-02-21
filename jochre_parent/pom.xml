@@ -269,23 +269,29 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.1</version>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-          <additionalparam>-Xdoclint:syntax -Xdoclint:accessibility
-            -Xdoclint:reference</additionalparam>
-          <additionalOptions>-html5</additionalOptions>
-        </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.0.1</version>
+          <configuration>
+              <links>
+                  <link>http://docs.oracle.com/javase/8/docs/api</link>
+                  <link>https://docs.oracle.com/javaee/7/api</link>
+                  <link>http://trove4j.sourceforge.net/javadocs/</link>
+              </links>
+              <bootclasspath>${sun.boot.class.path}</bootclasspath>
+              <additionalJOption>-J-Xmx1024m</additionalJOption>
+              <detectJavaApiLink>true</detectJavaApiLink>
+              <detectLinks>true</detectLinks>
+          </configuration>
+          <executions>
+              <execution>
+                  <id>aggregate</id>
+                  <phase>site</phase>
+                  <goals>
+                      <goal>aggregate</goal>
+                  </goals>
+              </execution>
+          </executions>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
