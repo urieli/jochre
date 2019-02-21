@@ -23,12 +23,11 @@ def search(request):
   prefs = getPreferences(request)
   
   searchUrl = settings.JOCHRE_SEARCH_URL
-  advancedSearch = False
   haveResults = False
 
   query = ''
   if 'query' in request.GET:
-    query = request.GET['query']
+    query = request.GET['query'].strip()
   
   author = ''
   hasAuthors = False
@@ -60,8 +59,17 @@ def search(request):
   sortBy = ''
   if 'sortBy' in request.GET:
     sortBy = request.GET['sortBy']
+
+  reference = ''
+  if 'reference' in request.GET:
+    reference = request.GET['reference'].strip()
   
-  if hasAuthors or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc':
+  haveSearch = False
+  if len(query)>0 or hasAuthors or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or len(reference)>0:
+    haveSearch = True
+
+  advancedSearch = False
+  if hasAuthors or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or strict or sortBy == 'yearAsc' or sortBy == 'yearDesc' or len(reference)>0:
     advancedSearch = True
 
   displayAdvancedSearch = False
@@ -81,6 +89,7 @@ def search(request):
        "fromYear" : fromYear,
        "toYear" : toYear,
        "sortBy" : sortBy,
+       "reference": reference,
        "displayAdvancedSearch" : displayAdvancedSearch,
        "page" : page+1,
        "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
@@ -96,9 +105,10 @@ def search(request):
        "JOCHRE_LANGUAGE_NAMES" : settings.JOCHRE_LANGUAGE_NAMES,
        "showSection" : settings.SHOW_SECTION,
        "ip": ip,
+       "haveSearch": haveSearch,
        }
        
-  if len(query)>0:
+  if haveSearch:
     MAX_DOCS=1000
     userdata = {"command": "search",
           "query": query,
@@ -121,6 +131,8 @@ def search(request):
       userdata['fromYear'] = fromYear
     if len(toYear)>0:
       userdata['toYear'] = toYear
+    if len(reference)>0:
+      userdata['reference'] = reference
     if len(sortBy)>0:
       if sortBy=='yearAsc':
         userdata['sortBy'] = 'Year'
@@ -148,7 +160,10 @@ def search(request):
       docIds = ''
       totalHits = results['totalHits']
       maxResults = results['maxResults']
+      hasHighlights = results['highlights']
       docs = results['results']
+
+      logger.debug("totalHits: {0}".format(totalHits))
 
       for result in docs:
         doc = result['doc']
@@ -187,16 +202,6 @@ def search(request):
       
       if len(docs)>0:
         haveResults = True
-        userdata = {"command": "snippets",
-              "snippetCount": prefs['snippetsPerDoc'],
-              "query": query,
-              "docIds": docIds,
-              "user": username,
-              "ip": ip,
-              }
-        if strict:
-          userdata['expand'] = 'false'
-        resp = requests.get(searchUrl, userdata)
         model["results"] = docs
         start = page * prefs['docsPerPage'] + 1
         end = start + prefs['docsPerPage'] - 1
@@ -205,6 +210,7 @@ def search(request):
         model["start"] = start
         model["end"] = end
         model["resultCount"] = totalHits
+        model["highlights"] = hasHighlights
 
         pageLinks = []
         lastPage = (totalHits - 1) // prefs['docsPerPage']
@@ -237,46 +243,58 @@ def search(request):
             foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'].format(maxResults, start, end)
           model["foundResultsRTL"] = foundResultsRTL
         
-        snippetMap = resp.json()
-  
-        for result in docs:
-          doc = result['doc']
-          bookId = doc['name']
-          docId = doc['docId']
-          snippetObj = snippetMap[str(docId)]
-          
-          if 'snippetError' in snippetObj:
-            snippetError = snippetObj['snippetError']
-            doc['snippetError'] = snippetError
+        if hasHighlights:
+          userdata = {"command": "snippets",
+            "snippetCount": prefs['snippetsPerDoc'],
+            "query": query,
+            "docIds": docIds,
+            "user": username,
+            "ip": ip,
+            }
+          if strict:
+            userdata['expand'] = 'false'
+          resp = requests.get(searchUrl, userdata)
+
+          snippetMap = resp.json()
+    
+          for result in docs:
+            doc = result['doc']
+            bookId = doc['name']
+            docId = doc['docId']
+            snippetObj = snippetMap[str(docId)]
             
-          else:
-            snippets = snippetObj['snippets']
-            snippetsToSend = []
-            for snippet in snippets:
-              snippetJson = json.dumps(snippet)
-              snippetText = snippet.pop("text", "")
+            if 'snippetError' in snippetObj:
+              snippetError = snippetObj['snippetError']
+              doc['snippetError'] = snippetError
               
-              userdata = {"command": "imageSnippet",
-                    "snippet": snippetJson,
-                    "user": username}
+            else:
+              snippets = snippetObj['snippets']
+              snippetsToSend = []
+              for snippet in snippets:
+                snippetJson = json.dumps(snippet)
+                snippetText = snippet.pop("text", "")
+                
+                userdata = {"command": "imageSnippet",
+                      "snippet": snippetJson,
+                      "user": username}
 
-              logger.debug("sending request: {0}, {1}".format(settings.JOCHRE_SEARCH_EXT_URL, userdata))
+                logger.debug("sending request: {0}, {1}".format(settings.JOCHRE_SEARCH_EXT_URL, userdata))
 
-              req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
-              preparedReq = req.prepare()
-              snippetImageUrl = preparedReq.url
-              pageNumber = snippet['pageIndex']
-              
-              snippetDict = {"snippetText" : snippetText,
-                       "pageNumber": pageNumber,
-                       "imageUrl": snippetImageUrl }
-              
-              if settings.JOCHRE_READ_ONLINE:
-                snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, settings.PAGE_URL_TRANSFORM(pageNumber))
-                snippetDict["readOnlineUrl"] = snippetReadUrl
+                req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL, params=userdata)
+                preparedReq = req.prepare()
+                snippetImageUrl = preparedReq.url
+                pageNumber = snippet['pageIndex']
+                
+                snippetDict = {"snippetText" : snippetText,
+                         "pageNumber": pageNumber,
+                         "imageUrl": snippetImageUrl }
+                
+                if settings.JOCHRE_READ_ONLINE:
+                  snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, settings.PAGE_URL_TRANSFORM(pageNumber))
+                  snippetDict["readOnlineUrl"] = snippetReadUrl
 
-              snippetsToSend.append(snippetDict)
-              result['snippets'] = snippetsToSend
+                snippetsToSend.append(snippetDict)
+                result['snippets'] = snippetsToSend
           
   model["haveResults"] = haveResults
 

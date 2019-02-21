@@ -31,6 +31,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.slf4j.Logger;
@@ -46,8 +47,7 @@ import com.joliciel.jochre.search.lexicon.TextNormaliser;
  */
 public class JochreQuery {
   public enum SortBy {
-    Score,
-    Year
+    Score, Year
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(JochreQuery.class);
@@ -64,18 +64,21 @@ public class JochreQuery {
   private final boolean sortAscending;
   private final Integer fromYear;
   private final Integer toYear;
+  private final String reference;
 
   public JochreQuery(JochreSearchConfig config, String queryString) {
-    this(config, queryString, new ArrayList<>(), true, "", null, null, true);
+    this(config, queryString, new ArrayList<>(), true, "", null, null, true, null);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-      Integer toYear, boolean expandInflections) {
-    this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections, SortBy.Score, true);
+  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+      String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, String reference) {
+    this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections,
+        SortBy.Score, true, reference);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude, String titleQueryString, Integer fromYear,
-      Integer toYear, boolean expandInflections, SortBy sortBy, boolean sortAscending) {
+  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+      String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, SortBy sortBy,
+      boolean sortAscending, String reference) {
     this.config = config;
     this.queryString = queryString;
     this.authors = authors;
@@ -86,6 +89,7 @@ public class JochreQuery {
     this.expandInflections = expandInflections;
     this.sortBy = sortBy;
     this.sortAscending = sortAscending;
+    this.reference = reference;
   }
 
   /**
@@ -129,6 +133,9 @@ public class JochreQuery {
   public Query getLuceneTextQuery() {
     try {
       if (luceneTextQuery == null) {
+        if (this.queryString == null || this.queryString.length() == 0) {
+          throw new JochreSearchException("Cannot get a text query without a querystring.");
+        }
         LOG.debug("Parsing query: " + this.getQueryString());
         LOG.debug("expandInflections: " + expandInflections);
         JochreQueryAnalyser analyzer = new JochreQueryAnalyser(config, expandInflections);
@@ -155,7 +162,11 @@ public class JochreQuery {
       Analyzer jochreAnalyzer = new JochreMetaDataAnalyser(config);
       if (luceneQuery == null) {
         Builder builder = new Builder();
-        builder.add(this.getLuceneTextQuery(), Occur.MUST);
+        boolean hasQuery = false;
+        if (this.queryString != null && this.queryString.length() > 0) {
+          builder.add(this.getLuceneTextQuery(), Occur.MUST);
+          hasQuery = true;
+        }
         if (this.authors.size() > 0) {
           Builder authorBuilder = new Builder();
           TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
@@ -173,6 +184,7 @@ public class JochreQuery {
           BooleanQuery authorQuery = authorBuilder.build();
           BooleanClause authorClause = new BooleanClause(authorQuery, this.authorInclude ? Occur.MUST : Occur.MUST_NOT);
           builder.add(authorClause);
+          hasQuery = true;
         }
         if (this.titleQueryString != null && this.titleQueryString.length() > 0) {
           MultiFieldQueryParser titleParser = new MultiFieldQueryParser(
@@ -185,15 +197,26 @@ public class JochreQuery {
 
           Query titleQuery = titleParser.parse(queryString);
           builder.add(titleQuery, Occur.MUST);
+          hasQuery = true;
         }
         if (this.fromYear != null || this.toYear != null) {
-          Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(), this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
+          Query yearQuery = IntPoint.newRangeQuery(JochreIndexField.year.name(),
+              this.fromYear == null ? Integer.MIN_VALUE : this.fromYear.intValue(),
               this.toYear == null ? Integer.MAX_VALUE : this.toYear.intValue());
           builder.add(new BooleanClause(yearQuery, Occur.MUST));
+          hasQuery = true;
         }
-
-        luceneQuery = builder.build();
-        LOG.debug(luceneQuery.toString());
+        if (this.reference != null && this.reference.length() > 0) {
+          TermQuery refQuery = new TermQuery(new Term(JochreIndexField.id.name(), reference));
+          builder.add(new BooleanClause(refQuery, Occur.MUST));
+          hasQuery = true;
+        }
+        if (hasQuery)
+          luceneQuery = builder.build();
+        else
+          luceneQuery = new MatchNoDocsQuery();
+        if (LOG.isDebugEnabled())
+          LOG.debug(luceneQuery.toString());
       }
       return luceneQuery;
     } catch (ParseException e) {
@@ -226,4 +249,14 @@ public class JochreQuery {
     return sortAscending;
   }
 
+  public String getReference() {
+    return reference;
+  }
+
+  /**
+   * Can this query return highlights inside the books.
+   */
+  public boolean hasHighlights() {
+    return this.queryString != null && this.queryString.length() > 0;
+  }
 }

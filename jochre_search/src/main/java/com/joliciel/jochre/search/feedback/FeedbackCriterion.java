@@ -38,7 +38,8 @@ public enum FeedbackCriterion {
   fromYear(6),
   toYear(7),
   sortBy(8),
-  sortAscending(9);
+  sortAscending(9),
+  reference(10);
 
   private final int id;
   private static Map<Integer, FeedbackCriterion> idMap = null;
