@@ -27,14 +27,15 @@ public class JochreSearchManager {
 
   private static JochreSearchManager instance;
 
-  public static JochreSearchManager getInstance(JochreSearchConfig config) {
+  public static JochreSearchManager getInstance(String configId) {
     if (instance == null)
-      instance = new JochreSearchManager(config);
+      instance = new JochreSearchManager(configId);
     return instance;
   }
 
-  private JochreSearchManager(JochreSearchConfig config) {
+  private JochreSearchManager(String configId) {
     try {
+      JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
       String indexDirLocation = config.getConfig().getString("index-dir");
       LOG.info("Loading index from: " + indexDirLocation);
       if (indexDirLocation.equals(IN_MEMORY)) {

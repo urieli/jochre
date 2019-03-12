@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class FieldTermPrefixFinderTest {
@@ -29,36 +28,35 @@ public class FieldTermPrefixFinderTest {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
 
-    Config testConfig = ConfigFactory.load();
-    JochreSearchConfig config = new JochreSearchConfig("yiddish", testConfig);
-    JochreSearchManager manager = JochreSearchManager.getInstance(config);
+    String configId = "yiddish";
+    JochreSearchManager manager = JochreSearchManager.getInstance(configId);
 
     Analyzer analyzer = new StandardAnalyzer();
     IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
     iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
     IndexWriter indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
     Document doc = new Document();
-    doc.add(new StringField("food", "apple", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "apple", Store.YES));
     indexWriter.addDocument(doc);
 
     doc = new Document();
-    doc.add(new StringField("food", "artichoke", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "artichoke", Store.YES));
     indexWriter.addDocument(doc);
 
     doc = new Document();
-    doc.add(new StringField("food", "artichoke", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "artichoke", Store.YES));
     indexWriter.addDocument(doc);
 
     doc = new Document();
-    doc.add(new StringField("food", "apple pie", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "apple pie", Store.YES));
     indexWriter.addDocument(doc);
 
     doc = new Document();
-    doc.add(new StringField("food", "apple pie", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "apple pie", Store.YES));
     indexWriter.addDocument(doc);
 
     doc = new Document();
-    doc.add(new StringField("food", "banana", Store.YES));
+    doc.add(new StringField(JochreIndexField.name.name(), "banana", Store.YES));
     indexWriter.addDocument(doc);
 
     indexWriter.commit();
@@ -68,14 +66,14 @@ public class FieldTermPrefixFinderTest {
 
     IndexSearcher searcher = manager.getManager().acquire();
     try {
-      FieldTermPrefixFinder finder = new FieldTermPrefixFinder(searcher, "food", "a", 2, config);
+      FieldTermPrefixFinder finder = new FieldTermPrefixFinder(searcher, JochreIndexField.name, "a", 2, configId);
       List<String> results = finder.getResults();
       LOG.debug("results: " + results);
       assertEquals(2, results.size());
       assertEquals("apple pie", results.get(0));
       assertEquals("artichoke", results.get(1));
 
-      finder = new FieldTermPrefixFinder(searcher, "food", "ap", 2, config);
+      finder = new FieldTermPrefixFinder(searcher, JochreIndexField.name, "ap", 2, configId);
       results = finder.getResults();
       LOG.debug("results: " + results);
       assertEquals(2, results.size());

@@ -24,6 +24,9 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -74,10 +77,7 @@ import com.joliciel.jochre.utils.text.DiacriticRemover;
 public class JochreIndexDirectory {
 
   public enum Instructions {
-    None,
-    Delete,
-    Skip,
-    Update
+    None, Delete, Skip, Update
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(JochreIndexDirectory.class);
@@ -87,15 +87,33 @@ public class JochreIndexDirectory {
   private File altoFile;
   private File metaFile;
   private String name;
-  private Map<String, String> metaData;
+  private Map<JochreIndexField, String> metaData;
   private Instructions instructions;
   boolean metaFileRetrieved = false;
   private String path;
+  private final Path updateInstructionsPath;
 
-  public JochreIndexDirectory(File contentDir, File directory) {
+  /**
+   * @param directory
+   *          the source directory on the file system
+   * @param configId
+   */
+  public JochreIndexDirectory(File directory, String configId) {
     this.directory = directory;
     this.name = this.directory.getName();
-    this.path = contentDir.toURI().relativize(directory.toURI()).getPath();
+    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
+    this.path = config.getContentDir().toURI().relativize(directory.toURI()).getPath();
+    this.updateInstructionsPath = (new File(this.directory, "update")).toPath();
+  }
+
+  /**
+   * @param path
+   *          the path to the source directory on the file system relative to the
+   *          content directory.
+   * @param configId
+   */
+  public JochreIndexDirectory(String path, String configId) {
+    this(new File(JochreSearchConfig.getInstance(configId).getContentDir(), path), configId);
   }
 
   /**
@@ -186,7 +204,7 @@ public class JochreIndexDirectory {
   /**
    * The metadata contained in the PDF file.
    */
-  public Map<String, String> getMetaData() {
+  public Map<JochreIndexField, String> getMetaData() {
     if (this.metaData == null) {
       if (this.getMetaDataFile() == null) {
         PdfMetadataReader pdfMetadataReader = new PdfMetadataReader(this.getPdfFile());
@@ -203,16 +221,16 @@ public class JochreIndexDirectory {
         String author = pdfMetaData.get("Author");
 
         if (bookUrl != null && bookUrl.length() > 0) {
-          this.metaData.put(JochreIndexField.url.name(), bookUrl);
+          this.metaData.put(JochreIndexField.url, bookUrl);
           String id = bookUrl.substring(bookUrl.lastIndexOf('/') + 1);
-          this.metaData.put(JochreIndexField.id.name(), id);
+          this.metaData.put(JochreIndexField.id, id);
         }
         if (title != null && title.length() > 0) {
           title = DiacriticRemover.apply(title);
-          this.metaData.put(JochreIndexField.titleEnglish.name(), title);
+          this.metaData.put(JochreIndexField.titleEnglish, title);
         }
         if (author != null && author.length() > 0)
-          this.metaData.put(JochreIndexField.authorEnglish.name(), author);
+          this.metaData.put(JochreIndexField.authorEnglish, author);
 
       } else {
         try {
@@ -246,23 +264,23 @@ public class JochreIndexDirectory {
 
           this.metaData = new HashMap<>();
           if (id.length() > 0)
-            this.metaData.put(JochreIndexField.id.name(), id);
+            this.metaData.put(JochreIndexField.id, id);
           if (bookUrl.length() > 0)
-            this.metaData.put(JochreIndexField.url.name(), bookUrl);
+            this.metaData.put(JochreIndexField.url, bookUrl);
           if (title.length() > 0)
-            this.metaData.put(JochreIndexField.titleEnglish.name(), title);
+            this.metaData.put(JochreIndexField.titleEnglish, title);
           if (author.length() > 0)
-            this.metaData.put(JochreIndexField.authorEnglish.name(), author);
+            this.metaData.put(JochreIndexField.authorEnglish, author);
           if (publisher.length() > 0)
-            this.metaData.put(JochreIndexField.publisher.name(), publisher);
+            this.metaData.put(JochreIndexField.publisher, publisher);
           if (date.length() > 0)
-            this.metaData.put(JochreIndexField.date.name(), date);
+            this.metaData.put(JochreIndexField.date, date);
           if (authorLang.length() > 0)
-            this.metaData.put(JochreIndexField.author.name(), authorLang);
+            this.metaData.put(JochreIndexField.author, authorLang);
           if (titleLang.length() > 0)
-            this.metaData.put(JochreIndexField.title.name(), titleLang);
+            this.metaData.put(JochreIndexField.title, titleLang);
           if (volume.length() > 0)
-            this.metaData.put(JochreIndexField.volume.name(), volume);
+            this.metaData.put(JochreIndexField.volume, volume);
 
         } catch (IOException e) {
           LOG.error("Failed to read metadata from  " + this.getMetaDataFile().getAbsolutePath(), e);
@@ -304,29 +322,30 @@ public class JochreIndexDirectory {
       File deleteFile = new File(this.directory, "delete");
       if (deleteFile.exists())
         instructions = Instructions.Delete;
-      deleteFile = new File(this.directory, "delete.txt");
-      if (deleteFile.exists())
-        instructions = Instructions.Delete;
       if (instructions == null) {
         File skipFile = new File(this.directory, "skip");
         if (skipFile.exists())
           instructions = Instructions.Skip;
-        skipFile = new File(this.directory, "skip.txt");
-        if (skipFile.exists())
-          instructions = Instructions.Skip;
       }
       if (instructions == null) {
-        File updateFile = new File(this.directory, "update");
-        if (updateFile.exists())
-          instructions = Instructions.Update;
-        updateFile = new File(this.directory, "update.txt");
-        if (updateFile.exists())
+        if (Files.exists(updateInstructionsPath))
           instructions = Instructions.Update;
       }
       if (instructions == null)
         instructions = Instructions.None;
     }
     return instructions;
+  }
+
+  public void addUpdateInstructions() throws IOException {
+    try {
+      Files.createFile(updateInstructionsPath);
+    } catch (FileAlreadyExistsException ignored) {
+    }
+  }
+
+  public void removeUpdateInstructions() throws IOException {
+    Files.deleteIfExists(updateInstructionsPath);
   }
 
   /**

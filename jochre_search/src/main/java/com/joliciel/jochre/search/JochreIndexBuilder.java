@@ -43,6 +43,7 @@ import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.search.JochreIndexDirectory.Instructions;
 import com.joliciel.jochre.search.SearchStatusHolder.SearchStatus;
 import com.joliciel.jochre.search.alto.AltoDocument;
 import com.joliciel.jochre.search.alto.AltoPage;
@@ -52,14 +53,14 @@ import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoStringFixer;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
-import com.joliciel.jochre.search.feedback.FeedbackDAO;
+import com.joliciel.jochre.search.feedback.Correction;
 import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
 
 public class JochreIndexBuilder implements Runnable, TokenExtractor {
   private static final Logger LOG = LoggerFactory.getLogger(JochreIndexBuilder.class);
   private final File contentDir;
-  private final FeedbackDAO feedbackDAO;
   private final SearchStatusHolder searchStatusHolder;
+  private final String configId;
   private final JochreSearchConfig config;
   private final JochreSearchManager manager;
 
@@ -75,30 +76,30 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
    * @param config
    * @param manager
    * @param forceUpdate
-   *            should all documents in the index be updated, or only those with
-   *            changes more recent than the last update date.
+   *          should all documents in the index be updated, or only those with
+   *          changes more recent than the last update date.
    * @param feedbackDAO
-   *            if not null, will read suggestions from the database
+   *          if not null, will read suggestions from the database
    * @param searchStatusHolder
    * @throws IOException
    */
-  public JochreIndexBuilder(JochreSearchConfig config, JochreSearchManager manager, boolean forceUpdate, FeedbackDAO feedbackDAO,
-      SearchStatusHolder searchStatusHolder) throws IOException {
+  public JochreIndexBuilder(String configId, boolean forceUpdate) throws IOException {
+    this.searchStatusHolder = SearchStatusHolder.getInstance();
+    this.configId = configId;
+    this.config = JochreSearchConfig.getInstance(configId);
     this.contentDir = config.getContentDir();
-    this.feedbackDAO = feedbackDAO;
-    this.searchStatusHolder = searchStatusHolder;
-    this.config = config;
-    this.manager = manager;
+    this.manager = JochreSearchManager.getInstance(configId);
     this.wordsPerDoc = config.getConfig().getInt("index-builder.words-per-document");
     this.forceUpdate = forceUpdate;
 
     Map<String, Analyzer> analyzerPerField = new HashMap<>();
-    analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, config));
-    analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(config));
-    analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(config));
-    analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(config));
+    analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, configId));
+    analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(configId));
+    analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(configId));
+    analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(configId));
 
-    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(config), analyzerPerField);
+    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(configId),
+        analyzerPerField);
     IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
     iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
     this.indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
@@ -106,10 +107,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
   @Override
   public void run() {
-    if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
-      throw new JochreSearchException("Search index construction already underway. Try again later.");
-    }
-
     this.updateIndex();
   }
 
@@ -126,6 +123,10 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
   public void updateIndex() {
     long startTime = System.currentTimeMillis();
     try {
+      if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
+        throw new IndexingUnderwayException();
+      }
+
       searchStatusHolder.setStatus(SearchStatus.PREPARING);
 
       File[] subdirs = contentDir.listFiles(new FileFilter() {
@@ -144,7 +145,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       searchStatusHolder.setStatus(SearchStatus.BUSY);
       searchStatusHolder.setTotalCount(subdirs.length);
 
-      List<FeedbackSuggestion> suggestionList = FeedbackSuggestion.findUnappliedSuggestions(feedbackDAO);
+      List<FeedbackSuggestion> suggestionList = FeedbackSuggestion.findUnappliedSuggestions(configId);
       Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
       for (FeedbackSuggestion suggestion : suggestionList) {
         String docPath = suggestion.getWord().getRow().getDocument().getPath();
@@ -194,16 +195,16 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
    * Add or update a single directory to the index.
    * 
    * @param documentDir
-   *            the directory containing the document set
+   *          the directory containing the document set
    * @param startPage
-   *            the first page to process, or all if -1
+   *          the first page to process, or all if -1
    * @param endPage
-   *            the last page to process, or all if -1
+   *          the last page to process, or all if -1
    */
   public void updateDocument(File documentDir, int startPage, int endPage) {
     long startTime = System.currentTimeMillis();
     try {
-      JochreIndexDirectory directory = new JochreIndexDirectory(contentDir, documentDir);
+      JochreIndexDirectory directory = new JochreIndexDirectory(documentDir, configId);
       this.updateDocumentInternal(directory, startPage, endPage);
       indexWriter.commit();
       indexWriter.close();
@@ -224,11 +225,11 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
    * identify the work.
    * 
    * @param documentDir
-   *            the directory containing the document set
+   *          the directory containing the document set
    */
   public void deleteDocument(File documentDir) {
     try {
-      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
+      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(documentDir, configId);
       this.deleteDocumentInternal(jochreIndexDirectory);
       indexWriter.commit();
       indexWriter.close();
@@ -240,12 +241,14 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     }
   }
 
-  private void processDocument(File documentDir, boolean forceUpdate, Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
+  private void processDocument(File documentDir, boolean forceUpdate,
+      Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
     try {
       boolean updateIndex = false;
 
-      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(contentDir, documentDir);
-      switch (jochreIndexDirectory.getInstructions()) {
+      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(documentDir, configId);
+      Instructions instructions = jochreIndexDirectory.getInstructions();
+      switch (instructions) {
       case Delete:
         this.deleteDocumentInternal(jochreIndexDirectory);
         return;
@@ -299,6 +302,9 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
         LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
       } // should update index?
 
+      if (instructions.equals(Instructions.Update)) {
+        jochreIndexDirectory.removeUpdateInstructions();
+      }
     } catch (IOException e) {
       LOG.error("Failed to process " + documentDir.getName(), e);
       throw new RuntimeException(e);
@@ -339,6 +345,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
     private JochreIndexDirectory directory;
     private Map<Integer, List<FeedbackSuggestion>> pageSuggestionMap;
+    private Map<JochreIndexField, List<Correction>> correctionMap;
 
     public AltoPageIndexer(JochreIndexBuilder parent, JochreIndexDirectory directory, int startPage, int endPage) {
       super();
@@ -346,8 +353,9 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       this.directory = directory;
       this.startPage = startPage;
       this.endPage = endPage;
-      this.altoStringFixer = AltoStringFixer.getInstance(config);
-      this.pageSuggestionMap = FeedbackSuggestion.findSuggestions(directory.getPath(), feedbackDAO);
+      this.altoStringFixer = AltoStringFixer.getInstance(configId);
+      this.pageSuggestionMap = FeedbackSuggestion.findSuggestions(directory.getPath(), configId);
+      this.correctionMap = Correction.findCorrections(directory.getPath(), configId);
     }
 
     @Override
@@ -408,7 +416,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
         if (previousPages.size() > 0) {
           parent.setCurrentStrings(previousStrings);
           LOG.debug("Creating new index doc: " + docCount);
-          JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
+          JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, correctionMap,
+              configId);
           indexDoc.save(parent.getIndexWriter());
           docCount++;
         }
@@ -430,7 +439,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       parent.setCurrentStrings(previousStrings);
       if (previousPages.size() > 0) {
         LOG.debug("Creating new index doc: " + docCount);
-        JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, config);
+        JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, correctionMap,
+            configId);
         indexDoc.save(parent.getIndexWriter());
         docCount++;
       }

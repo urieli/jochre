@@ -42,10 +42,10 @@ class JochreTextLayerAnalyser extends Analyzer {
   private final TokenExtractor tokenExtractor;
   private final TextNormaliser textNormaliser;
 
-  public JochreTextLayerAnalyser(TokenExtractor tokenExtractor, JochreSearchConfig config) {
+  public JochreTextLayerAnalyser(TokenExtractor tokenExtractor, String configId) {
     super(Analyzer.PER_FIELD_REUSE_STRATEGY);
     this.tokenExtractor = tokenExtractor;
-    this.textNormaliser = TextNormaliser.getInstance(config);
+    this.textNormaliser = TextNormaliser.getInstance(configId);
   }
 
   @Override

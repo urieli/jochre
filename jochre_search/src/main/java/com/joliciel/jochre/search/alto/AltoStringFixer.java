@@ -38,18 +38,19 @@ public interface AltoStringFixer {
   static final Logger LOG = LoggerFactory.getLogger(AltoStringFixer.class);
   static Map<String, AltoStringFixer> instances = new HashMap<>();
 
-  public static AltoStringFixer getInstance(JochreSearchConfig config) {
-    AltoStringFixer instance = instances.get(config.getConfigId());
+  public static AltoStringFixer getInstance(String configId) {
+    AltoStringFixer instance = instances.get(configId);
     if (instance == null) {
       try {
+        JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
         String className = config.getConfig().getString("alto-string-fixer.class");
 
         @SuppressWarnings("unchecked")
         Class<? extends AltoStringFixer> clazz = (Class<? extends AltoStringFixer>) Class.forName(className);
-        Constructor<? extends AltoStringFixer> cons = clazz.getConstructor(JochreSearchConfig.class);
+        Constructor<? extends AltoStringFixer> cons = clazz.getConstructor(String.class);
 
-        instance = cons.newInstance(config);
-        instances.put(config.getConfigId(), instance);
+        instance = cons.newInstance(configId);
+        instances.put(configId, instance);
       } catch (ReflectiveOperationException e) {
         LOG.error("Unable to construct AltoStringFixer", e);
         throw new RuntimeException(e);

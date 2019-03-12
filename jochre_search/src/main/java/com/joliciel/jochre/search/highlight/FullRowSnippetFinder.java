@@ -44,18 +44,19 @@ import com.joliciel.jochre.search.JochreSearchException;
 class FullRowSnippetFinder implements SnippetFinder {
   private static final Logger LOG = LoggerFactory.getLogger(FullRowSnippetFinder.class);
   private final int rowExtension;
-  private final JochreSearchConfig config;
+  private final String configId;
 
-  public FullRowSnippetFinder(JochreSearchConfig config) {
-    this.config = config;
+  public FullRowSnippetFinder(String configId) {
+    this.configId = configId;
+    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
     this.rowExtension = config.getConfig().getInt("snippet-finder.row-extension");
   }
 
   @Override
-  public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets)
-      throws IOException {
+  public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields,
+      Set<HighlightTerm> highlightTerms, int maxSnippets) throws IOException {
     Document doc = indexSearcher.doc(docId);
-    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, configId);
     // find best snippet for each term
     PriorityQueue<Snippet> heap = new PriorityQueue<>();
 
@@ -68,8 +69,8 @@ class FullRowSnippetFinder implements SnippetFinder {
         String startPage = doc.get(JochreIndexField.startPage.name());
         String endPage = doc.get(JochreIndexField.endPage.name());
         LOG.debug("Content: " + content);
-        throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage
-            + ", length: " + content.length());
+        throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages "
+            + startPage + " to " + endPage + ", length: " + content.length());
       }
 
       int pageIndex = term.getPayload().getPageIndex();
@@ -107,7 +108,8 @@ class FullRowSnippetFinder implements SnippetFinder {
         if (j == i)
           continue;
 
-        if (otherTerm.getStartOffset() >= snippet.getStartOffset() && otherTerm.getEndOffset() <= snippet.getEndOffset()) {
+        if (otherTerm.getStartOffset() >= snippet.getStartOffset()
+            && otherTerm.getEndOffset() <= snippet.getEndOffset()) {
           if (j < i) {
             snippetAlreadyAdded = true;
             break;
@@ -126,12 +128,13 @@ class FullRowSnippetFinder implements SnippetFinder {
             LOG.debug("term payload: " + term.getPayload());
             LOG.debug("otherTerm payload: " + otherTerm.getPayload());
 
-            throw new JochreSearchException("otherTerm on wrong page. term: " + term + ", otherTerm: " + otherTerm + ", document: "
-                + jochreDoc.getName() + ", pageIndex: " + pageIndex + ", startRowIndex: " + startRowIndex + ", endRowIndex: " + endRowIndex
-                + ", start: " + start + ", end: " + end);
+            throw new JochreSearchException("otherTerm on wrong page. term: " + term + ", otherTerm: " + otherTerm
+                + ", document: " + jochreDoc.getName() + ", pageIndex: " + pageIndex + ", startRowIndex: "
+                + startRowIndex + ", endRowIndex: " + endRowIndex + ", start: " + start + ", end: " + end);
           }
 
-          if (otherTerm.getPayload().getRowIndex() > term.getPayload().getRowIndex() && otherTerm.getPayload().getRowIndex() + 1 < pageRowCount) {
+          if (otherTerm.getPayload().getRowIndex() > term.getPayload().getRowIndex()
+              && otherTerm.getPayload().getRowIndex() + 1 < pageRowCount) {
             rowIndex = otherTerm.getPayload().getRowIndex();
             rowTop = jochreDoc.getRowRectangle(pageIndex, rowIndex).getY();
 

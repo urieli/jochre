@@ -30,7 +30,7 @@ public class JochreSetupListener implements ServletContextListener {
 
       Config config = ConfigFactory.load();
       String configId = config.getString("jochre.search.webapp.config-id");
-      JochreSearchConfig searchConfig = new JochreSearchConfig(configId, config);
+      JochreSearchConfig searchConfig = JochreSearchConfig.getInstance(configId);
 
       LOG.info("Content dir: " + searchConfig.getContentDir().getAbsolutePath());
 
@@ -38,7 +38,7 @@ public class JochreSetupListener implements ServletContextListener {
       searchConfig.getLexicon();
 
       // preload the search manager
-      JochreSearchManager.getInstance(searchConfig);
+      JochreSearchManager.getInstance(configId);
     } finally {
       long duration = System.currentTimeMillis() - startTime;
       LOG.info(this.getClass().getSimpleName() + ".contextInitialized Duration: " + duration);
