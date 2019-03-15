@@ -792,6 +792,9 @@ CREATE TABLE public.joc_correction
   cor_date timestamp with time zone NOT NULL DEFAULT now(),
   cor_apply_everywhere boolean NOT NULL DEFAULT false,
   cor_ip_id integer NOT NULL,
+  cor_ignore boolean NOT NULL DEFAULT false,
+  cor_sent boolean NOT NULL DEFAULT false,
+  cor_documents text[],
   CONSTRAINT pk_correction PRIMARY KEY (cor_id),
   CONSTRAINT fk_correction_document FOREIGN KEY (cor_doc_id)
       REFERENCES public.joc_document (doc_id) MATCH SIMPLE

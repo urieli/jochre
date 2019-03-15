@@ -74,6 +74,17 @@ public class FeedbackDocument {
     this.path = path;
   }
 
+  public String getName() {
+    String name = path;
+    if (name.endsWith("/"))
+      name = name.substring(0, name.length() - 1);
+    int lastSlash = name.indexOf('/');
+    if (lastSlash > 0) {
+      name = name.substring(lastSlash + 1);
+    }
+    return name;
+  }
+
   boolean isNew() {
     return id == 0;
   }

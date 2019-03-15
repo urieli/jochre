@@ -2,6 +2,7 @@ package com.joliciel.jochre.search.feedback;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreSearchConfig;
+import com.joliciel.jochre.utils.JochreException;
 import com.joliciel.jochre.utils.dao.ImageUtils;
 import com.joliciel.talismane.utils.DaoUtils;
 
@@ -52,7 +54,8 @@ class FeedbackDAO {
       + ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore, suggest_ip_id, user_username, language_code, font_code, ip_address";
   private static final String SELECT_QUERY = "query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address";
   private static final String SELECT_CLAUSE = "clause_query_id, clause_criterion_id, clause_text, criterion_name";
-  private static final String SELECT_CORRECTION = "cor_id, cor_doc_id, cor_field_id, cor_user_id, cor_value, cor_value_before, cor_date, cor_apply_everywhere, cor_ip_id, user_username, ip_address";
+  private static final String SELECT_CORRECTION = "cor_id, cor_doc_id, cor_field_id, cor_user_id, cor_value, cor_value_before, cor_date"
+      + ", cor_apply_everywhere, cor_ip_id, cor_ignore, cor_sent, cor_documents, user_username, ip_address";
 
   private Map<Integer, JochreIndexField> idFieldMap = new HashMap<>();
   private Map<JochreIndexField, Integer> fieldIdMap = new HashMap<>();
@@ -910,10 +913,12 @@ class FeedbackDAO {
     sql += " INNER JOIN joc_ip ON cor_ip_id = ip_id";
     sql += " INNER JOIN joc_document ON cor_doc_id = doc_id";
     sql += " INNER JOIN joc_field ON cor_field_id = field_id";
-    sql += " WHERE doc_path=:doc_path OR cor_apply_everywhere=:true";
+    sql += " WHERE (doc_path=:doc_path OR cor_apply_everywhere=:true)";
+    sql += " AND cor_ignore=:false";
     sql += " ORDER BY cor_field_id, cor_id ASC";
     MapSqlParameterSource paramSource = new MapSqlParameterSource();
     paramSource.addValue("true", true);
+    paramSource.addValue("false", false);
     paramSource.addValue("doc_path", docPath);
 
     LOG.debug(sql);
@@ -948,6 +953,8 @@ class FeedbackDAO {
     MapSqlParameterSource paramSource = new MapSqlParameterSource();
 
     String sql = null;
+    paramSource.addValue("cor_ignore", correction.isIgnore());
+    paramSource.addValue("cor_sent", correction.isSent());
 
     if (correction.isNew()) {
       paramSource.addValue("cor_doc_id", correction.getDocumentId());
@@ -969,15 +976,31 @@ class FeedbackDAO {
       paramSource.addValue("cor_id", correctionId);
 
       sql = "INSERT INTO joc_correction (cor_id, cor_doc_id, cor_field_id, cor_user_id, cor_value, cor_value_before";
-      sql += ", cor_date, cor_apply_everywhere, cor_ip_id)";
+      sql += ", cor_date, cor_apply_everywhere, cor_ip_id, cor_ignore, cor_sent)";
       sql += " VALUES (:cor_id, :cor_doc_id, :cor_field_id, :cor_user_id, :cor_value, :cor_value_before";
-      sql += ", current_timestamp, :cor_apply_everywhere, :cor_ip_id)";
+      sql += ", current_timestamp, :cor_apply_everywhere, :cor_ip_id, :cor_ignore, :cor_sent)";
 
       LOG.debug(sql);
       logParameters(paramSource);
       jt.update(sql, paramSource);
 
       correction.setId(correctionId);
+    } else {
+      sql = "UPDATE joc_correction";
+      sql += " SET cor_ignore = :cor_ignore";
+      sql += ", cor_sent = :cor_sent";
+      if (correction.getDocuments() != null) {
+        sql += ", cor_documents = '{";
+        sql += "\"" + String.join("\", \"", correction.getDocuments()) + "\"";
+        sql += "}'";
+      }
+      sql += " WHERE cor_id = :cor_id";
+
+      paramSource.addValue("cor_id", correction.getId());
+
+      LOG.debug(sql);
+      logParameters(paramSource);
+      jt.update(sql, paramSource);
     }
   }
 
@@ -1005,6 +1028,25 @@ class FeedbackDAO {
           configId);
       correction.setId(id);
 
+      correction.setIgnore(rs.getBoolean("cor_ignore"));
+      correction.setSent(rs.getBoolean("cor_sent"));
+
+      Array docArray = (Array) rs.getObject("cor_documents");
+      if (!rs.wasNull()) {
+        Object[] documents;
+        try {
+          documents = (Object[]) docArray.getArray();
+        } catch (SQLException e) {
+          throw new JochreException("Exception reading document array", e);
+        }
+
+        List<String> docList = new ArrayList<>(documents.length);
+        for (Object obj : documents) {
+          String doc = (String) obj;
+          docList.add(doc);
+        }
+        correction.setDocuments(docList);
+      }
       return correction;
     }
   }

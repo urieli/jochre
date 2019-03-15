@@ -807,6 +807,7 @@ public class JochreSearch {
               applyEverywhere, configId);
           correction.save();
           // Now apply the correction to the index itself
+          List<String> docNames = new ArrayList<>();
           if (applyEverywhere) {
             // find all documents affected by this update
             TopDocs topDocs = searcher.search(correction.getField(), correction.getPreviousValue());
@@ -815,15 +816,22 @@ public class JochreSearch {
               String path = doc.get(JochreIndexField.path.name());
               JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
               jochreIndexDirectory.addUpdateInstructions();
+              docNames.add(doc.get(JochreIndexField.name.name()));
             }
           } else {
             String path = luceneDoc.get(JochreIndexField.path.name());
             JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
             jochreIndexDirectory.addUpdateInstructions();
+            docNames.add(luceneDoc.get(JochreIndexField.name.name()));
           }
+
+          correction.setDocuments(docNames);
+          correction.save();
 
           JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
           new Thread(builder).start();
+
+          correction.sendEmail();
         } finally {
           searchManager.getManager().release(indexSearcher);
         }
