@@ -9,3 +9,6 @@ https://commons.wikimedia.org/wiki/File:Keyboard_icon1.png
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="Profile placeholder" width="40" />
 https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/64/Edit_icon_%28the_Noun_Project_30184%29.svg" alt-"Edit icon" width="40" />
+https://upload.wikimedia.org/wikipedia/commons/6/64/Edit_icon_%28the_Noun_Project_30184%29.svg
