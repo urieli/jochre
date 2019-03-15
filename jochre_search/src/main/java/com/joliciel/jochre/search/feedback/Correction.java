@@ -278,9 +278,22 @@ public class Correction {
 
       Session mailSession = Session.getDefaultInstance(mailProps, null);
       MimeMessage message = new MimeMessage(mailSession);
-      message.addRecipient(Message.RecipientType.TO, new InternetAddress(mailConfig.getString("to")));
-      if (mailConfig.hasPath("cc"))
-        message.addRecipient(Message.RecipientType.CC, new InternetAddress(mailConfig.getString("cc")));
+      if (mailConfig.hasPath("to-name"))
+        message.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(mailConfig.getString("to"), mailConfig.getString("to-name")));
+      else
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(mailConfig.getString("to")));
+      if (mailConfig.hasPath("cc")) {
+        if (mailConfig.hasPath("cc-name"))
+          message.addRecipient(Message.RecipientType.CC,
+              new InternetAddress(mailConfig.getString("cc"), mailConfig.getString("cc-name")));
+        else
+          message.addRecipient(Message.RecipientType.CC, new InternetAddress(mailConfig.getString("cc")));
+      }
+
+      if (mailConfig.hasPath("from-name"))
+        message.setFrom(new InternetAddress(mailConfig.getString("from"), mailConfig.getString("from-name")));
+
       message.setSubject(subject, "UTF-8");
       message.setText(body, "UTF-8", "html");
 
