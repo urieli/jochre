@@ -51,7 +51,7 @@ class FeedbackDAO {
   private static final String SELECT_WORD = "word_id, word_row_id, word_x, word_y, word_width, word_height"
       + ", word_2nd_x, word_2nd_y, word_2nd_width, word_2nd_height, word_2nd_row_id, word_initial_guess, word_image";
   private static final String SELECT_SUGGESTION = "suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date"
-      + ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore, suggest_ip_id, user_username, language_code, font_code, ip_address";
+      + ", suggest_text, suggest_previous_text, suggest_ignore, suggest_ip_id, user_username, language_code, font_code, ip_address";
   private static final String SELECT_QUERY = "query_id, query_user_id, query_ip_id, query_date, query_results, user_username, ip_address";
   private static final String SELECT_CLAUSE = "clause_query_id, clause_criterion_id, clause_text, criterion_name";
   private static final String SELECT_CORRECTION = "cor_id, cor_doc_id, cor_field_id, cor_user_id, cor_value, cor_value_before, cor_date"
@@ -317,47 +317,6 @@ class FeedbackDAO {
     return suggestion;
   }
 
-  List<FeedbackSuggestion> findUnappliedSuggestions() {
-    String sql = null;
-    try {
-      NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
-      sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT
-          + " FROM joc_suggestion" + " INNER JOIN joc_font ON suggest_font_id = font_id"
-          + " INNER JOIN joc_language ON suggest_language_id = language_id"
-          + " INNER JOIN joc_user ON suggest_user_id = user_id" + " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
-          + " INNER JOIN joc_word ON suggest_word_id = word_id" + " INNER JOIN joc_row ON word_row_id = row_id"
-          + " INNER JOIN joc_document ON row_doc_id = doc_id" + " WHERE suggest_applied=:false"
-          + " AND suggest_ignore=:false" + " ORDER BY suggest_id";
-      MapSqlParameterSource paramSource = new MapSqlParameterSource();
-      paramSource.addValue("false", false);
-
-      LOG.info(sql);
-      logParameters(paramSource);
-
-      SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
-      SuggestionMapper suggestionMapper = new SuggestionMapper();
-      WordMapper wordMapper = new WordMapper();
-      FeedbackRowMapper rowMapper = new FeedbackRowMapper();
-      DocumentMapper docMapper = new DocumentMapper();
-      List<FeedbackSuggestion> suggestions = new ArrayList<>();
-      while (rs.next()) {
-        FeedbackSuggestion suggestion = suggestionMapper.mapRow(rs);
-        FeedbackWord word = wordMapper.mapRow(rs);
-        FeedbackRow row = rowMapper.mapRow(rs);
-        FeedbackDocument document = docMapper.mapRow(rs);
-        suggestion.setWord(word);
-        word.setRow(row);
-        row.setDocument(document);
-        suggestions.add(suggestion);
-      }
-
-      return suggestions;
-    } catch (SQLException e) {
-      LOG.error("Failed to run sql: " + sql, e);
-      throw new RuntimeException(e);
-    }
-  }
-
   List<FeedbackSuggestion> findSuggestions(FeedbackDocument doc, int pageIndex) {
     String sql = null;
     try {
@@ -460,11 +419,10 @@ class FeedbackDAO {
 
     // suggest_id, suggest_user_id, suggest_word_id, suggest_font_id,
     // suggest_language_id, suggest_create_date
-    // suggest_text, suggest_previous_text, suggest_applied, suggest_ignore
+    // suggest_text, suggest_previous_text, suggest_ignore
     paramSource.addValue("suggest_word_id", suggestion.getWordId());
     paramSource.addValue("suggest_text", suggestion.getText());
     paramSource.addValue("suggest_previous_text", suggestion.getPreviousText());
-    paramSource.addValue("suggest_applied", suggestion.isApplied());
     paramSource.addValue("suggest_ignore", suggestion.isIgnored());
 
     String sql = null;
@@ -488,9 +446,9 @@ class FeedbackDAO {
       paramSource.addValue("suggest_id", suggestionId);
 
       sql = "INSERT INTO joc_suggestion (suggest_id, suggest_user_id, suggest_word_id, suggest_font_id, suggest_language_id, suggest_create_date"
-          + ", suggest_text, suggest_previous_text, suggest_applied, suggest_ignore, suggest_ip_id) "
+          + ", suggest_text, suggest_previous_text, suggest_ignore, suggest_ip_id) "
           + " VALUES (:suggest_id, :suggest_user_id, :suggest_word_id, :suggest_font_id, :suggest_language_id, current_timestamp"
-          + ", :suggest_text, :suggest_previous_text, :suggest_applied, :suggest_ignore, :suggest_ip_id)";
+          + ", :suggest_text, :suggest_previous_text, :suggest_ignore, :suggest_ip_id)";
 
       LOG.debug(sql);
       logParameters(paramSource);
@@ -500,8 +458,9 @@ class FeedbackDAO {
     } else {
       paramSource.addValue("suggest_id", suggestion.getId());
 
-      sql = "UPDATE joc_suggestion" + " SET suggest_applied=:suggest_applied" + ", suggest_ignore=:suggest_ignore"
-          + " WHERE suggest_id=:suggest_id";
+      sql = "UPDATE joc_suggestion";
+      sql += ", suggest_ignore=:suggest_ignore";
+      sql += " WHERE suggest_id=:suggest_id";
 
       LOG.debug(sql);
       logParameters(paramSource);
@@ -686,7 +645,7 @@ class FeedbackDAO {
       FeedbackSuggestion suggestion = new FeedbackSuggestion(configId);
       // suggest_id, suggest_user_id, suggest_word_id, suggest_font_id,
       // suggest_language_id, suggest_create_date
-      // suggest_text, suggest_previous_text, suggest_applied,
+      // suggest_text, suggest_previous_text,
       // suggest_ignore
       suggestion.setId(rs.getInt("suggest_id"));
       suggestion.setUser(rs.getString("user_username"));
@@ -696,7 +655,6 @@ class FeedbackDAO {
       suggestion.setCreateDate(rs.getTimestamp("suggest_create_date"));
       suggestion.setText(rs.getString("suggest_text"));
       suggestion.setPreviousText(rs.getString("suggest_previous_text"));
-      suggestion.setApplied(rs.getBoolean("suggest_applied"));
       suggestion.setIgnored(rs.getBoolean("suggest_ignore"));
       suggestion.setIp(rs.getString("ip_address"));
 

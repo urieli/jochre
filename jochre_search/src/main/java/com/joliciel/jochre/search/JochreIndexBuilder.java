@@ -145,28 +145,10 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       searchStatusHolder.setStatus(SearchStatus.BUSY);
       searchStatusHolder.setTotalCount(subdirs.length);
 
-      List<FeedbackSuggestion> suggestionList = FeedbackSuggestion.findUnappliedSuggestions(configId);
-      Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions = new HashMap<>();
-      for (FeedbackSuggestion suggestion : suggestionList) {
-        String docPath = suggestion.getWord().getRow().getDocument().getPath();
-        int pageIndex = suggestion.getWord().getRow().getPageIndex();
-        Map<Integer, List<FeedbackSuggestion>> docSuggestions = unappliedSuggestions.get(docPath);
-        if (docSuggestions == null) {
-          docSuggestions = new HashMap<>();
-          unappliedSuggestions.put(docPath, docSuggestions);
-        }
-        List<FeedbackSuggestion> pageSuggestions = docSuggestions.get(pageIndex);
-        if (pageSuggestions == null) {
-          pageSuggestions = new ArrayList<>();
-          docSuggestions.put(pageIndex, pageSuggestions);
-        }
-        pageSuggestions.add(suggestion);
-      }
-
       for (File subdir : subdirs) {
         try {
           searchStatusHolder.setAction("Indexing " + subdir.getName());
-          this.processDocument(subdir, forceUpdate, unappliedSuggestions);
+          this.processDocument(subdir, forceUpdate);
           searchStatusHolder.incrementSuccessCount(1);
         } catch (Exception e) {
           LOG.error("Failed to index " + subdir.getName(), e);
@@ -241,8 +223,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     }
   }
 
-  private void processDocument(File documentDir, boolean forceUpdate,
-      Map<String, Map<Integer, List<FeedbackSuggestion>>> unappliedSuggestions) {
+  private void processDocument(File documentDir, boolean forceUpdate) {
     try {
       boolean updateIndex = false;
 
@@ -263,11 +244,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
       if (forceUpdate)
         updateIndex = true;
-
-      if (!updateIndex) {
-        if (unappliedSuggestions.containsKey(jochreIndexDirectory.getPath()))
-          updateIndex = true;
-      }
 
       if (!updateIndex) {
         long ocrDate = jochreIndexDirectory.getAltoFile().lastModified();
@@ -397,12 +373,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
               FeedbackSuggestion lastSuggestion = wordSuggestions.get(wordSuggestions.size() - 1);
               LOG.debug("Applying suggestion: " + lastSuggestion.getText() + " instead of " + string.getContent());
               string.setContent(lastSuggestion.getText());
-              for (FeedbackSuggestion suggestion : wordSuggestions) {
-                if (!suggestion.isApplied()) {
-                  suggestion.setApplied(true);
-                  suggestion.save();
-                }
-              }
             }
             currentStrings.add(string);
           }

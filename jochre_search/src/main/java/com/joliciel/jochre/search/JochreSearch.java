@@ -752,15 +752,28 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-
           JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
+          Document luceneDoc = null;
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+            luceneDoc = docs.values().iterator().next();
             docId = docs.keySet().iterator().next();
+          } else {
+            luceneDoc = searcher.loadDocument(docId);
           }
+
           FeedbackSuggestion sug = new FeedbackSuggestion(indexSearcher, docId, startOffset, fullSuggestion, user, ip,
               fontCode, languageCode, configId);
           sug.save();
+
+          // Mark the document for re-indexing
+          String path = luceneDoc.get(JochreIndexField.path.name());
+          JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
+          jochreIndexDirectory.addUpdateInstructions();
+
+          // Start the index thread
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          new Thread(builder).start();
         } finally {
           searchManager.getManager().release(indexSearcher);
         }
@@ -809,7 +822,7 @@ public class JochreSearch {
           // Now apply the correction to the index itself
           List<String> docNames = new ArrayList<>();
           if (applyEverywhere) {
-            // find all documents affected by this update
+            // find all documents affected by this update and mark them for re-indexing
             TopDocs topDocs = searcher.search(correction.getField(), correction.getPreviousValue());
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
               Document doc = indexSearcher.doc(scoreDoc.doc);
@@ -819,18 +832,22 @@ public class JochreSearch {
               docNames.add(doc.get(JochreIndexField.name.name()));
             }
           } else {
+            // mark the document for re-indexing
             String path = luceneDoc.get(JochreIndexField.path.name());
             JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
             jochreIndexDirectory.addUpdateInstructions();
             docNames.add(luceneDoc.get(JochreIndexField.name.name()));
           }
 
+          // update the list of documents affected by this correction
           correction.setDocuments(docNames);
           correction.save();
 
+          // start the index thread
           JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
           new Thread(builder).start();
 
+          // send an e-mail if required
           correction.sendEmail();
         } finally {
           searchManager.getManager().release(indexSearcher);

@@ -300,7 +300,6 @@ CREATE TABLE joc_suggestion (
     suggest_create_date timestamp with time zone DEFAULT now() NOT NULL,
     suggest_text text NOT NULL,
     suggest_previous_text text NOT NULL,
-    suggest_applied boolean DEFAULT false NOT NULL,
     suggest_ignore boolean DEFAULT false NOT NULL,
     suggest_ip_id integer NOT NULL
 );

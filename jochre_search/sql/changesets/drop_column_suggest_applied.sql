@@ -1,0 +1,1 @@
+ALTER TABLE joc_suggestion DROP COLUMN IF EXISTS suggest_applied;

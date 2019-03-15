@@ -28,22 +28,10 @@ public class FeedbackSuggestion {
   private String text;
   private String previousText;
   private Date createDate;
-  private boolean applied = false;
   private boolean ignored = false;
   private String ip = null;
 
   private final FeedbackDAO feedbackDAO;
-
-  /**
-   * Find any suggestions which have not yet been applied, in order of creation.
-   */
-  public static List<FeedbackSuggestion> findUnappliedSuggestions(String configId) {
-    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
-    if (!config.hasDatabase())
-      return Collections.emptyList();
-    FeedbackDAO feedbackDAO = FeedbackDAO.getInstance(configId);
-    return feedbackDAO.findUnappliedSuggestions();
-  }
 
   /**
    * Find any suggestions made on a given document path and page index, in order
@@ -226,17 +214,6 @@ public class FeedbackSuggestion {
 
   void setCreateDate(Date createDate) {
     this.createDate = createDate;
-  }
-
-  /**
-   * Has this suggestion been applied to the index yet?
-   */
-  public boolean isApplied() {
-    return applied;
-  }
-
-  public void setApplied(boolean applied) {
-    this.applied = applied;
   }
 
   /**
