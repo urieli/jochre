@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -26,6 +27,7 @@ import com.joliciel.jochre.search.alto.AltoPage;
 import com.joliciel.jochre.search.alto.AltoString;
 import com.joliciel.jochre.search.alto.AltoTextBlock;
 import com.joliciel.jochre.search.alto.AltoTextLine;
+import com.joliciel.jochre.search.feedback.Correction;
 import com.joliciel.jochre.utils.JochreException;
 
 import gnu.trove.map.TIntIntMap;
@@ -94,8 +96,8 @@ public class JochreIndexDocument {
    * @param config
    * @throws IOException
    */
-  public JochreIndexDocument(IndexSearcher indexSearcher, int docId, JochreSearchConfig config) throws IOException {
-    this.config = config;
+  public JochreIndexDocument(IndexSearcher indexSearcher, int docId, String configId) throws IOException {
+    this.config = JochreSearchConfig.getInstance(configId);
     this.indexSearcher = indexSearcher;
     this.docId = docId;
 
@@ -105,7 +107,7 @@ public class JochreIndexDocument {
     this.path = this.doc.get(JochreIndexField.path.name());
     this.sectionNumber = Integer.parseInt(doc.getField(JochreIndexField.sectionNumber.name()).stringValue());
     File dir = new File(config.getContentDir(), this.path);
-    this.directory = new JochreIndexDirectory(config.getContentDir(), dir);
+    this.directory = new JochreIndexDirectory(dir, configId);
 
     this.startPage = doc.getField(JochreIndexField.startPage.name()).numericValue().intValue();
     this.endPage = doc.getField(JochreIndexField.endPage.name()).numericValue().intValue();
@@ -128,21 +130,30 @@ public class JochreIndexDocument {
    * @param pages
    * @param config
    */
-  public JochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> pages, JochreSearchConfig config) {
-    this.config = config;
+  public JochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> pages,
+      Map<JochreIndexField, List<Correction>> correctionMap, String configId) {
+    this.config = JochreSearchConfig.getInstance(configId);
     this.directory = directory;
     this.sectionNumber = index;
     this.name = this.directory.getName();
     this.path = directory.getPath();
-    this.id = this.directory.getMetaData().get(JochreIndexField.id.name());
-    this.publisher = this.directory.getMetaData().get(JochreIndexField.publisher.name());
-    this.author = this.directory.getMetaData().get(JochreIndexField.author.name());
-    this.title = this.directory.getMetaData().get(JochreIndexField.title.name());
-    this.url = this.directory.getMetaData().get(JochreIndexField.url.name());
-    this.authorEnglish = this.directory.getMetaData().get(JochreIndexField.authorEnglish.name());
-    this.titleEnglish = this.directory.getMetaData().get(JochreIndexField.titleEnglish.name());
-    this.date = this.directory.getMetaData().get(JochreIndexField.date.name());
-    this.volume = this.directory.getMetaData().get(JochreIndexField.volume.name());
+    // Apply corrections if applicable
+    Map<JochreIndexField, String> metaData = this.directory.getMetaData();
+    for (JochreIndexField field : correctionMap.keySet()) {
+      List<Correction> corrections = correctionMap.get(field);
+      for (Correction correction : corrections) {
+        correction.apply(this.path, metaData);
+      }
+    }
+    this.id = metaData.get(JochreIndexField.id);
+    this.publisher = metaData.get(JochreIndexField.publisher);
+    this.author = metaData.get(JochreIndexField.author);
+    this.title = metaData.get(JochreIndexField.title);
+    this.url = metaData.get(JochreIndexField.url);
+    this.authorEnglish = metaData.get(JochreIndexField.authorEnglish);
+    this.titleEnglish = metaData.get(JochreIndexField.titleEnglish);
+    this.date = metaData.get(JochreIndexField.date);
+    this.volume = metaData.get(JochreIndexField.volume);
 
     this.doc = null;
     this.indexSearcher = null;
@@ -380,9 +391,9 @@ public class JochreIndexDocument {
       String fieldName = JochreIndexField.rect.name() + pageIndex + "_" + rowIndex;
       String rectString = this.doc.get(fieldName);
       if (rectString == null) {
-        throw new IndexFieldNotFoundException("No rectangle found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
-            + ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()) + " (docId="
-            + this.docId + ")");
+        throw new IndexFieldNotFoundException("No rectangle found for " + fieldName + " in document "
+            + this.doc.get(JochreIndexField.name.name()) + ", pages " + this.doc.get(JochreIndexField.startPage.name())
+            + " to " + this.doc.get(JochreIndexField.endPage.name()) + " (docId=" + this.docId + ")");
       }
       rect = this.stringToRect(rectString);
     }
@@ -409,8 +420,9 @@ public class JochreIndexDocument {
       if (field != null)
         startIndexObj = field.numericValue();
       if (startIndexObj == null) {
-        throw new IndexFieldNotFoundException("No start index found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
-            + ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()));
+        throw new IndexFieldNotFoundException("No start index found for " + fieldName + " in document "
+            + this.doc.get(JochreIndexField.name.name()) + ", pages " + this.doc.get(JochreIndexField.startPage.name())
+            + " to " + this.doc.get(JochreIndexField.endPage.name()));
       }
       startIndex = startIndexObj.intValue();
     }
@@ -454,8 +466,9 @@ public class JochreIndexDocument {
       if (field != null)
         rowCountObj = field.numericValue();
       if (rowCountObj == null) {
-        throw new IndexFieldNotFoundException("NorowCount found for " + fieldName + " in document " + this.doc.get(JochreIndexField.name.name())
-            + ", pages " + this.doc.get(JochreIndexField.startPage.name()) + " to " + this.doc.get(JochreIndexField.endPage.name()));
+        throw new IndexFieldNotFoundException("NorowCount found for " + fieldName + " in document "
+            + this.doc.get(JochreIndexField.name.name()) + ", pages " + this.doc.get(JochreIndexField.startPage.name())
+            + " to " + this.doc.get(JochreIndexField.endPage.name()));
       }
       rowCount = rowCountObj.intValue();
     }
@@ -546,8 +559,8 @@ public class JochreIndexDocument {
 
   @Override
   public String toString() {
-    return "JochreIndexDocument [sectionNumber=" + sectionNumber + ", path=" + path + ", name=" + name + ", startPage=" + startPage + ", endPage=" + endPage
-        + ", length=" + length + ", docId=" + docId + "]";
+    return "JochreIndexDocument [sectionNumber=" + sectionNumber + ", path=" + path + ", name=" + name + ", startPage="
+        + startPage + ", endPage=" + endPage + ", length=" + length + ", docId=" + docId + "]";
   }
 
 }

@@ -50,7 +50,7 @@ public class HighlightManager {
   private static final Logger LOG = LoggerFactory.getLogger(HighlightManager.class);
 
   private final IndexSearcher indexSearcher;
-  private final JochreSearchConfig config;
+  private final String configId;
   private final Set<String> fields;
 
   private int decimalPlaces = 2;
@@ -62,10 +62,11 @@ public class HighlightManager {
   private int snippetCount;
   private final String highlightClass;
 
-  public HighlightManager(IndexSearcher indexSearcher, Set<String> fields, JochreSearchConfig config) {
-    this.config = config;
+  public HighlightManager(IndexSearcher indexSearcher, Set<String> fields, String configId) {
+    this.configId = configId;
     this.fields = fields;
     this.indexSearcher = indexSearcher;
+    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
     this.snippetCount = config.getConfig().getInt("snippet-finder.snippet-count");
     this.highlightClass = config.getConfig().getString("highlighter.highlight-css-class");
   }
@@ -74,11 +75,11 @@ public class HighlightManager {
    * Write a JSON output of terms to highlight for a given set of docIds.
    * 
    * @param highlighter
-   *            The highlighter to be used to find the terms to highlight.
+   *          The highlighter to be used to find the terms to highlight.
    * @param docIds
-   *            The documents to highlight.
+   *          The documents to highlight.
    * @param out
-   *            The writer where the JSON should be written.
+   *          The writer where the JSON should be written.
    * @throws IOException
    */
 
@@ -124,15 +125,15 @@ public class HighlightManager {
    * a list of snippets or an exception.
    * 
    * @param docIds
-   *            The documents to highlight and snip.
+   *          The documents to highlight and snip.
    * @param termMap
-   *            The previously retrieved terms.
+   *          The previously retrieved terms.
    * @param maxSnippets
-   *            The maximum number of snippets.
+   *          The maximum number of snippets.
    */
-  public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds, Map<Integer, NavigableSet<HighlightTerm>> termMap,
-      int maxSnippets) {
-    SnippetFinder snippetFinder = SnippetFinder.getInstance(config);
+  public Map<Integer, Either<List<Snippet>, Exception>> findSnippets(Set<Integer> docIds,
+      Map<Integer, NavigableSet<HighlightTerm>> termMap, int maxSnippets) {
+    SnippetFinder snippetFinder = SnippetFinder.getInstance(configId);
 
     Map<Integer, Either<List<Snippet>, Exception>> snippetMap = new HashMap<>();
 
@@ -158,11 +159,11 @@ public class HighlightManager {
    * Write a JSON output of snippets for a given set of docIds.
    * 
    * @param highlighter
-   *            The highlighter to be used to find the terms to highlight.
+   *          The highlighter to be used to find the terms to highlight.
    * @param docIds
-   *            The documents to highlight and snip.
+   *          The documents to highlight and snip.
    * @param out
-   *            The writer where the JSON should be written.
+   *          The writer where the JSON should be written.
    * @throws IOException
    */
   public void findSnippets(Highlighter highlighter, Set<Integer> docIds, Writer out) throws IOException {
@@ -238,7 +239,7 @@ public class HighlightManager {
    * 
    */
   public String displayHighlights(int docId, String field, Set<HighlightTerm> terms) throws IOException {
-    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, configId);
     String content = jochreDoc.getContents();
     if (LOG.isTraceEnabled()) {
       LOG.trace("Displaying highlights for doc " + docId + ", field " + field);
@@ -274,7 +275,7 @@ public class HighlightManager {
    * @throws IOException
    */
   public String displaySnippet(Snippet snippet) throws IOException {
-    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, snippet.getDocId(), config);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, snippet.getDocId(), configId);
     String content = jochreDoc.getContents();
 
     if (LOG.isTraceEnabled())
@@ -298,7 +299,8 @@ public class HighlightManager {
         sb.append("</span>");
         // note: an end-of-line hyphenated word can contain newlines
         termText = this.addLineBreaks(termText, currentPos, true);
-        termText = "<span offset=\"" + term.getStartOffset() + "\" class=\"" + highlightClass + "\">" + termText + "</span>";
+        termText = "<span offset=\"" + term.getStartOffset() + "\" class=\"" + highlightClass + "\">" + termText
+            + "</span>";
         sb.append(termText);
         currentPos = term.getEndOffset();
         sb.append("<span offset=\"" + currentPos + "\">");
@@ -314,7 +316,8 @@ public class HighlightManager {
     return sb.toString();
   }
 
-  private static final Pattern NEWLINE_PATTERN = Pattern.compile("[" + JochreSearchConstants.INDEX_NEWLINE + JochreSearchConstants.INDEX_PARAGRAPH + "]");
+  private static final Pattern NEWLINE_PATTERN = Pattern
+      .compile("[" + JochreSearchConstants.INDEX_NEWLINE + JochreSearchConstants.INDEX_PARAGRAPH + "]");
 
   private String addLineBreaks(String text, int currentPos, boolean inHighlight) {
     StringBuilder sb = new StringBuilder();
@@ -399,7 +402,7 @@ public class HighlightManager {
   }
 
   public ImageSnippet getImageSnippet(Snippet snippet) throws IOException {
-    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, snippet.getDocId(), config);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, snippet.getDocId(), configId);
     ImageSnippet imageSnippet = new ImageSnippet(jochreDoc, snippet);
     return imageSnippet;
   }

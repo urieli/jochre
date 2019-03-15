@@ -19,8 +19,8 @@ import com.joliciel.jochre.search.lexicon.TextNormalisingFilter;
 class JochreMetaDataAnalyser extends Analyzer {
   private final TextNormaliser textNormaliser;
 
-  public JochreMetaDataAnalyser(JochreSearchConfig config) {
-    textNormaliser = TextNormaliser.getInstance(config);
+  public JochreMetaDataAnalyser(String configId) {
+    textNormaliser = TextNormaliser.getInstance(configId);
   }
 
   @Override

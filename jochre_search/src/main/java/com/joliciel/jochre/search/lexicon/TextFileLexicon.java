@@ -19,8 +19,6 @@ import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.search.JochreSearchConfig;
-
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
 
@@ -30,18 +28,19 @@ public class TextFileLexicon implements Lexicon, Serializable {
   public Map<String, Set<String>> wordToLemmaMap = new THashMap<>();
   public Map<String, Set<String>> lemmaToWordMap = new THashMap<>();
 
-  private final JochreSearchConfig config;
+  private final String configId;
 
-  public TextFileLexicon(JochreSearchConfig config) {
-    this.config = config;
+  public TextFileLexicon(String configId) {
+    this.configId = configId;
   }
 
   public void addLexiconFile(File lexiconFile, LexicalEntryReader lexicalEntryReader) {
     try {
       String fileName = lexiconFile.getName();
-      Scanner lexiconScanner = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(lexiconFile), "UTF-8")));
+      Scanner lexiconScanner = new Scanner(
+          new BufferedReader(new InputStreamReader(new FileInputStream(lexiconFile), "UTF-8")));
 
-      TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
+      TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
 
       while (lexiconScanner.hasNextLine()) {
         String line = lexiconScanner.nextLine();

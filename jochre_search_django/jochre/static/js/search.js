@@ -93,6 +93,10 @@ $(function() {
     applyFix();
   });
 
+  $('#btnCorrectMetaSave').click( function (e) {
+    applyCorrection();
+  });
+
   $('#btnKeyboardDefault').click( function() {
     $('#frmKeysAction').val("default");
     $.ajax({
@@ -219,6 +223,8 @@ function transformKeyPress(textfield, evt) {
     var newValue = val.slice(0, start) + mappedChar + val.slice(end);
     if (textfield.id=='txtAuthor')
       $('#txtAuthor').typeahead('val',newValue);
+    else if (textfield.id=='correctMetaAuthorMergeWith')
+      $('#correctMetaAuthorMergeWith').typeahead('val',newValue);
     else
       textfield.value = newValue;
 
@@ -320,6 +326,145 @@ function applyFix() {
       $("#imgWordLoading").hide();
       $('#alertFixWordError').show();
       $('#alertFixWordSuccess').hide();
+      },
+    });
+}
+
+function correctMeta(docId, field, fieldForDisplay, rtl, value) {
+  $('#correctMetaModal').data('docId', docId);
+  $('#correctMetaModal').data('field', field);
+  $('#correctMetaFieldName').text(fieldForDisplay);
+  $('#correctMetaCurrentValue').text(value);
+  $('#correctMetaNewValue').val(value);
+  $('#correctMetaMergeWith').val("");
+  $('#replaceOrMerge1').prop("checked", true);
+  $('#correctMetaNewValue').removeAttr("disabled");
+  $('#correctMetaAuthorMergeWith').attr("disabled", "true");
+  $('#correctMetaAuthorEnglishMergeWith').attr("disabled", "true");
+
+  $('input[type=radio][name=replaceOrMerge]').on('change', function() {
+     switch($(this).val()) {
+       case 'replace':
+         $('#correctMetaNewValue').removeAttr("disabled");
+         $('#correctMetaAuthorMergeWith').attr("disabled", "true");
+         $('#correctMetaAuthorEnglishMergeWith').attr("disabled", "true");
+         break;
+       case 'merge':
+         $('#correctMetaNewValue').attr("disabled", "true");
+         $('#correctMetaAuthorMergeWith').removeAttr("disabled");
+         $('#correctMetaAuthorEnglishMergeWith').removeAttr("disabled");
+         break;
+     }
+  });
+
+  if (rtl) {
+    $('#correctMetaFieldName').addClass("rtl");
+    $('#correctMetaCurrentValue').addClass("rtl");
+    $('#correctMetaNewValue').addClass("rtl");
+    $("#correctMetaNewValue").keypress(function(evt){
+      return transformKeyPress(this, evt);
+    });
+    $('#correctMetaAuthorMergeWith').addClass("rtl");
+    $("#correctMetaAuthorMergeWith").keypress(function(evt){
+      return transformKeyPress(this, evt);
+    });
+  } else {
+    $('#correctMetaFieldName').removeClass("rtl");
+    $('#correctMetaCurrentValue').removeClass("rtl");
+    $('#correctMetaNewValue').removeClass("rtl");
+    $("#correctMetaNewValue").off('keypress');
+    $('#correctMetaAuthorMergeWith').removeClass("rtl");
+    $("#correctMetaAuthorMergeWith").off('keypress');
+  }
+
+  if (field==="author") {
+    $('#correctMetaAuthorMergeDiv').removeClass('d-none');
+    $('#correctMetaAuthorMergeDiv').addClass('d-flex');
+    $('#correctMetaAuthorMergeWith').typeahead({
+      hint: false,
+      highlight: true,
+      minLength: 1
+    },
+    {
+      name: `correctMeta-${field}`,
+      limit: 100,
+      source: function (q, sync, async) {
+        console.log(q);
+        $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
+          async(matches)
+        });
+      }
+    });
+    $('.replaceOrMerge').addClass('d-flex');
+    $('.replaceOrMerge').removeClass('d-none');
+    $('#correctMetaAuthorEnglishMergeDiv').addClass('d-none');
+    $('#correctMetaAuthorEnglishMergeDiv').removeClass('d-flex');
+  } else if (field==="authorEnglish") {
+    $('#correctMetaAuthorEnglishMergeDiv').removeClass('d-none');
+    $('#correctMetaAuthorEnglishMergeDiv').addClass('d-flex');
+    $('#correctMetaAuthorEnglishMergeWith').typeahead({
+      hint: false,
+      highlight: true,
+      minLength: 1
+    },
+    {
+      name: `correctMeta-${field}`,
+      limit: 100,
+      source: function (q, sync, async) {
+        console.log(q);
+        $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
+          async(matches)
+        });
+      }
+    });
+    $('.replaceOrMerge').addClass('d-flex');
+    $('.replaceOrMerge').removeClass('d-none');
+    $('#correctMetaAuthorMergeDiv').addClass('d-none');
+    $('#correctMetaAuthorMergeDiv').removeClass('d-flex');
+  } else {
+    $('#correctMetaAuthorMergeDiv').addClass('d-none');
+    $('#correctMetaAuthorMergeDiv').removeClass('d-flex');
+    $('#correctMetaAuthorEnglishMergeDiv').addClass('d-none');
+    $('#correctMetaAuthorEnglishMergeDiv').removeClass('d-flex');
+    $('.replaceOrMerge').addClass('d-none');
+    $('.replaceOrMerge').removeClass('d-flex');
+  }
+
+  $("#correctMetaModal").modal();
+}
+
+function applyCorrection() {
+  let docId = $('#correctMetaModal').data('docId');
+  let field = $('#correctMetaModal').data('field');
+  let replaceOrMerge = $('input[name=replaceOrMerge]:checked').val();
+
+  let value = $('#correctMetaNewValue').val();
+  if (replaceOrMerge==="merge") {
+    value = $('#correctMetaAuthorMergeWith').val();
+    if (field==="authorEnglish")
+      value = $('#correctMetaAuthorEnglishMergeWith').val();
+  }
+
+  let applyEverywhere = (replaceOrMerge==="merge");
+
+  console.log(`Apply correction for ${docId}, ${field}: ${value}`);
+  
+  $.ajax({
+    url: JOCHRE_SEARCH_EXT_URL + "?command=correct"
+      + "&docId=" + docId
+      + "&user=" + USERNAME
+      + "&ip=" + IP
+      + "&field=" + encodeURIComponent(field)
+      + "&suggestion=" + encodeURIComponent(value)
+      + "&applyEverywhere=" + applyEverywhere,
+    dataType: 'json',
+    success: function( data ) {
+      $('#alertCorrectMetaError').hide();
+      $('#alertCorrectMetaSuccess').show();
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+      $('#alertCorrectMetaError').show();
+      $('#alertCorrectMetaSuccess').hide();
       },
     });
 }

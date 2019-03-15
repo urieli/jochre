@@ -136,7 +136,12 @@ If the word as badly segmented (i.e. if only part of the word appears), do not c
 "fixWordLanguage" : u"Language",
 "prefsTitle" : u"Preferences",
 "prefsDocsPerPage" : u"Results per page",
-"prefsSnippetsPerDoc" : u"Snippets per result",,
+"prefsSnippetsPerDoc" : u"Snippets per result",
+"correctMetaTitle": u"Correct document meta data",
+"correctMetaInstructions": u"""Correct the meta data.""",
+"correctMetaFieldName": u"Field",
+"correctMetaCurrentValue": u"Current value",
+"correctMetaNewValue": u"New value",
 }
 
 SHOW_SECTION = False

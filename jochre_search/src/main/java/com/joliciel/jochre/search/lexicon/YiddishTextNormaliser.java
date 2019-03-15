@@ -1,10 +1,8 @@
 package com.joliciel.jochre.search.lexicon;
 
-import com.joliciel.jochre.search.JochreSearchConfig;
-
 class YiddishTextNormaliser implements TextNormaliser {
 
-  public YiddishTextNormaliser(JochreSearchConfig config) {
+  public YiddishTextNormaliser(String configId) {
   }
 
   @Override

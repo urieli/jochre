@@ -59,27 +59,27 @@ public class JochreQuery {
   private Query luceneTextQuery = null;
   private int[] docIds = null;
   private final boolean expandInflections;
-  private final JochreSearchConfig config;
+  private final String configId;
   private final SortBy sortBy;
   private final boolean sortAscending;
   private final Integer fromYear;
   private final Integer toYear;
   private final String reference;
 
-  public JochreQuery(JochreSearchConfig config, String queryString) {
-    this(config, queryString, new ArrayList<>(), true, "", null, null, true, null);
+  public JochreQuery(String configId, String queryString) {
+    this(configId, queryString, new ArrayList<>(), true, "", null, null, true, null);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+  public JochreQuery(String configId, String queryString, List<String> authors, boolean authorInclude,
       String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, String reference) {
-    this(config, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections,
+    this(configId, queryString, authors, authorInclude, titleQueryString, fromYear, toYear, expandInflections,
         SortBy.Score, true, reference);
   }
 
-  public JochreQuery(JochreSearchConfig config, String queryString, List<String> authors, boolean authorInclude,
+  public JochreQuery(String configId, String queryString, List<String> authors, boolean authorInclude,
       String titleQueryString, Integer fromYear, Integer toYear, boolean expandInflections, SortBy sortBy,
       boolean sortAscending, String reference) {
-    this.config = config;
+    this.configId = configId;
     this.queryString = queryString;
     this.authors = authors;
     this.authorInclude = authorInclude;
@@ -138,10 +138,10 @@ public class JochreQuery {
         }
         LOG.debug("Parsing query: " + this.getQueryString());
         LOG.debug("expandInflections: " + expandInflections);
-        JochreQueryAnalyser analyzer = new JochreQueryAnalyser(config, expandInflections);
+        JochreQueryAnalyser analyzer = new JochreQueryAnalyser(configId, expandInflections);
         QueryParser queryParser = new QueryParser(JochreIndexField.text.name(), analyzer);
         String queryString = this.getQueryString();
-        TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
+        TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
         if (textNormaliser != null)
           queryString = textNormaliser.normalise(queryString);
         luceneTextQuery = queryParser.parse(queryString);
@@ -159,7 +159,7 @@ public class JochreQuery {
    */
   public Query getLuceneQuery() {
     try {
-      Analyzer jochreAnalyzer = new JochreMetaDataAnalyser(config);
+      Analyzer jochreAnalyzer = new JochreMetaDataAnalyser(configId);
       if (luceneQuery == null) {
         Builder builder = new Builder();
         boolean hasQuery = false;
@@ -169,7 +169,7 @@ public class JochreQuery {
         }
         if (this.authors.size() > 0) {
           Builder authorBuilder = new Builder();
-          TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
+          TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
 
           for (String author : authors) {
             String authorString = author;
@@ -191,7 +191,7 @@ public class JochreQuery {
               new String[] { JochreIndexField.titleEnglish.name(), JochreIndexField.title.name() }, jochreAnalyzer);
           String queryString = titleQueryString;
           LOG.debug("titleQueryString: " + titleQueryString);
-          TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
+          TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
           if (textNormaliser != null)
             queryString = textNormaliser.normalise(queryString);
 

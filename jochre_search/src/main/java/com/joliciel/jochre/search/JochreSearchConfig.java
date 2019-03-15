@@ -3,8 +3,10 @@ package com.joliciel.jochre.search;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -16,11 +18,15 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.search.lexicon.Lexicon;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class JochreSearchConfig {
   private static final Logger LOG = LoggerFactory.getLogger(JochreSearchConfig.class);
-  private static final Set<String> RTL = new HashSet<>(Arrays.asList(new String[] { "ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi" }));
+  private static final Set<String> RTL = new HashSet<>(
+      Arrays.asList(new String[] { "ar", "dv", "fa", "ha", "he", "iw", "ji", "ps", "ur", "yi" }));
+
+  private static Map<String, JochreSearchConfig> instances = new HashMap<>();
 
   private final Config config;
   private final String configId;
@@ -28,8 +34,18 @@ public class JochreSearchConfig {
   private final File contentDir;
   private final int maxResults;
 
-  public JochreSearchConfig(String configId, Config config) {
+  public static JochreSearchConfig getInstance(String configId) {
+    JochreSearchConfig searchConfig = instances.get(configId);
+    if (searchConfig == null) {
+      searchConfig = new JochreSearchConfig(configId);
+      instances.put(configId, searchConfig);
+    }
+    return searchConfig;
+  }
+
+  private JochreSearchConfig(String configId) {
     this.configId = configId;
+    Config config = ConfigFactory.load();
     this.config = config.getConfig("jochre.search." + configId);
     this.locale = Locale.forLanguageTag(this.config.getString("locale"));
     this.contentDir = new File(this.config.getString("content-dir"));
