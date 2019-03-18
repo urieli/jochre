@@ -38,20 +38,21 @@ public interface TextNormaliser {
   static final Logger LOG = LoggerFactory.getLogger(SnippetFinder.class);
   static Map<String, TextNormaliser> instances = new HashMap<>();
 
-  public static TextNormaliser getInstance(JochreSearchConfig config) {
-    TextNormaliser instance = instances.get(config.getConfigId());
+  public static TextNormaliser getInstance(String configId) {
+    TextNormaliser instance = instances.get(configId);
     if (instance == null) {
       try {
+        JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
         if (config.getConfig().hasPath("text-normaliser.class")) {
           String className = config.getConfig().getString("text-normaliser.class");
 
           @SuppressWarnings("unchecked")
           Class<? extends TextNormaliser> clazz = (Class<? extends TextNormaliser>) Class.forName(className);
-          Constructor<? extends TextNormaliser> cons = clazz.getConstructor(JochreSearchConfig.class);
+          Constructor<? extends TextNormaliser> cons = clazz.getConstructor(String.class);
 
-          instance = cons.newInstance(config);
+          instance = cons.newInstance(configId);
         }
-        instances.put(config.getConfigId(), instance);
+        instances.put(configId, instance);
       } catch (ReflectiveOperationException e) {
         LOG.error("Unable to construct TextNormaliser", e);
         throw new RuntimeException(e);

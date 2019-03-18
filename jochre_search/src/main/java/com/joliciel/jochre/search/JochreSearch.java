@@ -64,8 +64,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreQuery.SortBy;
+import com.joliciel.jochre.search.feedback.Correction;
 import com.joliciel.jochre.search.feedback.FeedbackCriterion;
-import com.joliciel.jochre.search.feedback.FeedbackDAO;
+import com.joliciel.jochre.search.feedback.FeedbackDocument;
 import com.joliciel.jochre.search.feedback.FeedbackQuery;
 import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
 import com.joliciel.jochre.search.highlight.HighlightManager;
@@ -144,6 +145,10 @@ public class JochreSearch {
      */
     suggest("application/json;charset=UTF-8"),
     /**
+     * Suggest a correction for document metadata.
+     */
+    correct("application/json;charset=UTF-8"),
+    /**
      * Serialize a lexicon.
      */
     serializeLexicon("application/json;charset=UTF-8"),
@@ -207,7 +212,7 @@ public class JochreSearch {
       command = Command.valueOf(argMap.get("command"));
       argMap.remove("command");
 
-      JochreSearchConfig config = new JochreSearchConfig(configId, ConfigFactory.load());
+      JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
 
       LOG.debug("##### Arguments:");
       for (Entry<String, String> arg : argMap.entrySet()) {
@@ -259,9 +264,12 @@ public class JochreSearch {
       String ip = config.getConfig().getString("default-ip");
 
       // prefix search
-      String field = null;
+      JochreIndexField field = null;
       String prefix = null;
       int maxResults = 0;
+
+      // corrections
+      boolean applyEverywhere = false;
 
       for (Entry<String, String> argMapEntry : argMap.entrySet()) {
         String argName = argMapEntry.getKey();
@@ -332,7 +340,7 @@ public class JochreSearch {
         } else if (argName.equals("user")) {
           user = argValue;
         } else if (argName.equals("field")) {
-          field = argValue;
+          field = JochreIndexField.valueOf(argValue);
         } else if (argName.equals("prefix")) {
           prefix = argValue;
         } else if (argName.equals("maxResults")) {
@@ -351,17 +359,14 @@ public class JochreSearch {
           pageNumber = Integer.parseInt(argValue);
         } else if (argName.equals("resultsPerPage")) {
           resultsPerPage = Integer.parseInt(argValue);
+        } else if (argName.equals("applyEverywhere")) {
+          applyEverywhere = argValue.equals("true");
         } else {
           throw new RuntimeException("Unknown option: " + argName);
         }
       }
 
-      JochreSearchManager searchManager = JochreSearchManager.getInstance(config);
-      FeedbackDAO feedbackDAO = null;
-      if (config.hasDatabase()) {
-        feedbackDAO = FeedbackDAO.getInstance(config.getDataSource());
-      }
-
+      JochreSearchManager searchManager = JochreSearchManager.getInstance(configId);
       DecimalFormat df = new DecimalFormat("0." + StringUtils.repeat('0', decimalPlaces), enSymbols);
 
       PrintWriter out = null;
@@ -370,9 +375,7 @@ public class JochreSearch {
 
       switch (command) {
       case index: {
-        JochreSearchManager manager = JochreSearchManager.getInstance(config);
-        SearchStatusHolder statusHolder = SearchStatusHolder.getInstance();
-        JochreIndexBuilder builder = new JochreIndexBuilder(config, manager, forceUpdate, feedbackDAO, statusHolder);
+        JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
         new Thread(builder).start();
         out.write("{\"response\":\"index thread started\"}\n");
         break;
@@ -397,9 +400,10 @@ public class JochreSearch {
 
         jsonGen.writeEndObject();
         jsonGen.flush();
+        break;
       }
       case refresh: {
-        JochreSearchManager manager = JochreSearchManager.getInstance(config);
+        JochreSearchManager manager = JochreSearchManager.getInstance(configId);
         manager.getManager().maybeRefresh();
         out.write("{\"response\":\"index reader refreshed\"}\n");
         break;
@@ -409,11 +413,11 @@ public class JochreSearch {
       case snippets: {
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreQuery query = new JochreQuery(config, queryString, authors, authorInclude, titleQueryString, fromYear,
+          JochreQuery query = new JochreQuery(configId, queryString, authors, authorInclude, titleQueryString, fromYear,
               toYear, expandInflections, sortBy, sortAscending, reference);
 
           try {
-            JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+            JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
 
             switch (command) {
             case search: {
@@ -430,7 +434,7 @@ public class JochreSearch {
               TopDocs topDocs = results.getLeft();
               for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 jsonGen.writeStartObject();
-                JochreIndexDocument doc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, config);
+                JochreIndexDocument doc = new JochreIndexDocument(indexSearcher, scoreDoc.doc, configId);
                 jsonGen.writeFieldName("doc");
                 doc.toJson(jsonGen);
 
@@ -448,8 +452,8 @@ public class JochreSearch {
               jsonGen.writeEndObject();
               jsonGen.flush();
 
-              if (feedbackDAO != null) {
-                FeedbackQuery feedbackQuery = new FeedbackQuery(user, ip, feedbackDAO);
+              if (config.hasDatabase()) {
+                FeedbackQuery feedbackQuery = new FeedbackQuery(user, ip, configId);
                 feedbackQuery.setResultCount(results.getRight().intValue());
                 feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
                 if (query.getAuthors().size() > 0) {
@@ -500,7 +504,7 @@ public class JochreSearch {
               searchFields.add(JochreIndexField.text.name());
 
               Highlighter highlighter = new LuceneQueryHighlighter(query, indexSearcher, searchFields);
-              HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, config);
+              HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, configId);
               highlightManager.setDecimalPlaces(decimalPlaces);
               highlightManager.setMinWeight(minWeight);
               highlightManager.setIncludeText(includeText);
@@ -548,7 +552,7 @@ public class JochreSearch {
 
           Set<String> searchFields = new HashSet<>();
           searchFields.add(JochreIndexField.text.name());
-          HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, config);
+          HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, configId);
           String text = highlightManager.displaySnippet(snippet);
 
           out.write(text);
@@ -570,7 +574,7 @@ public class JochreSearch {
           }
           Set<String> searchFields = new HashSet<>();
           searchFields.add(JochreIndexField.text.name());
-          HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, config);
+          HighlightManager highlightManager = new HighlightManager(indexSearcher, searchFields, configId);
           ImageSnippet imageSnippet = highlightManager.getImageSnippet(snippet);
           ImageOutputStream ios = ImageIO.createImageOutputStream(output.getRight());
           BufferedImage image = imageSnippet.getImage();
@@ -593,12 +597,12 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
             docId = docs.keySet().iterator().next();
           }
-          JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+          JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, configId);
           JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
           String word1 = jochreWord.getText();
           String word2 = null;
@@ -631,7 +635,7 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
             docId = docs.keySet().iterator().next();
@@ -669,7 +673,7 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
             docId = docs.keySet().iterator().next();
@@ -697,12 +701,12 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
             docId = docs.keySet().iterator().next();
           }
-          JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+          JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, configId);
           JochreIndexWord jochreWord = jochreDoc.getWord(startOffset);
           LOG.debug("jochreDoc: " + jochreDoc.getPath());
           LOG.debug("word: " + jochreWord.getText());
@@ -721,7 +725,7 @@ public class JochreSearch {
         break;
       }
       case suggest: {
-        if (feedbackDAO == null)
+        if (!config.hasDatabase())
           throw new RuntimeException("For command " + command + " a database is required");
         if (docId < 0 && docIndex < 0)
           throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
@@ -748,19 +752,107 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
+          Document luceneDoc = null;
           if (docId < 0) {
             Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+            luceneDoc = docs.values().iterator().next();
             docId = docs.keySet().iterator().next();
+          } else {
+            luceneDoc = searcher.loadDocument(docId);
           }
+
           FeedbackSuggestion sug = new FeedbackSuggestion(indexSearcher, docId, startOffset, fullSuggestion, user, ip,
-              fontCode, languageCode, feedbackDAO, config);
+              fontCode, languageCode, configId);
           sug.save();
+
+          // Mark the document for re-indexing
+          String path = luceneDoc.get(JochreIndexField.path.name());
+          JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
+          jochreIndexDirectory.addUpdateInstructions();
+
+          // Start the index thread
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          new Thread(builder).start();
         } finally {
           searchManager.getManager().release(indexSearcher);
         }
         out.write("{\"response\":\"suggestion saved\"}\n");
+        break;
+      }
+      case correct: {
+        if (!config.hasDatabase())
+          throw new RuntimeException("For command " + command + " a database is required");
+
+        if (docId < 0 && docIndex < 0)
+          throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
+        if (docId < 0) {
+          if (docName == null)
+            throw new RuntimeException("For command " + command + " docName is required");
+          if (docIndex < 0)
+            throw new RuntimeException("For command " + command + " docIndex is required");
+        }
+
+        if (field == null)
+          throw new RuntimeException("For command " + command + " field is required");
+        if (suggestion == null)
+          throw new RuntimeException("For command " + command + " suggestion is required");
+        if (user == null)
+          throw new RuntimeException("For command " + command + " user is required");
+
+        IndexSearcher indexSearcher = searchManager.getManager().acquire();
+        try {
+
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
+
+          Document luceneDoc = null;
+          if (docId < 0) {
+            Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+            luceneDoc = docs.values().iterator().next();
+          } else {
+            luceneDoc = searcher.loadDocument(docId);
+          }
+          String previousValue = luceneDoc.get(field.name());
+          FeedbackDocument feedbackDoc = FeedbackDocument
+              .findOrCreateDocument(luceneDoc.get(JochreIndexField.path.name()), configId);
+
+          Correction correction = new Correction(feedbackDoc, field, user, ip, suggestion, previousValue,
+              applyEverywhere, configId);
+          correction.save();
+          // Now apply the correction to the index itself
+          List<String> docNames = new ArrayList<>();
+          if (applyEverywhere) {
+            // find all documents affected by this update and mark them for re-indexing
+            TopDocs topDocs = searcher.search(correction.getField(), correction.getPreviousValue());
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+              Document doc = indexSearcher.doc(scoreDoc.doc);
+              String path = doc.get(JochreIndexField.path.name());
+              JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
+              jochreIndexDirectory.addUpdateInstructions();
+              docNames.add(doc.get(JochreIndexField.name.name()));
+            }
+          } else {
+            // mark the document for re-indexing
+            String path = luceneDoc.get(JochreIndexField.path.name());
+            JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
+            jochreIndexDirectory.addUpdateInstructions();
+            docNames.add(luceneDoc.get(JochreIndexField.name.name()));
+          }
+
+          // update the list of documents affected by this correction
+          correction.setDocuments(docNames);
+          correction.save();
+
+          // start the index thread
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          new Thread(builder).start();
+
+          // send an e-mail if required
+          correction.sendEmail();
+        } finally {
+          searchManager.getManager().release(indexSearcher);
+        }
+        out.write("{\"response\":\"correction saved\"}\n");
         break;
       }
       case prefixSearch: {
@@ -771,7 +863,7 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          FieldTermPrefixFinder finder = new FieldTermPrefixFinder(indexSearcher, field, prefix, maxResults, config);
+          FieldTermPrefixFinder finder = new FieldTermPrefixFinder(indexSearcher, field, prefix, maxResults, configId);
           JsonFactory jsonFactory = new JsonFactory();
           JsonGenerator jsonGen = jsonFactory.createGenerator(out);
 
@@ -795,12 +887,12 @@ public class JochreSearch {
 
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           List<JochreIndexDocument> docs = new ArrayList<>();
           if (docName != null) {
             Map<Integer, Document> docMap = searcher.findDocuments(docName);
             for (int id : docMap.keySet())
-              docs.add(new JochreIndexDocument(indexSearcher, id, config));
+              docs.add(new JochreIndexDocument(indexSearcher, id, configId));
             Collections.sort(docs, new Comparator<JochreIndexDocument>() {
               @Override
               public int compare(JochreIndexDocument d1, JochreIndexDocument d2) {
@@ -808,7 +900,7 @@ public class JochreSearch {
               }
             });
           } else {
-            JochreIndexDocument doc = new JochreIndexDocument(indexSearcher, docId, config);
+            JochreIndexDocument doc = new JochreIndexDocument(indexSearcher, docId, configId);
             docs.add(doc);
           }
 
@@ -835,11 +927,11 @@ public class JochreSearch {
           throw new RuntimeException("For command " + command + " docName is required");
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
-          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
           Map<Integer, Document> docMap = searcher.findDocuments(docName);
           List<JochreIndexDocument> docs = new ArrayList<>();
           for (int id : docMap.keySet())
-            docs.add(new JochreIndexDocument(indexSearcher, id, config));
+            docs.add(new JochreIndexDocument(indexSearcher, id, configId));
           Collections.sort(docs, new Comparator<JochreIndexDocument>() {
             @Override
             public int compare(JochreIndexDocument d1, JochreIndexDocument d2) {
@@ -884,7 +976,7 @@ public class JochreSearch {
 
         File lexiconDir = new File(lexiconDirPath);
         File[] lexiconFiles = lexiconDir.listFiles();
-        TextFileLexicon lexicon = new TextFileLexicon(config);
+        TextFileLexicon lexicon = new TextFileLexicon(configId);
 
         File regexFile = new File(lexiconRegexPath);
         Scanner regexScanner = new Scanner(

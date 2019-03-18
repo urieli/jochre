@@ -36,3 +36,9 @@ H1.rtl { font-size: 24px; }
 .checkboxes label span {
   vertical-align: middle;
 }
+
+img.editImage {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

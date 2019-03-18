@@ -41,12 +41,14 @@ public class FieldTermPrefixFinder {
   private static final Logger LOG = LoggerFactory.getLogger(FieldTermPrefixFinder.class);
   final private List<String> results;
 
-  public FieldTermPrefixFinder(IndexSearcher indexSearcher, String field, String prefix, int maxResults, JochreSearchConfig config) throws IOException {
-    TextNormaliser textNormaliser = TextNormaliser.getInstance(config);
+  public FieldTermPrefixFinder(IndexSearcher indexSearcher, JochreIndexField field, String prefix, int maxResults,
+      String configId) throws IOException {
+
+    TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
     if (textNormaliser != null) {
       prefix = textNormaliser.normalise(prefix);
     }
-    Automaton prefixAut = PrefixQuery.toAutomaton(new Term(field, prefix).bytes());
+    Automaton prefixAut = PrefixQuery.toAutomaton(new Term(field.name(), prefix).bytes());
     CompiledAutomaton automaton = new CompiledAutomaton(prefixAut, null, true, Integer.MAX_VALUE, true);
 
     IndexReader reader = indexSearcher.getIndexReader();
@@ -59,13 +61,13 @@ public class FieldTermPrefixFinder {
 
     for (LeafReaderContext leaf : leaves) {
       LeafReader leafReader = leaf.reader();
-      Terms terms = leafReader.terms(field);
+      Terms terms = leafReader.terms(field.name());
       if (terms != null) {
         TermsEnum termsEnum = automaton.getTermsEnum(terms);
         BytesRef bytesRef = null;
         while ((bytesRef = termsEnum.next()) != null) {
           if (!counter.containsKey(bytesRef)) {
-            Term term = new Term(field, bytesRef);
+            Term term = new Term(field.name(), bytesRef);
             int count = reader.docFreq(term);
             BytesRef copy = BytesRef.deepCopyOf(bytesRef);
             counter.put(copy, count);
@@ -93,7 +95,7 @@ public class FieldTermPrefixFinder {
     // not the text normalised into a search term
     // which might be lowercase or not have accents
     Set<String> fieldsToLoad = new HashSet<>();
-    fieldsToLoad.add(field);
+    fieldsToLoad.add(field.name());
 
     List<String> prettyResults = new ArrayList<>(maxSizeList.size());
     for (BytesRef bytesRef : maxSizeList) {
@@ -102,7 +104,7 @@ public class FieldTermPrefixFinder {
 
       LeafReaderContext leaf = leafMap.get(bytesRef);
       LeafReader leafReader = leaf.reader();
-      Terms terms = leafReader.terms(field);
+      Terms terms = leafReader.terms(field.name());
       TermsEnum termsEnum = terms.iterator();
       if (!termsEnum.seekExact(bytesRef)) {
         // term not found
@@ -115,9 +117,9 @@ public class FieldTermPrefixFinder {
       if (relativeId != PostingsEnum.NO_MORE_DOCS) {
         int nextId = leaf.docBase + relativeId;
         Document doc = reader.document(nextId, fieldsToLoad);
-        prettyResults.add(doc.get(field));
+        prettyResults.add(doc.get(field.name()));
         if (LOG.isDebugEnabled())
-          LOG.debug("Term found in document " + nextId + ": " + doc.get(field));
+          LOG.debug("Term found in document " + nextId + ": " + doc.get(field.name()));
       } else {
         LOG.debug("Term not found");
         prettyResults.add(bytesRef.utf8ToString());

@@ -36,8 +36,9 @@ public class JochreIndexSearcher {
   private final IndexSearcher indexSearcher;
   private final int maxDocs;
 
-  public JochreIndexSearcher(IndexSearcher indexSearcher, JochreSearchConfig config) {
+  public JochreIndexSearcher(IndexSearcher indexSearcher, String configId) {
     this.indexSearcher = indexSearcher;
+    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
     this.maxDocs = config.getMaxResults();
   }
 
@@ -45,11 +46,11 @@ public class JochreIndexSearcher {
    * Return paginated results for a query.
    * 
    * @param jochreQuery
-   *            the query to run
+   *          the query to run
    * @param pageNumber
-   *            the page number to return
+   *          the page number to return
    * @param resultsPerPage
-   *            results per page
+   *          results per page
    * @return a pair giving the TopDocs corresponding to the paginated results, and
    *         the total hits
    * @throws IOException
@@ -60,9 +61,8 @@ public class JochreIndexSearcher {
     case Score:
       topDocsCollector = TopScoreDocCollector.create(this.maxDocs);
     case Year:
-      topDocsCollector = TopFieldCollector.create(
-          new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(), SortField.Type.INT, !jochreQuery.isSortAscending())), this.maxDocs,
-          false, false, false, true);
+      topDocsCollector = TopFieldCollector.create(new Sort(new SortedNumericSortField(JochreIndexField.yearSort.name(),
+          SortField.Type.INT, !jochreQuery.isSortAscending())), this.maxDocs, false, false, false, true);
     }
 
     indexSearcher.search(jochreQuery.getLuceneQuery(), topDocsCollector);
@@ -78,6 +78,25 @@ public class JochreIndexSearcher {
       }
     }
     return Pair.of(topDocs, totalHits);
+  }
+
+  /**
+   * Find all documents with an exact value for a given field.
+   */
+  public TopDocs search(JochreIndexField field, String value) throws IOException {
+    TermQuery termQuery = new TermQuery(new Term(field.name(), value));
+    TopDocs topDocs = indexSearcher.search(termQuery, this.maxDocs);
+    return topDocs;
+  }
+
+  /**
+   * Load a Lucene document by it's internal Lucene id.
+   * 
+   * @param docId
+   *          the internal Lucene doc id.
+   */
+  public Document loadDocument(int docId) throws IOException {
+    return indexSearcher.doc(docId);
   }
 
   /**

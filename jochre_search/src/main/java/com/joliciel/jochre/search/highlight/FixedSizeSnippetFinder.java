@@ -36,18 +36,19 @@ import com.joliciel.jochre.search.JochreSearchConfig;
 class FixedSizeSnippetFinder implements SnippetFinder {
   private static final Logger LOG = LoggerFactory.getLogger(FixedSizeSnippetFinder.class);
   private final int snippetSize;
-  private final JochreSearchConfig config;
+  private final String configId;
 
-  public FixedSizeSnippetFinder(JochreSearchConfig config) {
-    this.config = config;
+  public FixedSizeSnippetFinder(String configId) {
+    this.configId = configId;
+    JochreSearchConfig config = JochreSearchConfig.getInstance(configId);
     this.snippetSize = config.getConfig().getInt("snippet-finder.snippet-size");
   }
 
   @Override
-  public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields, Set<HighlightTerm> highlightTerms, int maxSnippets)
-      throws IOException {
+  public List<Snippet> findSnippets(IndexSearcher indexSearcher, int docId, Set<String> fields,
+      Set<HighlightTerm> highlightTerms, int maxSnippets) throws IOException {
     Document doc = indexSearcher.doc(docId);
-    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, config);
+    JochreIndexDocument jochreDoc = new JochreIndexDocument(indexSearcher, docId, configId);
     // find best snippet for each term
     PriorityQueue<Snippet> heap = new PriorityQueue<>();
 
@@ -60,8 +61,8 @@ class FixedSizeSnippetFinder implements SnippetFinder {
         String startPage = doc.get(JochreIndexField.startPage.name());
         String endPage = doc.get(JochreIndexField.endPage.name());
         LOG.debug("Content: " + content);
-        throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages " + startPage + " to " + endPage
-            + ", length: " + content.length());
+        throw new RuntimeException(term.toString() + " cannot fit into contents for doc " + title + ", pages "
+            + startPage + " to " + endPage + ", length: " + content.length());
       }
       List<HighlightTerm> snippetTerms = new ArrayList<>();
       snippetTerms.add(term);

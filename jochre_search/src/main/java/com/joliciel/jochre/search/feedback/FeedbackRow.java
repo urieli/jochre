@@ -21,25 +21,27 @@ public class FeedbackRow {
 
   private final FeedbackDAO feedbackDAO;
 
-  public static FeedbackRow findOrCreateRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage, FeedbackDAO feedbackDAO) {
+  public static FeedbackRow findOrCreateRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle,
+      BufferedImage rowImage, String configId) {
+    FeedbackDAO feedbackDAO = FeedbackDAO.getInstance(configId);
     FeedbackRow row = feedbackDAO.findRow(doc, pageIndex, rectangle);
     if (row == null) {
-      row = new FeedbackRow(doc, pageIndex, rectangle, rowImage, feedbackDAO);
+      row = new FeedbackRow(doc, pageIndex, rectangle, rowImage, configId);
       row.save();
     }
     return row;
   }
 
-  FeedbackRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage, FeedbackDAO feedbackDAO) {
-    this(feedbackDAO);
+  FeedbackRow(FeedbackDocument doc, int pageIndex, Rectangle rectangle, BufferedImage rowImage, String configId) {
+    this(configId);
     this.setDocument(doc);
     this.setPageIndex(pageIndex);
     this.setRectangle(rectangle);
     this.setImage(rowImage);
   }
 
-  FeedbackRow(FeedbackDAO feedbackDAO) {
-    this.feedbackDAO = feedbackDAO;
+  FeedbackRow(String configId) {
+    this.feedbackDAO = FeedbackDAO.getInstance(configId);
   }
 
   /**

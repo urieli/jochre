@@ -33,22 +33,23 @@ public class FeedbackDocument {
 
   private final FeedbackDAO feedbackDAO;
 
-  public static FeedbackDocument findOrCreateDocument(String path, FeedbackDAO feedbackDAO) {
+  public static FeedbackDocument findOrCreateDocument(String path, String configId) {
+    FeedbackDAO feedbackDAO = FeedbackDAO.getInstance(configId);
     FeedbackDocument doc = feedbackDAO.findDocument(path);
     if (doc == null) {
-      doc = new FeedbackDocument(path, feedbackDAO);
+      doc = new FeedbackDocument(path, configId);
       doc.save();
     }
     return doc;
   }
 
-  FeedbackDocument(String path, FeedbackDAO feedbackDAO) {
-    this(feedbackDAO);
+  FeedbackDocument(String path, String configId) {
+    this(configId);
     this.setPath(path);
   }
 
-  FeedbackDocument(FeedbackDAO feedbackDAO) {
-    this.feedbackDAO = feedbackDAO;
+  FeedbackDocument(String configId) {
+    this.feedbackDAO = FeedbackDAO.getInstance(configId);
   }
 
   /**
@@ -71,6 +72,17 @@ public class FeedbackDocument {
 
   void setPath(String path) {
     this.path = path;
+  }
+
+  public String getName() {
+    String name = path;
+    if (name.endsWith("/"))
+      name = name.substring(0, name.length() - 1);
+    int lastSlash = name.indexOf('/');
+    if (lastSlash > 0) {
+      name = name.substring(lastSlash + 1);
+    }
+    return name;
   }
 
   boolean isNew() {

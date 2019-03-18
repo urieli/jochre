@@ -193,15 +193,23 @@
     <div class="col-12"><div class="black-separator"></div></div>
   </div>
   <div class="row">
-    <div class="col-6"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}</div></div>
+    <div class="col-6"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'titleEnglish', '{{ Strings.title }}', false, '{{result.doc.titleEnglish}}');">
+    </div></div>
     {% if RTL %}
-      <div class="col-6"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}</div></div>
+      <div class="col-6"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'title', '{{ Strings.titleRTL }}', true, '{{result.doc.title}}');">
+      </div></div>
     {% endif %}
   </div>
   <div class="row">
-    <div class="col-6"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}</div></div>
+    <div class="col-6"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'authorEnglish', '{{ Strings.author }}', false, '{{result.doc.authorEnglish}}');">
+    </div></div>
     {% if RTL %}
-      <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}</div></div>
+      <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'author', '{{ Strings.authorRTL }}', true, '{{result.doc.author}}');">
+      </div></div>
     {% endif %}
   </div>
   {% if showSection %}
@@ -214,17 +222,25 @@
   {% endif %}
   {% if result.doc.publisher %}
     <div class="row">
-      <div class="col-6"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}</div></div>
+      <div class="col-6"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'publisher', '{{ Strings.publisher }}', false, '{{result.doc.publisher}}');">
+      </div></div>
       {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span></div></div>
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span>
+          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'publisher', '{{ Strings.publisher }}', false, '{{result.doc.publisher}}');">
+        </div></div>
       {% endif %}
       </div>
   {% endif %}
   {% if result.doc.date %}
     <div class="row">
-      <div class="col-6"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }} </div></div>
+      <div class="col-6"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }}
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'date', '{{ Strings.date }}', false, '{{result.doc.date}}');">
+      </div></div>
       {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span></div></div>
+        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span>
+          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'date', '{{ Strings.date }}', false, '{{result.doc.date}}');">
+        </div></div>
       {% endif %}
     </div>
   {% endif %}
@@ -388,6 +404,85 @@
         </button>
       </div>
       <div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
+        <strong>An error occurred.</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="correctMetaModal" tabindex="-1" role="dialog" aria-labelledby="{{ Strings.correctMetaTitle }}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="correctMetaTitle">{{ Strings.correctMetaTitle }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <fieldset>
+            <p>{{ Strings.correctMetaInstructions }}</p>
+            <div class="d-flex flex-row m-0 p-0">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <label for="correctMetaFieldName">{{ Strings.correctMetaFieldName }}:&nbsp;</label>
+                  <span id="correctMetaFieldName"></span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex flex-row m-0 p-0">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <label for="correctMetaCurrentValue">{{ Strings.correctMetaCurrentValue }}:&nbsp;</label>
+                  <span id="correctMetaCurrentValue"></span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex flex-row m-0 p-0">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge1" value="replace">&nbsp;</span>
+                  <label for="correctMetaNewValue">{{ Strings.correctMetaNewValue }}:&nbsp;</label>
+                  <input type="text" name="correctMetaNewValue" id="correctMetaNewValue" class="w-100" value="">
+                </div>
+              </div>
+            </div>
+            <div class="d-none flex-row m-0 p-0" id="correctMetaAuthorMergeDiv">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge2" value="merge">&nbsp;</span>
+                  <label for="correctMetaAuthorMergeWith">{{ Strings.correctMetaMergeWith }}:&nbsp;</label>
+                  <input type="text" name="correctMetaAuthorMergeWith" id="correctMetaAuthorMergeWith" class="w-100" value="" disabled="true">
+                </div>
+              </div>
+            </div>
+            <div class="d-none flex-row m-0 p-0" id="correctMetaAuthorEnglishMergeDiv">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge3" value="merge">&nbsp;</span>
+                  <label for="correctMetaAuthorEnglishMergeWith">{{ Strings.correctMetaMergeWith }}:&nbsp;</label>
+                  <input type="text" name="correctMetaAuthorEnglishMergeWith" id="correctMetaAuthorEnglishMergeWith" class="w-100" value="" disabled="true">
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="btnCorrectMetaSave" type="button" class="btn btn-primary">Save changes</button>
+      </div>
+      <div id="alertCorrectMetaSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
+        <strong>Correction recorded.</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="alertCorrectMetaError" class="alert alert-error alert-dismissible collapse" role="alert">
         <strong>An error occurred.</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>

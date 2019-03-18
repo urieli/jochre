@@ -12,13 +12,11 @@ import org.apache.commons.math.stat.clustering.KMeansPlusPlusClusterer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.joliciel.jochre.search.JochreSearchConfig;
-
 class YiddishAltoStringFixer implements AltoStringFixer {
   private static final Logger LOG = LoggerFactory.getLogger(YiddishAltoStringFixer.class);
   private Set<String> dualCharacterLetters = null;
 
-  public YiddishAltoStringFixer(JochreSearchConfig config) {
+  public YiddishAltoStringFixer(String configId) {
   }
 
   @Override
@@ -44,8 +42,8 @@ class YiddishAltoStringFixer implements AltoStringFixer {
         AltoString prevString = row.getStrings().get(j - 1);
         AltoString string = row.getStrings().get(j);
         AltoString nextString = row.getStrings().get(j + 1);
-        if (string.getContent().equals("\"") & !prevString.isWhiteSpace() && !prevString.isPunctuation() && !nextString.isWhiteSpace()
-            && !nextString.isPunctuation()) {
+        if (string.getContent().equals("\"") & !prevString.isWhiteSpace() && !prevString.isPunctuation()
+            && !nextString.isWhiteSpace() && !nextString.isPunctuation()) {
           // quote in the middle of two alphabetic strings, must be an
           // acronym
           // merge prev string with double quote
@@ -86,12 +84,13 @@ class YiddishAltoStringFixer implements AltoStringFixer {
       for (int j = 0; j < row.getStrings().size() - 1; j++) {
         AltoString string = row.getStrings().get(j);
         AltoString nextString = row.getStrings().get(j + 1);
-        boolean afterWhiteSpaceOrPunctuation = j == 0 || row.getStrings().get(j - 1).isWhiteSpace() || row.getStrings().get(j - 1).isPunctuation();
+        boolean afterWhiteSpaceOrPunctuation = j == 0 || row.getStrings().get(j - 1).isWhiteSpace()
+            || row.getStrings().get(j - 1).isPunctuation();
         String stringContent = string.getContent();
 
         if (!string.isPunctuation() && stringContent.length() > 1 && stringContent.endsWith("'")) {
-          if (afterWhiteSpaceOrPunctuation && stringContent.equals("ס'") || stringContent.equals("מ'") || stringContent.equals("ר'")
-              || stringContent.equals("כ'")) {
+          if (afterWhiteSpaceOrPunctuation && stringContent.equals("ס'") || stringContent.equals("מ'")
+              || stringContent.equals("ר'") || stringContent.equals("כ'")) {
             // do nothing
           } else if (!nextString.isWhiteSpace() && !nextString.isPunctuation()) {
             // merge
@@ -107,7 +106,8 @@ class YiddishAltoStringFixer implements AltoStringFixer {
       for (AltoString string : row.getStrings()) {
         if (string.isWhiteSpace())
           continue;
-        if ((string.getContent().length() == 1 || this.getDualCharacterLetters().contains(string.getContent())) && (!string.isPunctuation())) {
+        if ((string.getContent().length() == 1 || this.getDualCharacterLetters().contains(string.getContent()))
+            && (!string.isPunctuation())) {
           currentSequence.add(string);
         } else if (currentSequence.size() > 0) {
           currentSequence = new ArrayList<>();
@@ -248,8 +248,9 @@ class YiddishAltoStringFixer implements AltoStringFixer {
   private Set<String> getDualCharacterLetters() {
     if (dualCharacterLetters == null) {
       dualCharacterLetters = new TreeSet<>();
-      String[] dualCharacterLetterArray = new String[] { "אָ", "אַ", "בּ", "פּ", "וּ", "פֿ", "שׁ", "וֹ", "יִ", "ײַ", "כֿ", "תּ", "אֶ", "כּ", "בֿ", "עֵ",
-          "אִ", "שׂ", "נָ", "מְ", "הֶ", "מַ", "בָּ", "לִ", "נִ", "עֶ", "כֶ", "יי", "וו", "אֵ", "וי" };
+      String[] dualCharacterLetterArray = new String[] { "אָ", "אַ", "בּ", "פּ", "וּ", "פֿ", "שׁ", "וֹ", "יִ", "ײַ",
+          "כֿ", "תּ", "אֶ", "כּ", "בֿ", "עֵ", "אִ", "שׂ", "נָ", "מְ", "הֶ", "מַ", "בָּ", "לִ", "נִ", "עֶ", "כֶ", "יי",
+          "וו", "אֵ", "וי" };
       for (String letter : dualCharacterLetterArray) {
         dualCharacterLetters.add(letter);
       }

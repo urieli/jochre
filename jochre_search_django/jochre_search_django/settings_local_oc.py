@@ -129,6 +129,11 @@ Vos demandam de vos sarrar al pus prèp de çò que vesètz sus l'imatge.""",
 "prefsTitle" : u"Preferences",
 "prefsDocsPerPage" : u"Results per page",
 "prefsSnippetsPerDoc" : u"Snippets per result",
+"correctMetaTitle": u"Correct document meta data",
+"correctMetaInstructions": u"""Correct the meta data.""",
+"correctMetaFieldName": u"Field",
+"correctMetaCurrentValue": u"Current value",
+"correctMetaNewValue": u"New value",
 }
 
 SHOW_SECTION = False

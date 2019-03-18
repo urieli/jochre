@@ -22,11 +22,8 @@ import com.joliciel.jochre.search.JochreIndexBuilder;
 import com.joliciel.jochre.search.JochreIndexField;
 import com.joliciel.jochre.search.JochreIndexSearcher;
 import com.joliciel.jochre.search.JochreQuery;
-import com.joliciel.jochre.search.JochreSearchConfig;
 import com.joliciel.jochre.search.JochreSearchManager;
-import com.joliciel.jochre.search.SearchStatusHolder;
 import com.joliciel.jochre.utils.Either;
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class LuceneQueryHighlighterTest {
@@ -37,18 +34,16 @@ public class LuceneQueryHighlighterTest {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
 
-    Config testConfig = ConfigFactory.load();
-    JochreSearchConfig config = new JochreSearchConfig("yiddish", testConfig);
-    JochreSearchManager manager = JochreSearchManager.getInstance(config);
-    SearchStatusHolder searchStatusHolder = SearchStatusHolder.getInstance();
+    String configId = "yiddish";
 
-    JochreIndexBuilder builder = new JochreIndexBuilder(config, manager, false, null, searchStatusHolder);
+    JochreIndexBuilder builder = new JochreIndexBuilder(configId, false);
     builder.updateIndex();
 
+    JochreSearchManager manager = JochreSearchManager.getInstance(configId);
     IndexSearcher indexSearcher = manager.getManager().acquire();
     try {
-      JochreQuery query = new JochreQuery(config, "קײנער");
-      JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, config);
+      JochreQuery query = new JochreQuery(configId, "קײנער");
+      JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
       Pair<TopDocs, Integer> results = searcher.search(query, 0, 100);
       int docId = results.getLeft().scoreDocs[0].doc;
       Set<Integer> docIds = new HashSet<>();
@@ -74,7 +69,7 @@ public class LuceneQueryHighlighterTest {
         i++;
       }
 
-      HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, config);
+      HighlightManager highlightManager = new HighlightManager(indexSearcher, fields, configId);
       Map<Integer, Either<List<Snippet>, Exception>> snippets = highlightManager.findSnippets(docIds, terms, 2);
       List<Snippet> mySnippets = snippets.get(docId).getLeft();
       assertEquals(1, mySnippets.size());

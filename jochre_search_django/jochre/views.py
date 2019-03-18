@@ -172,25 +172,30 @@ def search(request):
             doc['titleEnglishAndVolume'] = doc['titleEnglish'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
           else:
             doc['titleEnglishAndVolume'] = settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
+            doc['titleEnglish'] = ""
           if 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
             if 'title' in doc:
               doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
             else:
               doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
+              doc['title'] = ""
           else:
             if 'title' in doc:
               doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
             else:
               doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
+              doc['title'] = ""
         else:
           if 'titleEnglish' in doc:
             doc['titleEnglishAndVolume'] = doc['titleEnglish']
           else:
-            doc['titleEnglishAndVolume'] = ''
+            doc['titleEnglishAndVolume'] = ""
+            doc['titleEnglish'] = ""
           if 'title' in doc:
             doc['titleAndVolume'] = doc['title']
           else:
-            doc['titleAndVolume'] = ''
+            doc['titleAndVolume'] = ""
+            doc['titleEnglish'] = ""
         
         doc['pages'] = settings.JOCHRE_UI_STRINGS['pages'].format(doc['startPage'], doc['endPage'])
         if 'pagesRTL' in settings.JOCHRE_UI_STRINGS:

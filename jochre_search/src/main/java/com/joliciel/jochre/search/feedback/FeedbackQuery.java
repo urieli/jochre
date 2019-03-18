@@ -38,14 +38,14 @@ public class FeedbackQuery {
 
   private final FeedbackDAO feedbackDAO;
 
-  public FeedbackQuery(String user, String ip, FeedbackDAO feedbackDAO) {
-    this(feedbackDAO);
+  public FeedbackQuery(String user, String ip, String configId) {
+    this(configId);
     this.user = user;
     this.ip = ip;
   }
 
-  FeedbackQuery(FeedbackDAO feedbackDAO) {
-    this.feedbackDAO = feedbackDAO;
+  FeedbackQuery(String configId) {
+    this.feedbackDAO = FeedbackDAO.getInstance(configId);
   }
 
   public int getId() {

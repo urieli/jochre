@@ -24,33 +24,35 @@ public class FeedbackWord {
 
   private final FeedbackDAO feedbackDAO;
 
-  public static FeedbackWord findOrCreateWord(JochreIndexWord jochreWord, FeedbackDAO feedbackDAO) {
-    FeedbackDocument doc = FeedbackDocument.findOrCreateDocument(jochreWord.getDocument().getPath(), feedbackDAO);
+  public static FeedbackWord findOrCreateWord(JochreIndexWord jochreWord, String configId) {
+    FeedbackDAO feedbackDAO = FeedbackDAO.getInstance(configId);
+    FeedbackDocument doc = FeedbackDocument.findOrCreateDocument(jochreWord.getDocument().getPath(), configId);
     FeedbackWord word = feedbackDAO.findWord(doc, jochreWord.getPageIndex(), jochreWord.getRectangle());
     if (word == null) {
-      word = new FeedbackWord(jochreWord, doc, feedbackDAO);
+      word = new FeedbackWord(jochreWord, doc, configId);
       word.save();
     }
     return word;
   }
 
-  FeedbackWord(JochreIndexWord jochreWord, FeedbackDocument doc, FeedbackDAO feedbackDAO) {
-    this(feedbackDAO);
+  FeedbackWord(JochreIndexWord jochreWord, FeedbackDocument doc, String configId) {
+    this(configId);
     this.setRectangle(jochreWord.getRectangle());
     this.setImage(jochreWord.getImage());
     this.setInitialGuess(jochreWord.getText());
-    FeedbackRow row = FeedbackRow.findOrCreateRow(doc, jochreWord.getPageIndex(), jochreWord.getRowRectangle(), jochreWord.getRowImage(), feedbackDAO);
+    FeedbackRow row = FeedbackRow.findOrCreateRow(doc, jochreWord.getPageIndex(), jochreWord.getRowRectangle(),
+        jochreWord.getRowImage(), configId);
     this.setRow(row);
     if (jochreWord.getSecondRectangle() != null) {
       this.setSecondRectangle(jochreWord.getSecondRectangle());
-      FeedbackRow row2 = FeedbackRow.findOrCreateRow(doc, jochreWord.getPageIndex(), jochreWord.getSecondRectangle(), jochreWord.getSecondRowImage(),
-          feedbackDAO);
+      FeedbackRow row2 = FeedbackRow.findOrCreateRow(doc, jochreWord.getPageIndex(), jochreWord.getSecondRectangle(),
+          jochreWord.getSecondRowImage(), configId);
       this.setSecondRow(row2);
     }
   }
 
-  FeedbackWord(FeedbackDAO feedbackDAO) {
-    this.feedbackDAO = feedbackDAO;
+  FeedbackWord(String configId) {
+    this.feedbackDAO = FeedbackDAO.getInstance(configId);
   }
 
   /**
