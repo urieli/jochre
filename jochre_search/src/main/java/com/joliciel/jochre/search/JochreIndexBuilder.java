@@ -225,7 +225,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
           if (LOG.isDebugEnabled()) {
             Instant lastIndexInstant = Instant.ofEpochMilli(lastIndexDate);
             Instant ocrInstant = Instant.ofEpochMilli(ocrDate);
-            LOG.debug("For " + documentDir.getName() + "OCR date more recent than index date. lastIndexDate: "
+            LOG.debug("For " + documentDir.getName() + ", OCR date more recent than index date. lastIndexDate: "
                 + lastIndexInstant.toString() + ", ocrDate: " + ocrInstant.toString());
           }
           updateIndex = true;
@@ -373,7 +373,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       previousPages.addAll(currentPages);
       previousStrings.addAll(currentStrings);
       parent.setCurrentStrings(previousStrings);
-      if (previousPages.size() > 0) {
+      if (previousPages.size() > 0 || docCount == 0) {
         LOG.debug("Creating new index doc: " + docCount);
         JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, correctionMap,
             configId);

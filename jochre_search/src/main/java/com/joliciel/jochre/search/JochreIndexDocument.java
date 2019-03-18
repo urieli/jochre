@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public class JochreIndexDocument {
   private final int endPage;
   private final JochreIndexDirectory directory;
   private final int length;
-  private Long indexTime = null;
+  private final long indexTime;
   private TIntObjectMap<TIntObjectMap<Rectangle>> rectangles = null;
   private TIntObjectMap<TIntIntMap> startIndexes = null;
   private TIntIntMap rowCounts = null;
@@ -120,6 +121,7 @@ public class JochreIndexDocument {
     this.date = doc.get(JochreIndexField.date.name());
     this.volume = doc.get(JochreIndexField.volume.name());
     this.length = doc.getField(JochreIndexField.length.name()).numericValue().intValue();
+    this.indexTime = doc.getField(JochreIndexField.indexTime.name()).numericValue().longValue();
   }
 
   /**
@@ -154,6 +156,7 @@ public class JochreIndexDocument {
     this.titleEnglish = metaData.get(JochreIndexField.titleEnglish);
     this.date = metaData.get(JochreIndexField.date);
     this.volume = metaData.get(JochreIndexField.volume);
+    this.indexTime = 0L;
 
     this.doc = null;
     this.indexSearcher = null;
@@ -243,8 +246,13 @@ public class JochreIndexDocument {
     this.contents = sb.toString();
     this.length = this.contents.length();
 
-    this.startPage = pages.get(0).getIndex();
-    this.endPage = pages.get(pages.size() - 1).getIndex();
+    if (pages.size() > 0) {
+      this.startPage = pages.get(0).getIndex();
+      this.endPage = pages.get(pages.size() - 1).getIndex();
+    } else {
+      this.startPage = 0;
+      this.endPage = 0;
+    }
   }
 
   /**
@@ -354,9 +362,9 @@ public class JochreIndexDocument {
     if (this.date != null)
       jsonGen.writeStringField(JochreIndexField.date.name(), this.date);
     jsonGen.writeNumberField(JochreIndexField.length.name(), this.length);
-    if (this.indexTime != null)
-      jsonGen.writeNumberField(JochreIndexField.indexTime.name(), this.indexTime.longValue());
+    jsonGen.writeNumberField(JochreIndexField.indexTime.name(), this.indexTime);
 
+    jsonGen.writeStringField("indexTimeString", Instant.ofEpochMilli(this.indexTime).toString());
     jsonGen.writeEndObject();
   }
 
