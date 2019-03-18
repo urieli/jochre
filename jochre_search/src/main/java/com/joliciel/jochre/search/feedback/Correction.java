@@ -261,8 +261,12 @@ public class Correction {
       cfg.setCacheStorage(new NullCacheStorage());
       cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
+      String undoCommandUrl = config.getConfig().getString("corrections.undo-command-url").replace("${CORRECTION_ID}",
+          "" + this.id);
+
       Map<String, Object> model = new HashMap<>();
       model.put("correction", this);
+      model.put("undoCommandUrl", undoCommandUrl);
 
       StringWriter writer = new StringWriter();
       Reader templateReader = new BufferedReader(
