@@ -88,6 +88,15 @@ public class Correction {
     return correction;
   }
 
+  /**
+   * Load a correction by its id.
+   */
+  public static Correction loadCorrection(int correctionId, String configId) {
+    FeedbackDAO feedbackDAO = FeedbackDAO.getInstance(configId);
+    Correction correction = feedbackDAO.loadCorrection(correctionId);
+    return correction;
+  }
+
   public Correction(int documentId, JochreIndexField field, String user, String ip, String value, String previousValue,
       boolean applyEverywhere, Date createDate, String configId) {
     this.configId = configId;

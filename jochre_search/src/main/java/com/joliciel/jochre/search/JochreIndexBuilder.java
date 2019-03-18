@@ -67,7 +67,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
   private final boolean forceUpdate;
 
   private final int wordsPerDoc;
-  private final IndexWriter indexWriter;
 
   private List<JochreToken> currentStrings = null;
 
@@ -91,18 +90,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     this.manager = JochreSearchManager.getInstance(configId);
     this.wordsPerDoc = config.getConfig().getInt("index-builder.words-per-document");
     this.forceUpdate = forceUpdate;
-
-    Map<String, Analyzer> analyzerPerField = new HashMap<>();
-    analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, configId));
-    analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(configId));
-    analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(configId));
-    analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(configId));
-
-    PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(configId),
-        analyzerPerField);
-    IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-    iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
-    this.indexWriter = new IndexWriter(manager.getIndexDir(), iwc);
   }
 
   @Override
@@ -129,39 +116,51 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
       searchStatusHolder.setStatus(SearchStatus.PREPARING);
 
-      File[] subdirs = contentDir.listFiles(new FileFilter() {
+      Map<String, Analyzer> analyzerPerField = new HashMap<>();
+      analyzerPerField.put(JochreIndexField.text.name(), new JochreTextLayerAnalyser(this, configId));
+      analyzerPerField.put(JochreIndexField.author.name(), new JochreKeywordAnalyser(configId));
+      analyzerPerField.put(JochreIndexField.authorEnglish.name(), new JochreKeywordAnalyser(configId));
+      analyzerPerField.put(JochreIndexField.publisher.name(), new JochreKeywordAnalyser(configId));
 
-        @Override
-        public boolean accept(File pathname) {
-          return pathname.isDirectory();
+      PerFieldAnalyzerWrapper analyzer = new PerFieldAnalyzerWrapper(new JochreMetaDataAnalyser(configId),
+          analyzerPerField);
+      IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+      iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+      try (IndexWriter indexWriter = new IndexWriter(manager.getIndexDir(), iwc)) {
+
+        File[] subdirs = contentDir.listFiles(new FileFilter() {
+
+          @Override
+          public boolean accept(File pathname) {
+            return pathname.isDirectory();
+          }
+        });
+
+        if (subdirs.length == 0)
+          throw new IllegalArgumentException("content dir is empty: " + contentDir.getPath());
+
+        Arrays.sort(subdirs);
+
+        searchStatusHolder.setStatus(SearchStatus.BUSY);
+        searchStatusHolder.setTotalCount(subdirs.length);
+
+        for (File subdir : subdirs) {
+          try {
+            searchStatusHolder.setAction("Indexing " + subdir.getName());
+            this.processDocument(indexWriter, subdir, forceUpdate);
+            searchStatusHolder.incrementSuccessCount(1);
+          } catch (Exception e) {
+            LOG.error("Failed to index " + subdir.getName(), e);
+            searchStatusHolder.incrementFailureCount(1);
+          }
         }
-      });
 
-      if (subdirs.length == 0)
-        throw new IllegalArgumentException("content dir is empty: " + contentDir.getPath());
-
-      Arrays.sort(subdirs);
-
-      searchStatusHolder.setStatus(SearchStatus.BUSY);
-      searchStatusHolder.setTotalCount(subdirs.length);
-
-      for (File subdir : subdirs) {
-        try {
-          searchStatusHolder.setAction("Indexing " + subdir.getName());
-          this.processDocument(subdir, forceUpdate);
-          searchStatusHolder.incrementSuccessCount(1);
-        } catch (Exception e) {
-          LOG.error("Failed to index " + subdir.getName(), e);
-          searchStatusHolder.incrementFailureCount(1);
-        }
+        LOG.info("Commiting index...");
+        searchStatusHolder.setStatus(SearchStatus.COMMITING);
+        indexWriter.commit();
+        indexWriter.close();
+        manager.getManager().maybeRefresh();
       }
-
-      LOG.info("Commiting index...");
-      searchStatusHolder.setStatus(SearchStatus.COMMITING);
-      indexWriter.commit();
-      indexWriter.close();
-      manager.getManager().maybeRefresh();
-
     } catch (IOException e) {
       LOG.error("Failed to commit indexWriter", e);
       throw new RuntimeException(e);
@@ -173,57 +172,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     }
   }
 
-  /**
-   * Add or update a single directory to the index.
-   * 
-   * @param documentDir
-   *          the directory containing the document set
-   * @param startPage
-   *          the first page to process, or all if -1
-   * @param endPage
-   *          the last page to process, or all if -1
-   */
-  public void updateDocument(File documentDir, int startPage, int endPage) {
-    long startTime = System.currentTimeMillis();
-    try {
-      JochreIndexDirectory directory = new JochreIndexDirectory(documentDir, configId);
-      this.updateDocumentInternal(directory, startPage, endPage);
-      indexWriter.commit();
-      indexWriter.close();
-      manager.getManager().maybeRefresh();
-
-    } catch (IOException e) {
-      LOG.error("Failed to commit indexWriter", e);
-      throw new RuntimeException(e);
-    } finally {
-      long endTime = System.currentTimeMillis();
-      long totalTime = endTime - startTime;
-      LOG.info("Total time (ms): " + totalTime);
-    }
-  }
-
-  /**
-   * Delete a single work from the index. The directory path is considered to
-   * identify the work.
-   * 
-   * @param documentDir
-   *          the directory containing the document set
-   */
-  public void deleteDocument(File documentDir) {
-    try {
-      JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(documentDir, configId);
-      this.deleteDocumentInternal(jochreIndexDirectory);
-      indexWriter.commit();
-      indexWriter.close();
-      manager.getManager().maybeRefresh();
-    } catch (IOException e) {
-      LOG.error("Failed to commit indexWriter", e);
-      throw new RuntimeException(e);
-
-    }
-  }
-
-  private void processDocument(File documentDir, boolean forceUpdate) {
+  private void processDocument(IndexWriter indexWriter, File documentDir, boolean forceUpdate) {
     try {
       boolean updateIndex = false;
 
@@ -231,7 +180,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       Instructions instructions = jochreIndexDirectory.getInstructions();
       switch (instructions) {
       case Delete:
-        this.deleteDocumentInternal(jochreIndexDirectory);
+        this.deleteDocumentInternal(indexWriter, jochreIndexDirectory);
         return;
       case Skip:
         return;
@@ -273,7 +222,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       }
 
       if (updateIndex) {
-        this.updateDocumentInternal(jochreIndexDirectory, -1, -1);
+        this.updateDocumentInternal(indexWriter, jochreIndexDirectory, -1, -1);
       } else {
         LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
       } // should update index?
@@ -287,15 +236,17 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     }
   }
 
-  private void updateDocumentInternal(JochreIndexDirectory jochreIndexDirectory, int startPage, int endPage) {
+  private void updateDocumentInternal(IndexWriter indexWriter, JochreIndexDirectory jochreIndexDirectory, int startPage,
+      int endPage) {
     try {
       LOG.info("Updating index for " + jochreIndexDirectory.getName());
 
-      this.deleteDocumentInternal(jochreIndexDirectory);
+      this.deleteDocumentInternal(indexWriter, jochreIndexDirectory);
 
       AltoDocument altoDoc = new AltoDocument(jochreIndexDirectory.getName());
       AltoReader reader = new AltoReader(altoDoc);
-      AltoPageIndexer altoPageIndexer = new AltoPageIndexer(this, jochreIndexDirectory, startPage, endPage);
+      AltoPageIndexer altoPageIndexer = new AltoPageIndexer(indexWriter, this, jochreIndexDirectory, startPage,
+          endPage);
       reader.addConsumer(altoPageIndexer);
 
       UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
@@ -309,6 +260,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
   private final class AltoPageIndexer implements AltoPageConsumer {
     private JochreIndexBuilder parent;
+    private final IndexWriter indexWriter;
+
     private int docCount = 0;
     private int cumulWordCount = 0;
     private List<AltoPage> currentPages = new ArrayList<>();
@@ -323,8 +276,9 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     private Map<Integer, List<FeedbackSuggestion>> pageSuggestionMap;
     private Map<JochreIndexField, List<Correction>> correctionMap;
 
-    public AltoPageIndexer(JochreIndexBuilder parent, JochreIndexDirectory directory, int startPage, int endPage) {
-      super();
+    public AltoPageIndexer(IndexWriter indexWriter, JochreIndexBuilder parent, JochreIndexDirectory directory,
+        int startPage, int endPage) {
+      this.indexWriter = indexWriter;
       this.parent = parent;
       this.directory = directory;
       this.startPage = startPage;
@@ -388,7 +342,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
           LOG.debug("Creating new index doc: " + docCount);
           JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, correctionMap,
               configId);
-          indexDoc.save(parent.getIndexWriter());
+          indexDoc.save(indexWriter);
           docCount++;
         }
 
@@ -411,13 +365,13 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
         LOG.debug("Creating new index doc: " + docCount);
         JochreIndexDocument indexDoc = new JochreIndexDocument(directory, docCount, previousPages, correctionMap,
             configId);
-        indexDoc.save(parent.getIndexWriter());
+        indexDoc.save(indexWriter);
         docCount++;
       }
     }
   }
 
-  private void deleteDocumentInternal(JochreIndexDirectory jochreIndexDirectory) {
+  private void deleteDocumentInternal(IndexWriter indexWriter, JochreIndexDirectory jochreIndexDirectory) {
     try {
       Term term = new Term(JochreIndexField.path.name(), jochreIndexDirectory.getPath());
       indexWriter.deleteDocuments(term);
@@ -425,10 +379,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       LOG.error("Failed to delete jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
       throw new RuntimeException(e);
     }
-  }
-
-  public IndexWriter getIndexWriter() {
-    return indexWriter;
   }
 
   @Override
