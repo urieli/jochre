@@ -194,17 +194,17 @@
   </div>
   <div class="row">
     <div class="col-6"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'titleEnglish', '{{ Strings.title }}', false, '{{result.doc.titleEnglish}}');">
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{{ Strings.title|escapejs }}', false,'{{result.doc.titleEnglish|escapejs}}');">
     </div></div>
     {% if RTL %}
       <div class="col-6"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'title', '{{ Strings.titleRTL }}', true, '{{result.doc.title}}');">
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{{ Strings.titleRTL|escapejs }}', true, '{{result.doc.title|escapejs}}');">
       </div></div>
     {% endif %}
   </div>
   <div class="row">
     <div class="col-6"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'authorEnglish', '{{ Strings.author }}', false, '{{result.doc.authorEnglish}}');">
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{{ Strings.author|escapejs }}', false, '{{result.doc.authorEnglish|escapejs}}');">
     </div></div>
     {% if RTL %}
       <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}
@@ -223,11 +223,11 @@
   {% if result.doc.publisher %}
     <div class="row">
       <div class="col-6"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'publisher', '{{ Strings.publisher }}', false, '{{result.doc.publisher}}');">
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{{ Strings.publisher|escapejs }}', false, '{{result.doc.publisher|escapejs}}');">
       </div></div>
       {% if RTL %}
         <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span>
-          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'publisher', '{{ Strings.publisher }}', false, '{{result.doc.publisher}}');">
+          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{{ Strings.publisher|escapejs }}', false, '{{result.doc.publisher|escapejs}}');">
         </div></div>
       {% endif %}
       </div>
@@ -235,11 +235,11 @@
   {% if result.doc.date %}
     <div class="row">
       <div class="col-6"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'date', '{{ Strings.date }}', false, '{{result.doc.date}}');">
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{{ Strings.date|escapejs }}', false, '{{result.doc.date|escapejs}}');">
       </div></div>
       {% if RTL %}
         <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span>
-          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'date', '{{ Strings.date }}', false, '{{result.doc.date}}');">
+          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{{ Strings.date|escapejs }}', false, '{{result.doc.date|escapejs}}');">
         </div></div>
       {% endif %}
     </div>

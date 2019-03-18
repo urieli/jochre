@@ -1,5 +1,6 @@
 [#ftl]
-<p><b>New correction on Jochre</b></p>
+<b>New correction on Jochre</b>
+<br>
 <ul>
 <li><b>User:</b> ${correction.user}</li>
 <li><b>IP:</b> ${correction.ip}</li>
@@ -15,5 +16,7 @@
   <li>${doc}</li>
 [/#list]
 </ul>
-</li>
 [/#if]
+<br>
+<br>To undo this correction, click here: ${undoCommandUrl}
+
