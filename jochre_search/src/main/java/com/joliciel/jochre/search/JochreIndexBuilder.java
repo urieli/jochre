@@ -216,7 +216,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
           manager.getManager().release(indexSearcher);
         }
 
-        LOG.debug("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
+        if (LOG.isTraceEnabled())
+          LOG.trace("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
         if (ocrDate > lastIndexDate)
           updateIndex = true;
       }
@@ -224,7 +225,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       if (updateIndex) {
         this.updateDocumentInternal(indexWriter, jochreIndexDirectory, -1, -1);
       } else {
-        LOG.info("Index for " + documentDir.getName() + " already up-to-date.");
+        if (LOG.isTraceEnabled())
+          LOG.trace("Index for " + documentDir.getName() + " already up-to-date.");
       } // should update index?
 
       if (instructions.equals(Instructions.Update)) {
