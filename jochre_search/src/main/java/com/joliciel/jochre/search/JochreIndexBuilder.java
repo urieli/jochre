@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -185,6 +186,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       case Skip:
         return;
       case Update:
+        if (LOG.isDebugEnabled())
+          LOG.debug("For " + documentDir.getName() + " found update instructions.");
         updateIndex = true;
       case None:
         // do nothing
@@ -218,8 +221,15 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
 
         if (LOG.isTraceEnabled())
           LOG.trace("lastIndexDate: " + lastIndexDate + ", ocrDate: " + ocrDate);
-        if (ocrDate > lastIndexDate)
+        if (ocrDate > lastIndexDate) {
+          if (LOG.isDebugEnabled()) {
+            Instant lastIndexInstant = Instant.ofEpochMilli(lastIndexDate);
+            Instant ocrInstant = Instant.ofEpochMilli(ocrDate);
+            LOG.debug("For " + documentDir.getName() + "OCR date more recent than index date. lastIndexDate: "
+                + lastIndexInstant.toString() + ", ocrDate: " + ocrInstant.toString());
+          }
           updateIndex = true;
+        }
       }
 
       if (updateIndex) {
