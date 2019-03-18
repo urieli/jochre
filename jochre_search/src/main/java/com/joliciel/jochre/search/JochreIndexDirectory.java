@@ -339,12 +339,17 @@ public class JochreIndexDirectory {
 
   public void addUpdateInstructions() throws IOException {
     try {
+      if (LOG.isDebugEnabled())
+        LOG.debug("Adding update instructions: " + updateInstructionsPath.toString());
       Files.createFile(updateInstructionsPath);
     } catch (FileAlreadyExistsException ignored) {
     }
   }
 
   public void removeUpdateInstructions() throws IOException {
+    if (LOG.isDebugEnabled())
+      LOG.debug("Removing update instructions: " + updateInstructionsPath.toString());
+
     Files.deleteIfExists(updateInstructionsPath);
   }
 
