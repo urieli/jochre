@@ -153,6 +153,10 @@ public class JochreSearch {
      */
     sendCorrectionEmail("application/json;charset=UTF-8"),
     /**
+     * Undo a correction for document metadata,
+     */
+    undo("application/json;charset=UTF-8"),
+    /**
      * Serialize a lexicon.
      */
     serializeLexicon("application/json;charset=UTF-8"),
@@ -462,7 +466,8 @@ public class JochreSearch {
               if (config.hasDatabase()) {
                 FeedbackQuery feedbackQuery = new FeedbackQuery(user, ip, configId);
                 feedbackQuery.setResultCount(results.getRight().intValue());
-                feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
+                if (query.getQueryString() != null && query.getQueryString().length() > 0)
+                  feedbackQuery.addClause(FeedbackCriterion.text, query.getQueryString());
                 if (query.getAuthors().size() > 0) {
                   feedbackQuery.addClause(FeedbackCriterion.author, String.join("|", query.getAuthors()));
                   feedbackQuery.addClause(FeedbackCriterion.includeAuthors, "" + query.isAuthorInclude());
@@ -862,6 +867,45 @@ public class JochreSearch {
         Correction correction = Correction.loadCorrection(correctionId, configId);
         correction.sendEmail();
         out.write("{\"response\":\"correction e-mail sent\"}\n");
+        break;
+      }
+      case undo: {
+        if (correctionId < 0)
+          throw new RuntimeException("For command " + command + " correctionId is required");
+
+        // Mark correction for ignoring
+        Correction correction = Correction.loadCorrection(correctionId, configId);
+        correction.setIgnore(true);
+        correction.save();
+
+        IndexSearcher indexSearcher = searchManager.getManager().acquire();
+        try {
+
+          JochreIndexSearcher searcher = new JochreIndexSearcher(indexSearcher, configId);
+
+          List<String> docNames = correction.getDocuments();
+          for (String doc : docNames) {
+            // mark the document for re-indexing
+            Map<Integer, Document> docs = searcher.findDocuments(doc);
+            Document luceneDoc = docs.values().iterator().next();
+            String path = luceneDoc.get(JochreIndexField.path.name());
+            JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(path, configId);
+            jochreIndexDirectory.addUpdateInstructions();
+          }
+
+          // Mark initial document for update
+          String docPath = correction.getDocument().getPath();
+          JochreIndexDirectory jochreIndexDirectory = new JochreIndexDirectory(docPath, configId);
+          jochreIndexDirectory.addUpdateInstructions();
+
+          // start the index thread
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          new Thread(builder).start();
+
+          out.write("{\"response\":\"correction undo thread started\"}\n");
+        } finally {
+          searchManager.getManager().release(indexSearcher);
+        }
         break;
       }
       case prefixSearch: {
