@@ -149,6 +149,10 @@ public class JochreSearch {
      */
     correct("application/json;charset=UTF-8"),
     /**
+     * Send an e-mail for a given correction.
+     */
+    sendCorrectionEmail("application/json;charset=UTF-8"),
+    /**
      * Serialize a lexicon.
      */
     serializeLexicon("application/json;charset=UTF-8"),
@@ -270,6 +274,7 @@ public class JochreSearch {
 
       // corrections
       boolean applyEverywhere = false;
+      int correctionId = -1;
 
       for (Entry<String, String> argMapEntry : argMap.entrySet()) {
         String argName = argMapEntry.getKey();
@@ -361,6 +366,8 @@ public class JochreSearch {
           resultsPerPage = Integer.parseInt(argValue);
         } else if (argName.equals("applyEverywhere")) {
           applyEverywhere = argValue.equals("true");
+        } else if (argName.equals("correctionId")) {
+          correctionId = Integer.parseInt(argValue);
         } else {
           throw new RuntimeException("Unknown option: " + argName);
         }
@@ -784,15 +791,8 @@ public class JochreSearch {
         if (!config.hasDatabase())
           throw new RuntimeException("For command " + command + " a database is required");
 
-        if (docId < 0 && docIndex < 0)
-          throw new RuntimeException("For command " + command + " either docName and docIndex, or docId are required");
-        if (docId < 0) {
-          if (docName == null)
-            throw new RuntimeException("For command " + command + " docName is required");
-          if (docIndex < 0)
-            throw new RuntimeException("For command " + command + " docIndex is required");
-        }
-
+        if (docId < 0 && docName == null)
+          throw new RuntimeException("For command " + command + " either docName or docId are required");
         if (field == null)
           throw new RuntimeException("For command " + command + " field is required");
         if (suggestion == null)
@@ -807,7 +807,7 @@ public class JochreSearch {
 
           Document luceneDoc = null;
           if (docId < 0) {
-            Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+            Map<Integer, Document> docs = searcher.findDocuments(docName);
             luceneDoc = docs.values().iterator().next();
           } else {
             luceneDoc = searcher.loadDocument(docId);
@@ -853,6 +853,15 @@ public class JochreSearch {
           searchManager.getManager().release(indexSearcher);
         }
         out.write("{\"response\":\"correction saved\"}\n");
+        break;
+      }
+      case sendCorrectionEmail: {
+        if (correctionId < 0)
+          throw new RuntimeException("For command " + command + " correctionId is required");
+
+        Correction correction = Correction.loadCorrection(correctionId, configId);
+        correction.sendEmail();
+        out.write("{\"response\":\"correction e-mail sent\"}\n");
         break;
       }
       case prefixSearch: {
