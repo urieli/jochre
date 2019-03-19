@@ -129,6 +129,10 @@ public class JochreSearch {
      */
     snippets("application/json;charset=UTF-8"),
     /**
+     * Explain a query's score for given document id.
+     */
+    explain("text/plain;charset=UTF-8"),
+    /**
      * List all of the fields in a given index document.
      */
     view("application/json;charset=UTF-8"),
@@ -421,7 +425,8 @@ public class JochreSearch {
       }
       case search:
       case highlight:
-      case snippets: {
+      case snippets:
+      case explain: {
         IndexSearcher indexSearcher = searchManager.getManager().acquire();
         try {
           JochreQuery query = new JochreQuery(configId, queryString, authors, authorInclude, titleQueryString, fromYear,
@@ -491,7 +496,8 @@ public class JochreSearch {
               }
               break;
             }
-            default: {
+            case highlight:
+            case snippets: {
               if (!query.hasHighlights())
                 throw new RuntimeException(
                     "For command " + command + " a query is required - no highlights available.");
@@ -531,6 +537,25 @@ public class JochreSearch {
               }
               break;
             }
+            case explain:
+              if (docId < 0 && docIndex < 0)
+                throw new RuntimeException(
+                    "For command " + command + " either docName and docIndex, or docId are required");
+              if (docId < 0) {
+                if (docName == null)
+                  throw new RuntimeException("For command " + command + " docName is required");
+                if (docIndex < 0)
+                  throw new RuntimeException("For command " + command + " docIndex is required");
+              }
+              if (docId < 0) {
+                Map<Integer, Document> docs = searcher.findDocument(docName, docIndex);
+                docId = docs.keySet().iterator().next();
+              }
+
+              searcher.explain(query, docId, out);
+              break;
+            default:
+              throw new RuntimeException("Unexpected command: " + command);
             }
           } catch (JochreQueryParseException e) {
             JsonFactory jsonFactory = new JsonFactory();

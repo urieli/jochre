@@ -1,6 +1,7 @@
 package com.joliciel.jochre.search;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -137,5 +139,21 @@ public class JochreIndexSearcher {
           + doc.get(JochreIndexField.sectionNumber.name()));
     }
     return docs;
+  }
+
+  /**
+   * Add explanation for a given query's score on a given docId.
+   * 
+   * @param query
+   * @param docId
+   * @param out
+   * @throws IOException
+   */
+  public void explain(JochreQuery query, int docId, Writer out) throws IOException {
+    out.append("Explanation for " + docId + "\n");
+    Explanation explanation = indexSearcher.explain(query.getLuceneQuery(), docId);
+    LOG.debug(explanation.toString());
+    out.append(explanation.toString());
+    out.flush();
   }
 }
