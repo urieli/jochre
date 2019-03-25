@@ -1,3 +1,8 @@
+############################################################
+# Person names from Zylbercweig's Lexicon of the Yiddish Theatre, compiled by Assaf Urieli
+# This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+# See http://creativecommons.org/licenses/by-nc-sa/3.0/ for details
+#############################################################
 א
 אַּבבּדול 1:1
 אבּעלמאַן, בּעני )בּרוך-משה( 5584:6
