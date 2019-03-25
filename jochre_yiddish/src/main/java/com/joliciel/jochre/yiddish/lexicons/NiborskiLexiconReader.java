@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class NiborskiLexiconReader {
@@ -46,9 +47,9 @@ public class NiborskiLexiconReader {
 
   private int maxEntries = 0;
   private Writer variantWriter = null;
-  private Set<NiborskiLexicalFormEntry> allVariants = new TreeSet<NiborskiLexicalFormEntry>();
-  private Set<String> entries = new TreeSet<String>();
-  private Set<NiborskiLexicalFormEntry> partEntries = new TreeSet<NiborskiLexiconReader.NiborskiLexicalFormEntry>();
+  private Set<NiborskiLexicalFormEntry> allVariants = new TreeSet<>();
+  private Set<String> entries = new TreeSet<>();
+  private Set<NiborskiLexicalFormEntry> partEntries = new TreeSet<>();
 
   public TextFileLexicon read(File file) throws IOException {
     Scanner scanner = new Scanner(file);
@@ -108,12 +109,14 @@ public class NiborskiLexiconReader {
         int pronunciationIndex = line.indexOf("<pronunciation>");
         if (pronunciationIndex >= 0) {
           tagLength = "<pronunciation>".length();
-          entry.pronunciation = line.substring(pronunciationIndex + tagLength, line.indexOf('<', pronunciationIndex + tagLength + 1));
+          entry.pronunciation = line.substring(pronunciationIndex + tagLength,
+              line.indexOf('<', pronunciationIndex + tagLength + 1));
         }
         int superscriptIndex = line.indexOf("<sup>");
         if (superscriptIndex >= 0) {
           tagLength = "<sup>".length();
-          entry.superscript = Integer.parseInt(line.substring(superscriptIndex + tagLength, line.indexOf('<', superscriptIndex + tagLength + 1)));
+          entry.superscript = Integer.parseInt(
+              line.substring(superscriptIndex + tagLength, line.indexOf('<', superscriptIndex + tagLength + 1)));
         }
         if (entry.text.contains("…"))
           skipEntry = true;
@@ -230,7 +233,7 @@ public class NiborskiLexiconReader {
     public String text;
     public String pronunciation = "";
     public int superscript = 0;
-    public List<NiborskiLexiconSubEntry> subEntries = new ArrayList<NiborskiLexiconReader.NiborskiLexiconSubEntry>();
+    public List<NiborskiLexiconSubEntry> subEntries = new ArrayList<>();
   }
 
   private static class NiborskiLexiconSubEntry {
@@ -238,16 +241,18 @@ public class NiborskiLexiconReader {
     public String gender = "";
     public String xref = "";
     public String lemma = null;
-    public Map<String, String> forms = new HashMap<String, String>();
-    public Map<String, String> formPronunciations = new HashMap<String, String>();
-    public List<String> notes = new ArrayList<String>();
+    public Map<String, String> forms = new HashMap<>();
+    public Map<String, String> formPronunciations = new HashMap<>();
+    public List<String> notes = new ArrayList<>();
   }
 
-  Collection<NiborskiLexicalFormEntry> getForms(String text, String category, String lemma, String morphology, String pronunciation) {
+  Collection<NiborskiLexicalFormEntry> getForms(String text, String category, String lemma, String morphology,
+      String pronunciation) {
     return this.getForms(text, category, lemma, morphology, pronunciation, "");
   }
 
-  Collection<NiborskiLexicalFormEntry> getForms(String text, String category, String lemma, String morphology, String pronunciation, String attributes) {
+  Collection<NiborskiLexicalFormEntry> getForms(String text, String category, String lemma, String morphology,
+      String pronunciation, String attributes) {
     // TODO - encoding: tsvey yudn, pasekh aleph, etc.
     if (text.indexOf('|') >= 0)
       throw new RuntimeException("Expected all | to be gone: " + text + " in " + lemma + ", " + category);
@@ -262,11 +267,11 @@ public class NiborskiLexiconReader {
     if (attributes.startsWith(","))
       attributes = attributes.substring(1);
 
-    Set<String> variants = new TreeSet<String>();
+    Set<String> variants = new TreeSet<>();
     variants.add(text);
 
     if (text.contains("(")) {
-      Set<String> newVariants = new TreeSet<String>();
+      Set<String> newVariants = new TreeSet<>();
       boolean haveNewVariant = true;
       while (haveNewVariant) {
         haveNewVariant = false;
@@ -277,8 +282,8 @@ public class NiborskiLexiconReader {
             int closeParenthesis = variant.indexOf(')');
             String newVariant = variant.substring(0, openParenthesis) + variant.substring(closeParenthesis + 1);
             newVariants.add(newVariant);
-            newVariant = variant.substring(0, openParenthesis) + variant.substring(openParenthesis + 1, closeParenthesis)
-                + variant.substring(closeParenthesis + 1);
+            newVariant = variant.substring(0, openParenthesis)
+                + variant.substring(openParenthesis + 1, closeParenthesis) + variant.substring(closeParenthesis + 1);
             newVariants.add(newVariant);
           } else {
             newVariants.add(variant);
@@ -286,12 +291,12 @@ public class NiborskiLexiconReader {
         }
         if (haveNewVariant) {
           variants = newVariants;
-          newVariants = new TreeSet<String>();
+          newVariants = new TreeSet<>();
         }
       }
     }
 
-    List<NiborskiLexicalFormEntry> forms = new ArrayList<NiborskiLexiconReader.NiborskiLexicalFormEntry>();
+    List<NiborskiLexicalFormEntry> forms = new ArrayList<>();
     for (String variant : variants) {
       NiborskiLexicalFormEntry entry = new NiborskiLexicalFormEntry(variant, category, lemma, morphology, attributes);
       entry.pronunciation = pronunciation;
@@ -321,7 +326,8 @@ public class NiborskiLexiconReader {
 
     @Override
     public String toString() {
-      return text.trim() + "\t" + category + "\t" + lemma.trim() + "\t" + morphology + "\t" + attributes + "\t" + pronunciation;
+      return text.trim() + "\t" + category + "\t" + lemma.trim() + "\t" + morphology + "\t" + attributes + "\t"
+          + pronunciation;
     }
 
     @Override
@@ -361,14 +367,14 @@ public class NiborskiLexiconReader {
       }
     }
 
-    List<NiborskiLexicalFormEntry> variants = new ArrayList<NiborskiLexicalFormEntry>();
+    List<NiborskiLexicalFormEntry> variants = new ArrayList<>();
     String originalText = entry.text.replace("'", "");
     originalText = originalText.replace('״', '"');
     originalText = originalText.replace("*", "");
     if (entry.text.endsWith("'") && originalText.length() < 3)
       originalText += "´";
 
-    Set<String> textVariants = new TreeSet<String>();
+    Set<String> textVariants = new TreeSet<>();
     if (originalText.contains("=")) {
       String[] parts = originalText.split("=");
       for (String part : parts) {
@@ -379,7 +385,7 @@ public class NiborskiLexiconReader {
     }
 
     if (originalText.contains("(")) {
-      Set<String> newTextVariants = new TreeSet<String>();
+      Set<String> newTextVariants = new TreeSet<>();
       boolean haveNewVariant = true;
       while (haveNewVariant) {
         haveNewVariant = false;
@@ -391,14 +397,15 @@ public class NiborskiLexiconReader {
             String newVariant = YiddishTextUtils
                 .getEndForm(textVariant.substring(0, openParenthesis) + textVariant.substring(closeParenthesis + 1));
             newTextVariants.add(newVariant);
-            newVariant = textVariant.substring(0, openParenthesis) + textVariant.substring(openParenthesis + 1, closeParenthesis)
+            newVariant = textVariant.substring(0, openParenthesis)
+                + textVariant.substring(openParenthesis + 1, closeParenthesis)
                 + textVariant.substring(closeParenthesis + 1);
             newTextVariants.add(newVariant);
           }
         }
         if (haveNewVariant) {
           textVariants = newTextVariants;
-          newTextVariants = new TreeSet<String>();
+          newTextVariants = new TreeSet<>();
         }
       }
     }
@@ -493,7 +500,8 @@ public class NiborskiLexiconReader {
             category = "aux";
           else if (medemCategory.equals("װ-אינפֿ"))
             category = "vInf";
-          else if (medemCategory.equals("פּראָנ—אַק") || medemCategory.equals("פּרעפּ + אַרט") || medemCategory.equals("פּראָנ—דאַט"))
+          else if (medemCategory.equals("פּראָנ—אַק") || medemCategory.equals("פּרעפּ + אַרט")
+              || medemCategory.equals("פּראָנ—דאַט"))
             category = "skip";
           else
             throw new RuntimeException("Unknown category for text " + entry.text + ": " + medemCategory);
@@ -555,43 +563,45 @@ public class NiborskiLexiconReader {
                     inflectedForm = form + baseText.substring(baseText.indexOf('־') + 1);
                   } else if (form.startsWith("־")) {
                     inflectedForm = baseText.substring(0, baseText.indexOf('־')) + form;
-                  } else if (form.equals("ן") || form.equals("ען") || form.equals("עס") || form.equals("ס") || form.equals("ם")
-                      || form.equals("ים") || form.equals("ות") || form.equals("ין") || form.equals("טע") || form.equals("קע")
-                      || form.equals("עך") || form.equals("שע") || form.equals("יכע") || form.equals("ענע") || form.equals("ע")
-                      || form.equals("ער")) {
+                  } else if (form.equals("ן") || form.equals("ען") || form.equals("עס") || form.equals("ס")
+                      || form.equals("ם") || form.equals("ים") || form.equals("ות") || form.equals("ין")
+                      || form.equals("טע") || form.equals("קע") || form.equals("עך") || form.equals("שע")
+                      || form.equals("יכע") || form.equals("ענע") || form.equals("ע") || form.equals("ער")) {
                     inflectedForm = YiddishTextUtils.removeEndForm(baseText) + form;
                   } else {
                     inflectedForm = form;
                   } // derive the form
 
                   if (key.equals("pl")) {
-                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "p", formPronunciation, attributes));
+                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "p",
+                        formPronunciation, attributes));
                   } else if (key.equals("fem")) {
                     variants.addAll(this.getForms(inflectedForm, category, lemma, "fs", formPronunciation, attributes));
-                    variants.addAll(this.getForms(YiddishTextUtils.removeEndForm(inflectedForm) + "ס", category, lemma, "fp",
-                        formPronunciation, attributes));
+                    variants.addAll(this.getForms(YiddishTextUtils.removeEndForm(inflectedForm) + "ס", category, lemma,
+                        "fp", formPronunciation, attributes));
                     needsPossessive = true;
                   } else if (key.equals("dim") || key.equals("dim2")) {
-                    variants.addAll(this.getForms(inflectedForm, category, lemma, "ns", formPronunciation, attributes + ",@dim"));
+                    variants.addAll(
+                        this.getForms(inflectedForm, category, lemma, "ns", formPronunciation, attributes + ",@dim"));
 
                     if (inflectedForm.endsWith("ל")) {
-                      variants.addAll(
-                          this.getForms(inflectedForm + "עך", category, lemma, "np", formPronunciation, attributes + ",@dim"));
-                      variants.addAll(this.getForms(inflectedForm.substring(0, inflectedForm.length() - 1) + "עלע", category, lemma, "ns",
-                          formPronunciation, attributes + ",@dim2"));
-                      variants.addAll(this.getForms(inflectedForm.substring(0, inflectedForm.length() - 1) + "עלעך", category, lemma,
-                          "np", formPronunciation, attributes + ",@dim2"));
+                      variants.addAll(this.getForms(inflectedForm + "עך", category, lemma, "np", formPronunciation,
+                          attributes + ",@dim"));
+                      variants.addAll(this.getForms(inflectedForm.substring(0, inflectedForm.length() - 1) + "עלע",
+                          category, lemma, "ns", formPronunciation, attributes + ",@dim2"));
+                      variants.addAll(this.getForms(inflectedForm.substring(0, inflectedForm.length() - 1) + "עלעך",
+                          category, lemma, "np", formPronunciation, attributes + ",@dim2"));
                     }
                     haveDim = true;
                   } else if (key.equals("accdat")) {
-                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "s", formPronunciation,
-                        attributes + ",@acc,@dat"));
+                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "s",
+                        formPronunciation, attributes + ",@acc,@dat"));
                   } else if (key.equals("dat")) {
-                    variants.addAll(
-                        this.getForms(inflectedForm, category, lemma, subEntry.gender + "s", formPronunciation, attributes + ",@dat"));
+                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "s",
+                        formPronunciation, attributes + ",@dat"));
                   } else if (key.equals("pos")) {
-                    variants.addAll(
-                        this.getForms(inflectedForm, category, lemma, subEntry.gender + "s", formPronunciation, attributes + ",@poss"));
+                    variants.addAll(this.getForms(inflectedForm, category, lemma, subEntry.gender + "s",
+                        formPronunciation, attributes + ",@poss"));
                     hasPossessive = true;
                   } else if (key.equals("indef")) {
                     if (inflectedForm.startsWith("אַ ")) {
@@ -694,10 +704,10 @@ public class NiborskiLexiconReader {
                   } else if (key.equals("accdat")) {
                     variants.addAll(this.getForms(form, category, lemma, morphology, formPronunciation, "@acc,@dat"));
                   } else if (key.equals("pl")) {
-                    if (form.equals("ן") || form.equals("ען") || form.equals("עס") || form.equals("ס") || form.equals("ם")
-                        || form.equals("ים") || form.equals("ות") || form.equals("ין") || form.equals("טע") || form.equals("קע")
-                        || form.equals("עך") || form.equals("שע") || form.equals("יכע") || form.equals("ענע") || form.equals("ע")
-                        || form.equals("ער")) {
+                    if (form.equals("ן") || form.equals("ען") || form.equals("עס") || form.equals("ס")
+                        || form.equals("ם") || form.equals("ים") || form.equals("ות") || form.equals("ין")
+                        || form.equals("טע") || form.equals("קע") || form.equals("עך") || form.equals("שע")
+                        || form.equals("יכע") || form.equals("ענע") || form.equals("ע") || form.equals("ער")) {
                       String inflectedForm = YiddishTextUtils.removeEndForm(baseText) + form;
                       variants.addAll(this.getForms(inflectedForm, category, lemma, "3p", formPronunciation));
                     } else {
@@ -714,9 +724,11 @@ public class NiborskiLexiconReader {
               if (text.contains("|")) {
                 // pronoun with regular declinations
                 String radical = this.getAdjectiveRadical(text);
-                this.addAdjective(variants, category, radical, lemma, pronunciation, "", null, neuterPredicateIndefiniteForm);
+                this.addAdjective(variants, category, radical, lemma, pronunciation, "", null,
+                    neuterPredicateIndefiniteForm);
               } else if (neuterPredicateIndefiniteForm != null) {
-                variants.addAll(this.getForms(neuterPredicateIndefiniteForm, category, lemma, "3ns", pronunciation, "@nom,@acc"));
+                variants.addAll(
+                    this.getForms(neuterPredicateIndefiniteForm, category, lemma, "3ns", pronunciation, "@nom,@acc"));
               }
             } else {
               LOG.info("Not nominative");
@@ -724,7 +736,8 @@ public class NiborskiLexiconReader {
           } else if (category.equals("adj") || category.equals("adjAttr")) {
             // adjective
             boolean isDerivedForm = false;
-            if (subEntry.forms.containsKey("compsrc") || subEntry.forms.containsKey("ptsrc") || subEntry.forms.containsKey("supsrc"))
+            if (subEntry.forms.containsKey("compsrc") || subEntry.forms.containsKey("ptsrc")
+                || subEntry.forms.containsKey("supsrc"))
               isDerivedForm = true;
 
             if (!isDerivedForm) {
@@ -770,7 +783,8 @@ public class NiborskiLexiconReader {
               simpleFormBase = simpleFormBase.replace("·", "");
               String simpleForm = YiddishTextUtils.getEndForm(this.getAdjectiveRadical(simpleFormBase));
               String radical = this.getAdjectiveRadical(predicateForm);
-              this.addAdjective(variants, "adj", radical, lemma, pronunciation, attributes, simpleForm, neuterPredicateIndefiniteForm);
+              this.addAdjective(variants, "adj", radical, lemma, pronunciation, attributes, simpleForm,
+                  neuterPredicateIndefiniteForm);
 
               // comparative
               if (!subEntry.forms.containsKey("comp")) {
@@ -790,7 +804,8 @@ public class NiborskiLexiconReader {
 
               // affectionate
               String affectionateRadical = radical + "ינק";
-              this.addAdjective(variants, "adj", affectionateRadical, lemma, pronunciation, attributes + ",@affectionate,@guess");
+              this.addAdjective(variants, "adj", affectionateRadical, lemma, pronunciation,
+                  attributes + ",@affectionate,@guess");
 
               // derogatory
               String derogatoryRadical = radical;
@@ -799,7 +814,8 @@ public class NiborskiLexiconReader {
               else
                 derogatoryRadical += "לעכ";
 
-              this.addAdjective(variants, "adj", derogatoryRadical, lemma, pronunciation, attributes + ",@derogatory,@guess");
+              this.addAdjective(variants, "adj", derogatoryRadical, lemma, pronunciation,
+                  attributes + ",@derogatory,@guess");
 
               // TODO: where are these endings productive?
               variants.addAll(this.getForms(radical + "קײט", "nc", radical + "קײט", "fs", pronunciation, "@guess"));
@@ -879,8 +895,8 @@ public class NiborskiLexiconReader {
     return variants;
   }
 
-  void addVerb(List<NiborskiLexicalFormEntry> variants, NiborskiLexiconEntry entry, NiborskiLexiconSubEntry subEntry, String category, String text,
-      String lemma, String pronunciation) {
+  void addVerb(List<NiborskiLexicalFormEntry> variants, NiborskiLexiconEntry entry, NiborskiLexiconSubEntry subEntry,
+      String category, String text, String lemma, String pronunciation) {
     String cat = category;
     text = text.replace('·', '|');
     boolean conjugatedForm = false;
@@ -964,7 +980,8 @@ public class NiborskiLexiconReader {
               if (coVerbIndex < 0)
                 pastParticiple = "גע" + pastParticiple;
               else {
-                pastParticiple = pastParticiple.substring(0, coVerbIndex) + "גע" + pastParticiple.substring(coVerbIndex + 1);
+                pastParticiple = pastParticiple.substring(0, coVerbIndex) + "גע"
+                    + pastParticiple.substring(coVerbIndex + 1);
               }
             } else if (form.equals("(גע)-ט") || form.equals("(גע)—ט")) {
               pastParticiple = text.substring(0, text.lastIndexOf('|')) + "ט";
@@ -975,13 +992,15 @@ public class NiborskiLexiconReader {
               if (coVerbIndex < 0)
                 pastParticiple = "גע" + pastParticiple;
               else {
-                pastParticiple = pastParticiple.substring(0, coVerbIndex) + "גע" + pastParticiple.substring(coVerbIndex + 1);
+                pastParticiple = pastParticiple.substring(0, coVerbIndex) + "גע"
+                    + pastParticiple.substring(coVerbIndex + 1);
               }
             } else if (form.startsWith("—") || form.startsWith("-")) {
               pastParticiple = text.substring(0, text.lastIndexOf('|')) + form.substring(1);
               pastParticiple = pastParticiple.replace("|", "");
             } else {
-              if (form.indexOf('—') >= 0 || form.indexOf('/') >= 0 || form.indexOf(',') >= 0 || form.indexOf('-') >= 0) {
+              if (form.indexOf('—') >= 0 || form.indexOf('/') >= 0 || form.indexOf(',') >= 0
+                  || form.indexOf('-') >= 0) {
                 throw new RuntimeException("Unexpected ppt form: " + form);
               } else {
                 pastParticiple = form;
@@ -993,12 +1012,15 @@ public class NiborskiLexiconReader {
             else if (conjugateWithZayn)
               pastParticipleAttributes = "@zayn";
 
-            variants.addAll(this.getForms(pastParticiple, cat, lemma, "K", formPronunciation, pastParticipleAttributes));
-            this.addAdjective(variants, "adj", YiddishTextUtils.removeEndForm(pastParticiple), pastParticiple, pronunciation, "@pp");
+            variants
+                .addAll(this.getForms(pastParticiple, cat, lemma, "K", formPronunciation, pastParticipleAttributes));
+            this.addAdjective(variants, "adj", YiddishTextUtils.removeEndForm(pastParticiple), pastParticiple,
+                pronunciation, "@pp");
             if (pastParticiple.endsWith("ן") && !pastParticiple.endsWith("ען")) {
               // handle געװאָרפֿן = געװאָרפֿענע
               String alternatePP = pastParticiple.substring(0, pastParticiple.length() - 1) + "ען";
-              this.addAdjective(variants, "adj", YiddishTextUtils.removeEndForm(alternatePP), pastParticiple, pronunciation, "@pp");
+              this.addAdjective(variants, "adj", YiddishTextUtils.removeEndForm(alternatePP), pastParticiple,
+                  pronunciation, "@pp");
             }
 
           } else if (key.equals("13pl")) {
@@ -1012,7 +1034,8 @@ public class NiborskiLexiconReader {
           } else if (key.equals("2sg")) {
             variants.addAll(this.getForms(form, cat, lemma, "P2s", formPronunciation, attributes));
             if (form.endsWith("סט")) {
-              variants.addAll(this.getForms(form + "ו", cat, lemma, "P2s", formPronunciation, attributes + ",@P2s+stu"));
+              variants
+                  .addAll(this.getForms(form + "ו", cat, lemma, "P2s", formPronunciation, attributes + ",@P2s+stu"));
             }
           } else if (key.equals("3sg") || key.equals("3sgn")) {
             variants.addAll(this.getForms(form, cat, lemma, "P3s", formPronunciation, attributes));
@@ -1088,7 +1111,8 @@ public class NiborskiLexiconReader {
             }
             if (needP2s) {
               variants.addAll(this.getForms(radical + "סט", cat, lemma, "P2s", pronunciation));
-              variants.addAll(this.getForms(radical + "סטו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
+              variants
+                  .addAll(this.getForms(radical + "סטו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
             }
           } else if (radical.endsWith("ס")) {
             if (needP1s || needP2s || needY2s) {
@@ -1121,7 +1145,8 @@ public class NiborskiLexiconReader {
                 morphology += "Y2p";
               variants.addAll(this.getForms(radical + "ט", cat, lemma, morphology, pronunciation));
               if (needP2s) {
-                variants.addAll(this.getForms(radical + "טו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
+                variants
+                    .addAll(this.getForms(radical + "טו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
               }
             }
           } else {
@@ -1147,7 +1172,8 @@ public class NiborskiLexiconReader {
             }
             if (needP2s) {
               variants.addAll(this.getForms(radical + "סט", cat, lemma, "P2s", pronunciation));
-              variants.addAll(this.getForms(radical + "סטו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
+              variants
+                  .addAll(this.getForms(radical + "סטו", cat, lemma, "P2s", pronunciation, attributes + ",@P2s+stu"));
             }
           }
         } // is it an impersonal verb?
@@ -1176,12 +1202,13 @@ public class NiborskiLexiconReader {
     } // is this an infinitive?
   }
 
-  void addAdjective(List<NiborskiLexicalFormEntry> variants, String category, String radical, String lemma, String pronunciation, String attributes) {
+  void addAdjective(List<NiborskiLexicalFormEntry> variants, String category, String radical, String lemma,
+      String pronunciation, String attributes) {
     this.addAdjective(variants, category, radical, lemma, pronunciation, attributes, null, null);
   }
 
-  void addAdjective(List<NiborskiLexicalFormEntry> variants, String category, String radical, String lemma, String pronunciation, String attributes,
-      String simpleForm, String neuterPredicateIndefiniteForm) {
+  void addAdjective(List<NiborskiLexicalFormEntry> variants, String category, String radical, String lemma,
+      String pronunciation, String attributes, String simpleForm, String neuterPredicateIndefiniteForm) {
     // adjective morphology
     // N = attributive nominative
     // A = attributive accusative
@@ -1298,7 +1325,7 @@ public class NiborskiLexiconReader {
         }
       } else if (command.equals("deserialise")) {
         File memoryBaseFile = new File(args[1]);
-        TextFileLexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
+        Lexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
         String[] words = new String[] { "אײגל", "אױגל" };
         for (String word : words)
           LOG.debug("Have entry " + word + ": " + lexicon.getFrequency(word));
