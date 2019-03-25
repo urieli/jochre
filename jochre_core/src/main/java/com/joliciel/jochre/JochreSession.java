@@ -68,9 +68,9 @@ public class JochreSession {
   /**
    * 
    * @param config
-   *            the configuration for this session
+   *          the configuration for this session
    * @throws ReflectiveOperationException
-   *             if unable to instantiate Linguistics class
+   *           if unable to instantiate Linguistics class
    */
   public JochreSession(Config config) throws ReflectiveOperationException {
     this.config = config;
@@ -149,8 +149,8 @@ public class JochreSession {
   }
 
   /**
-   * The average confidence below which a paragraph is considered to be junk,
-   * when considering all of its letters.
+   * The average confidence below which a paragraph is considered to be junk, when
+   * considering all of its letters.
    */
   public double getJunkConfidenceThreshold() {
     return junkConfidenceThreshold;
@@ -183,7 +183,7 @@ public class JochreSession {
           TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconFile, this.encoding);
           lexiconMerger.addLexicon(textFileLexicon);
         } else {
-          TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
+          Lexicon textFileLexicon = TextFileLexicon.deserialize(lexiconFile);
           lexiconMerger.addLexicon(textFileLexicon);
         }
       }
@@ -194,7 +194,7 @@ public class JochreSession {
         TextFileLexicon textFileLexicon = new TextFileLexicon(lexiconDir, this.encoding);
         myLexicon = textFileLexicon;
       } else {
-        TextFileLexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
+        Lexicon textFileLexicon = TextFileLexicon.deserialize(lexiconDir);
         myLexicon = textFileLexicon;
       }
     }
@@ -209,7 +209,7 @@ public class JochreSession {
    * Return the letter model indicated by the config path.
    * 
    * @throws IOException
-   *             if unable to load the letter model
+   *           if unable to load the letter model
    */
   public ClassificationModel getLetterModel() throws IOException {
     if (letterModel == null) {
@@ -231,7 +231,7 @@ public class JochreSession {
    * Return the merge model indicated by the config path.
    * 
    * @throws IOException
-   *             if unable to load the merge model
+   *           if unable to load the merge model
    */
   public ClassificationModel getMergeModel() throws IOException {
     if (mergeModel == null && mergeModelPath != null) {
@@ -250,7 +250,7 @@ public class JochreSession {
    * Return the split model indicated by the config path.
    * 
    * @throws IOException
-   *             if unable to load the split model
+   *           if unable to load the split model
    */
   public ClassificationModel getSplitModel() throws IOException {
     if (splitModel == null && splitModelPath != null) {
