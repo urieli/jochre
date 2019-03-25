@@ -29,8 +29,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -55,7 +57,7 @@ public class TextFileLexicon implements Lexicon, Serializable {
 
   private static final long serialVersionUID = 1278484873657866572L;
   private static final Logger LOG = LoggerFactory.getLogger(TextFileLexicon.class);
-  private Map<String, Integer> entries = new HashMap<String, Integer>();
+  private Map<String, Integer> entries = new HashMap<>();
 
   public TextFileLexicon() {
   }
@@ -159,19 +161,22 @@ public class TextFileLexicon implements Lexicon, Serializable {
     }
   }
 
-  public static TextFileLexicon deserialize(ZipInputStream zis) {
-    TextFileLexicon memoryBase = null;
+  public static Lexicon deserialize(ZipInputStream zis) {
+    List<Lexicon> lexicons = new ArrayList<>();
     try {
       ZipEntry zipEntry;
-      if ((zipEntry = zis.getNextEntry()) != null) {
+      while ((zipEntry = zis.getNextEntry()) != null) {
         LOG.debug("Scanning zip entry " + zipEntry.getName());
-
-        ObjectInputStream in = new ObjectInputStream(zis);
-        memoryBase = (TextFileLexicon) in.readObject();
+        if (zipEntry.getName().endsWith(".zip")) {
+          ZipInputStream innerZis = new ZipInputStream(zis);
+          Lexicon lexicon = TextFileLexicon.deserialize(innerZis);
+          lexicons.add(lexicon);
+        } else {
+          ObjectInputStream in = new ObjectInputStream(zis);
+          Lexicon lexicon = (TextFileLexicon) in.readObject();
+          lexicons.add(lexicon);
+        }
         zis.closeEntry();
-        in.close();
-      } else {
-        throw new RuntimeException("No zip entry in input stream");
       }
     } catch (IOException ioe) {
       throw new JochreException(ioe);
@@ -179,16 +184,21 @@ public class TextFileLexicon implements Lexicon, Serializable {
       throw new JochreException(cnfe);
     }
 
-    return memoryBase;
+    if (lexicons.size() == 1)
+      return lexicons.get(0);
+    LexiconMerger lexiconMerger = new LexiconMerger();
+    for (Lexicon lexicon : lexicons)
+      lexiconMerger.addLexicon(lexicon);
+    return lexiconMerger;
   }
 
-  public static TextFileLexicon deserialize(File memoryBaseFile) {
+  public static Lexicon deserialize(File memoryBaseFile) {
     LOG.debug("deserializeMemoryBase");
     boolean isZip = false;
     if (memoryBaseFile.getName().endsWith(".zip"))
       isZip = true;
 
-    TextFileLexicon memoryBase = null;
+    Lexicon memoryBase = null;
     ZipInputStream zis = null;
     FileInputStream fis = null;
     ObjectInputStream in = null;

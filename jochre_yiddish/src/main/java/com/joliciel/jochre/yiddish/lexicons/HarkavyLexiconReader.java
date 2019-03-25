@@ -34,18 +34,17 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class HarkavyLexiconReader {
-    private static final Logger LOG = LoggerFactory.getLogger(HarkavyLexiconReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HarkavyLexiconReader.class);
 
-    private Set<HarkavyLexicalFormEntry> allVariants = new TreeSet<HarkavyLexiconReader.HarkavyLexicalFormEntry>();
-    private Set<String> entries = new TreeSet<String>();
-    
-    private Writer variantWriter = null;
-    private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] {
-        "שיקען"
-        }));
+  private Set<HarkavyLexicalFormEntry> allVariants = new TreeSet<>();
+  private Set<String> entries = new TreeSet<>();
+
+  private Writer variantWriter = null;
+  private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] { "שיקען" }));
 
   public TextFileLexicon read(File file) throws IOException {
     Scanner scanner = new Scanner(file);
@@ -54,46 +53,48 @@ public class HarkavyLexiconReader {
         String line = scanner.nextLine();
         if (!line.startsWith("#")) {
           String[] parts = line.split("\t");
-        
+
           HarkavyLexicalFormEntry entry = new HarkavyLexicalFormEntry(parts[0], parts[1], parts[2], parts[3], parts[4]);
           allVariants.add(entry);
           entries.add(entry.text);
-          
+
           String radical = YiddishTextUtils.removeEndForm(entry.text);
           String possessiveForm = radical;
-          if (radical.endsWith("ס")||radical.endsWith("ש")||radical.endsWith("צ")||radical.endsWith("ת")) {
+          if (radical.endsWith("ס") || radical.endsWith("ש") || radical.endsWith("צ") || radical.endsWith("ת")) {
             possessiveForm += "עס";
           } else {
             possessiveForm += "ס";
           }
           if (!exceptions.contains(possessiveForm)) {
-            HarkavyLexicalFormEntry possessiveEntry = new HarkavyLexicalFormEntry(possessiveForm, parts[1], parts[2], parts[3], parts[4] + ",@poss");
+            HarkavyLexicalFormEntry possessiveEntry = new HarkavyLexicalFormEntry(possessiveForm, parts[1], parts[2],
+                parts[3], parts[4] + ",@poss");
             allVariants.add(possessiveEntry);
             entries.add(possessiveEntry.text);
           }
-          
+
           String accusativeForm = radical;
-          if (radical.endsWith("ל")||radical.endsWith("מ")||radical.endsWith("נ")) {
+          if (radical.endsWith("ל") || radical.endsWith("מ") || radical.endsWith("נ")) {
             accusativeForm += "ען";
           } else {
             accusativeForm += "ן";
           }
           if (!exceptions.contains(accusativeForm)) {
-            HarkavyLexicalFormEntry accusativeEntry = new HarkavyLexicalFormEntry(accusativeForm, parts[1], parts[2], parts[3], parts[4] + ",@acc,@dat");
+            HarkavyLexicalFormEntry accusativeEntry = new HarkavyLexicalFormEntry(accusativeForm, parts[1], parts[2],
+                parts[3], parts[4] + ",@acc,@dat");
             allVariants.add(accusativeEntry);
             entries.add(accusativeEntry.text);
           }
-          
-         }
+
+        }
       }
-      
-      if (this.variantWriter!=null) {
+
+      if (this.variantWriter != null) {
         for (HarkavyLexicalFormEntry variant : allVariants) {
           variantWriter.write(variant.toString() + "\n");
           variantWriter.flush();
         }
       }
-      
+
       TextFileLexicon lexicon = new TextFileLexicon();
       for (String word : entries)
         lexicon.setEntry(word, 1);
@@ -102,11 +103,10 @@ public class HarkavyLexiconReader {
       scanner.close();
     }
   }
-  
+
   private static class HarkavyLexicalFormEntry implements Comparable<HarkavyLexicalFormEntry> {
-    
-    public HarkavyLexicalFormEntry(String text, String category,
-        String lemma, String morphology, String attributes) {
+
+    public HarkavyLexicalFormEntry(String text, String category, String lemma, String morphology, String attributes) {
       super();
       this.text = text;
       this.category = category;
@@ -121,6 +121,7 @@ public class HarkavyLexiconReader {
     public String morphology = "";
     public String attributes = "";
     public String pronunciation = "";
+
     @Override
     public String toString() {
       return text + "\t" + category + "\t" + lemma + "\t" + morphology + "\t" + attributes + "\t" + pronunciation;
@@ -138,10 +139,8 @@ public class HarkavyLexiconReader {
         return this.morphology.compareTo(o.morphology);
       return this.attributes.compareTo(o.attributes);
     }
-    
-    
+
   }
-  
 
   public Writer getVariantWriter() {
     return variantWriter;
@@ -150,47 +149,45 @@ public class HarkavyLexiconReader {
   public void setVariantWriter(Writer variantWriter) {
     this.variantWriter = variantWriter;
   }
-  
 
   public static void main(String[] args) throws Exception {
     long startTime = (new Date()).getTime();
     try {
-          String command = args[0];
-          if (command.equals("load")) {
+      String command = args[0];
+      if (command.equals("load")) {
         HarkavyLexiconReader reader = new HarkavyLexiconReader();
         File file = new File(args[1]);
         Writer variantWriter = null;
-        if (args.length>2) {
+        if (args.length > 2) {
           File variantFile = new File(args[2]);
           variantFile.delete();
-          variantWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(variantFile, true),"UTF8"));
-    
+          variantWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(variantFile, true), "UTF8"));
+
         }
         reader.setVariantWriter(variantWriter);
-        
+
         try {
           TextFileLexicon lexicon = reader.read(file);
-          if (args.length>3) {
+          if (args.length > 3) {
             File lexiconFile = new File(args[3]);
             lexicon.serialize(lexiconFile);
           }
         } finally {
-          if (variantWriter!=null)
+          if (variantWriter != null)
             variantWriter.close();
         }
-          } else if (command.equals("deserialise")) {
+      } else if (command.equals("deserialise")) {
         File memoryBaseFile = new File(args[1]);
-        TextFileLexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
-            String[] words = new String[] {"חײמס", "חױמס"};
-            for (String word : words)
-              LOG.debug("Have entry " + word + ": " + lexicon.getFrequency(word));
-          } else {
-            throw new RuntimeException("Unknown command: " + command);
-          }
-    
+        String word = args[2];
+        Lexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
+        LOG.debug("Have entry " + word + ": " + lexicon.getFrequency(word));
+      } else {
+        throw new RuntimeException("Unknown command: " + command);
+      }
+
     } finally {
       long endTime = (new Date()).getTime() - startTime;
-      LOG.debug("Total runtime: " + ((double)endTime / 1000) + " seconds");
+      LOG.debug("Total runtime: " + ((double) endTime / 1000) + " seconds");
     }
   }
 }

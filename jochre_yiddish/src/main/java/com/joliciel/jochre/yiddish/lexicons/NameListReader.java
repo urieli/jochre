@@ -34,21 +34,20 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.joliciel.jochre.lexicon.Lexicon;
 import com.joliciel.jochre.lexicon.TextFileLexicon;
 
 public class NameListReader {
-    private static final Logger LOG = LoggerFactory.getLogger(NameListReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NameListReader.class);
 
-    private Set<NameLexicalEntry> allVariants = new TreeSet<NameListReader.NameLexicalEntry>();
-    private Set<String> entries = new TreeSet<String>();
-    
-    private Writer variantWriter = null;
-    private String defaultAttribute = null;
-    
-    private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] {
-        "שיקען"
-        }));
-    
+  private Set<NameLexicalEntry> allVariants = new TreeSet<>();
+  private Set<String> entries = new TreeSet<>();
+
+  private Writer variantWriter = null;
+  private String defaultAttribute = null;
+
+  private Set<String> exceptions = new HashSet<>(Arrays.asList(new String[] { "שיקען" }));
+
   public TextFileLexicon read(File file) throws IOException {
     Scanner scanner = new Scanner(file);
     try {
@@ -56,45 +55,47 @@ public class NameListReader {
         String line = scanner.nextLine();
         if (!line.startsWith("#")) {
           String name = line;
-          
+
           NameLexicalEntry entry = new NameLexicalEntry(name, "np", name, "s", defaultAttribute);
           allVariants.add(entry);
           entries.add(entry.text);
-          
+
           String radical = YiddishTextUtils.removeEndForm(entry.text);
           String possessiveForm = radical;
-          if (radical.endsWith("ס")||radical.endsWith("ש")||radical.endsWith("צ")||radical.endsWith("ת")) {
+          if (radical.endsWith("ס") || radical.endsWith("ש") || radical.endsWith("צ") || radical.endsWith("ת")) {
             possessiveForm += "עס";
           } else {
             possessiveForm += "ס";
           }
           if (!exceptions.contains(possessiveForm)) {
-            NameLexicalEntry possessiveEntry = new NameLexicalEntry(possessiveForm, "np", name, "s", defaultAttribute + ",@poss");
+            NameLexicalEntry possessiveEntry = new NameLexicalEntry(possessiveForm, "np", name, "s",
+                defaultAttribute + ",@poss");
             allVariants.add(possessiveEntry);
             entries.add(possessiveEntry.text);
           }
-          
+
           String accusativeForm = radical;
-          if (radical.endsWith("ל")||radical.endsWith("מ")||radical.endsWith("נ")) {
+          if (radical.endsWith("ל") || radical.endsWith("מ") || radical.endsWith("נ")) {
             accusativeForm += "ען";
           } else {
             accusativeForm += "ן";
           }
           if (!exceptions.contains(accusativeForm)) {
-            NameLexicalEntry accusativeEntry = new NameLexicalEntry(accusativeForm, "np", name, "s", defaultAttribute + ",@acc,@dat");
+            NameLexicalEntry accusativeEntry = new NameLexicalEntry(accusativeForm, "np", name, "s",
+                defaultAttribute + ",@acc,@dat");
             allVariants.add(accusativeEntry);
             entries.add(accusativeEntry.text);
           }
-         }
+        }
       }
-      
-      if (this.variantWriter!=null) {
+
+      if (this.variantWriter != null) {
         for (NameLexicalEntry variant : allVariants) {
           variantWriter.write(variant.toString() + "\n");
           variantWriter.flush();
         }
       }
-      
+
       TextFileLexicon lexicon = new TextFileLexicon();
       for (String word : entries)
         lexicon.setEntry(word, 1);
@@ -103,11 +104,10 @@ public class NameListReader {
       scanner.close();
     }
   }
-  
+
   private static class NameLexicalEntry implements Comparable<NameLexicalEntry> {
-    
-    public NameLexicalEntry(String text, String category,
-        String lemma, String morphology, String attributes) {
+
+    public NameLexicalEntry(String text, String category, String lemma, String morphology, String attributes) {
       super();
       this.text = text;
       this.category = category;
@@ -122,6 +122,7 @@ public class NameListReader {
     public String morphology = "";
     public String attributes = "";
     public String pronunciation = "";
+
     @Override
     public String toString() {
       return text + "\t" + category + "\t" + lemma + "\t" + morphology + "\t" + attributes + "\t" + pronunciation;
@@ -139,10 +140,8 @@ public class NameListReader {
         return this.morphology.compareTo(o.morphology);
       return this.attributes.compareTo(o.attributes);
     }
-    
-    
+
   }
-  
 
   public Writer getVariantWriter() {
     return variantWriter;
@@ -151,50 +150,49 @@ public class NameListReader {
   public void setVariantWriter(Writer variantWriter) {
     this.variantWriter = variantWriter;
   }
-  
 
   public static void main(String[] args) throws Exception {
     long startTime = (new Date()).getTime();
     try {
-          String command = args[0];
-          if (command.equals("load")) {
+      String command = args[0];
+      if (command.equals("load")) {
         NameListReader reader = new NameListReader();
         File file = new File(args[1]);
         Writer variantWriter = null;
-        if (args.length>2) {
+        if (args.length > 2) {
           File variantFile = new File(args[2]);
           variantFile.delete();
-          variantWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(variantFile, true),"UTF8"));
-    
+          variantWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(variantFile, true), "UTF8"));
+
         }
         reader.setVariantWriter(variantWriter);
-        
+
         reader.defaultAttribute = args[4];
-        
+
         try {
           TextFileLexicon lexicon = reader.read(file);
-          if (args.length>3) {
+          if (args.length > 3) {
             File lexiconFile = new File(args[3]);
             lexicon.serialize(lexiconFile);
           }
         } finally {
-          if (variantWriter!=null)
+          if (variantWriter != null)
             variantWriter.close();
         }
-        
-          } else if (command.equals("deserialise")) {
+
+      } else if (command.equals("deserialise")) {
         File memoryBaseFile = new File(args[1]);
-        TextFileLexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
-            String[] words = new String[] {"חײמס", "חױמס"};
-            for (String word : words)
-              LOG.debug("Have entry " + word + ": " + lexicon.getFrequency(word));
-          } else {
-            throw new RuntimeException("Unknown command: " + command);
-          }
-    
+        Lexicon lexicon = TextFileLexicon.deserialize(memoryBaseFile);
+        String[] words = new String[] { "חײמס", "חױמס" };
+        for (String word : words)
+          LOG.debug("Have entry " + word + ": " + lexicon.getFrequency(word));
+      } else {
+        throw new RuntimeException("Unknown command: " + command);
+      }
+
     } finally {
       long endTime = (new Date()).getTime() - startTime;
-      LOG.debug("Total runtime: " + ((double)endTime / 1000) + " seconds");
+      LOG.debug("Total runtime: " + ((double) endTime / 1000) + " seconds");
     }
   }
 }

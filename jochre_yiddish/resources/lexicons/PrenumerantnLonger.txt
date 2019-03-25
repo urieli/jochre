@@ -1,3 +1,9 @@
+############################################################
+# Place names from Sefer ha Prenumerantn, limited to at least 4 characters to avoid ambiguity.
+# Compiled by Assaf Urieli
+# This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+# See http://creativecommons.org/licenses/by-nc-sa/3.0/ for details
+#############################################################
 אַבאַיטאָרנא
 אַבילינע
 אַבראַהאַם
