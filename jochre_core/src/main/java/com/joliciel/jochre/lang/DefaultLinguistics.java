@@ -21,6 +21,7 @@ public class DefaultLinguistics implements Linguistics {
   // notice no dash or single quote in the punctuation
   private static final String PUNCTUATION = ":,.?!;*()[]{}<>—\\\"«»|/%“„";
   private static final Pattern NUMBER = Pattern.compile("[\\+\\-]?\\d+([\\.\\,]\\d+)*");
+  private static final Pattern Punctuation = Pattern.compile("\\p{Punct}+", Pattern.UNICODE_CHARACTER_CLASS);
 
   private Set<String> dualCharacterLetters;
   private Set<String> validLetters;
@@ -49,7 +50,7 @@ public class DefaultLinguistics implements Linguistics {
         throw new RuntimeException("valid-character: " + validCharacter + " longer than 1 character");
       validCharacters.add(validCharacter.charAt(0));
     }
-    if (validCharacters.size()>0)
+    if (validCharacters.size() > 0)
       characterValidationActive = true;
 
     List<String> punctuationList = linguisticsConfig.getStringList("punctuation");
@@ -67,7 +68,7 @@ public class DefaultLinguistics implements Linguistics {
     if (validCharacters.size() > 0)
       validLetters.addAll(linguisticsConfig.getStringList("punctuation"));
     validLetters.addAll(dualCharacterLetters);
-    
+
     LOG.debug("characterValidationActive: " + characterValidationActive);
     LOG.debug("validLetters: " + validLetters.toString());
     LOG.debug("validCharacters: " + validCharacters.toString());
@@ -147,7 +148,7 @@ public class DefaultLinguistics implements Linguistics {
 
   @Override
   public List<String> splitText(String wordText) {
-    List<String> results = new ArrayList<String>();
+    List<String> results = new ArrayList<>();
 
     if (wordText.length() == 0) {
       results.add("");
@@ -222,7 +223,7 @@ public class DefaultLinguistics implements Linguistics {
 
   @Override
   public List<CountedOutcome<String>> getFrequencies(String word) {
-    List<CountedOutcome<String>> results = new ArrayList<CountedOutcome<String>>();
+    List<CountedOutcome<String>> results = new ArrayList<>();
     String standardisedWord = this.standardiseWord(word);
     if (LOG.isTraceEnabled()) {
       LOG.trace("getFrequency for: " + word + ", standardised to: " + standardisedWord);
@@ -232,7 +233,15 @@ public class DefaultLinguistics implements Linguistics {
       if (LOG.isTraceEnabled()) {
         LOG.trace(word + " is a number, setting freq to 1");
       }
-      results.add(new CountedOutcome<String>(word, 1));
+      results.add(new CountedOutcome<>(word, 1));
+      return results;
+    }
+
+    if (Punctuation.matcher(word).matches()) {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(word + " is punctuation, setting freq to 1");
+      }
+      results.add(new CountedOutcome<>(word, 1));
       return results;
     }
 
@@ -241,14 +250,14 @@ public class DefaultLinguistics implements Linguistics {
     if (variants == null) {
       int frequency = jochreSession.getLexicon().getFrequency(standardisedWord);
       if (frequency > 0) {
-        results.add(new CountedOutcome<String>(word, frequency));
+        results.add(new CountedOutcome<>(word, frequency));
       }
     } else {
-      Set<CountedOutcome<String>> orderedResults = new TreeSet<CountedOutcome<String>>();
+      Set<CountedOutcome<String>> orderedResults = new TreeSet<>();
       for (String variant : variants) {
         int frequency = jochreSession.getLexicon().getFrequency(variant);
         if (frequency > 0) {
-          orderedResults.add(new CountedOutcome<String>(variant, frequency));
+          orderedResults.add(new CountedOutcome<>(variant, frequency));
         }
         // only count multiple occurrences if it's the exact spelling
         if (!variant.equals(word) && !variant.equals(standardisedWord) && frequency > 1)
@@ -263,7 +272,7 @@ public class DefaultLinguistics implements Linguistics {
     }
 
     if (results.size() == 0 && !jochreSession.getLinguistics().isWordPossible(word)) {
-      results.add(new CountedOutcome<String>(word, -1));
+      results.add(new CountedOutcome<>(word, -1));
     }
 
     return results;
