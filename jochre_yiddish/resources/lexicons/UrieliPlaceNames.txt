@@ -1,5 +1,5 @@
 ############################################################
-# Yiddish historical names, compiled by Assaf Urieli
+# Place names in Yiddish, compiled by Assaf Urieli
 # This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 # See http://creativecommons.org/licenses/by-nc-sa/3.0/ for details
 #############################################################
