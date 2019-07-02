@@ -10,6 +10,7 @@
   </parent>
   <packaging>war</packaging>
   <build>
+	<finalName>jochre-web</finalName>
     <plugins>
     </plugins>
   </build>
