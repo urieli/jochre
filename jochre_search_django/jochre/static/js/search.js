@@ -159,6 +159,7 @@ $(function() {
       success: function() {
         $('#alertPrefsError').hide();
         $('#alertPrefsSuccess').show();
+        location.reload();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown) {
         $('#alertPrefsError').show();

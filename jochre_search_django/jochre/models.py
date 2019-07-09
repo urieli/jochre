@@ -18,3 +18,4 @@ class Preferences(models.Model):
     )
   docsPerPage = models.IntegerField()
   snippetsPerDoc = models.IntegerField()
+  lang = models.CharField(max_length=10, default=settings.DEFAULT_LANG)

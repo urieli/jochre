@@ -1,4 +1,8 @@
 {% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -41,58 +45,49 @@
 <input type="hidden" name="page" id="hdnPage" value="1" />
 <div class="d-flex justify-content-end m-2">
   <div class="row">
-    {% if not RTL %}
-      <div class="col-10" style="text-align: left">
-      <h1>{{ JOCHRE_TITLE }}</h1>
-      <p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-      </div>
-    {% endif %}
     {% if user.socialaccount_set.all.0.get_avatar_url %}
       <div class="col-1"><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></div>
     {% else %}
       <div class="col-1"><img src="{% static "images/Portrait_Placeholder.png" %}" style="width:40px; height:40px;"/></div>
     {% endif %}
-    <div class="col-1">
+    <div class="col-2">
         {% if request.user.first_name or request.user.last_name %}
             <a id="updatePreferences" href="#">{{ request.user.first_name }}&nbsp;{{ request.user.last_name }}</a>
         {% else %}
             <a id="updatePreferences" href="#">{{ request.user.username }}</a>
         {% endif %}
         <br/>
-        <a href="accounts/logout/">{{ Strings.logout }}</a>
+        <a href="accounts/logout/">{% trans "logout" %}</a>
         <br/>
         <a id="updateKeyboardMappings" href="#"><img src="{% static 'images/keyboard.png' %}" style="width:40px"></a>
     </div>
-    {% if RTL %}
-      <div class="col-10" style="text-align: right">
-        <div class="rtl">
-          <p class="rtl" style="font-size: 24px; font-weight: bold">{{ JOCHRE_TITLE }}</p>
-          <p>{% autoescape off %}{{ JOCHRE_CREDITS }}{% endautoescape %}</p>
-        </div>
-      </div>
-    {% endif %}
+    <div class="col-9{% if RTL %} rtl{% else %} ltr{% endif %}">
+      <p class="page-title">{% if JOCHRE_TITLE|lookup:LANGUAGE_CODE %}{{ JOCHRE_TITLE|lookup:LANGUAGE_CODE }}{% else %}{{ JOCHRE_TITLE.en }}{% endif %}</p>
+      <p>{% autoescape off %}{% if JOCHRE_CREDITS|lookup:LANGUAGE_CODE %}{{ JOCHRE_CREDITS|lookup:LANGUAGE_CODE }}{% else %}{{ JOCHRE_CREDITS.en }}{% endif %}{% endautoescape %}</p>
+    </div>
   </div>
 </div>
 <hr style="margin-top:0px;">
-<div class="container">
-  <div class="d-flex{% if RTL %} flex-row-reverse rtl{% else %} flex-row{% endif %}">
+<div class="container{% if RTL %} rtl{% endif %}">
+  <div class="d-flex flex-row">
     <div class="input-group input-group-sm m-1">
-      <input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if RTL %} rtl{% endif %}" />
+      <input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if FIELDS_LTR.contents %} ltr{% else %} rtl{% endif %}" />
       <div class="input-group-append">
-        <button type="submit" class="btn btn-primary btn-sm">{{ Strings.searchButton }}</button>&nbsp;
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "search button" %}</button>&nbsp;
         <span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
       </div>
     </div>
   </div>
 </div>
-<div class="container-fluid {% if not displayAdvancedSearch %}collapse {% endif %}mt-1" id="advancedSearch">
+<div class="container-fluid{% if RTL %} rtl{% endif %}{% if not displayAdvancedSearch %} collapse{% endif %} mt-1" id="advancedSearch">
   <fieldset>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %}">
-    <div class="col-6 {% if RTL %}authorRtl rtl{% else %}author{% endif %} p-0 m-0">
+  <div class="d-flex flex-row">
+    <div class="col-6 author p-0 m-0">
       <div class="input-group input-group-sm m-1">
-        <label for="txtAuthor">{{ Strings.authorField }}:&nbsp;</label>
+        {# Translators: Search field to limit results by author #}
+        <label for="txtAuthor">{% trans 'author field' %}:&nbsp;</label>
         <div class="alert-auto">
-          <input id="txtAuthor" name="author" class="form-control typeahead{% if RTL %} rtl{% endif %}" type="text" placeholder="{{ Strings.authorField }}" autocomplete="off" >
+          <input id="txtAuthor" name="author" class="form-control typeahead{% if FIELDS_LTR.author %} ltr{% else %} rtl{% endif %}" type="text" placeholder="{% trans 'author field' %}" autocomplete="off" {% if FIELDS_LTR.author %}dir="ltr"{% else %}dir="rtl"{% endif %}>
           <input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
         </div>
         <div class="input-group-append">
@@ -102,7 +97,7 @@
         </div>
       </div>
     </div>
-    <div class="col-6{% if RTL %} rtl{% endif %}" id="authorList">
+    <div class="col-6{% if FIELDS_LTR.author %} ltr{% else %} rtl {% endif %}" id="authorList" {% if FIELDS_LTR.author %}dir="ltr"{% else %}dir="rtl"{% endif %}>
       {% for author in authors %}
       <div id="author{{ forloop.counter }}" class="alert alert-success alert-dismissible p-0 alert-auto">
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{author}}
@@ -118,56 +113,65 @@
     {% endfor %}
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1">
-        <label for="txtTitle">{{ Strings.titleField }}:&nbsp;</label>
-        <input type="text" id="txtTitle" name="title" class="form-control{% if RTL %} rtl{% endif %}" value="{{ title }}" placeholder="{{ Strings.titleField }}" />
+        {# Translators: Search field to limit results by title #}
+        <label for="txtTitle">{% trans 'title field' %}:&nbsp;</label>
+        <input type="text" id="txtTitle" name="title" class="form-control{% if FIELDS_LTR.title %} ltr{% else %} rtl{% endif %}" value="{{ title }}" placeholder="{% trans 'title field' %}" />
       </div>
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1">
-        <label for="txtFromYear">{{ Strings.fromYearField }}:&nbsp;</label>
-        <input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}"">
-        <label for="txtToYear">&nbsp;&nbsp;{{ Strings.toYearField }}:&nbsp;</label>
-        <input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control" value="{{ toYear }}"">
+        {# Translators: Search field to add lower limit to results by publication year #}
+        <label for="txtFromYear">{% trans 'from year' %}:&nbsp;</label>
+        <input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}">
+        {# Translators: Search field to add upper limit to results by publication year #}
+        <label for="txtToYear">&nbsp;&nbsp;{% trans 'to year' %}:&nbsp;</label>
+        <input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control" value="{{ toYear }}">
       </div>
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1 checkboxes">
         <label for="chkStrict"><input id="chkStrict" type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
-        <span>{{ Strings.strictField }}?</span></label>
+        {# Translators: Search field to interpret query terms strictly #}
+        <span>{% trans 'strict field' %}?</span></label>
       </div>
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1">
-        <label for="selSortBy">{{ Strings.sortBy }}:&nbsp;</label>
+        {# Translators: Sort by drop-down title #}
+        <label for="selSortBy">{% trans 'sort by' %}:&nbsp;</label>
         <select class="form-control" id="selSortBy" name="sortBy">
-          <option value="score" {% if sortBy == "score" %}selected{% endif %}>{{ Strings.sortByScore }}</option>
-          <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{{ Strings.sortByYearAscending }}</option>
-          <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{{ Strings.sortByYearDescending }}</option>
+          {# Translators: Drop-down value to sort by score #}
+          <option value="score" {% if sortBy == "score" %}selected{% endif %}>{% trans 'sort by score' %}</option>
+          {# Translators: Drop-down value to sort by year in ascending order #}
+          <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{% trans 'sort by year ascending' %}</option>
+          {# Translators: Drop-down value to sort by year in descending order #}
+          <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{% trans 'sort by year descending' %}</option>
         </select>
       </div>
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1">
-        <label for="txtReference">{{ Strings.referenceField }}:&nbsp;</label>
-        <input type="text" id="txtReference" name="reference" class="form-control" value="{{ reference }}" placeholder="{{ Strings.referenceField }}" />
+        {# Translators: Search field to limit results by document reference number #}
+        <label for="txtReference">{% trans 'reference field' %}:&nbsp;</label>
+        <input type="text" id="txtReference" name="reference" class="form-control {% if FIELDS_LTR.referenceNumber %} ltr{% else %} rtl{% endif %}" value="{{ reference }}" placeholder="{% trans 'reference field' %}" />
       </div>
     </div>
   </div>
-  <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} m-0 p-0">
-    <div class="form-group {% if RTL %}authorRtl rtl{% else %}author{% endif %} m-0 p-0">
+  <div class="d-flex flex-row m-0 p-0">
+    <div class="form-group author m-0 p-0">
       <div class="input-group input-group-sm m-1">
-        <a class="btn btn-secondary" href="/" role="button">{{ Strings.clear }}</a>
+        <a class="btn btn-secondary" href="/" role="button">{% trans 'clear form' %}</a>
       </div>
     </div>
   </div>
@@ -175,81 +179,84 @@
 </div>
 
 {% if parseException %}
-  <p>{{ Strings.unableToProcessQuery }}:</p>
+  <p>{% trans 'Unable to process query' %}:</p>
   <p>{% autoescape off %}{{ parseException }}{% endautoescape %}</p>
 {% elif not haveSearch %}
 {% elif not haveResults %}
-  <p>{{ Strings.noResults }}</p>
+  <p>{% trans 'No search results' %}</p>
 {% else %}
-<div class="container-fluid">
+<div class="container-fluid{% if RTL %} rtl{% endif %}">
   <div class="row">
-    <div class="col-6"><div class="author"><b>{{ foundResults }}:</b></div></div>
-    {% if RTL %}
-    <div class="col-6"><div class="authorRtl rtl">{{ foundResultsRTL }}:</div></div>
+    <div class="col-6"><div class="author"><b>
+    {% if resultCount <= maxResults %}
+      {% blocktrans with count=resultCount %}Found {{ count }} results.{% endblocktrans %}
+    {% else %}
+      {% blocktrans with count=resultCount %}Found more than {{ count }} results.{% endblocktrans %}
     {% endif %}
+    {% blocktrans %}Results {{ start }} to {{ end }}:{% endblocktrans %}
+    </b></div></div>
   </div>
 {% for result in results %}
   <div class="row mt-1 mb-1">
     <div class="col-12"><div class="black-separator"></div></div>
   </div>
+  {# Translators: Title metadata #}
   <div class="row">
-    <div class="col-6"><div class="title"><b>{{ Strings.title }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglishAndVolume }}{% if readOnline %}</a>{% endif %}
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{{ Strings.title|escapejs }}', false,'{{result.doc.titleEnglish|escapejs}}');">
+    <div class="col-6"><div class="title"><b>{% trans 'title meta' %}:</b> <span {% if FIELDS_LTR.title %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.title }}</a>{% endif %}</span>
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'title meta' %}', true, '{{result.doc.title|escapejs}}');">
     </div></div>
-    {% if RTL %}
-      <div class="col-6"><div class="titleRtl rtl"><b>{{ Strings.titleRTL }}:</b> {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.titleAndVolume }}</a>{% endif %}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{{ Strings.titleRTL|escapejs }}', true, '{{result.doc.title|escapejs}}');">
-      </div></div>
-    {% endif %}
   </div>
+  {% if result.doc.titleEnglish %}
+    <div class="row">
+      {# Translators: Title metadata in alternate alphabet #}
+      <div class="col-6"><div class="author"><b>{% trans 'alternate alphabet title meta' %}:</b> <span {% if FIELDS_LTR.titleTranscribed %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a></span>{% endif %}
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');">
+      </div></div>
+    </div>
+  {% endif %}
+  {% if result.doc.volume %}
+    <div class="row">
+      <div class="col-6"><div class="author"><b>{% trans 'volume' %}:</b> <span {% if FIELDS_LTR.volume %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.volume }}</span>
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');">
+      </div></div>
+    </div>
+  {% endif %}
   <div class="row">
-    <div class="col-6"><div class="author"><b>{{ Strings.author }}:</b> {{ result.doc.authorEnglish }}
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{{ Strings.author|escapejs }}', false, '{{result.doc.authorEnglish|escapejs}}');">
+    {# Translators: Author metadata #}
+    <div class="col-6"><div class="author"><b>{% trans 'author meta' %}:</b> <span {% if FIELDS_LTR.author %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.author }}</span>
+      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');">
     </div></div>
-    {% if RTL %}
-      <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.authorRTL }}:</b> {{ result.doc.author }}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'author', '{{ Strings.authorRTL }}', true, '{{result.doc.author}}');">
-      </div></div>
-    {% endif %}
   </div>
+  {% if result.doc.authorEnglish %}
+    <div class="row">
+      {# Translators: Author metadata in alternate alphabet #}
+      <div class="col-6"><div class="author"><b>{% trans 'alternate alphabet author meta' %}:</b> <span {% if FIELDS_LTR.authorTranscribed %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.authorEnglish }}</span>
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');">
+      </div></div>
+    </div>
+  {% endif %}
   {% if showSection %}
     <div class="row">
-      <div class="col-6" class="author"><b>{{ Strings.section }}:</b> {{ result.doc.pages }}</div>
-      {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.sectionRTL }}:</b> {{ result.doc.pagesRTL }}</div></div>
-      {% endif %}
+      <div class="col-6" class="author"><b>{% trans 'section' %}:</b> {% blocktrans with startPage=doc.startPage endPage=doc.endPage %}Pages {{ startPage }} to {{ endPage }}{% endblocktrans %}</div>
     </div>
   {% endif %}
   {% if result.doc.publisher %}
     <div class="row">
-      <div class="col-6"><div class="author"><b>{{ Strings.publisher }}:</b> {{ result.doc.publisher }}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{{ Strings.publisher|escapejs }}', false, '{{result.doc.publisher|escapejs}}');">
+      <div class="col-6"><div class="author"><b>{% trans 'publisher' %}:</b> <span {% if FIELDS_LTR.publisher %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.publisher }}</span>
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');">
       </div></div>
-      {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.publisherRTL }}:</b> <span class="ltr">{{ result.doc.publisher }}</span>
-          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{{ Strings.publisher|escapejs }}', false, '{{result.doc.publisher|escapejs}}');">
-        </div></div>
-      {% endif %}
-      </div>
+    </div>
   {% endif %}
   {% if result.doc.date %}
     <div class="row">
-      <div class="col-6"><div class="author"><b>{{ Strings.date }}:</b> {{ result.doc.date }}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{{ Strings.date|escapejs }}', false, '{{result.doc.date|escapejs}}');">
+      <div class="col-6"><div class="author"><b>{% trans 'date' %}:</b> <span {% if FIELDS_LTR.date %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.date }}</span>
+        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');">
       </div></div>
-      {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.dateRTL }}:</b>  <span class="ltr">{{ result.doc.date }}</span>
-          &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{{ Strings.date|escapejs }}', false, '{{result.doc.date|escapejs}}');">
-        </div></div>
-      {% endif %}
     </div>
   {% endif %}
   {% if result.doc.id %}
     <div class="row">
-      <div class="col-6"><div class="author"><b>{{ Strings.referenceNumber }}:</b> {{ result.doc.id }} </div></div>
-      {% if RTL %}
-        <div class="col-6"><div class="authorRtl rtl"><b>{{ Strings.referenceNumberRTL }}:</b>  <span class="ltr">{{ result.doc.id }}</span></div></div>
-      {% endif %}
+      <div class="col-6"><div class="author"><b>{% trans 'referenceNumber' %}:</b> <span {% if FIELDS_LTR.referenceNumber %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.id }}</span> </div></div>
     </div>
   {% endif %}
   {% if highlights %}
@@ -258,17 +265,17 @@
      <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
   {% else %}
   {% for snippet in result.snippets %}
-    <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} mt-2">
-      <div class="col-2 col-xl-1 {% if RTL %}rtl{% endif %}">
+    <div class="d-flex flex-row mt-2">
+      <div class="col-2 col-xl-1">
         <b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>
         <a href="/contents?doc={{ result.doc.name }}#page{{ snippet.pageNumber }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a>
         <a id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" data-toggle="collapse" href="#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></a>
       </div>
-      <div class="col-10 col-xl-11 {% if RTL %}rtl{% endif %}">
-        <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet{% if RTL %}Rtl{% endif %}">{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
+      <div class="col-xl-4 col-lg-6 col-md-8 col-10">
+        <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}dir="ltr" class="snippet ltr"{% else %}dir="rtl" class="snippet rtl"{% endif %}>{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
       </div>
     </div>
-    <div class="d-flex {% if RTL %}flex-row-reverse{% else %}flex-row{% endif %} mr-1 ml-1 mt-2" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+    <div class="d-flex flex-row mr-1 ml-1 mt-2" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
       <div class="col-xl-6 col-lg-8 col-md-10 col-12 collapse" id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
       </div>
     </div>
@@ -301,9 +308,6 @@
   {% else %}
   <div class="row">
     <div class="col-6"><div class="author"><a href="/contents?doc={{ result.doc.name }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></div></div>
-    {% if RTL %}
-      <div class="col-6"><div class="authorRtl rtl"><a href="/contents?doc={{ result.doc.name }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></div></div>
-    {% endif %}
   </div>
   {% endif %}
   <div class="row"><div class="col" height="10px"></div></div>
@@ -333,11 +337,11 @@
 {% endif %}
 </form>
 
-<div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{{ Strings.fixWordTitle }}" aria-hidden="true">
+<div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'fixWordTitle' %}" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-content{% if RTL %} rtl{% endif %}">
       <div class="modal-header">
-        <h5 class="modal-title" id="fixWordModalTitle">{{ Strings.fixWordTitle }}</h5>
+        <h5 class="modal-title" id="fixWordModalTitle">{% trans 'fixWordTitle' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -348,9 +352,10 @@
         </div>
         <form>
           <fieldset>
-            <p>{{ Strings.fixWordInstructions }}</p>
+            {# Translators: Instructions on how to fix a word #}
+            <p>{% trans 'fixWordInstructions' %}</p>
             <div class="form-group row">
-              <label for="txtSuggestion" class="col-2 col-form-label">{{ Strings.fixWordWord }}</label>
+              <label for="txtSuggestion" class="col-2 col-form-label">{% trans 'fixWordWord' %}</label>
               {% if RTL %}
               <div class="col-10">
                 <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="rtl collapse" style="width:150px;">
@@ -364,7 +369,7 @@
               {% endif %}
             </div>
             <div class="form-group row">
-              <label for="selFont" class="col-2 col-form-label">{{ Strings.fixWordFont }}</label>
+              <label for="selFont" class="col-2 col-form-label">{% trans 'fixWordFont' %}</label>
               <div class="col-10">
                 <select id="selFont" name="selFont">
                   {% for fontCode in JOCHRE_FONT_LIST %}
@@ -374,11 +379,11 @@
               </div>
             </div>
             <div class="form-group row">
-              <label class="col-2 col-form-label">{{ Strings.fixWordFontExample }}</label>
+              <label class="col-2 col-form-label">{% trans 'fixWordFontExample' %}</label>
               <div class="col-10"><img id="imgFont" style="max-width: 95%; max-height:32px;" /></div>
             </div>
             <div class="form-group row">
-              <label for="selLang" class="col-2 col-form-label">{{ Strings.fixWordLanguage }}</label>
+              <label for="selLang" class="col-2 col-form-label">{% trans 'fixWordLanguage' %}</label>
               <div class="col-10">
                 <select id="selLang" name="selLang">
                   {% for languageCode in JOCHRE_LANGUAGE_LIST %}
@@ -394,17 +399,17 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="btnSaveFixWord" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
+        <button id="btnSaveFixWord" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
       </div>
       <div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>Suggestion recorded.</strong>
+        <strong>{% trans 'Suggestion recorded.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>An error occurred.</strong>
+        <strong>{% trans 'An error occurred.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -413,11 +418,11 @@
   </div>
 </div>
 
-<div class="modal fade" id="correctMetaModal" tabindex="-1" role="dialog" aria-labelledby="{{ Strings.correctMetaTitle }}" aria-hidden="true">
+<div class="modal fade" id="correctMetaModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'correctMetaTitle' %}" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-content{% if RTL %} rtl{% endif %}">
       <div class="modal-header">
-        <h5 class="modal-title" id="correctMetaTitle">{{ Strings.correctMetaTitle }}</h5>
+        <h5 class="modal-title" id="correctMetaTitle">{% trans 'correctMetaTitle' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -425,11 +430,12 @@
       <div class="modal-body">
         <form>
           <fieldset>
-            <p>{{ Strings.correctMetaInstructions }}</p>
+            {# Translators: Instructions on how to correct metadata #}
+            <p>{% trans 'correctMetaInstructions' %}</p>
             <div class="d-flex flex-row m-0 p-0">
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
-                  <label for="correctMetaFieldName">{{ Strings.correctMetaFieldName }}:&nbsp;</label>
+                  <label for="correctMetaFieldName">{% trans 'correctMetaFieldName' %}:&nbsp;</label>
                   <span id="correctMetaFieldName"></span>
                 </div>
               </div>
@@ -437,7 +443,7 @@
             <div class="d-flex flex-row m-0 p-0">
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
-                  <label for="correctMetaCurrentValue">{{ Strings.correctMetaCurrentValue }}:&nbsp;</label>
+                  <label for="correctMetaCurrentValue">{% trans 'correctMetaCurrentValue' %}:&nbsp;</label>
                   <span id="correctMetaCurrentValue"></span>
                 </div>
               </div>
@@ -446,7 +452,7 @@
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
                   <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge1" value="replace">&nbsp;</span>
-                  <label for="correctMetaNewValue">{{ Strings.correctMetaNewValue }}:&nbsp;</label>
+                  <label for="correctMetaNewValue">{% trans 'correctMetaNewValue' %}:&nbsp;</label>
                   <input type="text" name="correctMetaNewValue" id="correctMetaNewValue" class="w-100" value="">
                 </div>
               </div>
@@ -455,7 +461,7 @@
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
                   <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge2" value="merge">&nbsp;</span>
-                  <label for="correctMetaAuthorMergeWith">{{ Strings.correctMetaMergeWith }}:&nbsp;</label>
+                  <label for="correctMetaAuthorMergeWith">{% trans 'correctMetaMergeWith' %}:&nbsp;</label>
                   <input type="text" name="correctMetaAuthorMergeWith" id="correctMetaAuthorMergeWith" class="w-100" value="" disabled="true">
                 </div>
               </div>
@@ -464,7 +470,7 @@
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
                   <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge3" value="merge">&nbsp;</span>
-                  <label for="correctMetaAuthorEnglishMergeWith">{{ Strings.correctMetaMergeWith }}:&nbsp;</label>
+                  <label for="correctMetaAuthorEnglishMergeWith">{% trans 'correctMetaMergeWith' %}:&nbsp;</label>
                   <input type="text" name="correctMetaAuthorEnglishMergeWith" id="correctMetaAuthorEnglishMergeWith" class="w-100" value="" disabled="true">
                 </div>
               </div>
@@ -473,17 +479,17 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="btnCorrectMetaSave" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
+        <button id="btnCorrectMetaSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
       </div>
       <div id="alertCorrectMetaSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>Correction recorded.</strong>
+        <strong>{% trans 'Correction recorded.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div id="alertCorrectMetaError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>An error occurred.</strong>
+        <strong>{% trans 'An error occurred.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -492,11 +498,11 @@
   </div>
 </div>
 
-<div class="modal fade" id="keyboardModal" tabindex="-1" role="dialog" aria-labelledby="Update key mappings" aria-hidden="true">
+<div class="modal fade" id="keyboardModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Update key mappings' %}" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content{% if RTL %} rtl{% endif %}">
       <div class="modal-header">
-        <h5 class="modal-title">Update key mappings</h5>
+        <h5 class="modal-title">{% trans 'Update key mappings' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -509,7 +515,7 @@
             <div class="input-group m-1 checkboxes">
               <label for="frmKeysEnabled" class="col-12 col-form-label">
               <input type="checkbox" id="frmKeysEnabled" name="enabled">
-              <span>Enable keyboard mappings</span></label>
+              <span>{% trans 'Enable keyboard mappings' %}</span></label>
             </div>
           </div>
           <div id="keyboardEntries" class="d-flex flex-wrap">
@@ -538,18 +544,18 @@
         </script>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button id="btnKeyboardDefault" type="button" class="btn btn-warning">Restore defaults</button>
-        <button id="btnKeyboardSave" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+        <button id="btnKeyboardDefault" type="button" class="btn btn-warning">{% trans 'Restore defaults' %}</button>
+        <button id="btnKeyboardSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
       </div>
       <div id="alertKeyboardSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>Keyboard mappings updated.</strong>
+        <strong>{% trans 'Keyboard mappings updated.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div id="alertKeyboardError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>An error occurred.</strong>
+        <strong>{% trans 'An error occurred.</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -558,11 +564,11 @@
   </div>
 </div>
 
-<div class="modal fade" id="preferencesModal" tabindex="-1" role="dialog" aria-labelledby="Update preferences" aria-hidden="true">
+<div class="modal fade" id="preferencesModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Update preferences' %}" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <div class="modal-content">
+    <div class="modal-content{% if RTL %} rtl{% endif %}">
       <div class="modal-header">
-        <h5 class="modal-title">{{ Strings.prefsTitle }}</h5>
+        <h5 class="modal-title">{% trans 'Update preferences' %}</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -575,7 +581,16 @@
             <div class="d-flex flex-row m-0 p-0">
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
-                  <label for="docsPerPage">{{ Strings.prefsDocsPerPage }}:&nbsp;</label>
+                  <label for="docsPerPage">{% trans "Interface language" %}:&nbsp;</label>
+          &nbsp;<input type="radio" name="interfaceLanguage" value="yi" {% if LANGUAGE_CODE == "yi" %}checked="true"{% endif %}>ייִדיש
+          &nbsp;<input type="radio" name="interfaceLanguage" value="en" {% if LANGUAGE_CODE == "en" %}checked="true"{% endif %}>English
+                </div>
+              </div>
+            </div>
+            <div class="d-flex flex-row m-0 p-0">
+              <div class="form-group m-0 p-0">
+                <div class="input-group input-group-sm m-1">
+                  <label for="docsPerPage">{% trans 'prefsDocsPerPage' %}:&nbsp;</label>
                   <input type="number" min="1" max="200" step="1" id="docsPerPage" name="docsPerPage" class="form-control" value="" placeholder="" />
                 </div>
               </div>
@@ -583,7 +598,7 @@
             <div class="d-flex flex-row m-0 p-0">
               <div class="form-group m-0 p-0">
                 <div class="input-group input-group-sm m-1">
-                  <label for="snippetsPerDoc">{{ Strings.prefsSnippetsPerDoc }}:&nbsp;</label>
+                  <label for="snippetsPerDoc">{% trans 'prefsSnippetsPerDoc' %}:&nbsp;</label>
                   <input type="number" min="1" max="1000" step="1" id="snippetsPerDoc" name="snippetsPerDoc" class="form-control" value="" placeholder="" />
                 </div>
               </div>
@@ -592,18 +607,18 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button id="btnDefaultPrefs" type="button" class="btn btn-warning">Restore defaults</button>
-        <button id="btnSavePrefs" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+        <button id="btnDefaultPrefs" type="button" class="btn btn-warning">{% trans 'Restore defaults' %}</button>
+        <button id="btnSavePrefs" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
       </div>
       <div id="alertPrefsSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>Preferences saved.</strong>
+        <strong>{% trans 'Preferences saved.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div id="alertPrefsError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>An error occurred.</strong>
+        <strong>{% trans 'An error occurred.' %}</strong>
         <button type="button" class="close" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -636,13 +651,13 @@ window.cookieconsent.initialise({
     </div>
   </div>
 </div>
-<div class="d-flex justify-content-center m-0">
+<div class="d-flex justify-content-center m-0{% if RTL %} rtl{% endif %}">
   <div class="row">
     <div class="col text-center">
-      Index size: {{ bookCount }} books.<br>
-      <a href="/privacy" target="_blank">Privacy Policy</a>
+      {% blocktrans %}Index size: {{ bookCount }} books.{% endblocktrans %}<br>
+      <a href="/privacy" target="_blank">{% trans 'Privacy Policy' %}</a>
       <br><br>
-      <strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a>
+      <strong>{% trans 'Powered by' %}</strong> <a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a>
     </div>
   </div>
 </div>
