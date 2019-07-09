@@ -1,12 +1,13 @@
-BODY { background-color: #ffffff; font-family: Verdana, Helvetica, Arial; }
-.title { font-family: Verdana, Helvetica, Arial; font-size: 18px; vertical-align: top; }
-.titleRtl { font-size: 24px; vertical-align: top;  }
-.author { font-family: Verdana, Helvetica, Arial; font-size: 12px; vertical-align: top; }
-.authorRtl { font-size: 18px; vertical-align: top;  }
+BODY { background-color: #ffffff; font-family: "Times New Roman", Times, serif; }
+.page-title { font-size: 24px; font-weight: bold;  }
+.title { font-size: 24px; vertical-align: top;  }
+.author { font-size: 18px; vertical-align: top;  }
 A { text-decoration: underline; }
 A:hover { text-decoration: underline; color: #ed490a; }
+.inline {
+  display: inline;
+}
 .rtl {
-  font-family: "Times New Roman", Times, serif;
   text-align: right;
   direction: rtl;
 }
@@ -15,9 +16,8 @@ A:hover { text-decoration: underline; color: #ed490a; }
   direction: ltr;
 }
 INPUT[type="text"].rtl { font-size: 16px; }
-H1.rtl { font-size: 24px; }
-.snippet { font-family: "Times New Roman", Times, serif; text-align: left; vertical-align: top; direction: ltr; }
-.snippetRtl { font-size: 16px; }
+H1 { font-size: 24px; }
+.snippet { font-size: 16px; vertical-align: top; }
 .imageSnippet {}
 .image { border:1px solid #021a40; width: 100%; }
 .black-separator { background-color: black; height: 5px; }
@@ -41,4 +41,10 @@ img.editImage {
   width: 16px;
   height: 16px;
   cursor: pointer;
+}
+
+* { 
+  font-family: inherit;
+  text-align: inherit; 
+  direction: inherit;
 }

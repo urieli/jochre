@@ -9,6 +9,8 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.template.defaulttags import register
 from django.http import HttpResponse
+from django.utils import translation
+from django.utils.translation import gettext
 
 from jochre.models import KeyboardMapping, Preferences
 
@@ -21,6 +23,9 @@ def search(request):
   username = request.user.username
   ip = getClientIP(request)
   prefs = getPreferences(request)
+
+  translation.activate(prefs['lang'])
+  request.session[translation.LANGUAGE_SESSION_KEY] = prefs['lang']
   
   searchUrl = settings.JOCHRE_SEARCH_URL
   haveResults = False
@@ -95,9 +100,8 @@ def search(request):
        "JOCHRE_TITLE" : settings.JOCHRE_TITLE,
        "JOCHRE_CREDITS" : settings.JOCHRE_CREDITS,
        "JOCHRE_SEARCH_EXT_URL" : settings.JOCHRE_SEARCH_EXT_URL,
-       "RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT),
        "readOnline" : settings.JOCHRE_READ_ONLINE,
-       "Strings" : settings.JOCHRE_UI_STRINGS,
+       "FIELDS_LTR" : settings.FIELDS_LTR,
        "JOCHRE_CROWD_SOURCE" : settings.JOCHRE_CROWD_SOURCE,
        "JOCHRE_FONT_LIST" : settings.JOCHRE_FONT_LIST,
        "JOCHRE_FONT_NAMES" : settings.JOCHRE_FONT_NAMES,
@@ -167,40 +171,7 @@ def search(request):
 
       for result in docs:
         doc = result['doc']
-        if 'volume' in result:
-          if 'titleEnglish' in result:
-            doc['titleEnglishAndVolume'] = doc['titleEnglish'] + ", " + settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
-          else:
-            doc['titleEnglishAndVolume'] = settings.JOCHRE_UI_STRINGS['volume'] + " " + doc['volume']
-            doc['titleEnglish'] = ""
-          if 'volumeRTL' in settings.JOCHRE_UI_STRINGS:
-            if 'title' in doc:
-              doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
-            else:
-              doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volumeRTL']  + " " +  doc['volume']
-              doc['title'] = ""
-          else:
-            if 'title' in doc:
-              doc['titleAndVolume'] = doc['title'] + ", " + settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
-            else:
-              doc['titleAndVolume'] = settings.JOCHRE_UI_STRINGS['volume']  + " " +  doc['volume']
-              doc['title'] = ""
-        else:
-          if 'titleEnglish' in doc:
-            doc['titleEnglishAndVolume'] = doc['titleEnglish']
-          else:
-            doc['titleEnglishAndVolume'] = ""
-            doc['titleEnglish'] = ""
-          if 'title' in doc:
-            doc['titleAndVolume'] = doc['title']
-          else:
-            doc['titleAndVolume'] = ""
-            doc['titleEnglish'] = ""
         
-        doc['pages'] = settings.JOCHRE_UI_STRINGS['pages'].format(doc['startPage'], doc['endPage'])
-        if 'pagesRTL' in settings.JOCHRE_UI_STRINGS:
-          doc['pagesRTL'] = settings.JOCHRE_UI_STRINGS['pagesRTL'].format(doc['startPage'], doc['endPage'])
-
         if len(docIds)>0:
           docIds += ','
         docIds += str(doc['docId'])
@@ -214,6 +185,7 @@ def search(request):
         if end > maxResults: end = maxResults
         model["start"] = start
         model["end"] = end
+        model["maxResults"] = maxResults
         model["resultCount"] = totalHits
         model["highlights"] = hasHighlights
 
@@ -225,28 +197,15 @@ def search(request):
         if startPage < 0: startPage = 0
         endPage = startPage + 6
         if endPage > lastPage: endPage = lastPage
-        pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["first"], "val":1, "active":True})
-        pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["prev"], "val":page, "active": (page > 0)})
+        pageLinks.append({"name":gettext("first page"), "val":1, "active":True})
+        pageLinks.append({"name":gettext("previous page"), "val":page, "active": (page > 0)})
         if startPage>0: pageLinks.append({"name":"..", "val":0, "active": False})
         for i in range(startPage, endPage+1):
           pageLinks.append({"name":"%d" % (i+1), "val": i+1, "active": i != page })
         if endPage<lastPage: pageLinks.append({"name":"..", "val":0, "active": False})
-        pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["next"], "val":page+2, "active": (page < lastPage)})
-        pageLinks.append({"name":settings.JOCHRE_UI_STRINGS["last"], "val":lastPage+1, "active":True})
+        pageLinks.append({"name":gettext("next page"), "val":page+2, "active": (page < lastPage)})
+        pageLinks.append({"name":gettext("last page"), "val":lastPage+1, "active":True})
         model["pageLinks"] = pageLinks
-
-        if (totalHits <= maxResults):
-          foundResults = settings.JOCHRE_UI_STRINGS['foundResults'].format(totalHits, start, end)
-        else:
-          foundResults = settings.JOCHRE_UI_STRINGS['foundMoreResults'].format(maxResults, start, end)
-        model["foundResults"] = foundResults
-        
-        if 'foundResultsRTL' in settings.JOCHRE_UI_STRINGS:
-          if (totalHits <= maxResults):
-            foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundResultsRTL'].format(totalHits, start, end)
-          else:
-            foundResultsRTL = settings.JOCHRE_UI_STRINGS['foundMoreResultsRTL'].format(maxResults, start, end)
-          model["foundResultsRTL"] = foundResultsRTL
         
         if hasHighlights:
           userdata = {"command": "snippets",
@@ -345,13 +304,16 @@ def getPreferences(request):
   if len(preferences)==1:
     docsPerPage = preferences[0].docsPerPage
     snippetsPerDoc = preferences[0].snippetsPerDoc
+    lang = preferences[0].lang
   else:
     docsPerPage = settings.DOCS_PER_PAGE
     snippetsPerDoc = settings.SNIPPETS_PER_DOC
+    lang = "yi"
 
   prefs = {
     "docsPerPage" : docsPerPage,
-    "snippetsPerDoc" : snippetsPerDoc
+    "snippetsPerDoc" : snippetsPerDoc,
+    "lang" : lang
   }
   return prefs
 
@@ -375,6 +337,8 @@ def updatePreferences(request):
         newVals['docsPerPage'] = int(request.POST['docsPerPage'])
       if 'snippetsPerDoc' in request.POST:
         newVals['snippetsPerDoc'] = int(request.POST['snippetsPerDoc'])
+      if 'interfaceLanguage' in request.POST:
+        newVals['lang'] = (request.POST['interfaceLanguage'])
 
       obj, created = Preferences.objects.update_or_create(
         user=request.user,
@@ -480,8 +444,8 @@ def contents(request):
 
     model = {"contents": contents,
             "doc" : doc,
-            "RTL" : (not settings.JOCHRE_LEFT_TO_RIGHT)
-            }
+            "FIELDS_LTR" : settings.FIELDS_LTR,
+          }
   except:
     model = {"contents": "An error occurred while fetching content, please try to refresh this page.",
       "RTL" : False}

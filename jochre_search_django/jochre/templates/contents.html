@@ -1,4 +1,7 @@
 {% load staticfiles %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -28,9 +31,11 @@
 {% include "header-local.html" %}
 
 <div class="m-4 {% if RTL %}rtl{% endif %}">
-  <H1>{{ doc.title }}</H1>
-  <H2>{{ doc.author }}</H2>
+  <H1 {% if FIELDS_LTR.title %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ doc.title }}</H1>
+  <H2 {% if FIELDS_LTR.author %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ doc.author }}</H2>
+<div {% if FIELDS_LTR.contents %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>
 {% autoescape off %}{{ contents }}{% endautoescape %}
+</div>
 </div>
 
 <script>
@@ -67,12 +72,12 @@ window.cookieconsent.initialise({
     </div>
   </div>
 </div>
-<div class="d-flex justify-content-center m-0">
+<div class="d-flex justify-content-center m-0{% if RTL %} rtl{% endif %}">
   <div class="row">
     <div class="col text-center">
-      <a href="/privacy" target="_blank">Privacy Policy</a>
+      <a href="/privacy" target="_blank">{% trans 'Privacy Policy' %}</a>
       <br><br>
-      <strong>Powered by </strong><a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a>
+      <strong>{% trans 'Powered by' %}</strong> <a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a>
     </div>
   </div>
 </div>
