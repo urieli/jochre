@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-09 11:42+0200\n"
+"POT-Creation-Date: 2019-10-10 11:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,276 +18,511 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: jochre/templates/contents.html:76 jochre/templates/search.html:667
+#. Translators: Login form password sign in button
+#: templates/account/login.html:6 templates/account/login.html:12
+#: templates/account/login.html:56 templates/search/header.html:60
+msgid "Sign In"
+msgstr ""
+
+#. Translators: Login page message
+#: templates/account/login.html:19
+#, python-format
+msgid ""
+"Please sign in with one of your existing third party accounts. Or, <a href="
+"\"%(signup_url)s\">sign up</a> for a %(site_name)s account and sign in below:"
+msgstr ""
+
+#. Translators: Conjunction between two sections of the login form
+#: templates/account/login.html:31
+msgid "or"
+msgstr ""
+
+#: templates/account/login.html:37
+#, python-format
+msgid ""
+"If you have not created an account yet, then please <a href=\"%(signup_url)s"
+"\">sign up</a> first."
+msgstr ""
+
+#. Translators: Login form password reset button
+#: templates/account/login.html:53
+msgid "Forgot Password?"
+msgstr ""
+
+#: templates/account/logout.html:5 templates/account/logout.html:11
+#: templates/account/logout.html:20
+msgid "Sign Out"
+msgstr ""
+
+#: templates/account/logout.html:13
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: templates/account/password_reset.html:6
+#: templates/account/password_reset.html:12
+#: templates/account/password_reset_done.html:6
+#: templates/account/password_reset_done.html:12
+msgid "Password Reset"
+msgstr ""
+
+#: templates/account/password_reset.html:17
+msgid ""
+"Forgotten your password? Enter your e-mail address below, and we'll send you "
+"an e-mail allowing you to reset it."
+msgstr ""
+
+#: templates/account/password_reset.html:22
+msgid "Reset My Password"
+msgstr ""
+
+#: templates/account/password_reset.html:25
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr ""
+
+#: templates/account/password_reset_done.html:18
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+
+#: templates/account/signup.html:5
+msgid "Signup"
+msgstr ""
+
+#: templates/account/signup.html:11 templates/account/signup.html:36
+#: templates/search/header.html:63
+msgid "Sign Up"
+msgstr ""
+
+#: templates/account/signup.html:13
+#, python-format
+msgid ""
+"Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
+msgstr ""
+
+#: templates/contents.html:11
+msgid "Jochre Document Contents"
+msgstr ""
+
+#. Translators: Link to privacy policy
+#: templates/privacy.html:8 templates/search/footer.html:40
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
-#: jochre/templates/contents.html:78 jochre/templates/search.html:669
-msgid "Powered by"
-msgstr "Powered by"
+#: templates/search.html:9
+msgid "Jochre Search"
+msgstr ""
 
-#: jochre/templates/search.html:65
-msgid "logout"
-msgstr "logout"
-
-#: jochre/templates/search.html:85
-msgid "search button"
-msgstr "Search"
-
-#. Translators: Search field to limit results by author
-#: jochre/templates/search.html:97 jochre/templates/search.html:99
-msgid "author field"
-msgstr "Author"
-
-#. Translators: Search field to limit results by title
-#: jochre/templates/search.html:129 jochre/templates/search.html:130
-msgid "title field"
-msgstr "Title"
-
-#. Translators: Search field to add lower limit to results by publication year
-#: jochre/templates/search.html:138
-msgid "from year"
-msgstr "Publication year from"
-
-#. Translators: Search field to add upper limit to results by publication year
-#: jochre/templates/search.html:141
-msgid "to year"
-msgstr "to"
-
-#. Translators: Search field to interpret query terms strictly
-#: jochre/templates/search.html:151
-msgid "strict field"
-msgstr "Strict"
-
-#. Translators: Sort by drop-down title
-#: jochre/templates/search.html:159
-msgid "sort by"
-msgstr "Sort by"
-
-#. Translators: Drop-down value to sort by score
-#: jochre/templates/search.html:162
-msgid "sort by score"
-msgstr "score"
-
-#. Translators: Drop-down value to sort by year in ascending order
-#: jochre/templates/search.html:164
-msgid "sort by year ascending"
-msgstr "year ↑"
-
-#. Translators: Drop-down value to sort by year in descending order
-#: jochre/templates/search.html:166
-msgid "sort by year descending"
-msgstr "year ↓"
-
-#. Translators: Search field to limit results by document reference number
-#: jochre/templates/search.html:175 jochre/templates/search.html:176
-msgid "reference field"
-msgstr "Reference number"
-
-#: jochre/templates/search.html:183
-msgid "clear form"
-msgstr "Clear"
-
-#: jochre/templates/search.html:191
+#: templates/search.html:23
 msgid "Unable to process query"
 msgstr "Unable to process query"
 
-#: jochre/templates/search.html:195
+#: templates/search.html:34
+msgid "Please enter a search term"
+msgstr ""
+
+#: templates/search.html:44
 msgid "No search results"
 msgstr "No search results."
 
-#: jochre/templates/search.html:201
+#: templates/search.html:56
 #, python-format
 msgid "Found %(count)s results."
 msgstr "Found %(count)s results."
 
-#: jochre/templates/search.html:203
+#: templates/search.html:58
 #, python-format
 msgid "Found more than %(count)s results."
 msgstr "Found more than %(count)s results."
 
-#: jochre/templates/search.html:205
+#: templates/search.html:60
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "Results %(start)s to %(end)s:"
 
-#: jochre/templates/search.html:214 jochre/templates/search.html:215
-msgid "title meta"
-msgstr "Title"
+#. Translators: Clear all search results
+#: templates/search.html:63 templates/search/search-pane.html:187
+#, fuzzy
+#| msgid "No search results"
+msgid "Clear results"
+msgstr "No search results."
 
-#. Translators: Title metadata in alternate alphabet
-#: jochre/templates/search.html:221 jochre/templates/search.html:222
+#: templates/search/correct-meta-modal.html:7
+#: templates/search/correct-meta-modal.html:11
+msgid "Correct document meta data"
+msgstr ""
+
+#. Translators: Instructions on how to correct metadata
+#: templates/search/correct-meta-modal.html:20
+msgid "Correct the meta data."
+msgstr ""
+
+#: templates/search/correct-meta-modal.html:25
+msgid "Field"
+msgstr ""
+
+#: templates/search/correct-meta-modal.html:29
+#, fuzzy
+#| msgid "correctMetaCurrentValue"
+msgid "Current value"
+msgstr "Current value"
+
+#: templates/search/correct-meta-modal.html:39
+msgid "New value"
+msgstr ""
+
+#: templates/search/correct-meta-modal.html:49
+#: templates/search/correct-meta-modal.html:59
+#, fuzzy
+#| msgid "correctMetaMergeWith"
+msgid "or Merge with"
+msgstr "or Merge with"
+
+#: templates/search/correct-meta-modal.html:69
+#: templates/search/word-modal.html:82
+msgid "Close"
+msgstr "Close"
+
+#: templates/search/correct-meta-modal.html:71
+#: templates/search/keyboard-modal.html:55
+#: templates/search/preferences-modal.html:63
+#: templates/search/word-modal.html:84
+msgid "Save changes"
+msgstr "Save changes"
+
+#: templates/search/correct-meta-modal.html:74
+msgid "Correction recorded."
+msgstr "Correction recorded."
+
+#: templates/search/correct-meta-modal.html:80
+#: templates/search/keyboard-modal.html:64
+#: templates/search/preferences-modal.html:72
+#: templates/search/word-modal.html:95
+msgid "An error occurred."
+msgstr "An error occurred."
+
+#: templates/search/footer.html:25
+msgid "Powered by"
+msgstr "Powered by"
+
+#: templates/search/footer.html:27 templates/search/header.html:21
+msgid "Jochre"
+msgstr ""
+
+#: templates/search/header.html:54
+#, fuzzy
+#| msgid "logout"
+msgid "Logout"
+msgstr "logout"
+
+#: templates/search/keyboard-modal.html:7
+#: templates/search/keyboard-modal.html:13
+msgid "Customize keyboard"
+msgstr ""
+
+#: templates/search/keyboard-modal.html:25
+msgid "Enable keyboard mappings"
+msgstr "Enable keyboard mappings"
+
+#: templates/search/keyboard-modal.html:53
+#: templates/search/preferences-modal.html:61
+msgid "Cancel"
+msgstr "Cancel"
+
+#: templates/search/keyboard-modal.html:54
+#: templates/search/preferences-modal.html:62
+msgid "Restore defaults"
+msgstr "Restore defaults"
+
+#: templates/search/keyboard-modal.html:58
+msgid "Keyboard mappings updated."
+msgstr "Keyboard mappings updated."
+
+#: templates/search/preferences-modal.html:7
+#: templates/search/preferences-modal.html:12
+msgid "Update preferences"
+msgstr "Update preferences"
+
+#: templates/search/preferences-modal.html:24
+msgid "Interface language"
+msgstr "Interface language"
+
+#: templates/search/preferences-modal.html:41
+msgid "Results per page"
+msgstr ""
+
+#: templates/search/preferences-modal.html:51
+msgid "Snippets per result"
+msgstr ""
+
+#: templates/search/preferences-modal.html:66
+msgid "Preferences saved."
+msgstr "Preferences saved."
+
+#. Translators: search button text
+#: templates/search/search-pane.html:30 templates/search/search-pane.html:188
+msgid "Search"
+msgstr ""
+
+#: templates/search/search-pane.html:41
+msgid "Update key mappings"
+msgstr "Update key mappings"
+
+#: templates/search/search-pane.html:48
+msgid "Advanced search"
+msgstr ""
+
+#. Translators: Search field to limit results by author
+#: templates/search/search-pane.html:82 templates/search/search-result.html:52
+msgid "Author"
+msgstr ""
+
+#. Translators: Search field to limit results by title
+#: templates/search/search-pane.html:127 templates/search/search-result.html:16
+msgid "Title"
+msgstr ""
+
+#. Translators: Search field to add lower limit to results by publication year
+#: templates/search/search-pane.html:137
+msgid "Publication year from"
+msgstr ""
+
+#. Translators: Search field to add upper limit to results by publication year
+#: templates/search/search-pane.html:141
+msgid "to"
+msgstr ""
+
+#: templates/search/search-pane.html:151
+msgid "Strict"
+msgstr ""
+
+#. Translators: Sort by drop-down title
+#: templates/search/search-pane.html:159
+#, fuzzy
+#| msgid "sort by"
+msgid "Sort by"
+msgstr "Sort by"
+
+#. Translators: Drop-down value to sort by score
+#: templates/search/search-pane.html:163
+msgid "sort by score"
+msgstr "score"
+
+#. Translators: Drop-down value to sort by year in ascending order
+#: templates/search/search-pane.html:165
+msgid "sort by year ascending"
+msgstr "year ↑"
+
+#. Translators: Drop-down value to sort by year in descending order
+#: templates/search/search-pane.html:167
+msgid "sort by year descending"
+msgstr "year ↓"
+
+#. Translators: Search field to limit results by document reference number
+#: templates/search/search-pane.html:177
+#: templates/search/search-result.html:113
+#, fuzzy
+#| msgid "referenceNumber"
+msgid "Reference number"
+msgstr "Reference number"
+
+#: templates/search/search-result.html:26
+#, fuzzy
+#| msgid "alternate alphabet title meta"
+msgid "Alternate title"
+msgstr "Transcribed title"
+
+#: templates/search/search-result.html:29
 msgid "alternate alphabet title meta"
 msgstr "Transcribed title"
 
-#: jochre/templates/search.html:228 jochre/templates/search.html:229
+#: templates/search/search-result.html:39
+#, fuzzy
+#| msgid "volume"
+msgid "Volume"
+msgstr "Volume"
+
+#: templates/search/search-result.html:42
 msgid "volume"
 msgstr "Volume"
 
-#. Translators: Author metadata
-#: jochre/templates/search.html:235 jochre/templates/search.html:236
+#: templates/search/search-result.html:55
 msgid "author meta"
 msgstr "Author"
 
-#. Translators: Author metadata in alternate alphabet
-#: jochre/templates/search.html:242 jochre/templates/search.html:243
+#: templates/search/search-result.html:65
+#, fuzzy
+#| msgid "alternate alphabet author meta"
+msgid "Alternate author"
+msgstr "Transcribed author"
+
+#: templates/search/search-result.html:68
 msgid "alternate alphabet author meta"
 msgstr "Transcribed author"
 
-#: jochre/templates/search.html:249
-msgid "section"
+#: templates/search/search-result.html:78
+#, fuzzy
+#| msgid "section"
+msgid "Section"
 msgstr "Section"
 
-#: jochre/templates/search.html:249
+#: templates/search/search-result.html:79
 #, fuzzy, python-format
 #| msgid "Results %(start)s to %(end)s:"
 msgid "Pages %(startPage)s to %(endPage)s"
 msgstr "Pages %(startPage)s to %(endPage)s:"
 
-#: jochre/templates/search.html:254 jochre/templates/search.html:255
+#: templates/search/search-result.html:87
+#, fuzzy
+#| msgid "publisher"
+msgid "Publisher"
+msgstr "Publisher"
+
+#: templates/search/search-result.html:90
 msgid "publisher"
 msgstr "Publisher"
 
-#: jochre/templates/search.html:261 jochre/templates/search.html:262
+#: templates/search/search-result.html:100
+msgid "Date"
+msgstr ""
+
+#: templates/search/search-result.html:103
 msgid "date"
 msgstr "Year"
 
-#: jochre/templates/search.html:268
-msgid "referenceNumber"
-msgstr "Reference number"
-
-#: jochre/templates/search.html:349 jochre/templates/search.html:353
-msgid "fixWordTitle"
-msgstr "Fix word"
-
-#. Translators: Instructions on how to fix a word
-#: jochre/templates/search.html:365
-msgid "fixWordInstructions"
+#: templates/search/search-result.html:134
+msgid "(Double-click on a word to make an OCR correction)"
 msgstr ""
+
+#: templates/search/search-result.html:143
+msgid "View page snippet"
+msgstr ""
+
+#: templates/search/search-result.html:150
+msgid "View transcribed text"
+msgstr ""
+
+#: templates/search/search-result.html:158
+#, fuzzy
+#| msgid "next page"
+msgid "Go to book"
+msgstr "Next"
+
+#: templates/search/search-result.html:158
+#, python-format
+msgid "(page %(page)s)"
+msgstr ""
+
+#: templates/search/word-modal.html:7 templates/search/word-modal.html:13
+msgid "Fix a word"
+msgstr ""
+
+#: templates/search/word-modal.html:29
+msgid ""
 "Please enter the word exactly as it appears above, including niqqud, "
-"apsotrophes, quotes, dashes, and other punctuation. If the word as badly "
+"apostrophes, quotes, dashes, and other punctuation. If the word is badly "
 "segmented (i.e. if only part of the word appears), do not correct it."
+msgstr ""
 
-#: jochre/templates/search.html:367
-msgid "fixWordWord"
-msgstr "Word"
+#: templates/search/word-modal.html:36
+msgid "Word"
+msgstr ""
 
-#: jochre/templates/search.html:381
-msgid "fixWordFont"
-msgstr "Font"
+#: templates/search/word-modal.html:50
+msgid "Font"
+msgstr ""
 
-#: jochre/templates/search.html:391
-msgid "fixWordFontExample"
+#: templates/search/word-modal.html:61
+#, fuzzy
+#| msgid "fixWordFontExample"
+msgid "Font example"
 msgstr "Font example"
 
-#: jochre/templates/search.html:395
-msgid "fixWordLanguage"
+#: templates/search/word-modal.html:68
+#, fuzzy
+#| msgid "fixWordLanguage"
+msgid "Language"
 msgstr "Language"
 
-#: jochre/templates/search.html:411 jochre/templates/search.html:491
-msgid "Close"
-msgstr "Close"
-
-#: jochre/templates/search.html:412 jochre/templates/search.html:492
-#: jochre/templates/search.html:558 jochre/templates/search.html:621
-msgid "Save changes"
-msgstr "Save changes"
-
-#: jochre/templates/search.html:415
+#: templates/search/word-modal.html:88
 msgid "Suggestion recorded."
 msgstr "Suggestion recorded."
 
-#: jochre/templates/search.html:421 jochre/templates/search.html:501
-#: jochre/templates/search.html:630
-msgid "An error occurred."
-msgstr "An error occurred."
-
-#: jochre/templates/search.html:430 jochre/templates/search.html:434
-msgid "correctMetaTitle"
-msgstr "Correct document meta data"
-
-#. Translators: Instructions on how to correct metadata
-#: jochre/templates/search.html:443
-msgid "correctMetaInstructions"
-msgstr "Correct the meta data."
-
-#: jochre/templates/search.html:447
-msgid "correctMetaFieldName"
-msgstr "Field"
-
-#: jochre/templates/search.html:455
-msgid "correctMetaCurrentValue"
-msgstr "Current value"
-
-#: jochre/templates/search.html:464
-msgid "correctMetaNewValue"
-msgstr "New value"
-
-#: jochre/templates/search.html:473 jochre/templates/search.html:482
-msgid "correctMetaMergeWith"
-msgstr "or Merge with"
-
-#: jochre/templates/search.html:495
-msgid "Correction recorded."
-msgstr "Correction recorded."
-
-#: jochre/templates/search.html:510 jochre/templates/search.html:514
-msgid "Update key mappings"
-msgstr "Update key mappings"
-
-#: jochre/templates/search.html:527
-msgid "Enable keyboard mappings"
-msgstr "Enable keyboard mappings"
-
-#: jochre/templates/search.html:556 jochre/templates/search.html:619
-msgid "Cancel"
-msgstr "Cancel"
-
-#: jochre/templates/search.html:557 jochre/templates/search.html:620
-msgid "Restore defaults"
-msgstr "Restore defaults"
-
-#: jochre/templates/search.html:561
-msgid "Keyboard mappings updated."
-msgstr "Keyboard mappings updated."
-
-#: jochre/templates/search.html:576 jochre/templates/search.html:580
-msgid "Update preferences"
-msgstr "Update preferences"
-
-#: jochre/templates/search.html:593
-msgid "Interface language"
-msgstr "Interface language"
-
-#: jochre/templates/search.html:602
-msgid "prefsDocsPerPage"
-msgstr "Documents per page"
-
-#: jochre/templates/search.html:610
-msgid "prefsSnippetsPerDoc"
-msgstr "Snippets per document"
-
-#: jochre/templates/search.html:624
-msgid "Preferences saved."
-msgstr "Preferences saved."
-
-#: jochre/templates/search.html:666
-#, python-format
-msgid "Index size: %(bookCount)s books."
-msgstr "Index size: %(bookCount)s books."
-
-#: jochre/views.py:204
+#: views.py:214
 msgid "first page"
 msgstr "First"
 
-#: jochre/views.py:205
+#: views.py:221
 msgid "previous page"
 msgstr "Prev"
 
-#: jochre/views.py:210
+#: views.py:237
 msgid "next page"
 msgstr "Next"
 
-#: jochre/views.py:211
+#: views.py:244
 msgid "last page"
 msgstr "Last"
+
+#~ msgid "search button"
+#~ msgstr "Search"
+
+#~ msgid "title field"
+#~ msgstr "Title"
+
+#~ msgid "from year"
+#~ msgstr "Publication year from"
+
+#~ msgid "to year"
+#~ msgstr "to"
+
+#~ msgid "clear form"
+#~ msgstr "Clear"
+
+#~ msgid "author field"
+#~ msgstr "Author"
+
+#~ msgid "strict field"
+#~ msgstr "Strict"
+
+#~ msgid "reference field"
+#~ msgstr "Reference number"
+
+#~ msgid "title meta"
+#~ msgstr "Title"
+
+#~ msgid "fixWordTitle"
+#~ msgstr "Fix word"
+
+#~ msgid "fixWordInstructions"
+#~ msgstr ""
+#~ "Please enter the word exactly as it appears above, including niqqud, "
+#~ "apsotrophes, quotes, dashes, and other punctuation. If the word as badly "
+#~ "segmented (i.e. if only part of the word appears), do not correct it."
+
+#~ msgid "fixWordWord"
+#~ msgstr "Word"
+
+#~ msgid "fixWordFont"
+#~ msgstr "Font"
+
+#~ msgid "correctMetaTitle"
+#~ msgstr "Correct document meta data"
+
+#~ msgid "correctMetaInstructions"
+#~ msgstr "Correct the meta data."
+
+#~ msgid "correctMetaFieldName"
+#~ msgstr "Field"
+
+#~ msgid "correctMetaNewValue"
+#~ msgstr "New value"
+
+#~ msgid "prefsDocsPerPage"
+#~ msgstr "Documents per page"
+
+#~ msgid "prefsSnippetsPerDoc"
+#~ msgstr "Snippets per document"
+
+#~ msgid "Index size: %(bookCount)s books."
+#~ msgstr "Index size: %(bookCount)s books."

@@ -21,6 +21,7 @@ SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
 DEBUG = True
 
 INSTALLED_APPS = [
+    'jochre',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,7 +32,6 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'jochre',
 ]
 
 # ... include the providers you want to enable:
@@ -114,7 +114,7 @@ JOCHRE_UI_STRINGS = {
 SHOW_SECTION = False
 
 def PAGE_URL_TRANSFORM(pageNumber):
-  return pageNumber - 1
+  return pageNumber + 1
 
 KEYBOARD_MAPPINGS_ENABLED = False
 
@@ -179,3 +179,4 @@ KEYBOARD_MAPPINGS = {
 
 DOCS_PER_PAGE = 10
 SNIPPETS_PER_DOC = 20
+

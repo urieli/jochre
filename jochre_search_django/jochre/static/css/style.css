@@ -1,50 +1,189 @@
-BODY { background-color: #ffffff; font-family: "Times New Roman", Times, serif; }
-.page-title { font-size: 24px; font-weight: bold;  }
-.title { font-size: 24px; vertical-align: top;  }
-.author { font-size: 18px; vertical-align: top;  }
-A { text-decoration: underline; }
-A:hover { text-decoration: underline; color: #ed490a; }
-.inline {
-  display: inline;
+* {
+    font-family: inherit;
+    text-align: inherit;
+    direction: inherit;
 }
+
+/* Required for sticky footer */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    background-color: #FFF;
+    font-family: "Times New Roman", Times, serif;
+}
+
+h1 {
+    font-size: 24px;
+}
+
+.title {
+    font-size: 24px;
+    vertical-align: top;
+}
+
+a {
+    text-decoration: underline;
+}
+
+a {
+    color: #000;
+    text-decoration: underline;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #ed490a;
+}
+
 .rtl {
-  text-align: right;
-  direction: rtl;
+    text-align: right;
+    direction: rtl;
 }
+
 .ltr {
-  text-align: left;
-  direction: ltr;
+    text-align: left;
+    direction: ltr;
+    unicode-bidi: bidi-override;
 }
-INPUT[type="text"].rtl { font-size: 16px; }
-H1 { font-size: 24px; }
-.snippet { font-size: 16px; vertical-align: top; }
-.imageSnippet {}
-.image { border:1px solid #021a40; width: 100%; }
-.black-separator { background-color: black; height: 5px; }
-.alert-auto {display:inline-block;} 
-.highlight {font-weight: 900;}
+
+.highlight {
+    font-weight: bold;
+}
 
 .checkboxes label {
-  display: block;
-  float: left;
-  padding-right: 10px;
-  white-space: nowrap;
+    display: block;
+    float: left;
+    padding-right: 10px;
+    white-space: nowrap;
 }
+
 .checkboxes input {
-  vertical-align: middle;
+    vertical-align: middle;
 }
+
 .checkboxes label span {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
-img.editImage {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+.editImage {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
-* { 
-  font-family: inherit;
-  text-align: inherit; 
-  direction: inherit;
+.link-white a {
+    color: #FFF;
 }
+
+.preferences__img {
+    width: 40px;
+    height: 40px;
+    margin: 0 10px 0 0;
+    border-radius: 40px;
+    overflow: hidden;
+}
+
+.rtl .preferences__img {
+    margin: 0 0 0 10px;
+}
+
+/* Bootstrap RTL fixes start */
+
+.rtl .alert-dismissible .close {
+    left: 0;
+    right: auto;
+}
+
+.rtl .alert {
+    padding: .75rem 1.25rem;
+}
+
+.rtl .alert-dismissible {
+    padding-left: 4rem;
+}
+
+.rtl .modal-header .close {
+    margin: -1rem auto -1rem -1rem;
+}
+
+.rtl .form-check {
+    padding-left: 0;
+    padding-right: 1.25rem;
+}
+
+.rtl .form-check-input {
+    margin-left: 0;
+    margin-right: -1.25rem;
+}
+
+.rtl .modal-footer > :first-child {
+    margin-left: .25rem;
+    margin-right: 0;
+}
+
+.rtl .modal-footer > :last-child {
+    margin-left: 0;
+    margin-right: .25rem;
+}
+
+/* Bootstrap RTL fixes end */
+
+/* Twitter typeahead start */
+
+.input-group .twitter-typeahead {
+    display: flex !important;
+}
+
+.tt-menu {
+    top: calc(100% - 2px) !important;
+    left: 0.5rem !important;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    box-shadow: 0px 0px 2px 0 rgba(0,0,0,0.2);
+    background: #EEE;
+    width: calc(100% - 1rem);
+}
+
+.tt-suggestion.tt-selectable {
+    padding: .125rem .75rem;
+    cursor: pointer;
+}
+
+.tt-suggestion.tt-selectable:hover,
+.tt-suggestion.tt-selectable:focus {
+    background: #DDD;
+}
+
+/* Twitter typeahead end */
+
+/* Hacks/fixes start */
+
+/* These settings currently don't work on pages which aren't the search page */
+html[lang="en-us"] #updatePreferences {
+    display: none !important;
+}
+
+/* Hacks/fixes end */
+
+/* Pager mobile start */
+
+@media screen and (max-width: 576px) {
+    .page-first,
+    .page-last,
+    .page-next,
+    .page-prev {
+        flex-basis: 25%;
+        margin-bottom: 0.5rem;
+        order: -1;
+    }
+
+    .page-item {
+        flex-grow: 1;
+        text-align: center;
+    }
+}
+
+/* Pager mobile end */

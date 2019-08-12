@@ -19,32 +19,32 @@ def search(request):
 
   if not request.user.is_authenticated:
     return redirect('accounts/login/')
-  
+
   username = request.user.username
   ip = getClientIP(request)
   prefs = getPreferences(request)
 
   translation.activate(prefs['lang'])
   request.session[translation.LANGUAGE_SESSION_KEY] = prefs['lang']
-  
+
   searchUrl = settings.JOCHRE_SEARCH_URL
   haveResults = False
 
   query = ''
   if 'query' in request.GET:
     query = request.GET['query'].strip()
-  
+
   author = ''
   hasAuthors = False
   if 'author' in request.GET:
     author = "|".join(request.GET.getlist('author'))
     author = author.replace("||", "|")
     hasAuthors = len(author.replace("|", ""))>0
-    
+
   title = ''
   if 'title' in request.GET:
     title = request.GET['title']
-    
+
   strict = False
   if ('strict') in request.GET:
     strict = True
@@ -68,7 +68,7 @@ def search(request):
   reference = ''
   if 'reference' in request.GET:
     reference = request.GET['reference'].strip()
-  
+
   haveSearch = False
   if len(query)>0 or hasAuthors or len(title)>0 or len(fromYear)>0 or len(toYear)>0 or len(reference)>0:
     haveSearch = True
@@ -80,11 +80,11 @@ def search(request):
   displayAdvancedSearch = False
   if advancedSearch:
     displayAdvancedSearch = True
-  
+
   page = 0
   if 'page' in request.GET:
     page = int(request.GET['page'])-1
-  
+
   model = {"query" : query,
        "authors" : filter(None, author.split("|")),
        "authorQuery": author,
@@ -111,7 +111,7 @@ def search(request):
        "ip": ip,
        "haveSearch": haveSearch,
        }
-       
+
   if haveSearch:
     MAX_DOCS=1000
     userdata = {"command": "search",
@@ -148,16 +148,16 @@ def search(request):
     logger.debug("sending request: {0}, {1}".format(searchUrl, userdata))
 
     resp = requests.get(searchUrl, userdata)
-    
+
     results = resp.json()
-    
+
     if 'parseException' in results:
       # Fix double-escaped unicode strings in exception!
       message = results["message"]
-      match = re.search("\\\\u([0-9a-fA-F]{4})", message) 
+      match = re.search("\\\\u([0-9a-fA-F]{4})", message)
       while match:
         message = message[:match.start()] + chr(int(match.group(1), 16)) + message[match.end():]
-        match = re.search("\\\\u([0-9a-fA-F]{4})", message) 
+        match = re.search("\\\\u([0-9a-fA-F]{4})", message)
       logger.debug("Parse Exception: {0}".format(message))
       model["parseException"] = message
     else:
@@ -171,11 +171,11 @@ def search(request):
 
       for result in docs:
         doc = result['doc']
-        
+
         if len(docIds)>0:
           docIds += ','
         docIds += str(doc['docId'])
-      
+
       if len(docs)>0:
         haveResults = True
         model["results"] = docs
@@ -191,22 +191,59 @@ def search(request):
 
         pageLinks = []
         lastPage = (totalHits - 1) // prefs['docsPerPage']
+
         if (totalHits > maxResults):
-          lastPage = (maxResults - 1) // prefs['docsPerPage']
+            lastPage = (maxResults - 1) // prefs['docsPerPage']
+
         startPage = page - 3
-        if startPage < 0: startPage = 0
+
+        if startPage < 0:
+            startPage = 0
+
         endPage = startPage + 6
-        if endPage > lastPage: endPage = lastPage
-        pageLinks.append({"name":gettext("first page"), "val":1, "active":True})
-        pageLinks.append({"name":gettext("previous page"), "val":page, "active": (page > 0)})
-        if startPage>0: pageLinks.append({"name":"..", "val":0, "active": False})
-        for i in range(startPage, endPage+1):
-          pageLinks.append({"name":"%d" % (i+1), "val": i+1, "active": i != page })
-        if endPage<lastPage: pageLinks.append({"name":"..", "val":0, "active": False})
-        pageLinks.append({"name":gettext("next page"), "val":page+2, "active": (page < lastPage)})
-        pageLinks.append({"name":gettext("last page"), "val":lastPage+1, "active":True})
+
+        if endPage > lastPage:
+            endPage = lastPage
+
+        pageLinks.append({
+            "name": gettext("first page"),
+            "val": 1,
+            "active": True,
+            "type": "first"
+        })
+
+        pageLinks.append({
+            "name": gettext("previous page"),
+            "val": page,
+            "active": (page > 0),
+            "type": "prev"
+        })
+
+        if startPage > 0:
+            pageLinks.append({"name": "..", "val": 0, "active": False})
+
+        for i in range(startPage, endPage + 1):
+            pageLinks.append({"name":"%d" % (i + 1), "val": i + 1, "active": i != page })
+
+        if endPage < lastPage:
+            pageLinks.append({"name": "..", "val": 0, "active": False, "type": "page"})
+
+        pageLinks.append({
+            "name": gettext("next page"),
+            "val": page + 2,
+            "active": (page < lastPage),
+            "type": "next"
+        })
+
+        pageLinks.append({
+            "name": gettext("last page"),
+            "val": lastPage + 1,
+            "active": True,
+            "type": "last"
+        })
+
         model["pageLinks"] = pageLinks
-        
+
         if hasHighlights:
           userdata = {"command": "snippets",
             "snippetCount": prefs['snippetsPerDoc'],
@@ -220,24 +257,24 @@ def search(request):
           resp = requests.get(searchUrl, userdata)
 
           snippetMap = resp.json()
-    
+
           for result in docs:
             doc = result['doc']
             bookId = doc['name']
             docId = doc['docId']
             snippetObj = snippetMap[str(docId)]
-            
+
             if 'snippetError' in snippetObj:
               snippetError = snippetObj['snippetError']
               doc['snippetError'] = snippetError
-              
+
             else:
               snippets = snippetObj['snippets']
               snippetsToSend = []
               for snippet in snippets:
                 snippetJson = json.dumps(snippet)
                 snippetText = snippet.pop("text", "")
-                
+
                 userdata = {"command": "imageSnippet",
                       "snippet": snippetJson,
                       "user": username}
@@ -248,18 +285,18 @@ def search(request):
                 preparedReq = req.prepare()
                 snippetImageUrl = preparedReq.url
                 pageNumber = snippet['pageIndex']
-                
+
                 snippetDict = {"snippetText" : snippetText,
                          "pageNumber": pageNumber,
                          "imageUrl": snippetImageUrl }
-                
+
                 if settings.JOCHRE_READ_ONLINE:
                   snippetReadUrl = settings.JOCHRE_UI_STRINGS['pageURL'].format(bookId, settings.PAGE_URL_TRANSFORM(pageNumber))
                   snippetDict["readOnlineUrl"] = snippetReadUrl
 
                 snippetsToSend.append(snippetDict)
                 result['snippets'] = snippetsToSend
-          
+
   model["haveResults"] = haveResults
 
   userdata = {"command": "bookCount",
@@ -297,7 +334,7 @@ def getPreferences(request):
 
   if not request.user.is_authenticated:
     raise ValueError('User not logged in.')
-  
+
   username = request.user.username
   preferences = Preferences.objects.filter(user=request.user)
 
@@ -353,7 +390,7 @@ def keyboard(request):
 
   if not request.user.is_authenticated:
     raise ValueError('User not logged in.')
-  
+
   username = request.user.username
   mappings = KeyboardMapping.objects.filter(user=request.user)
 
@@ -409,6 +446,10 @@ def contents(request):
 
   if not request.user.is_authenticated:
     return redirect('accounts/login/')
+
+  prefs = getPreferences(request)
+  translation.activate(prefs['lang'])
+  request.session[translation.LANGUAGE_SESSION_KEY] = prefs['lang']
 
   try:
     searchUrl = settings.JOCHRE_SEARCH_URL

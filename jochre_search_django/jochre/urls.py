@@ -11,5 +11,5 @@ urlpatterns = [
   path('preferences', preferences, name='preferences'),
   path('updatePreferences', updatePreferences, name='updatePreferences'),
   path('contents', contents, name='contents'),
-  path('privacy', TemplateView.as_view(template_name='privacy-local.html'), name="privacy"),
+  path('privacy', TemplateView.as_view(template_name='privacy.html'), name="privacy"),
 ]

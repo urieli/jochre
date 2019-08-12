@@ -1,0 +1,192 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<div class="bg-info text-white link-white search-pane d-flex justify-content-end">
+  <div class="container pt-5">
+    <div class="row justify-content-between">
+      {% block title %}
+        <div class="col-12 mb-2">
+          <h1 style="font-size: 24px; font-weight: bold">
+            {% if JOCHRE_TITLE|lookup:LANGUAGE_CODE %}
+              {{ JOCHRE_TITLE|lookup:LANGUAGE_CODE }}
+            {% else %}
+              {{ JOCHRE_TITLE.en }}
+            {% endif %}
+          </h1>
+        </div>
+      {% endblock %}
+
+      <div class="col-12 col-md-6 mb-4">
+        <div class="d-flex flex-row mb-3">
+          <div class="input-group input-group-sm search-primary">
+            <input type="text" id="txtQuery" class="form-control flex-grow-1" name="query" value="{{ query }}" />
+            <div class="d-flex align-items-center">
+              <button type="submit" class="btn btn-sm btn-light">
+                <span class="fa fa-search"></span>
+                {# Translators: search button text #}
+                <span class="text-hide">{% trans 'Search' %}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-row">
+          <div class="mx-n2">
+            {% block search_controls %}
+              {% spaceless %}
+                <a id="updateKeyboardMappings" href="#" class="text-nowrap mx-2">
+                  {% trans 'Update key mappings' %}
+                  <i class="fas fa-keyboard mx-2"></i>
+                </a>
+              {% endspaceless %}
+
+              {% spaceless %}
+                <a id="toggleAdvancedSearch" href="#" class="text-nowrap mx-2">
+                  {% trans 'Advanced search' %}
+
+                  {% if not displayAdvancedSearch %}
+                    <i class="fas fa-plus mx-2"></i>
+                  {% else %}
+                    <i class="fas fa-minus mx-2"></i>
+                  {% endif %}
+                </a>
+              {% endspaceless %}
+            {% endblock %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6 mb-4">
+        {% block attribution %}
+          {# Add attribution text here #}
+        {% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="{% if not displayAdvancedSearch %}collapse {% endif %} bg-light py-4" id="advancedSearch">
+  <div class="container">
+    <div class="col-md-6">
+      {% block advanced_search_help %}
+        {# Help text for advanced search #}
+      {% endblock %}
+      <fieldset>
+        <div class="form-row">
+          <div class="col-auto form-group">
+            <div class="input-group align-items-center">
+              {# Translators: Search field to limit results by author #}
+              <label for="txtAuthor" class="col-form-label font-weight-bold">{% trans 'Author' %}:</label>
+              <input id="txtAuthor" name="author" class="form-control typeahead mx-2" type="text" autocomplete="off">
+              <input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
+
+              <button type="button" id="addAuthor" class="btn btn-secondary btn-sm mx-2" aria-label="add author">+</button>
+
+              <div class="input-group align-items-center w-auto mx-2">
+                <label for="authorIncludeYes" class="col-form-label font-weight-bold" title="{% trans 'Include authors' %}"><span class="sr-only">{% trans 'Include authors' %}</span>✓</label>
+                <input type="radio" id="authorIncludeYes" name="authorInclude" title="{% trans 'Include authors' %}" value="true" {% if authorInclude %}checked="true"{% endif %}>
+              </div>
+
+              <div class="input-group align-items-center w-auto mx-2">
+                <label for="authorIncludeNo" class="col-form-label font-weight-bold" title="{% trans 'Exclude authors' %}"><span class="sr-only">{% trans 'Include authors' %}</span>✗</label>
+                <input type="radio" id="authorIncludeNo" name="authorInclude" title="{% trans 'Exclude authors' %}" value="false" {% if not authorInclude %}checked="true"{% endif %}>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex mx-n2" id="authorList">
+              {% for author in authors %}
+                <div id="author{{ forloop.counter }}" class="alert alert-info alert-dismissible alert-auto col-auto py-2 mx-2">
+                  {{author}}
+                  <button type="button" class="close py-2" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                  <script>
+                    $('#author{{ forloop.counter }}').on('closed.bs.alert', function () {
+                      var currentAuthors = $('#hdnAuthors').val().replace('|{{author}}','');
+                      $('#hdnAuthors').val(currentAuthors);
+                    });
+                  </script>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col-auto form-group">
+            <div class="input-group align-items-center ">
+              {# Translators: Search field to limit results by title #}
+              <label for="txtTitle" class="col-form-label font-weight-bold">{% trans 'Title' %}:</label>
+              <input type="text" id="txtTitle" name="title" class="form-control mx-2" value="{{ title }}" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col-auto form-group">
+            <div class="input-group align-items-center">
+              {# Translators: Search field to add lower limit to results by publication year #}
+              <label for="txtFromYear" class="col-form-label font-weight-bold">{% trans 'Publication year from' %}:</label>
+              <input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control mx-2" value="{{ fromYear }}">
+
+              {# Translators: Search field to add upper limit to results by publication year #}
+              <label for="txtToYear" class="col-form-label font-weight-bold">{% trans 'to' %}:</label>
+              <input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control mx-2" value="{{ toYear }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col-auto form-group">
+            {# Translators: Search field to interpret query terms strictly #}
+            <input id="chkStrict" type="checkbox" class="form-check-label" name="strict" value="true" {% if strict %} checked="true" {% endif %} />
+            <label for="chkStrict" class="font-weight-bold form-check-label">{% trans 'Strict' %}</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col-auto form-group">
+            <div class="input-group align-items-center">
+              {# Translators: Sort by drop-down title #}
+              <label for="selSortBy" class="col-form-label font-weight-bold">{% trans 'Sort by' %}:</label>
+
+              <select class="custom-select mx-2" id="selSortBy" name="sortBy">
+                {# Translators: Drop-down value to sort by score #}
+                <option value="score" {% if sortBy == "score" %}selected{% endif %}>{% trans 'sort by score' %}</option>
+                {# Translators: Drop-down value to sort by year in ascending order #}
+                <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{% trans 'sort by year ascending' %}</option>
+                {# Translators: Drop-down value to sort by year in descending order #}
+                <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{% trans 'sort by year descending' %}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="col-auto form-group">
+            <div class="input-group align-items-center">
+              {# Translators: Search field to limit results by document reference number #}
+              <label for="txtReference" class="col-form-label font-weight-bold">{% trans 'Reference number' %}:</label>
+              <input type="text" id="txtReference" name="reference" class="form-control mx-2" value="{{ reference }}"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row justify-content-end">
+          <div class="col-auto form-group mx-n2">
+            <div class="input-group">
+              {# Translators: Clear all search results #}
+              <a class="btn btn-secondary mx-2" href="/" role="button">{% trans 'Clear results' %}</a>
+              <button type="submit" class="btn btn-primary mx-2">{% trans 'Search' %}</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+</div>

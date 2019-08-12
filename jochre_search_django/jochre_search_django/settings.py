@@ -36,7 +36,8 @@ ROOT_URLCONF = 'jochre_search_django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
             'templates'
         ],
         'APP_DIRS': True,

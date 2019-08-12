@@ -1,0 +1,104 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Fix a word' %}"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        {# Translator: Title on correction form #}
+        <h5 class="modal-title" id="fixWordModalTitle">{% trans 'Fix a word' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center justify-content-center mb-3" style="height: 64px;">
+          <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
+          <div id="imgWordLoading" class="collapse">
+            <img src="{% static "images/preloaders126.gif" %}" />
+          </div>
+        </div>
+        <form>
+          <fieldset>
+            {# Translators: Instructions on how to fix a word #}
+            <p>
+              {% blocktrans trimmed %}
+              Please enter the word exactly as it appears above, including niqqud, apostrophes, quotes, dashes, and other punctuation.
+              If the word is badly segmented (i.e. if only part of the word appears), do not correct it.
+              {% endblocktrans %}
+            </p>
+            <div class="form-group row">
+              {# Translator: Form label on correction form #}
+              <label for="txtSuggestion" class="col-2 col-form-label">{% trans 'Word' %}:</label>
+              <div class="col-10">
+                <div class="row">
+                  <div class="col-auto d-flex align-items-center">
+                    <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="form-control">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-auto d-flex align-items-center">
+                    <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="form-control">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group row">
+              {# Translator: Form label on correction form #}
+              <label for="selFont" class="col-2 col-form-label">{% trans 'Font' %}:</label>
+              <div class="col-6">
+                <select id="selFont" name="selFont" class="custom-select">
+                  {% for fontCode in JOCHRE_FONT_LIST %}
+                    <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="form-group row">
+              {# Translator: Form label on correction form #}
+              <label class="col-2 col-form-label">{% trans 'Font example' %}:</label>
+              <div class="col-10">
+                <img id="imgFont" class="border rounded p-1" style="max-width: 95%; max-height:40px;" />
+              </div>
+            </div>
+            <div class="form-group row">
+              {# Translator: Form label on correction form #}
+              <label for="selLang" class="col-2 col-form-label">{% trans 'Language' %}:</label>
+              <div class="col-4">
+                <select id="selLang" name="selLang" class="custom-select">
+                  {% for languageCode in JOCHRE_LANGUAGE_LIST %}
+                    <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        {# Translator: Button label on correction form #}
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
+        {# Translator: Button label on correction form #}
+        <button id="btnSaveFixWord" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
+      </div>
+      <div id="alertFixWordSuccess" class="alert alert-success alert-dismissible d-none mx-3" role="alert">
+        {# Translator: Confirmation text on correction form #}
+        <strong>{% trans 'Suggestion recorded.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="alertFixWordError" class="alert alert-danger alert-dismissible d-none mx-3" role="alert">
+        {# Translator: Error text on correction form #}
+        <strong>{% trans 'An error occurred.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

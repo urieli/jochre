@@ -1,0 +1,24 @@
+<nav class="navbar navbar-expand-md" aria-label="Page navigation">
+  <div class="mx-auto order-0">
+    <ul class="pagination flex-wrap">
+      {% for pageLink in pageLinks %}
+        {% if pageLink.active %}
+          <li class="page-item page-{{ pageLink.type }}">
+            <a id="pageLink{{ forloop.counter }}" class="page-link" href="#" {% if pageLink.title %}title="{{ pageLink.title }}"{% endif %}>{{ pageLink.name}}</a>
+            <script>
+              $("#pageLink{{ forloop.counter }}").click(function(){
+                $("#hdnPage").val("{{ pageLink.val }}");
+                $("#frmQuery").submit();
+                return false;
+              });
+            </script>
+          </li>
+        {% else %}
+          <li class="page-item page-{{ pageLink.type }} disabled" {% if pageLink.title %}title="{{ pageLink.title }}"{% endif %}>
+            <a class="page-link">{{ pageLink.name }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</nav>

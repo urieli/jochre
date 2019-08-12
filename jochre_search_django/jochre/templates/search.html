@@ -1,665 +1,88 @@
+{% extends 'wrapper.html' %}
+
 {% load staticfiles %}
 {% load i18n %}
 {% load custom_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 {% get_current_language_bidi as RTL %}
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<title>Jochre Search</title>
+{% block head_title %}{% trans 'Jochre Search' %}{% endblock %}
 
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'css/typeaheadjs.css' %}" />
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-</head>
-<body>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"
-        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-        crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
-        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-        crossorigin="anonymous"></script>
-<script src="https://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
+{% block content %}
+  <div class="flex-grow-1">
+    <form id="frmQuery" method="get" accept-charset="UTF-8">
+      <input type="hidden" name="page" id="hdnPage" value="1" />
 
-{% include "header-local.html" %}
+      {% include "search/search-pane.html" %}
 
-<script>
-  var JOCHRE_SEARCH_EXT_URL = "{{ JOCHRE_SEARCH_EXT_URL }}";
-  var USERNAME = "{{ request.user.username }}";
-  var IP = "{{ ip }}";
-  var STATIC_LOCATION = "{% static "" %}";
-</script>
-<script src="{% static "js/search.js" %}"></script>
-
-<form id="frmQuery" method="get" accept-charset="UTF-8">
-<input type="hidden" name="page" id="hdnPage" value="1" />
-<div class="d-flex justify-content-end m-2">
-  <div class="row">
-    {% if user.socialaccount_set.all.0.get_avatar_url %}
-      <div class="col-1"><img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" style="width:40px; height:40px;"/></div>
-    {% else %}
-      <div class="col-1"><img src="{% static "images/Portrait_Placeholder.png" %}" style="width:40px; height:40px;"/></div>
-    {% endif %}
-    <div class="col-2">
-        {% if request.user.first_name or request.user.last_name %}
-            <a id="updatePreferences" href="#">{{ request.user.first_name }}&nbsp;{{ request.user.last_name }}</a>
-        {% else %}
-            <a id="updatePreferences" href="#">{{ request.user.username }}</a>
-        {% endif %}
-        <br/>
-        <a href="accounts/logout/">{% trans "logout" %}</a>
-        <br/>
-        <a id="updateKeyboardMappings" href="#"><img src="{% static 'images/keyboard.png' %}" style="width:40px"></a>
-    </div>
-    <div class="col-9{% if RTL %} rtl{% else %} ltr{% endif %}">
-      <p class="page-title">{% if JOCHRE_TITLE|lookup:LANGUAGE_CODE %}{{ JOCHRE_TITLE|lookup:LANGUAGE_CODE }}{% else %}{{ JOCHRE_TITLE.en }}{% endif %}</p>
-      <p>{% autoescape off %}{% if JOCHRE_CREDITS|lookup:LANGUAGE_CODE %}{{ JOCHRE_CREDITS|lookup:LANGUAGE_CODE }}{% else %}{{ JOCHRE_CREDITS.en }}{% endif %}{% endautoescape %}</p>
-    </div>
-  </div>
-</div>
-<hr style="margin-top:0px;">
-<div class="container{% if RTL %} rtl{% endif %}">
-  <div class="d-flex flex-row">
-    <div class="input-group input-group-sm m-1">
-      <input type="text" id="txtQuery" name="query" value="{{ query }}" class="w-50{% if FIELDS_LTR.contents %} ltr{% else %} rtl{% endif %}" />
-      <div class="input-group-append">
-        <button type="submit" class="btn btn-primary btn-sm">{% trans "search button" %}</button>&nbsp;
-        <span id="toggleAdvancedSearch" ><img src="{% static 'images/plusInCircle.png' %}" style="width:20px; border: none;" /></span>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="container-fluid{% if RTL %} rtl{% endif %}{% if not displayAdvancedSearch %} collapse{% endif %} mt-1" id="advancedSearch">
-  <fieldset>
-  <div class="d-flex flex-row">
-    <div class="col-6 author p-0 m-0">
-      <div class="input-group input-group-sm m-1">
-        {# Translators: Search field to limit results by author #}
-        <label for="txtAuthor">{% trans 'author field' %}:&nbsp;</label>
-        <div class="alert-auto">
-          <input id="txtAuthor" name="author" class="form-control typeahead{% if FIELDS_LTR.author %} ltr{% else %} rtl{% endif %}" type="text" placeholder="{% trans 'author field' %}" autocomplete="off" {% if FIELDS_LTR.author %}dir="ltr"{% else %}dir="rtl"{% endif %}>
-          <input id="hdnAuthors" name="author" type="hidden" value="{{ authorQuery }}" />
+      {% if parseException %}
+        <div class="container w-minor py-4">
+          <div class="row justify-content-center">
+              <div class="col-lg-9">
+              {% block searcherror %}
+                <p>{% trans 'Unable to process query' %}:</p>
+                <p>{% autoescape off %}{{ parseException }}{% endautoescape %}</p>
+              {% endblock %}
+             </div>
+          </div>
         </div>
-        <div class="input-group-append">
-          &nbsp;<button type="button" id="addAuthor" class="btn btn-secondary btn-sm" aria-label="add author">+</button>
-          &nbsp;✓<input type="radio" name="authorInclude" value="true" {% if authorInclude %}checked="true"{% endif %}>
-          &nbsp;✗<input type="radio" name="authorInclude" value="false" {% if not authorInclude %}checked="true"{% endif %}>
+      {% elif not haveSearch %}
+        <div class="container w-minor py-4">
+          <div class="row justify-content-center">
+              <div class="col-lg-9">
+              {% block enterterm %}
+                <p>{% trans 'Please enter a search term' %}</p>
+              {% endblock %}
+           </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="col-6{% if FIELDS_LTR.author %} ltr{% else %} rtl {% endif %}" id="authorList" {% if FIELDS_LTR.author %}dir="ltr"{% else %}dir="rtl"{% endif %}>
-      {% for author in authors %}
-      <div id="author{{ forloop.counter }}" class="alert alert-success alert-dismissible p-0 alert-auto">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{author}}
-        <button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
-        <script>
-          $('#author{{ forloop.counter }}').on('closed.bs.alert', function () {
-            var currentAuthors = $('#hdnAuthors').val().replace('|{{author}}','');
-            console.log(currentAuthors);
-            $('#hdnAuthors').val(currentAuthors);
-          });
-        </script>
-      </div>&nbsp;
-    {% endfor %}
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1">
-        {# Translators: Search field to limit results by title #}
-        <label for="txtTitle">{% trans 'title field' %}:&nbsp;</label>
-        <input type="text" id="txtTitle" name="title" class="form-control{% if FIELDS_LTR.title %} ltr{% else %} rtl{% endif %}" value="{{ title }}" placeholder="{% trans 'title field' %}" />
-      </div>
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1">
-        {# Translators: Search field to add lower limit to results by publication year #}
-        <label for="txtFromYear">{% trans 'from year' %}:&nbsp;</label>
-        <input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control" value="{{ fromYear }}">
-        {# Translators: Search field to add upper limit to results by publication year #}
-        <label for="txtToYear">&nbsp;&nbsp;{% trans 'to year' %}:&nbsp;</label>
-        <input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control" value="{{ toYear }}">
-      </div>
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1 checkboxes">
-        <label for="chkStrict"><input id="chkStrict" type="checkbox" name="strict" value="true" {% if strict %} checked="true" {% endif %}/>
-        {# Translators: Search field to interpret query terms strictly #}
-        <span>{% trans 'strict field' %}?</span></label>
-      </div>
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1">
-        {# Translators: Sort by drop-down title #}
-        <label for="selSortBy">{% trans 'sort by' %}:&nbsp;</label>
-        <select class="form-control" id="selSortBy" name="sortBy">
-          {# Translators: Drop-down value to sort by score #}
-          <option value="score" {% if sortBy == "score" %}selected{% endif %}>{% trans 'sort by score' %}</option>
-          {# Translators: Drop-down value to sort by year in ascending order #}
-          <option value="yearAsc" {% if sortBy == "yearAsc" %}selected{% endif %}>{% trans 'sort by year ascending' %}</option>
-          {# Translators: Drop-down value to sort by year in descending order #}
-          <option value="yearDesc" {% if sortBy == "yearDesc" %}selected{% endif %}>{% trans 'sort by year descending' %}</option>
-        </select>
-      </div>
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1">
-        {# Translators: Search field to limit results by document reference number #}
-        <label for="txtReference">{% trans 'reference field' %}:&nbsp;</label>
-        <input type="text" id="txtReference" name="reference" class="form-control {% if FIELDS_LTR.referenceNumber %} ltr{% else %} rtl{% endif %}" value="{{ reference }}" placeholder="{% trans 'reference field' %}" />
-      </div>
-    </div>
-  </div>
-  <div class="d-flex flex-row m-0 p-0">
-    <div class="form-group author m-0 p-0">
-      <div class="input-group input-group-sm m-1">
-        <a class="btn btn-secondary" href="/" role="button">{% trans 'clear form' %}</a>
-      </div>
-    </div>
-  </div>
-</fieldset>
-</div>
-
-{% if parseException %}
-  <p>{% trans 'Unable to process query' %}:</p>
-  <p>{% autoescape off %}{{ parseException }}{% endautoescape %}</p>
-{% elif not haveSearch %}
-{% elif not haveResults %}
-  <p>{% trans 'No search results' %}</p>
-{% else %}
-<div class="container-fluid{% if RTL %} rtl{% endif %}">
-  <div class="row">
-    <div class="col-6"><div class="author"><b>
-    {% if resultCount <= maxResults %}
-      {% blocktrans with count=resultCount %}Found {{ count }} results.{% endblocktrans %}
-    {% else %}
-      {% blocktrans with count=resultCount %}Found more than {{ count }} results.{% endblocktrans %}
-    {% endif %}
-    {% blocktrans %}Results {{ start }} to {{ end }}:{% endblocktrans %}
-    </b></div></div>
-  </div>
-{% for result in results %}
-  <div class="row mt-1 mb-1">
-    <div class="col-12"><div class="black-separator"></div></div>
-  </div>
-  {# Translators: Title metadata #}
-  <div class="row">
-    <div class="col-6"><div class="title"><b>{% trans 'title meta' %}:</b> <span {% if FIELDS_LTR.title %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{% if readOnline %}{{ result.doc.title }}</a>{% endif %}</span>
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'title meta' %}', true, '{{result.doc.title|escapejs}}');">
-    </div></div>
-  </div>
-  {% if result.doc.titleEnglish %}
-    <div class="row">
-      {# Translators: Title metadata in alternate alphabet #}
-      <div class="col-6"><div class="author"><b>{% trans 'alternate alphabet title meta' %}:</b> <span {% if FIELDS_LTR.titleTranscribed %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a></span>{% endif %}
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');">
-      </div></div>
-    </div>
-  {% endif %}
-  {% if result.doc.volume %}
-    <div class="row">
-      <div class="col-6"><div class="author"><b>{% trans 'volume' %}:</b> <span {% if FIELDS_LTR.volume %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.volume }}</span>
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');">
-      </div></div>
-    </div>
-  {% endif %}
-  <div class="row">
-    {# Translators: Author metadata #}
-    <div class="col-6"><div class="author"><b>{% trans 'author meta' %}:</b> <span {% if FIELDS_LTR.author %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.author }}</span>
-      &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');">
-    </div></div>
-  </div>
-  {% if result.doc.authorEnglish %}
-    <div class="row">
-      {# Translators: Author metadata in alternate alphabet #}
-      <div class="col-6"><div class="author"><b>{% trans 'alternate alphabet author meta' %}:</b> <span {% if FIELDS_LTR.authorTranscribed %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.authorEnglish }}</span>
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');">
-      </div></div>
-    </div>
-  {% endif %}
-  {% if showSection %}
-    <div class="row">
-      <div class="col-6" class="author"><b>{% trans 'section' %}:</b> {% blocktrans with startPage=doc.startPage endPage=doc.endPage %}Pages {{ startPage }} to {{ endPage }}{% endblocktrans %}</div>
-    </div>
-  {% endif %}
-  {% if result.doc.publisher %}
-    <div class="row">
-      <div class="col-6"><div class="author"><b>{% trans 'publisher' %}:</b> <span {% if FIELDS_LTR.publisher %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.publisher }}</span>
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');">
-      </div></div>
-    </div>
-  {% endif %}
-  {% if result.doc.date %}
-    <div class="row">
-      <div class="col-6"><div class="author"><b>{% trans 'date' %}:</b> <span {% if FIELDS_LTR.date %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.date }}</span>
-        &nbsp;<img src="{% static 'images/pencil.svg' %}" class="editImage" onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');">
-      </div></div>
-    </div>
-  {% endif %}
-  {% if result.doc.id %}
-    <div class="row">
-      <div class="col-6"><div class="author"><b>{% trans 'referenceNumber' %}:</b> <span {% if FIELDS_LTR.referenceNumber %}dir="ltr" class="ltr"{% else %}dir="rtl" class="rtl"{% endif %}>{{ result.doc.id }}</span> </div></div>
-    </div>
-  {% endif %}
-  {% if highlights %}
-  {% if result.snippetError %}
-     <p style="color:red;">{{ result.snippetError.message }}</p>
-     <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
-  {% else %}
-  {% for snippet in result.snippets %}
-    <div class="d-flex flex-row mt-2">
-      <div class="col-2 col-xl-1">
-        <b>{% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank">{% endif %}{{ snippet.pageNumber }}{% if readOnline %}</a>{% endif %}</b>
-        <a href="/contents?doc={{ result.doc.name }}#page{{ snippet.pageNumber }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></a>
-        <a id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" data-toggle="collapse" href="#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" ><img src="{% static 'images/image.png' %}" border="0" /></a>
-      </div>
-      <div class="col-xl-4 col-lg-6 col-md-8 col-10">
-        <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}dir="ltr" class="snippet ltr"{% else %}dir="rtl" class="snippet rtl"{% endif %}>{% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}</div>
-      </div>
-    </div>
-    <div class="d-flex flex-row mr-1 ml-1 mt-2" id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
-      <div class="col-xl-6 col-lg-8 col-md-10 col-12 collapse" id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
-      </div>
-    </div>
-    <script>
-      $(function() {
-        $("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").click(function(evt){
-          window.open('{{ snippet.readOnlineUrl }}', '_blank');
-        });
-
-        $('#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}').data('counter', 0);
-
-        // Note a counter is added to the end of the URL simply to force a reload each time the image
-        // is opened. Normally this wouldn't be required, but in the case where the image failed to load
-        // the first time, this would reload it after a close and open.
-        // The "maxResults" parameter is meaningless here, it is simply used to update the URL and prevent caching.
-        $("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on('show.bs.collapse', function () {
-          $(this).html(`<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}&maxResults=${$(this).data('counter')}" class="image" />`);
-          $(this).data('counter', $(this).data('counter')+1);
-        });
-      
-        {% if JOCHRE_CROWD_SOURCE %}
-          $("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").dblclick(function(evt){
-            fixWord(evt, {{ result.doc.docId }});
-          });
-        {% endif %}
-      });
-    </script>
-  {% endfor %}
-  {% endif %}
-  {% else %}
-  <div class="row">
-    <div class="col-6"><div class="author"><a href="/contents?doc={{ result.doc.name }}" target="_blank"><img src="{% static 'images/text.png' %}" border="0" /></div></div>
-  </div>
-  {% endif %}
-  <div class="row"><div class="col" height="10px"></div></div>
-{% endfor %}
-</div>
-<nav class="navbar navbar-expand-md" aria-label="Page navigation">
-  <div class="mx-auto order-0">
-    <ul class="pagination">
-      {% for pageLink in pageLinks %}
-        {% if pageLink.active %}
-          <li class="page-item"><a id="pageLink{{ forloop.counter }}" class="page-link" href="#">{{ pageLink.name}}</a>
-          <script>
-            $("#pageLink{{ forloop.counter }}").click(function(){
-              $("#hdnPage").val("{{ pageLink.val }}");
-              $("#frmQuery").submit();
-              return false;
-            });
-          </script>
-          </li>
-        {% else %}
-          <li class="page-item disabled"><a class="page-link">{{ pageLink.name }}</a></li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  </div>
-</nav>
-{% endif %}
-</form>
-
-<div class="modal fade" id="fixWordModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'fixWordTitle' %}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content{% if RTL %} rtl{% endif %}">
-      <div class="modal-header">
-        <h5 class="modal-title" id="fixWordModalTitle">{% trans 'fixWordTitle' %}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div style="width:100%; height:64px; display: flex; align-items: center; justify-content: center;">
-          <img id="imgFixWord" style="max-width: 95%; max-height:64px;" />
+      {% elif not haveResults %}
+        <div class="container w-minor py-4">
+          <div class="row justify-content-center">
+              <div class="col-lg-9">
+              {% block noresults %}
+                <p>{% trans 'No search results' %}</p>
+              {% endblock %}
+             </div>
+          </div>
         </div>
-        <form>
-          <fieldset>
-            {# Translators: Instructions on how to fix a word #}
-            <p>{% trans 'fixWordInstructions' %}</p>
-            <div class="form-group row">
-              <label for="txtSuggestion" class="col-2 col-form-label">{% trans 'fixWordWord' %}</label>
-              {% if RTL %}
-              <div class="col-10">
-                <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="rtl collapse" style="width:150px;">
-                <input type="text" name="txtSuggestion" id="txtSuggestion" value="" class="rtl" style="width:150px;">
-              </div>
-              {% else %}
-              <div class="col-10">
-                <input type="text" name="txtSuggestion" id="txtSuggestion" value="" style="width:150px;">
-                <input type="text" name="txtSuggestion2" id="txtSuggestion2" value="" class="collapse" style="width:150px;">
-              </div>
-              {% endif %}
-            </div>
-            <div class="form-group row">
-              <label for="selFont" class="col-2 col-form-label">{% trans 'fixWordFont' %}</label>
-              <div class="col-10">
-                <select id="selFont" name="selFont">
-                  {% for fontCode in JOCHRE_FONT_LIST %}
-                  <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="form-group row">
-              <label class="col-2 col-form-label">{% trans 'fixWordFontExample' %}</label>
-              <div class="col-10"><img id="imgFont" style="max-width: 95%; max-height:32px;" /></div>
-            </div>
-            <div class="form-group row">
-              <label for="selLang" class="col-2 col-form-label">{% trans 'fixWordLanguage' %}</label>
-              <div class="col-10">
-                <select id="selLang" name="selLang">
-                  {% for languageCode in JOCHRE_LANGUAGE_LIST %}
-                  <option value="{{languageCode}}">{{JOCHRE_LANGUAGE_NAMES|get_item:languageCode}}</option>
-                  {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div id="imgWordLoading" class="collapse">
-              <img src="{% static "images/preloaders126.gif" %}" />
-            </div>
-          </fieldset>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
-        <button id="btnSaveFixWord" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
-      </div>
-      <div id="alertFixWordSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>{% trans 'Suggestion recorded.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div id="alertFixWordError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>{% trans 'An error occurred.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+      {% else %}
+        <div class="container py-4">
+          <div class="row justify-content-center">
+              <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-1 mx-n2">
+                  <div class="h5 m-2 font-weight-bold results-summary">
+                    {% if resultCount <= maxResults %}
+                      {% blocktrans with count=resultCount %}Found {{ count }} results.{% endblocktrans %}
+                    {% else %}
+                      {% blocktrans with count=resultCount %}Found more than {{ count }} results.{% endblocktrans %}
+                    {% endif %}
+                    {% blocktrans %}Results {{ start }} to {{ end }}:{% endblocktrans %}
+                  </div>
 
-<div class="modal fade" id="correctMetaModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'correctMetaTitle' %}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content{% if RTL %} rtl{% endif %}">
-      <div class="modal-header">
-        <h5 class="modal-title" id="correctMetaTitle">{% trans 'correctMetaTitle' %}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form>
-          <fieldset>
-            {# Translators: Instructions on how to correct metadata #}
-            <p>{% trans 'correctMetaInstructions' %}</p>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <label for="correctMetaFieldName">{% trans 'correctMetaFieldName' %}:&nbsp;</label>
-                  <span id="correctMetaFieldName"></span>
+                  <a href="/" class="text-nowrap btn btn-secondary mx-2" role="button">{% trans 'Clear results' %}</a>
                 </div>
               </div>
-            </div>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <label for="correctMetaCurrentValue">{% trans 'correctMetaCurrentValue' %}:&nbsp;</label>
-                  <span id="correctMetaCurrentValue"></span>
-                </div>
-              </div>
-            </div>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge1" value="replace">&nbsp;</span>
-                  <label for="correctMetaNewValue">{% trans 'correctMetaNewValue' %}:&nbsp;</label>
-                  <input type="text" name="correctMetaNewValue" id="correctMetaNewValue" class="w-100" value="">
-                </div>
-              </div>
-            </div>
-            <div class="d-none flex-row m-0 p-0" id="correctMetaAuthorMergeDiv">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge2" value="merge">&nbsp;</span>
-                  <label for="correctMetaAuthorMergeWith">{% trans 'correctMetaMergeWith' %}:&nbsp;</label>
-                  <input type="text" name="correctMetaAuthorMergeWith" id="correctMetaAuthorMergeWith" class="w-100" value="" disabled="true">
-                </div>
-              </div>
-            </div>
-            <div class="d-none flex-row m-0 p-0" id="correctMetaAuthorEnglishMergeDiv">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <span class="replaceOrMerge d-none"><input type="radio" name="replaceOrMerge" id="replaceOrMerge3" value="merge">&nbsp;</span>
-                  <label for="correctMetaAuthorEnglishMergeWith">{% trans 'correctMetaMergeWith' %}:&nbsp;</label>
-                  <input type="text" name="correctMetaAuthorEnglishMergeWith" id="correctMetaAuthorEnglishMergeWith" class="w-100" value="" disabled="true">
-                </div>
-              </div>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
-        <button id="btnCorrectMetaSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
-      </div>
-      <div id="alertCorrectMetaSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>{% trans 'Correction recorded.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div id="alertCorrectMetaError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>{% trans 'An error occurred.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
 
-<div class="modal fade" id="keyboardModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Update key mappings' %}" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content{% if RTL %} rtl{% endif %}">
-      <div class="modal-header">
-        <h5 class="modal-title">{% trans 'Update key mappings' %}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="frmKeys" role="form" autocomplete="off">
-          {% csrf_token %}
-          <input type="hidden" id="frmKeysAction" name="action">
-          <div class="d-flex">
-            <div class="input-group m-1 checkboxes">
-              <label for="frmKeysEnabled" class="col-12 col-form-label">
-              <input type="checkbox" id="frmKeysEnabled" name="enabled">
-              <span>{% trans 'Enable keyboard mappings' %}</span></label>
+        <div class="container search-results py-4">
+          <div class="row justify-content-center">
+            <div class="col-lg-9">
+              {% for result in results %}
+                {% include "search/search-result.html" %}
+              {% endfor %}
             </div>
           </div>
-          <div id="keyboardEntries" class="d-flex flex-wrap">
-          </div>
-        </form>
-        <script>
-        $('#frmKeys').on('click', '.btn-add', function(e)
-        {
-          e.preventDefault();
+        </div>
 
-          var entries = $('#keyboardEntries');
-          var currentEntry = $(this).parents('.entry:first');
-          var newEntry = $(currentEntry.clone()).appendTo(entries);
-
-          newEntry.find('input').val('');
-          entries.find('.entry:not(:last) .btn-add')
-            .removeClass('btn-add').addClass('btn-remove')
-            .removeClass('btn-success').addClass('btn-danger')
-            .html('-');
-        }).on('click', '.btn-remove', function(e)
-        {
-          $(this).parents('.entry:first').remove();
-          e.preventDefault();
-          return false;
-        });
-        </script>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Cancel' %}</button>
-        <button id="btnKeyboardDefault" type="button" class="btn btn-warning">{% trans 'Restore defaults' %}</button>
-        <button id="btnKeyboardSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
-      </div>
-      <div id="alertKeyboardSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>{% trans 'Keyboard mappings updated.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div id="alertKeyboardError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>{% trans 'An error occurred.</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    </div>
+        {% include "search/pagination.html" %}
+      {% endif %}
+    </form>
   </div>
-</div>
 
-<div class="modal fade" id="preferencesModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Update preferences' %}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content{% if RTL %} rtl{% endif %}">
-      <div class="modal-header">
-        <h5 class="modal-title">{% trans 'Update preferences' %}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="frmPrefs" role="form" autocomplete="off">
-          {% csrf_token %}
-          <input type="hidden" id="frmPrefsAction" name="action">
-          <fieldset>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <label for="docsPerPage">{% trans "Interface language" %}:&nbsp;</label>
-          &nbsp;<input type="radio" name="interfaceLanguage" value="yi" {% if LANGUAGE_CODE == "yi" %}checked="true"{% endif %}>ייִדיש
-          &nbsp;<input type="radio" name="interfaceLanguage" value="en" {% if LANGUAGE_CODE == "en" %}checked="true"{% endif %}>English
-                </div>
-              </div>
-            </div>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <label for="docsPerPage">{% trans 'prefsDocsPerPage' %}:&nbsp;</label>
-                  <input type="number" min="1" max="200" step="1" id="docsPerPage" name="docsPerPage" class="form-control" value="" placeholder="" />
-                </div>
-              </div>
-            </div>
-            <div class="d-flex flex-row m-0 p-0">
-              <div class="form-group m-0 p-0">
-                <div class="input-group input-group-sm m-1">
-                  <label for="snippetsPerDoc">{% trans 'prefsSnippetsPerDoc' %}:&nbsp;</label>
-                  <input type="number" min="1" max="1000" step="1" id="snippetsPerDoc" name="snippetsPerDoc" class="form-control" value="" placeholder="" />
-                </div>
-              </div>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Cancel' %}</button>
-        <button id="btnDefaultPrefs" type="button" class="btn btn-warning">{% trans 'Restore defaults' %}</button>
-        <button id="btnSavePrefs" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
-      </div>
-      <div id="alertPrefsSuccess" class="alert alert-success alert-dismissible collapse" role="alert">
-        <strong>{% trans 'Preferences saved.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div id="alertPrefsError" class="alert alert-error alert-dismissible collapse" role="alert">
-        <strong>{% trans 'An error occurred.' %}</strong>
-        <button type="button" class="close" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
-<script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
-<script>
-window.addEventListener("load", function(){
-window.cookieconsent.initialise({
-  "palette": {
-    "popup": {
-      "background": "#edeff5",
-      "text": "#838391"
-    },
-    "button": {
-      "background": "#4b81e8"
-    }
-  }
-})});
-</script>
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <hr/>
-    </div>
-  </div>
-</div>
-<div class="d-flex justify-content-center m-0{% if RTL %} rtl{% endif %}">
-  <div class="row">
-    <div class="col text-center">
-      {% blocktrans %}Index size: {{ bookCount }} books.{% endblocktrans %}<br>
-      <a href="/privacy" target="_blank">{% trans 'Privacy Policy' %}</a>
-      <br><br>
-      <strong>{% trans 'Powered by' %}</strong> <a href="https://github.com/urieli/jochre/" target="_blank"><img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;"  /></a>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+  {% include "search/word-modal.html" %}
+  {% include "search/keyboard-modal.html" %}
+  {% include "search/preferences-modal.html" %}
+  {% include "search/correct-meta-modal.html" %}
+{% endblock %}
