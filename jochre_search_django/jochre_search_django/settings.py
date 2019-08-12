@@ -16,7 +16,6 @@ import django.conf.locale
 
 from django.conf import global_settings
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -54,7 +53,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jochre_search_django.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -64,7 +62,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -83,7 +80,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # auth and allauth settings
 
@@ -116,19 +112,18 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 gettext_noop = lambda s: s
 
 LANGUAGES = (
-       ('yi', gettext_noop('Yiddish')),
+    ('yi', gettext_noop('Yiddish')),
 )
 
 EXTRA_LANG_INFO = {
     'yi': {
-        'bidi': True, # right-to-left
+        'bidi': True,  # right-to-left
         'code': 'yi',
         'name': 'Yiddish',
-        'name_local': u'ייּדיש', #unicode codepoints here
+        'name_local': u'ייּדיש',  # unicode codepoints here
     },
 }
 
