@@ -5,7 +5,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -283,15 +287,25 @@ public class TextController extends GenericForwardComposer<Window> {
 
         String lowerCaseFileName = currentFile.getName().toLowerCase();
         Thread thread = null;
+        final Set<Integer> pages;
+        if (startPage < 0 && endPage < 0)
+          pages = Collections.emptySet();
+        else {
+          if (startPage < 0)
+            startPage = 0;
+          if (endPage < 0)
+            endPage = 2000;
+          pages = IntStream.rangeClosed(startPage, endPage).boxed().collect(Collectors.toSet());
+        }
         if (lowerCaseFileName.endsWith(".pdf")) {
-          PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(currentFile, startPage, endPage, documentGenerator);
+          PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(currentFile, pages, documentGenerator);
           this.progressMonitor = pdfImageVisitor.monitorTask();
           this.currentHtmlIndex = 0;
           thread = new Thread(pdfImageVisitor);
           thread.setName(currentFile.getName() + " Processor");
           progressTimer.setRunning(true);
-        } else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")
-            || lowerCaseFileName.endsWith(".gif")) {
+        } else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg")
+            || lowerCaseFileName.endsWith(".jpeg") || lowerCaseFileName.endsWith(".gif")) {
           ImageDocumentExtractor extractor = new ImageDocumentExtractor(currentFile, documentGenerator);
           if (startPage >= 0)
             extractor.setPageNumber(startPage);
@@ -325,7 +339,8 @@ public class TextController extends GenericForwardComposer<Window> {
           currentHtmlIndex++;
         }
       }
-      if (this.progressMonitor.isFinished() || (currentThread != null && (currentThread.isInterrupted() || !currentThread.isAlive()))) {
+      if (this.progressMonitor.isFinished()
+          || (currentThread != null && (currentThread.isInterrupted() || !currentThread.isAlive()))) {
         if (this.progressMonitor.getException() != null) {
           lblCurrentAction.setValue(Labels.getLabel("imageMonitor.error"));
           errorBox.setVisible(true);
@@ -370,7 +385,8 @@ public class TextController extends GenericForwardComposer<Window> {
       btnInterrupt.setDisabled(true);
       lblCurrentAction.setValue(Labels.getLabel("imageMonitor.error"));
       errorBox.setVisible(true);
-      lblErrorMessage.setValue("Analysis interrupted by user - database may not be in clean state - contact administrator for help.");
+      lblErrorMessage.setValue(
+          "Analysis interrupted by user - database may not be in clean state - contact administrator for help.");
       progressMeter1.setValue(100);
       progressTimer.setRunning(false);
     } catch (Exception e) {
@@ -391,7 +407,7 @@ public class TextController extends GenericForwardComposer<Window> {
   }
 
   private class DocumentHtmlGenerator implements DocumentObserver {
-    private List<Html> htmlList = new ArrayList<Html>();
+    private List<Html> htmlList = new ArrayList<>();
 
     public DocumentHtmlGenerator() {
       super();
@@ -433,7 +449,7 @@ public class TextController extends GenericForwardComposer<Window> {
     }
 
     @Override
-    public void onAnalysisComplete() {  
-    }  
+    public void onAnalysisComplete() {
+    }
   }
 }
