@@ -3,6 +3,7 @@ package com.joliciel.jochre.pdf;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,24 +27,20 @@ public class PdfImageVisitor extends AbstractPdfImageVisitor implements Runnable
   private static final Logger LOG = LoggerFactory.getLogger(PdfImageVisitor.class);
 
   private final SourceFileProcessor documentProcessor;
-  private final int firstPage;
-  private final int lastPage;
+  private final Set<Integer> pages;
   MultiTaskProgressMonitor currentMonitor;
 
   /**
-   * @param firstPage
-   *            a value of -1 means no first page
-   * @param lastPage
-   *            a value of -1 means no last page
+   * @param pages
+   *          Pages to process, empty set means all pages
    * @param documentProcessor
-   *            a processor for the document being created (to allow
-   *            processing as we go).
+   *          a processor for the document being created (to allow processing as
+   *          we go).
    */
-  public PdfImageVisitor(File pdfFile, int firstPage, int lastPage, SourceFileProcessor documentProcessor) {
+  public PdfImageVisitor(File pdfFile, Set<Integer> pages, SourceFileProcessor documentProcessor) {
     super(pdfFile);
     this.documentProcessor = documentProcessor;
-    this.firstPage = firstPage;
-    this.lastPage = lastPage;
+    this.pages = pages;
   }
 
   @Override
@@ -67,7 +64,7 @@ public class PdfImageVisitor extends AbstractPdfImageVisitor implements Runnable
         jochreDocument.getFields().put(field.getKey(), field.getValue());
       }
 
-      this.visitImages(firstPage, lastPage);
+      this.visitImages(pages);
 
       JochrePage finalPage = jochreDocument.getCurrentPage();
       if (finalPage != null) {
@@ -105,7 +102,7 @@ public class PdfImageVisitor extends AbstractPdfImageVisitor implements Runnable
 
     if (currentMonitor != null && documentProcessor instanceof Monitorable) {
       ProgressMonitor monitor = ((Monitorable) documentProcessor).monitorTask();
-      double percentAllotted = (1 / (double) ((lastPage - firstPage) + 1));
+      double percentAllotted = (1 / (double) (pages.size() + 1));
       currentMonitor.startTask(monitor, percentAllotted);
     }
 

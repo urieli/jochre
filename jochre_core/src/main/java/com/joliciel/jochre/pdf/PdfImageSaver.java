@@ -21,6 +21,7 @@ package com.joliciel.jochre.pdf;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -41,21 +42,18 @@ public class PdfImageSaver extends AbstractPdfImageVisitor {
   private static String SUFFIX = "png";
 
   private final File outputDir;
-  private final int firstPage;
-  private final int lastPage;
+  private final Set<Integer> pages;
 
   /**
    * 
    * @param pdfFile
-   *            File to read
+   *          File to read
    * @param outputDirectory
-   *            Where to save the pages.
-   * @param firstPage
-   *            a value of -1 means no first page
-   * @param lastPage
-   *            a value of -1 means no last page
+   *          Where to save the pages.
+   * @param pages
+   *          Pages to process, empty set means all pages
    */
-  public PdfImageSaver(File pdfFile, String outputDirectory, int firstPage, int lastPage) {
+  public PdfImageSaver(File pdfFile, String outputDirectory, Set<Integer> pages) {
     super(pdfFile);
     // Create the output directory if it doesn't exist
     this.outputDir = new File(outputDirectory);
@@ -63,15 +61,14 @@ public class PdfImageSaver extends AbstractPdfImageVisitor {
     LOG.debug("Images will be stored to " + outputDirectory);
     if (outputDir.exists() == false)
       outputDir.mkdirs();
-    this.firstPage = firstPage;
-    this.lastPage = lastPage;
+    this.pages = pages;
   }
 
   /**
    * Save the images to the outputDirectory indicated.
    */
   public void saveImages() {
-    this.visitImages(firstPage, lastPage);
+    this.visitImages(pages);
   }
 
   @Override

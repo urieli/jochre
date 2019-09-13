@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.pdfbox.cos.COSName;
@@ -92,19 +93,17 @@ public abstract class AbstractPdfImageVisitor {
    * Visit all of the images in a pdf file.
    * 
    * @param firstPage
-   *            a value of -1 means no first page
+   *          a value of -1 means no first page
    * @param lastPage
-   *            a value of -1 means no last page
+   *          a value of -1 means no last page
    */
-  final protected void visitImages(int firstPage, int lastPage) {
+  final protected void visitImages(Set<Integer> pages) {
     try {
       int i = 0;
       for (PDPage pdfPage : pdfDocument.getPages()) {
         i++;
-        if (i < firstPage)
+        if (!pages.isEmpty() && !pages.contains(i))
           continue;
-        if (lastPage > 0 && i > lastPage)
-          break;
 
         LOG.info("Decoding page " + i + " (out of " + pdfDocument.getNumberOfPages() + ")");
 
@@ -120,8 +119,8 @@ public abstract class AbstractPdfImageVisitor {
               PDImageXObject pdfImage = (PDImageXObject) pdxObject;
               BufferedImage image = pdfImage.getImage();
               if (image == null) {
-                throw new PdfImageExtractionException(
-                    "Something went wrong: unable to extract image " + j + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
+                throw new PdfImageExtractionException("Something went wrong: unable to extract image " + j
+                    + " in file  " + pdfFile.getAbsolutePath() + ", page " + i);
               }
               this.visitImage(image, cosName.getName(), i, j);
               j++;
