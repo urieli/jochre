@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.conf import settings
 from django.template.defaulttags import register
+from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.utils import translation
 from django.utils.translation import gettext
@@ -322,7 +323,7 @@ def search(request):
     bookCount = resp["bookCount"]
     model["bookCount"] = bookCount
 
-    return render(request, 'search.html', model)
+    return TemplateResponse(request, template='search.html', context=model)
 
 
 @register.filter
