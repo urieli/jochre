@@ -46,3 +46,37 @@ Once you've created this app, you'll need to add it to `INSTALLED_APPS` in your 
 Templates can either be overridden entirely, or extended using the built-in template blocks. For more information on extending templates, see https://tutorial.djangogirls.org/en/template_extending/.
 
 If you add static assets, you'll need to rebuild them by running `python3 manage.py collectstatic` from within this directory. For more information on managing static assets, see https://docs.djangoproject.com/en/2.2/howto/static-files/.
+
+## Adding custom views and URLs
+
+In addition to adding custom templates, you can also add custom URLs from the `custom` app. To do this, create a `urls.py` file in the app directory and add your own URLs in `urlpatterns`. For example:
+
+```python3
+from django.urls import include, path
+from custom.views import search
+
+urlpatterns = [
+    path('', search, name='home'),
+]
+```
+
+This allows us to override the base search URL. Since the base view returns a `TemplateResponse`, we can manipulate this in our overridden view. Create a `views.py` in the `custom` app directory containing the view:
+
+```python3
+from jochre.views import search as jochre_search
+from django.template.response import TemplateResponse
+
+def search(request):
+    response = jochre_search(request)
+
+    if isinstance(response, TemplateResponse):
+        response.context_data['foo'] = 'bar'
+
+    return response
+```
+
+Here we can use the `context_data` to add a new value which will be available as `{{ foo }}` in our search view template.
+
+For more information on views and URLs, see the Django documentation:
+- https://docs.djangoproject.com/en/2.2/topics/http/urls/
+- https://docs.djangoproject.com/en/2.2/topics/http/views/
