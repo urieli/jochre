@@ -1,0 +1,91 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<div class="modal fade" id="correctMetaModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Correct document meta data' %}" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content{% if RTL %} rtl{% endif %}">
+      <div class="modal-header">
+        <h5 class="modal-title" id="correctMetaTitle">{% trans 'Correct document meta data' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <fieldset>
+            <div class="form-row">
+              <div class="col-auto">
+                {# Translators: Instructions on how to correct metadata #}
+                <p>{% trans 'Correct the meta data.' %}</p>
+              </div>
+            </div>
+
+            <div class="d-flex form-row">
+              <div class="form-group col-auto">
+                <div class="input-group align-items-center">
+                  <label for="correctMetaFieldName" class="col-form-label font-weight-bold">{% trans 'Field' %}:&nbsp;</label>
+                  <span id="correctMetaFieldName"></span>
+                </div>
+                <div class="input-group align-items-center">
+                  <label for="correctMetaCurrentValue" class="col-form-label font-weight-bold">{% trans 'Current value' %}:&nbsp;</label>
+                  <span id="correctMetaCurrentValue"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex form-row">
+              <div class="form-group col-auto">
+                <div class="input-group align-items-center">
+                  <span class="replaceOrMerge d-none align-items-center"><input type="radio" name="replaceOrMerge" id="replaceOrMerge1" value="replace">&nbsp;</span>
+                  <label for="correctMetaNewValue" class="col-form-label font-weight-bold">{% trans 'New value' %}:&nbsp;</label>
+                  <input type="text" name="correctMetaNewValue" id="correctMetaNewValue" class="form-control mx-2" value="">
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex form-row">
+              <div class="form-group col-auto">
+                <div class="input-group align-items-center">
+                  <span class="replaceOrMerge d-none align-items-center"><input type="radio" name="replaceOrMerge" id="replaceOrMerge2" value="merge">&nbsp;</span>
+                  <label for="correctMetaAuthorMergeWith" class="col-form-label font-weight-bold">{% trans 'or Merge with' %}:&nbsp;</label>
+                  <input type="text" name="correctMetaAuthorMergeWith" id="correctMetaAuthorMergeWith" class="form-control mx-2" value="" disabled="true">
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex form-row">
+              <div class="form-group col-auto">
+                <div class="input-group align-items-center">
+                  <span class="replaceOrMerge d-none align-items-center"><input type="radio" name="replaceOrMerge" id="replaceOrMerge3" value="merge">&nbsp;</span>
+                  <label for="correctMetaAuthorEnglishMergeWith" class="col-form-label font-weight-bold">{% trans 'or Merge with' %}:&nbsp;</label>
+                  <input type="text" name="correctMetaAuthorEnglishMergeWith" id="correctMetaAuthorEnglishMergeWith" class="form-control mx-2" value="" disabled="true">
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        {# Translator: Button label for metadata correction form #}
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Close' %}</button>
+        {# Translator: Button label for metadata correction form #}
+        <button id="btnCorrectMetaSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
+      </div>
+      <div id="alertCorrectMetaSuccess" class="alert alert-success alert-dismissible d-none mx-3" role="alert">
+        <strong>{% trans 'Correction recorded.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="alertCorrectMetaError" class="alert alert-error alert-dismissible d-none mx-3" role="alert">
+        <strong>{% trans 'An error occurred.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

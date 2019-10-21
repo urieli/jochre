@@ -36,8 +36,8 @@ INSTALLED_APPS = [
 ]
 
 # ... include the providers you want to enable:
-#INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
-#INSTALLED_APPS.append('allauth.socialaccount.providers.google')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.google')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -55,22 +55,22 @@ SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
 
 SITE_ID = 1
 
-JOCHRE_SEARCH_URL='http://localhost:8080/jochreSearchOc/search'
-JOCHRE_SEARCH_EXT_URL='http://localhost:8080/jochreSearchOc/search'
+JOCHRE_SEARCH_URL = 'http://localhost:8080/jochreSearchOc/search'
+JOCHRE_SEARCH_EXT_URL = 'http://localhost:8080/jochreSearchOc/search'
 
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-JOCHRE_TITLE= {
-"oc": u"Jochre en Occitan",
-"en": u"Jochre in Occitan"
+JOCHRE_TITLE = {
+    "oc": u"Jochre en Occitan",
+    "en": u"Jochre in Occitan"
 }
-JOCHRE_CREDITS= {
-"en": """Texts OCR'd and lexicon by the <a href="http://myriam.bras.free.fr/bateloc/index.html" target="_blank">BaTelÒc</a> project at <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a> dins l'encastre del projècte <a href="http://restaure.unistra.fr" target="_blank">RESTAURE</a><br/>
+JOCHRE_CREDITS = {
+    "en": """Texts OCR'd and lexicon by the <a href="http://myriam.bras.free.fr/bateloc/index.html" target="_blank">BaTelÒc</a> project at <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a> dins l'encastre del projècte <a href="http://restaure.unistra.fr" target="_blank">RESTAURE</a><br/>
 Texts digitized by <a href="http://locirdoc.fr/" target="_blank">CIRDÒC</a><br/>
 Texts indexed by <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a>""",
-"oc": """Tèxtes ocerizats e lexic per la còla <a href="http://myriam.bras.free.fr/bateloc/index.html" target="_blank">BaTelÒc</a> de <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a> dins l'encastre del projècte <a href="http://restaure.unistra.fr" target="_blank">RESTAURE</a><br/>
+    "oc": """Tèxtes ocerizats e lexic per la còla <a href="http://myriam.bras.free.fr/bateloc/index.html" target="_blank">BaTelÒc</a> de <a href="http://w3.erss.univ-tlse2.fr/" target="_blank">CLLE-ERSS</a> dins l'encastre del projècte <a href="http://restaure.unistra.fr" target="_blank">RESTAURE</a><br/>
 Tèxtes numerizats pel <a href="http://locirdoc.fr/" target="_blank">CIRDÒC</a><br/>
 Tèxtes indexats per <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a>""",
 }
@@ -79,34 +79,34 @@ DEFAULT_LANG = "oc"
 
 # Is each field right-to-left or left-to-right
 FIELDS_LTR = {
-  'contents': True,
-  'title': True,
-  'titleTranscribed': True,
-  'volume': True,
-  'author': True,
-  'authorTranscribed': True,
-  'publisher': True,
-  'date': True,
-  'referenceNumber': True,
+    'contents': True,
+    'title': True,
+    'titleTranscribed': True,
+    'volume': True,
+    'author': True,
+    'authorTranscribed': True,
+    'publisher': True,
+    'date': True,
+    'referenceNumber': True,
 }
 
-JOCHRE_READ_ONLINE=False
+JOCHRE_READ_ONLINE = False
 
-JOCHRE_CROWD_SOURCE=True
+JOCHRE_CROWD_SOURCE = True
 
 JOCHRE_FONT_LIST = ("serif", "serifItalics", "sansSerif", "sansSerifItalics")
 JOCHRE_FONT_NAMES = {
-"serif" : u"Serif",
-"serifItalics" : u"Serif - italique",
-"sansSerif" : u"Sans Serif",
-"sansSerifItalics" : u"Sans Serif - italique"
+    "serif": u"Serif",
+    "serifItalics": u"Serif - italique",
+    "sansSerif": u"Sans Serif",
+    "sansSerifItalics": u"Sans Serif - italique"
 }
 
 JOCHRE_LANGUAGE_LIST = ("oc", "fr", "other")
 JOCHRE_LANGUAGE_NAMES = {
-"oc" : "occitan",
-"fr" : "français",
-"other" : "autre"
+    "oc": "occitan",
+    "fr": "français",
+    "other": "autre"
 }
 
 # UI strings
@@ -115,8 +115,10 @@ JOCHRE_UI_STRINGS = {
 
 SHOW_SECTION = False
 
+
 def PAGE_URL_TRANSFORM(pageNumber):
-  return pageNumber
+    return pageNumber
+
 
 KEYBOARD_MAPPINGS_ENABLED = False
 

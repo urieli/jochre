@@ -21,6 +21,7 @@ SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
 DEBUG = True
 
 INSTALLED_APPS = [
+    'jochre',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,12 +32,11 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'jochre',
 ]
 
 # ... include the providers you want to enable:
-#INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
-#INSTALLED_APPS.append('allauth.socialaccount.providers.google')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.google')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -54,22 +54,22 @@ SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
 
 SITE_ID = 1
 
-JOCHRE_SEARCH_URL='http://localhost:8080/jochre/search'
-JOCHRE_SEARCH_EXT_URL='http://localhost:8080/jochre/search'
+JOCHRE_SEARCH_URL = 'http://localhost:8080/jochre/search'
+JOCHRE_SEARCH_EXT_URL = 'http://localhost:8080/jochre/search'
 
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-JOCHRE_TITLE= {
-"yi": u"יאָוקער אױף ייִדיש",
-"en": u"Jochre in Yiddish"
+JOCHRE_TITLE = {
+    "yi": u"יאָוקער אױף ייִדיש",
+    "en": u"Jochre in Yiddish"
 }
-JOCHRE_CREDITS= {
-"en": """Texts scanned by the <a href="http://www.yiddishbookcenter.org/" target="_blank">Yiddish Book Center</a><br/>
+JOCHRE_CREDITS = {
+    "en": """Texts scanned by the <a href="http://www.yiddishbookcenter.org/" target="_blank">Yiddish Book Center</a><br/>
 Texts OCR'd and indexed by Assaf Urieli, <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a><br/>
 Lexicon by the Yitskhok Niborski and the <a href="http://yiddishweb.com/" target="_blank">Medem Bibliothèque</a>""",
-"yi": """טעקסטן ארײַנסקאַנדירט געװאָרן דורך דעם <a href="http://www.yiddishbookcenter.org/" target="_blank">ייִדישן ביכער-צענטער</a><br/>
+    "yi": """טעקסטן ארײַנסקאַנדירט געװאָרן דורך דעם <a href="http://www.yiddishbookcenter.org/" target="_blank">ייִדישן ביכער-צענטער</a><br/>
 אָפּטישע אותיות־דערקענען און אינדעקסירונג דורך אסף אוריאלין, <a href="http://www.joli-ciel.com/" target="_blank">זשאָליסיעל ענפֿאָרמאַטיק</a><br/>
 לעקסיקאָן פֿון יצחק ניבאָרסקין און דעם <a href="http://yiddishweb.com/" target="_blank">פאריזער יידיש-צענטער - מעדעם ביבליאטעק</a>""",
 }
@@ -78,103 +78,105 @@ DEFAULT_LANG = "yi"
 
 # Is each field right-to-left or left-to-right
 FIELDS_LTR = {
-  'contents': False,
-  'title': False,
-  'titleTranscribed': True,
-  'volume': False,
-  'author': False,
-  'authorTranscribed': True,
-  'publisher': True,
-  'date': True,
-  'referenceNumber': True,
+    'contents': False,
+    'title': False,
+    'titleTranscribed': True,
+    'volume': False,
+    'author': False,
+    'authorTranscribed': True,
+    'publisher': True,
+    'date': True,
+    'referenceNumber': True,
 }
 
-JOCHRE_READ_ONLINE=True
+JOCHRE_READ_ONLINE = True
 
-JOCHRE_CROWD_SOURCE=True
+JOCHRE_CROWD_SOURCE = True
 
 JOCHRE_FONT_LIST = ("serif", "serifItalics", "sansSerif", "sansSerifItalics")
 JOCHRE_FONT_NAMES = {
-"serif" : u"Serif",
-"serifItalics" : u"Serif - Italics",
-"sansSerif" : u"Sans Serif",
-"sansSerifItalics" : u"Sans Serif - Italics"
+    "serif": u"Serif",
+    "serifItalics": u"Serif - Italics",
+    "sansSerif": u"Sans Serif",
+    "sansSerifItalics": u"Sans Serif - Italics"
 }
 
 JOCHRE_LANGUAGE_LIST = ("yi", "other")
 JOCHRE_LANGUAGE_NAMES = {
-"yi" : "Yiddish",
-"other" : "Other"
+    "yi": "Yiddish",
+    "other": "Other"
 }
 
 JOCHRE_UI_STRINGS = {
-"pageURL" : u"https://archive.org/stream/{0}#page/n{1}/mode/1up",
+    "pageURL": u"https://archive.org/stream/{0}#page/n{1}/mode/1up",
 }
 
 SHOW_SECTION = False
 
+
 def PAGE_URL_TRANSFORM(pageNumber):
-  return pageNumber - 1
+    return pageNumber + 1
+
 
 KEYBOARD_MAPPINGS_ENABLED = False
 
 KEYBOARD_MAPPINGS = {
-  u'a':   u'אַ',
-  u'A':   u'א',
-  u'b':   u'ב',
-  u'B':   u'בּ',
-  u'c':   u'כ',
-  u'C':   u'ך',
-  u'd':   u'ד',
-  u'D':   u'ד',
-  u'e':   u'ע',
-  u'E':   u'ע',
-  u'f':   u'פֿ',
-  u'F':   u'ף',
-  u'g':   u'ג',
-  u'G':   u'ג',
-  u'h':   u'ה',
-  u'H':   u'ה',
-  u'i':   u'י',
-  u'I':   u'יִ',
-  u'j':   u'ױ',
-  u'J':   u'ױ',
-  u'k':   u'ק',
-  u'K':   u'כּ',
-  u'l':   u'ל',
-  u'L':   u'ל',
-  u'm':   u'מ',
-  u'M':   u'ם',
-  u'n':   u'נ',
-  u'N':   u'ן',
-  u'o':   u'אָ',
-  u'O':   u'וֹ',
-  u'p':   u'פּ',
-  u'P':   u'פ',
-  u'q':   u'ח',
-  u'Q':   u'כֿ',
-  u'r':   u'ר',
-  u'R':   u'ר',
-  u's':   u'ס',
-  u'S':   u'ת',
-  u't':   u'ט',
-  u'T':   u'תּ',
-  u'u':   u'ו',
-  u'U':   u'וּ',
-  u'v':   u'װ',
-  u'V':   u'בֿ',
-  u'w':   u'ש',
-  u'W':   u'שׂ',
-  u'x':   u'צ',
-  u'X':   u'ץ',
-  u'y':   u'ײ',
-  u'Y':   u'ײַ',
-  u'z':   u'ז',
-  u'Z':   u'ז',
-  u'“':   u'"',
-  u'”':   u'"',
-  u'’':   u"'",
-  u'„':   u'"',
+    u'a': u'אַ',
+    u'A': u'א',
+    u'b': u'ב',
+    u'B': u'בּ',
+    u'c': u'כ',
+    u'C': u'ך',
+    u'd': u'ד',
+    u'D': u'ד',
+    u'e': u'ע',
+    u'E': u'ע',
+    u'f': u'פֿ',
+    u'F': u'ף',
+    u'g': u'ג',
+    u'G': u'ג',
+    u'h': u'ה',
+    u'H': u'ה',
+    u'i': u'י',
+    u'I': u'יִ',
+    u'j': u'ױ',
+    u'J': u'ױ',
+    u'k': u'ק',
+    u'K': u'כּ',
+    u'l': u'ל',
+    u'L': u'ל',
+    u'm': u'מ',
+    u'M': u'ם',
+    u'n': u'נ',
+    u'N': u'ן',
+    u'o': u'אָ',
+    u'O': u'וֹ',
+    u'p': u'פּ',
+    u'P': u'פ',
+    u'q': u'ח',
+    u'Q': u'כֿ',
+    u'r': u'ר',
+    u'R': u'ר',
+    u's': u'ס',
+    u'S': u'ת',
+    u't': u'ט',
+    u'T': u'תּ',
+    u'u': u'ו',
+    u'U': u'וּ',
+    u'v': u'װ',
+    u'V': u'בֿ',
+    u'w': u'ש',
+    u'W': u'שׂ',
+    u'x': u'צ',
+    u'X': u'ץ',
+    u'y': u'ײ',
+    u'Y': u'ײַ',
+    u'z': u'ז',
+    u'Z': u'ז',
+    u'“': u'"',
+    u'”': u'"',
+    u'’': u"'",
+    u'„': u'"',
 }
 
 DOCS_PER_PAGE = 10

@@ -1,0 +1,65 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+{% block styles %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+
+<header id="header" class="bg-info text-white link-white header">
+  <div class="d-flex justify-content-between flex-wrap px-3 px-sm-5 py-3 header-inner">
+    <div class="d-flex align-items-center logo">
+      <a href="/">
+        {% block logo %}
+          <img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;" alt="{% trans 'Jochre' %}" class="py-1" />
+        {% endblock %}
+      </a>
+    </div>
+
+    {% block nav_title %}{% endblock %}
+
+    <nav class="d-flex justify-content-end justify-content-md-between align-items-center flex-wrap mx-sm-n4 nav">
+      {% block navlinks %}
+
+      {% endblock %}
+
+      {% if user.is_authenticated %}
+        {% block authenticatedcontrols %}
+          <button id="updatePreferences" class="d-flex align-items-center bg-transparent border-0 text-white p-0 mx-4 my-2 my-md-0 preferences">
+            <div class="preferences__img">
+              {% if user.socialaccount_set.all.0.get_avatar_url %}
+              <img src="{{ request.user.socialaccount_set.all.0.get_avatar_url }}" class="w-100" />
+              {% else %}
+              <img src="{% static 'images/Portrait_Placeholder.png' %}" class="w-100" />
+              {% endif %}
+            </div>
+
+            <div class="preferences__username">
+              {% if request.user.first_name or request.user.last_name %}
+              {{ request.user.first_name }}&nbsp;{{ request.user.last_name }}
+              {% else %}
+              {{ request.user.username }}
+              {% endif %}
+            </div>
+          </button>
+
+          {# Translator: Log out button #}
+          <a class="mx-4 my-2 my-md-0 btn btn-primary nav__log-out" href="{% url 'account_logout' %}">{% trans 'Logout' %}</a>
+        {% endblock %}
+      {% else %}
+        {% block anonymouscontrols %}{% endblock %}
+
+        {# Translator: Sign in button #}
+        <a class="btn btn-primary mx-2 my-2 my-md-0 nav__sign-in" href="{% url 'account_login' %}">{% trans 'Sign In' %}</a>
+
+        {# Translator: Sign up button #}
+        <a class="btn btn-primary mx-4 my-2 my-md-0 nav__sign-out" href="{% url 'account_signup' %}">{% trans 'Sign Up' %}</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>

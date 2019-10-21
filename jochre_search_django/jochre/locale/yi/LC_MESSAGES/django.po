@@ -3,293 +3,518 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-09 11:41+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2019-10-10 11:06+0000\n"
+"PO-Revision-Date: 2019-10-10 12:08+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: yi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.4\n"
 
-#: jochre/templates/contents.html:76 jochre/templates/search.html:667
+#. Translators: Login form password sign in button
+#: templates/account/login.html:6 templates/account/login.html:12
+#: templates/account/login.html:56 templates/search/header.html:60
+msgid "Sign In"
+msgstr "אַרײַנשרײַבן"
+
+#. Translators: Login page message
+#: templates/account/login.html:19
+#, python-format
+msgid ""
+"Please sign in with one of your existing third party accounts. Or, <a href="
+"\"%(signup_url)s\">sign up</a> for a %(site_name)s account and sign in below:"
+msgstr ""
+
+#. Translators: Conjunction between two sections of the login form
+#: templates/account/login.html:31
+msgid "or"
+msgstr ""
+
+#: templates/account/login.html:37
+#, python-format
+msgid ""
+"If you have not created an account yet, then please <a href=\"%(signup_url)s"
+"\">sign up</a> first."
+msgstr ""
+
+#. Translators: Login form password reset button
+#: templates/account/login.html:53
+msgid "Forgot Password?"
+msgstr "פּאַראָל פֿאַרגעסן?"
+
+#: templates/account/logout.html:5 templates/account/logout.html:11
+#: templates/account/logout.html:20
+msgid "Sign Out"
+msgstr "אַרױסלאָגירן"
+
+#: templates/account/logout.html:13
+msgid "Are you sure you want to sign out?"
+msgstr "איר ווילט זיך טאַקע אַרויסשרײַבן?"
+
+#: templates/account/password_reset.html:6 templates/account/password_reset.html:12
+#: templates/account/password_reset_done.html:6
+#: templates/account/password_reset_done.html:12
+msgid "Password Reset"
+msgstr ""
+
+#: templates/account/password_reset.html:17
+msgid ""
+"Forgotten your password? Enter your e-mail address below, and we'll send you an e-"
+"mail allowing you to reset it."
+msgstr ""
+
+#: templates/account/password_reset.html:22
+msgid "Reset My Password"
+msgstr ""
+
+#: templates/account/password_reset.html:25
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr ""
+
+#: templates/account/password_reset_done.html:18
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it within a "
+"few minutes."
+msgstr ""
+
+#: templates/account/signup.html:5
+msgid "Signup"
+msgstr "רעגיסטרירן"
+
+#: templates/account/signup.html:11 templates/account/signup.html:36
+#: templates/search/header.html:63
+msgid "Sign Up"
+msgstr "רעגיסטרירן"
+
+#: templates/account/signup.html:13
+#, python-format
+msgid "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
+msgstr ""
+
+#: templates/contents.html:11
+msgid "Jochre Document Contents"
+msgstr ""
+
+#. Translators: Link to privacy policy
+#: templates/privacy.html:8 templates/search/footer.html:40
 msgid "Privacy Policy"
 msgstr "פּאָליטיק פֿון דאַטנשיץ"
 
-#: jochre/templates/contents.html:78 jochre/templates/search.html:669
-msgid "Powered by"
-msgstr "באַכּוחט דורך"
+#: templates/search.html:9
+msgid "Jochre Search"
+msgstr ""
 
-#: jochre/templates/search.html:65
-msgid "logout"
-msgstr "אַרױסלאָגירן"
-
-#: jochre/templates/search.html:85
-msgid "search button"
-msgstr "זוך"
-
-#. Translators: Search field to limit results by author
-#: jochre/templates/search.html:97 jochre/templates/search.html:99
-msgid "author field"
-msgstr "מחבר"
-
-#. Translators: Search field to limit results by title
-#: jochre/templates/search.html:129 jochre/templates/search.html:130
-msgid "title field"
-msgstr "טיטל"
-
-#. Translators: Search field to add lower limit to results by publication year
-#: jochre/templates/search.html:138
-msgid "from year"
-msgstr "אױסגאַבע פֿון יאָר"
-
-#. Translators: Search field to add upper limit to results by publication year
-#: jochre/templates/search.html:141
-msgid "to year"
-msgstr "ביז יאָר"
-
-#. Translators: Search field to interpret query terms strictly
-#: jochre/templates/search.html:151
-msgid "strict field"
-msgstr "שטרענג"
-
-#. Translators: Sort by drop-down title
-#: jochre/templates/search.html:159
-msgid "sort by"
-msgstr "סאָרטירן לױטן"
-
-#. Translators: Drop-down value to sort by score
-#: jochre/templates/search.html:162
-msgid "sort by score"
-msgstr "חשבון"
-
-#. Translators: Drop-down value to sort by year in ascending order
-#: jochre/templates/search.html:164
-msgid "sort by year ascending"
-msgstr "יאָר ↑"
-
-#. Translators: Drop-down value to sort by year in descending order
-#: jochre/templates/search.html:166
-msgid "sort by year descending"
-msgstr "יאָר ↓"
-
-#. Translators: Search field to limit results by document reference number
-#: jochre/templates/search.html:175 jochre/templates/search.html:176
-msgid "reference field"
-msgstr "אידענטיפֿיציר נומער"
-
-#: jochre/templates/search.html:183
-msgid "clear form"
-msgstr "אױסמעקן"
-
-#: jochre/templates/search.html:191
+#: templates/search.html:23
 msgid "Unable to process query"
 msgstr "אוממעגלעך צו באַאַרבעטן דעם נאָכפֿרעג"
 
-#: jochre/templates/search.html:195
-#, fuzzy
-#| msgid "search button"
+#: templates/search.html:34
+msgid "Please enter a search term"
+msgstr "פֿאַרשרײַבט אַ זוכוואָרט"
+
+#: templates/search.html:44
 msgid "No search results"
 msgstr "קײן רעזולטאַטן"
 
-#: jochre/templates/search.html:201
+#: templates/search.html:56
 #, python-format
 msgid "Found %(count)s results."
 msgstr "%(count)s רעזולטאַטן."
 
-#: jochre/templates/search.html:203
+#: templates/search.html:58
 #, python-format
 msgid "Found more than %(count)s results."
 msgstr "מער װי %(count)s רעזולטאַטן."
 
-#: jochre/templates/search.html:205
+#: templates/search.html:60
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "רעזולטאַטן %(start)s ביז %(end)s:"
 
-#: jochre/templates/search.html:214 jochre/templates/search.html:215
-msgid "title meta"
-msgstr "טיטל"
+#. Translators: Clear all search results
+#: templates/search.html:63 templates/search/search-pane.html:187
+msgid "Clear results"
+msgstr "אױסמעקן"
 
-#. Translators: Title metadata in alternate alphabet
-#: jochre/templates/search.html:221 jochre/templates/search.html:222
-msgid "alternate alphabet title meta"
-msgstr "טיטל אין טראַנסקריפציע"
-
-#: jochre/templates/search.html:228 jochre/templates/search.html:229
-msgid "volume"
-msgstr "באַנד"
-
-#. Translators: Author metadata
-#: jochre/templates/search.html:235 jochre/templates/search.html:236
-msgid "author meta"
-msgstr "מחבר"
-
-#. Translators: Author metadata in alternate alphabet
-#: jochre/templates/search.html:242 jochre/templates/search.html:243
-msgid "alternate alphabet author meta"
-msgstr "מחבר אין טראַנסקריפציע"
-
-#: jochre/templates/search.html:249
-msgid "section"
-msgstr "אָפּטײל"
-
-#: jochre/templates/search.html:249
-msgid "Pages %(startPage)s to %(endPage)s"
-msgstr "זײַטן %(startPage)s ביז %(endPage)s:"
-
-#: jochre/templates/search.html:254 jochre/templates/search.html:255
-msgid "publisher"
-msgstr "פֿאַרלאַג"
-
-#: jochre/templates/search.html:261 jochre/templates/search.html:262
-msgid "date"
-msgstr "יאָר"
-
-#: jochre/templates/search.html:268
-msgid "referenceNumber"
-msgstr "אידענטיפֿיציר נומער"
-
-#: jochre/templates/search.html:349 jochre/templates/search.html:353
-msgid "fixWordTitle"
-msgstr "אױסבעסערן אַ װאָרט"
-
-#. Translators: Instructions on how to fix a word
-#: jochre/templates/search.html:365
-msgid "fixWordInstructions"
-msgstr ""
-"שרײַבט דאָס װאָרט פּונקט װי עס זעט אױס אױבן, מיט ניקוד, אפּאָסטראָפֿן, גענדזן-"
-"פֿיסלעך, מקפֿן, און אַנדערע אפּשטעל-צײכנס. אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה "
-"אױב נאָר אַ טײל פֿונעם װאָרט זעט אױס אױבן), מע טאָר נישט עס אױסבעסערן."
-
-#: jochre/templates/search.html:367
-msgid "fixWordWord"
-msgstr "װאָרט"
-
-#: jochre/templates/search.html:381
-msgid "fixWordFont"
-msgstr "דרוקשריפֿט"
-
-#: jochre/templates/search.html:391
-msgid "fixWordFontExample"
-msgstr "דרוקשריפֿט דוגמא"
-
-#: jochre/templates/search.html:395
-msgid "fixWordLanguage"
-msgstr "שפּראַך"
-
-#: jochre/templates/search.html:411 jochre/templates/search.html:491
-msgid "Close"
-msgstr "פֿאַרמאכֿט"
-
-#: jochre/templates/search.html:412 jochre/templates/search.html:492
-#: jochre/templates/search.html:558 jochre/templates/search.html:621
-msgid "Save changes"
-msgstr "היט אױף"
-
-#: jochre/templates/search.html:415
-msgid "Suggestion recorded."
-msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן"
-
-#: jochre/templates/search.html:421 jochre/templates/search.html:501
-#: jochre/templates/search.html:630
-msgid "An error occurred."
-msgstr "אַ פֿעלער איז פֿאָרגעקומען"
-
-#: jochre/templates/search.html:430 jochre/templates/search.html:434
-msgid "correctMetaTitle"
+#: templates/search/correct-meta-modal.html:7
+#: templates/search/correct-meta-modal.html:11
+msgid "Correct document meta data"
 msgstr "אױסבעסרן אַן אַטריבוט"
 
 #. Translators: Instructions on how to correct metadata
-#: jochre/templates/search.html:443
-msgid "correctMetaInstructions"
-msgstr "בסערט אױס אַן אַטריבוט"
+#: templates/search/correct-meta-modal.html:20
+msgid "Correct the meta data."
+msgstr "בסערט אױס אַן אַטריבוט."
 
-#: jochre/templates/search.html:447
-msgid "correctMetaFieldName"
+#: templates/search/correct-meta-modal.html:25
+msgid "Field"
 msgstr "אַטריבוט"
 
-#: jochre/templates/search.html:455
-msgid "correctMetaCurrentValue"
+#: templates/search/correct-meta-modal.html:29
+msgid "Current value"
 msgstr "איצטיקער אינהאַלט"
 
-#: jochre/templates/search.html:464
-msgid "correctMetaNewValue"
+#: templates/search/correct-meta-modal.html:39
+msgid "New value"
 msgstr "נײַער אינהאַלט"
 
-#: jochre/templates/search.html:473 jochre/templates/search.html:482
-msgid "correctMetaMergeWith"
+#: templates/search/correct-meta-modal.html:49
+#: templates/search/correct-meta-modal.html:59
+msgid "or Merge with"
 msgstr "אָדער גיסט צונױף מיט"
 
-#: jochre/templates/search.html:495
+#: templates/search/correct-meta-modal.html:69 templates/search/word-modal.html:82
+msgid "Close"
+msgstr "פֿאַרמאכֿט"
+
+#: templates/search/correct-meta-modal.html:71
+#: templates/search/keyboard-modal.html:55
+#: templates/search/preferences-modal.html:63 templates/search/word-modal.html:84
+msgid "Save changes"
+msgstr "היט אױף"
+
+#: templates/search/correct-meta-modal.html:74
 msgid "Correction recorded."
-msgstr "דער תּיקון־טעות איז פֿארשרײַבט געװאָרן"
+msgstr ""
 
-#: jochre/templates/search.html:510 jochre/templates/search.html:514
-msgid "Update key mappings"
-msgstr "קלאַװיאַטור אַנטקעגענערס"
+#: templates/search/correct-meta-modal.html:80
+#: templates/search/keyboard-modal.html:64
+#: templates/search/preferences-modal.html:72 templates/search/word-modal.html:95
+msgid "An error occurred."
+msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
-#: jochre/templates/search.html:527
+#: templates/search/footer.html:25
+msgid "Powered by"
+msgstr "באַכּוחט דורך"
+
+#: templates/search/footer.html:27 templates/search/header.html:21
+msgid "Jochre"
+msgstr "זוך"
+
+#: templates/search/header.html:54
+msgid "Logout"
+msgstr "אַרױסלאָגירן"
+
+#: templates/search/keyboard-modal.html:7 templates/search/keyboard-modal.html:13
+msgid "Customize keyboard"
+msgstr "מאַכט איבער די קלאַוויאַטור"
+
+#: templates/search/keyboard-modal.html:25
 msgid "Enable keyboard mappings"
 msgstr "שטעלט אָן די קלאַװיאַטור אַנטקעגענערס"
 
-#: jochre/templates/search.html:556 jochre/templates/search.html:619
+#: templates/search/keyboard-modal.html:53
+#: templates/search/preferences-modal.html:61
 msgid "Cancel"
-msgstr "אַנולירט"
+msgstr "אַנולירן"
 
-#: jochre/templates/search.html:557 jochre/templates/search.html:620
+#: templates/search/keyboard-modal.html:54
+#: templates/search/preferences-modal.html:62
 msgid "Restore defaults"
 msgstr "ברענגט צוריק די עצם אײַנשטעלונגען"
 
-#: jochre/templates/search.html:561
+#: templates/search/keyboard-modal.html:58
 msgid "Keyboard mappings updated."
-msgstr "די קלאװיאַטור אַנגקעגענערס זײַנען איבערגעביטן געװאָרן"
+msgstr "די קלאװיאַטור אַנגקעגענערס זײַנען איבערגעביטן געװאָרן."
 
-#: jochre/templates/search.html:576 jochre/templates/search.html:580
+#: templates/search/preferences-modal.html:7
+#: templates/search/preferences-modal.html:12
 msgid "Update preferences"
 msgstr "דעם באַניצערס פּרעפֿערענצן"
 
-#: jochre/templates/search.html:593
+#: templates/search/preferences-modal.html:24
 msgid "Interface language"
 msgstr "צװישנבינד שפּראַך"
 
-#: jochre/templates/search.html:602
-msgid "prefsDocsPerPage"
+#: templates/search/preferences-modal.html:41
+msgid "Results per page"
 msgstr "װיפֿל דאָקומענטן אין אַ זײַט"
 
-#: jochre/templates/search.html:610
-msgid "prefsSnippetsPerDoc"
+#: templates/search/preferences-modal.html:51
+msgid "Snippets per result"
 msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
 
-#: jochre/templates/search.html:624
+#: templates/search/preferences-modal.html:66
 msgid "Preferences saved."
-msgstr "די פּרעפֿערענצן זײַנען אױפֿגעהיט געװאָרן"
+msgstr "די פּרעפֿערענצן זײַנען אױפֿגעהיט געװאָרן."
 
-#: jochre/templates/search.html:666
+#. Translators: search button text
+#: templates/search/search-pane.html:30 templates/search/search-pane.html:188
+msgid "Search"
+msgstr "זוך"
+
+#: templates/search/search-pane.html:41
+msgid "Update key mappings"
+msgstr "קלאַװיאַטור אַנטקעגענערס"
+
+#: templates/search/search-pane.html:48
+msgid "Advanced search"
+msgstr "אַוואַנסירטער זוך"
+
+#. Translators: Search field to limit results by author
+#: templates/search/search-pane.html:82 templates/search/search-result.html:52
+msgid "Author"
+msgstr "מחבר"
+
+#. Translators: Search field to limit results by title
+#: templates/search/search-pane.html:127 templates/search/search-result.html:16
+msgid "Title"
+msgstr "טיטל"
+
+#. Translators: Search field to add lower limit to results by publication year
+#: templates/search/search-pane.html:137
+msgid "Publication year from"
+msgstr ""
+
+#. Translators: Search field to add upper limit to results by publication year
+#: templates/search/search-pane.html:141
+msgid "to"
+msgstr ""
+
+#: templates/search/search-pane.html:151
+msgid "Strict"
+msgstr "שטרענג"
+
+#. Translators: Sort by drop-down title
+#: templates/search/search-pane.html:159
+msgid "Sort by"
+msgstr "סאָרטירן לױטן"
+
+#. Translators: Drop-down value to sort by score
+#: templates/search/search-pane.html:163
+msgid "sort by score"
+msgstr "חשבון"
+
+#. Translators: Drop-down value to sort by year in ascending order
+#: templates/search/search-pane.html:165
+msgid "sort by year ascending"
+msgstr "יאָר ↑"
+
+#. Translators: Drop-down value to sort by year in descending order
+#: templates/search/search-pane.html:167
+msgid "sort by year descending"
+msgstr "יאָר ↓"
+
+#. Translators: Search field to limit results by document reference number
+#: templates/search/search-pane.html:177 templates/search/search-result.html:113
+msgid "Reference number"
+msgstr "אידענטיפֿיציר נומער"
+
+#: templates/search/search-result.html:26
+msgid "Alternate title"
+msgstr "טיטל אין טראַנסקריפציע"
+
+#: templates/search/search-result.html:29
+msgid "alternate alphabet title meta"
+msgstr "טיטל אין טראַנסקריפציע"
+
+#: templates/search/search-result.html:39
+msgid "Volume"
+msgstr "באַנד"
+
+#: templates/search/search-result.html:42
+msgid "volume"
+msgstr "באַנד"
+
+#: templates/search/search-result.html:55
+msgid "author meta"
+msgstr "מחבר"
+
+#: templates/search/search-result.html:65
+msgid "Alternate author"
+msgstr "מחבר אין טראַנסקריפציע"
+
+#: templates/search/search-result.html:68
+msgid "alternate alphabet author meta"
+msgstr "מחבר אין טראַנסקריפציע"
+
+#: templates/search/search-result.html:78
+msgid "Section"
+msgstr "אָפּטײל"
+
+#: templates/search/search-result.html:79
 #, python-format
-msgid "Index size: %(bookCount)s books."
-msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"
+msgid "Pages %(startPage)s to %(endPage)s"
+msgstr "זײַטן %(startPage)s ביז  %(endPage)s"
 
-#: jochre/views.py:204
+#: templates/search/search-result.html:87
+msgid "Publisher"
+msgstr "פֿאַרלאַג"
+
+#: templates/search/search-result.html:90
+msgid "publisher"
+msgstr "פֿאַרלאַג"
+
+#: templates/search/search-result.html:100
+msgid "Date"
+msgstr "יאָר"
+
+#: templates/search/search-result.html:103
+msgid "date"
+msgstr "יאָר"
+
+#: templates/search/search-result.html:134
+msgid "(Double-click on a word to make an OCR correction)"
+msgstr ""
+
+#: templates/search/search-result.html:143
+msgid "View page snippet"
+msgstr "קוקט אָן דעם שטיקעלע זײַטל"
+
+#: templates/search/search-result.html:150
+msgid "View transcribed text"
+msgstr "קוקט אָן דעם טראַנסקריבירטן טעקסט"
+
+#: templates/search/search-result.html:158
+msgid "Go to book"
+msgstr "גייט צו בוך"
+
+#: templates/search/search-result.html:158
+#, python-format
+msgid "(page %(page)s)"
+msgstr "(זײַטל %(page)s("
+
+#: templates/search/word-modal.html:7 templates/search/word-modal.html:13
+msgid "Fix a word"
+msgstr "אױסבעסערן אַ װאָרט"
+
+#: templates/search/word-modal.html:29
+msgid ""
+"Please enter the word exactly as it appears above, including niqqud, apostrophes, "
+"quotes, dashes, and other punctuation. If the word is badly segmented (i.e. if "
+"only part of the word appears), do not correct it."
+msgstr ""
+"שרײַבט דאָס װאָרט פּונקט װי עס זעט אױס אױבן, מיט ניקוד, אפּאָסטראָפֿן, גענדזן-פֿיסלעך, "
+"מקפֿן, און אַנדערע אפּשטעל-צײכנס. אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה אױב נאָר אַ טײל "
+"פֿונעם װאָרט זעט אױס אױבן), מע טאָר נישט עס אױסבעסערן."
+
+#: templates/search/word-modal.html:36
+msgid "Word"
+msgstr "װאָרט"
+
+#: templates/search/word-modal.html:50
+msgid "Font"
+msgstr "דרוקשריפֿט"
+
+#: templates/search/word-modal.html:61
+msgid "Font example"
+msgstr "דרוקשריפֿט דוגמא"
+
+#: templates/search/word-modal.html:68
+msgid "Language"
+msgstr "שפּראַך"
+
+#: templates/search/word-modal.html:88
+msgid "Suggestion recorded."
+msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
+
+#: views.py:214
 msgid "first page"
 msgstr "ערשטע"
 
-#: jochre/views.py:205
+#: views.py:221
 msgid "previous page"
 msgstr "פֿריערדיקע"
 
-#: jochre/views.py:210
+#: views.py:237
 msgid "next page"
 msgstr "קומעדיקע"
 
-#: jochre/views.py:211
+#: views.py:244
 msgid "last page"
 msgstr "לעצטע"
 
-#~ msgid "prefsTitle"
-#~ msgstr "פּרעפֿערענצן"
+#~ msgid "search button"
+#~ msgstr "זוך"
+
+#~ msgid "title field"
+#~ msgstr "טיטל"
+
+#~ msgid "from year"
+#~ msgstr "אױסגאַבע פֿון יאָר"
+
+#~ msgid "to year"
+#~ msgstr "ביז יאָר"
+
+#~ msgid "Show original OCR"
+#~ msgstr "ווײַזט די אָריגינעלע אָא\"ד"
+
+#~ msgid "View full text"
+#~ msgstr "קוקט אָן דעם גאַנצן טעקסט"
+
+#~ msgid "Correct an attribute"
+#~ msgstr "אױסבעסרן אַן אַטריבוט"
+
+#~ msgid "Attribute specified"
+#~ msgstr "בסערט אױס אַן אַטריבוט"
+
+#~ msgid ""
+#~ "Texts scanned by the <a href=\"http://www.yiddishbookcenter.org/\">Yiddish "
+#~ "Book Center</a>"
+#~ msgstr ""
+#~ "טעקסטן סקאַנירט דורכן <a href=\"http://www.yiddishbookcenter.org/\">ייִדישן "
+#~ "ביכער־צענטער</a>"
+
+#~ msgid ""
+#~ "Texts OCR'd and indexed by Assaf Urieli, <a href=\"http://www.joli-ciel.com/"
+#~ "\">Joliciel Informatique</a>"
+#~ msgstr ""
+#~ "אָפּטישע אותיות־דערקענען און אינדעקסירן פֿון אסף אוריאלי, <a href=\"http://www."
+#~ "joli-ciel.com/\">זשאָליסיעל אינפֿאָרמאַטיק</a>"
+
+#~ msgid ""
+#~ "Lexicon by Yitskhok Niborski and the <a href=\"http://yiddishweb.com/\">Medem "
+#~ "Bibliothèque</a>"
+#~ msgstr ""
+#~ "לעקסיקאָן פֿון יצחק ניבאָרסקי און דער <a href=\"http://yiddishweb.com/\">מעדעם "
+#~ "ביבליאָטעק</a>"
+
+#~ msgid ""
+#~ "Go to <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter.org</a>"
+#~ msgstr ""
+#~ "גייט צו <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter.org</a>"
+
+#~ msgid "clear form"
+#~ msgstr "אױסמעקן"
+
+#~ msgid "author field"
+#~ msgstr "מחבר"
+
+#~ msgid "strict field"
+#~ msgstr "שטרענג"
+
+#~ msgid "reference field"
+#~ msgstr "אידענטיפֿיציר נומער"
+
+#~ msgid "title meta"
+#~ msgstr "טיטל"
+
+#~ msgid "correctMetaTitle"
+#~ msgstr "אױסבעסרן אַן אַטריבוט"
+
+#~ msgid "correctMetaInstructions"
+#~ msgstr "בסערט אױס אַן אַטריבוט"
+
+#~ msgid "correctMetaFieldName"
+#~ msgstr "אַטריבוט"
+
+#~ msgid "correctMetaNewValue"
+#~ msgstr "נײַער אינהאַלט"
+
+#~ msgid "correctMetaMergeWith"
+#~ msgstr "אָדער גיסט צונױף מיט"
+
+#~ msgid "prefsDocsPerPage"
+#~ msgstr "װיפֿל דאָקומענטן אין אַ זײַט"
+
+#~ msgid "prefsSnippetsPerDoc"
+#~ msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
+
+#~ msgid "Index size: %(bookCount)s books."
+#~ msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"

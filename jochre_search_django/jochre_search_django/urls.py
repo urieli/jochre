@@ -18,7 +18,15 @@ from django.urls import path, include
 from jochre_search_django.settings import LOGIN_REDIRECT_URL
 
 urlpatterns = [
+    path('', include('jochre.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
-    path('', include('jochre.urls')),
 ]
+
+# Attempt to add custom URLs if available.
+try:
+    urlpatterns = [
+        path('', include('custom.urls')),
+    ] + urlpatterns
+except ModuleNotFoundError:
+    pass

@@ -1,0 +1,49 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<footer class="bg-info text-white link-white footer">
+  <div class="container py-4">
+    <div class="row">
+      {% block title %}
+        <div class="col-12 mb-2">
+          <h1 style="font-size: 24px; font-weight: bold">
+            {% if JOCHRE_TITLE and JOCHRE_TITLE|lookup:LANGUAGE_CODE %}
+              {{ JOCHRE_TITLE|lookup:LANGUAGE_CODE }}
+            {% else %}
+              {{ JOCHRE_TITLE.en }}
+            {% endif %}
+          </h1>
+        </div>
+      {% endblock %}
+
+      <div class="col-sm-6">
+        <p>
+          {% block poweredby %}
+            <strong>{% trans 'Powered by' %}</strong>
+            <a href="https://github.com/urieli/jochre/" target="_blank">
+              <img src="{% static 'images/jochreLogo.png' %}" style="width: 150px; border: none;" alt="{% trans 'Jochre' %}" />
+            </a>
+          {% endblock %}
+        </p>
+      </div>
+
+      <div class="col-sm-6">
+        <div>
+          {% block attribution %}
+            {# Add attribution text here #}
+          {% endblock %}
+
+          {# Translators: Link to privacy policy #}
+          <p><a href="/privacy" target="_blank">{% trans 'Privacy Policy' %}</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% block suffix %}
+    {# Add any suffix content to the footer here #}
+  {% endblock %}
+</footer>

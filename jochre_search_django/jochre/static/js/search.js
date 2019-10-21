@@ -37,9 +37,11 @@ $(function() {
       console.log(`adding ${author}`);
       authorCounter += 1;
       $('#authorList').append(`
-        <div id="newAuthor${authorCounter}" class="alert alert-success alert-dismissible p-0 alert-auto">
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${author}
-          <button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+        <div id="newAuthor${authorCounter}" class="alert alert-info alert-dismissible alert-auto col-auto py-2 mx-2">
+          ${author}
+          <button type="button" class="close py-2" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
           <script>
             $('#newAuthor${authorCounter}').on('closed.bs.alert', function () {
               var currentAuthors = $('#hdnAuthors').val().replace('|${author}','');
@@ -47,7 +49,7 @@ $(function() {
               $('#hdnAuthors').val(currentAuthors);
             })
           <\/script>
-        </div>&nbsp;
+        </div>
         `);
       $('#txtAuthor').typeahead('val','');
       var currentAuthors = $('#hdnAuthors').val();
@@ -55,7 +57,8 @@ $(function() {
     }
   });
 
-  $("#toggleAdvancedSearch").click(function(){
+  $("#toggleAdvancedSearch").click(function(e){
+    e.preventDefault();
     $("#advancedSearch").toggle();
   });
 
@@ -86,7 +89,7 @@ $(function() {
   });
 
   $('#selFont').on('change', function() {
-    $("#imgFont").attr("src", `${STATIC_LOCATION}images/${this.value}.png`);
+    $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${this.value}.png`);
   });
 
   $('#btnSaveFixWord').click( function (e) {
@@ -238,7 +241,7 @@ function transformKeyPress(textfield, evt) {
 
 function fixWord(evt, docId) {
   var sel = window.getSelection();
-  
+
   var range = sel.getRangeAt(0);
   console.log(`range startOffset: ${range.startOffset}, endOffset ${range.endOffset}, startContainer ${range.startContainer.nodeName}, endContainer ${range.endContainer.nodeName}, commonAncestorContainer ${range.commonAncestorContainer.nodeName}`);
   console.log(`sel.anchorNode: ${sel.anchorNode.nodeName}, sel.anchorOffset: ${sel.anchorOffset}`);
@@ -261,19 +264,19 @@ function fixWord(evt, docId) {
 
   $('#fixWordModal').data('docId', docId);
   $('#fixWordModal').data('wordOffset', wordOffset);
-  
+
   $("#imgFixWord").attr("src","");
   $("#imgWordLoading").show();
   $("#txtSuggestion").val("");
   $("#txtSuggestion2").val("");
-  $("#txtSuggestion2").hide();
+  $("#txtSuggestion2").parents('.row').first().hide();
   $("#imgFixWord").attr("src",`${JOCHRE_SEARCH_EXT_URL}?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
-  
+
   $("#selFont").val($("#selFont option:first").val());
   $("#selLang").val($("#selLang option:first").val());
-  
-  $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selFont').val()}.png`);
-  
+
+  $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${$('#selFont').val()}.png`);
+
   $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
       $.each( data, function( key, val ) {
         if (key=="word") {
@@ -282,7 +285,7 @@ function fixWord(evt, docId) {
         } else if (key=="word2") {
           console.log(`found word2 : ${val}`);
           $("#txtSuggestion2").val(val);
-          $("#txtSuggestion2").show();
+          $("#txtSuggestion2").parents('.row').first().show();
         }
       });
     });
@@ -298,15 +301,15 @@ function applyFix() {
 
   var suggestion = $("#txtSuggestion").val();
   var suggestion2 = $("#txtSuggestion2").val();
-  
+
   var selFont = document.getElementById("selFont");
   var fontCode = selFont.options[selFont.selectedIndex].value;
 
   var selLang = document.getElementById("selLang");
   var languageCode = selLang.options[selLang.selectedIndex].value;
-  
+
   console.log(`Apply fix ${suggestion} for ${docId} at ${wordOffset}`);
-  
+
   $.ajax({
     url: JOCHRE_SEARCH_EXT_URL + "?command=suggest"
       + "&docId=" + docId
@@ -449,7 +452,7 @@ function applyCorrection() {
   let applyEverywhere = (replaceOrMerge==="merge");
 
   console.log(`Apply correction for ${docId}, ${field}: ${value}`);
-  
+
   $.ajax({
     url: JOCHRE_SEARCH_EXT_URL + "?command=correct"
       + "&docId=" + docId
