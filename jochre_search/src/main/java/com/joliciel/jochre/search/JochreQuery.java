@@ -34,6 +34,7 @@ import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.WildcardQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,10 +176,18 @@ public class JochreQuery {
             String authorString = author;
             if (textNormaliser != null)
               authorString = textNormaliser.normalise(author);
-            TermQuery termQuery = new TermQuery(new Term(JochreIndexField.author.name(), authorString));
-            authorBuilder.add(new BooleanClause(termQuery, Occur.SHOULD));
-            TermQuery termQuery2 = new TermQuery(new Term(JochreIndexField.authorEnglish.name(), authorString));
-            authorBuilder.add(new BooleanClause(termQuery2, Occur.SHOULD));
+            if (authorString.contains("*") || authorString.contains("?")) {
+              WildcardQuery wildcardQuery = new WildcardQuery(new Term(JochreIndexField.author.name(), authorString));
+              authorBuilder.add(new BooleanClause(wildcardQuery, Occur.SHOULD));
+              WildcardQuery wildcardQuery2 = new WildcardQuery(
+                  new Term(JochreIndexField.authorEnglish.name(), authorString));
+              authorBuilder.add(new BooleanClause(wildcardQuery2, Occur.SHOULD));
+            } else {
+              TermQuery termQuery = new TermQuery(new Term(JochreIndexField.author.name(), authorString));
+              authorBuilder.add(new BooleanClause(termQuery, Occur.SHOULD));
+              TermQuery termQuery2 = new TermQuery(new Term(JochreIndexField.authorEnglish.name(), authorString));
+              authorBuilder.add(new BooleanClause(termQuery2, Occur.SHOULD));
+            }
           }
 
           BooleanQuery authorQuery = authorBuilder.build();
