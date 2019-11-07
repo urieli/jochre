@@ -176,12 +176,16 @@ public class JochreQuery {
             String authorString = author;
             if (textNormaliser != null)
               authorString = textNormaliser.normalise(author);
+
             if (authorString.contains("*") || authorString.contains("?")) {
               WildcardQuery wildcardQuery = new WildcardQuery(new Term(JochreIndexField.author.name(), authorString));
               authorBuilder.add(new BooleanClause(wildcardQuery, Occur.SHOULD));
               WildcardQuery wildcardQuery2 = new WildcardQuery(
                   new Term(JochreIndexField.authorEnglish.name(), authorString));
               authorBuilder.add(new BooleanClause(wildcardQuery2, Occur.SHOULD));
+
+              if (LOG.isDebugEnabled())
+                LOG.debug("Added wildcard query for authorString: " + authorString);
             } else {
               TermQuery termQuery = new TermQuery(new Term(JochreIndexField.author.name(), authorString));
               authorBuilder.add(new BooleanClause(termQuery, Occur.SHOULD));
@@ -199,7 +203,9 @@ public class JochreQuery {
           MultiFieldQueryParser titleParser = new MultiFieldQueryParser(
               new String[] { JochreIndexField.titleEnglish.name(), JochreIndexField.title.name() }, jochreAnalyzer);
           String queryString = titleQueryString;
-          LOG.debug("titleQueryString: " + titleQueryString);
+
+          if (LOG.isDebugEnabled())
+            LOG.debug("titleQueryString: " + titleQueryString);
           TextNormaliser textNormaliser = TextNormaliser.getInstance(configId);
           if (textNormaliser != null)
             queryString = textNormaliser.normalise(queryString);
