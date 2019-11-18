@@ -1,4 +1,4 @@
-Django==2.1.7
+Django==2.2.7
 requests==2.20.0
 django-allauth==0.37.1
 gunicorn==19.9.0
