@@ -19,7 +19,9 @@
 package com.joliciel.jochre.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.IntPoint;
@@ -33,8 +35,10 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -221,9 +225,17 @@ public class JochreQuery {
           builder.add(new BooleanClause(yearQuery, Occur.MUST));
           hasQuery = true;
         }
-        if (this.reference != null && this.reference.length() > 0) {
-          TermQuery refQuery = new TermQuery(new Term(JochreIndexField.id.name(), reference));
-          builder.add(new BooleanClause(refQuery, Occur.MUST));
+        if (this.reference != null && this.reference.trim().length() > 0) {
+          String[] references = this.reference.split("(?U)[\\s\\p{Punct}]");
+          if (references.length == 1) {
+            TermQuery refQuery = new TermQuery(new Term(JochreIndexField.id.name(), reference));
+            builder.add(new BooleanClause(refQuery, Occur.MUST));
+          } else {
+            List<BytesRef> terms = Arrays.asList(references).stream().map(s -> new BytesRef(s))
+                .collect(Collectors.toList());
+            TermInSetQuery refQuery = new TermInSetQuery(JochreIndexField.id.name(), terms);
+            builder.add(new BooleanClause(refQuery, Occur.MUST));
+          }
           hasQuery = true;
         }
         if (hasQuery)
