@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-10 11:06+0000\n"
+"POT-Creation-Date: 2019-11-19 11:36+0000\n"
 "PO-Revision-Date: 2019-10-10 12:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Translators: Login form password sign in button
 #: templates/account/login.html:6 templates/account/login.html:12
-#: templates/account/login.html:56 templates/search/header.html:60
+#: templates/account/login.html:56 templates/search/header.html:58
 msgid "Sign In"
 msgstr "אַרײַנשרײַבן"
 
@@ -57,7 +57,8 @@ msgstr "אַרױסלאָגירן"
 msgid "Are you sure you want to sign out?"
 msgstr "איר ווילט זיך טאַקע אַרויסשרײַבן?"
 
-#: templates/account/password_reset.html:6 templates/account/password_reset.html:12
+#: templates/account/password_reset.html:6
+#: templates/account/password_reset.html:12
 #: templates/account/password_reset_done.html:6
 #: templates/account/password_reset_done.html:12
 msgid "Password Reset"
@@ -65,8 +66,8 @@ msgstr ""
 
 #: templates/account/password_reset.html:17
 msgid ""
-"Forgotten your password? Enter your e-mail address below, and we'll send you an e-"
-"mail allowing you to reset it."
+"Forgotten your password? Enter your e-mail address below, and we'll send you "
+"an e-mail allowing you to reset it."
 msgstr ""
 
 #: templates/account/password_reset.html:22
@@ -79,8 +80,8 @@ msgstr ""
 
 #: templates/account/password_reset_done.html:18
 msgid ""
-"We have sent you an e-mail. Please contact us if you do not receive it within a "
-"few minutes."
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
 msgstr ""
 
 #: templates/account/signup.html:5
@@ -88,13 +89,14 @@ msgid "Signup"
 msgstr "רעגיסטרירן"
 
 #: templates/account/signup.html:11 templates/account/signup.html:36
-#: templates/search/header.html:63
+#: templates/search/header.html:61
 msgid "Sign Up"
 msgstr "רעגיסטרירן"
 
 #: templates/account/signup.html:13
 #, python-format
-msgid "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
+msgid ""
+"Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
 msgstr ""
 
 #: templates/contents.html:11
@@ -114,31 +116,36 @@ msgstr ""
 msgid "Unable to process query"
 msgstr "אוממעגלעך צו באַאַרבעטן דעם נאָכפֿרעג"
 
-#: templates/search.html:34
+#: templates/search.html:33
+#, python-format
+msgid "Index size: %(bookCount)s books."
+msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"
+
+#: templates/search.html:35
 msgid "Please enter a search term"
 msgstr "פֿאַרשרײַבט אַ זוכוואָרט"
 
-#: templates/search.html:44
+#: templates/search.html:45
 msgid "No search results"
 msgstr "קײן רעזולטאַטן"
 
-#: templates/search.html:56
+#: templates/search.html:57
 #, python-format
-msgid "Found %(count)s results."
-msgstr "%(count)s רעזולטאַטן."
+msgid "Found %(resultCount)s results out of %(bookCount)s."
+msgstr "גיט אָפּ %(resultCount)s רעזולטאַטן (פֿון %(bookCount)s ביכער)."
 
-#: templates/search.html:58
+#: templates/search.html:59
 #, python-format
-msgid "Found more than %(count)s results."
-msgstr "מער װי %(count)s רעזולטאַטן."
+msgid "Found more than %(resultCount)s results out of %(bookCount)s."
+msgstr "גיט אָפּ מער װי %(resultCount)s רעזולטאַטן(פֿון %(bookCount)s ביכער)."
 
-#: templates/search.html:60
+#: templates/search.html:61
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "רעזולטאַטן %(start)s ביז %(end)s:"
 
 #. Translators: Clear all search results
-#: templates/search.html:63 templates/search/search-pane.html:187
+#: templates/search.html:64 templates/search/search-pane.html:184
 msgid "Clear results"
 msgstr "אױסמעקן"
 
@@ -148,60 +155,64 @@ msgid "Correct document meta data"
 msgstr "אױסבעסרן אַן אַטריבוט"
 
 #. Translators: Instructions on how to correct metadata
-#: templates/search/correct-meta-modal.html:20
+#: templates/search/correct-meta-modal.html:22
 msgid "Correct the meta data."
 msgstr "בסערט אױס אַן אַטריבוט."
 
-#: templates/search/correct-meta-modal.html:25
+#: templates/search/correct-meta-modal.html:29
 msgid "Field"
 msgstr "אַטריבוט"
 
-#: templates/search/correct-meta-modal.html:29
+#: templates/search/correct-meta-modal.html:33
 msgid "Current value"
 msgstr "איצטיקער אינהאַלט"
 
-#: templates/search/correct-meta-modal.html:39
+#: templates/search/correct-meta-modal.html:43
 msgid "New value"
 msgstr "נײַער אינהאַלט"
 
-#: templates/search/correct-meta-modal.html:49
-#: templates/search/correct-meta-modal.html:59
+#: templates/search/correct-meta-modal.html:53
+#: templates/search/correct-meta-modal.html:63
 msgid "or Merge with"
 msgstr "אָדער גיסט צונױף מיט"
 
-#: templates/search/correct-meta-modal.html:69 templates/search/word-modal.html:82
+#: templates/search/correct-meta-modal.html:73
+#: templates/search/word-modal.html:84
 msgid "Close"
 msgstr "פֿאַרמאכֿט"
 
-#: templates/search/correct-meta-modal.html:71
+#: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
-#: templates/search/preferences-modal.html:63 templates/search/word-modal.html:84
+#: templates/search/preferences-modal.html:63
+#: templates/search/word-modal.html:86
 msgid "Save changes"
 msgstr "היט אױף"
 
-#: templates/search/correct-meta-modal.html:74
+#: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
 msgstr ""
 
-#: templates/search/correct-meta-modal.html:80
+#: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
-#: templates/search/preferences-modal.html:72 templates/search/word-modal.html:95
+#: templates/search/preferences-modal.html:72
+#: templates/search/word-modal.html:97
 msgid "An error occurred."
 msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
 #: templates/search/footer.html:25
 msgid "Powered by"
-msgstr "באַכּוחט דורך"
+msgstr "אָנגעטריבן פֿון"
 
-#: templates/search/footer.html:27 templates/search/header.html:21
+#: templates/search/footer.html:27 templates/search/header.html:19
 msgid "Jochre"
 msgstr "זוך"
 
-#: templates/search/header.html:54
+#: templates/search/header.html:52
 msgid "Logout"
 msgstr "אַרױסלאָגירן"
 
-#: templates/search/keyboard-modal.html:7 templates/search/keyboard-modal.html:13
+#: templates/search/keyboard-modal.html:7
+#: templates/search/keyboard-modal.html:13
 msgid "Customize keyboard"
 msgstr "מאַכט איבער די קלאַוויאַטור"
 
@@ -245,7 +256,7 @@ msgid "Preferences saved."
 msgstr "די פּרעפֿערענצן זײַנען אױפֿגעהיט געװאָרן."
 
 #. Translators: search button text
-#: templates/search/search-pane.html:30 templates/search/search-pane.html:188
+#: templates/search/search-pane.html:30 templates/search/search-pane.html:185
 msgid "Search"
 msgstr "זוך"
 
@@ -262,47 +273,57 @@ msgstr "אַוואַנסירטער זוך"
 msgid "Author"
 msgstr "מחבר"
 
+#: templates/search/search-pane.html:89 templates/search/search-pane.html:90
+#: templates/search/search-pane.html:94
+msgid "Include authors"
+msgstr ""
+
+#: templates/search/search-pane.html:94 templates/search/search-pane.html:95
+msgid "Exclude authors"
+msgstr ""
+
 #. Translators: Search field to limit results by title
-#: templates/search/search-pane.html:127 templates/search/search-result.html:16
+#: templates/search/search-pane.html:124 templates/search/search-result.html:16
 msgid "Title"
 msgstr "טיטל"
 
 #. Translators: Search field to add lower limit to results by publication year
-#: templates/search/search-pane.html:137
+#: templates/search/search-pane.html:134
 msgid "Publication year from"
-msgstr ""
+msgstr "אױסגאַבע פֿון יאָר"
 
-#. Translators: Search field to add upper limit to results by publication year
-#: templates/search/search-pane.html:141
-msgid "to"
-msgstr ""
+#. Translators: Search field to add upper limit to results by publication year, just the word "to" in English between two text-boxes
+#: templates/search/search-pane.html:138
+msgid "Publication year to"
+msgstr "ביז יאָר"
 
-#: templates/search/search-pane.html:151
+#: templates/search/search-pane.html:148
 msgid "Strict"
 msgstr "שטרענג"
 
 #. Translators: Sort by drop-down title
-#: templates/search/search-pane.html:159
+#: templates/search/search-pane.html:156
 msgid "Sort by"
 msgstr "סאָרטירן לױטן"
 
 #. Translators: Drop-down value to sort by score
-#: templates/search/search-pane.html:163
+#: templates/search/search-pane.html:160
 msgid "sort by score"
 msgstr "חשבון"
 
 #. Translators: Drop-down value to sort by year in ascending order
-#: templates/search/search-pane.html:165
+#: templates/search/search-pane.html:162
 msgid "sort by year ascending"
 msgstr "יאָר ↑"
 
 #. Translators: Drop-down value to sort by year in descending order
-#: templates/search/search-pane.html:167
+#: templates/search/search-pane.html:164
 msgid "sort by year descending"
 msgstr "יאָר ↓"
 
 #. Translators: Search field to limit results by document reference number
-#: templates/search/search-pane.html:177 templates/search/search-result.html:113
+#: templates/search/search-pane.html:174
+#: templates/search/search-result.html:113
 msgid "Reference number"
 msgstr "אידענטיפֿיציר נומער"
 
@@ -361,24 +382,21 @@ msgstr "יאָר"
 
 #: templates/search/search-result.html:134
 msgid "(Double-click on a word to make an OCR correction)"
-msgstr ""
+msgstr "(טוט אַ טאָפּלקװעטש אױף אַ װאָרט כּדי אױסצובעסערן דעם OCR אַנאַליז)"
 
 #: templates/search/search-result.html:143
 msgid "View page snippet"
 msgstr "קוקט אָן דעם שטיקעלע זײַטל"
 
 #: templates/search/search-result.html:150
+#: templates/search/search-result.html:200
 msgid "View transcribed text"
 msgstr "קוקט אָן דעם טראַנסקריבירטן טעקסט"
 
-#: templates/search/search-result.html:158
-msgid "Go to book"
-msgstr "גייט צו בוך"
-
-#: templates/search/search-result.html:158
+#: templates/search/search-result.html:157
 #, python-format
-msgid "(page %(page)s)"
-msgstr "(זײַטל %(page)s("
+msgid "Go to book (page %(page)s)"
+msgstr "גייט צו בוך (זײַטל %(page)s)"
 
 #: templates/search/word-modal.html:7 templates/search/word-modal.html:13
 msgid "Fix a word"
@@ -386,33 +404,61 @@ msgstr "אױסבעסערן אַ װאָרט"
 
 #: templates/search/word-modal.html:29
 msgid ""
-"Please enter the word exactly as it appears above, including niqqud, apostrophes, "
-"quotes, dashes, and other punctuation. If the word is badly segmented (i.e. if "
-"only part of the word appears), do not correct it."
+"Please enter the word exactly as it appears above, including niqqud, "
+"apostrophes, quotes, dashes, and other punctuation. If the word is badly "
+"segmented (i.e. if only part of the word appears), do not correct it."
 msgstr ""
-"שרײַבט דאָס װאָרט פּונקט װי עס זעט אױס אױבן, מיט ניקוד, אפּאָסטראָפֿן, גענדזן-פֿיסלעך, "
-"מקפֿן, און אַנדערע אפּשטעל-צײכנס. אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה אױב נאָר אַ טײל "
-"פֿונעם װאָרט זעט אױס אױבן), מע טאָר נישט עס אױסבעסערן."
+"שרײַבט דאָס װאָרט פּונקט װי עס זעט אױס אױבן, מיט ניקוד, אפּאָסטראָפֿן, גענדזן-"
+"פֿיסלעך, מקפֿן, און אַנדערע אפּשטעל-צײכנס. אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה "
+"אױב נאָר אַ טײל פֿונעם װאָרט זעט אױס אױבן), מע טאָר נישט עס אױסבעסערן."
 
 #: templates/search/word-modal.html:36
 msgid "Word"
 msgstr "װאָרט"
 
-#: templates/search/word-modal.html:50
+#: templates/search/word-modal.html:52
 msgid "Font"
 msgstr "דרוקשריפֿט"
 
-#: templates/search/word-modal.html:61
+#: templates/search/word-modal.html:63
 msgid "Font example"
 msgstr "דרוקשריפֿט דוגמא"
 
-#: templates/search/word-modal.html:68
+#: templates/search/word-modal.html:70
 msgid "Language"
 msgstr "שפּראַך"
 
-#: templates/search/word-modal.html:88
+#: templates/search/word-modal.html:90
 msgid "Suggestion recorded."
 msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
+
+#: templates/wrapper.html:66
+msgid "Cookies used on the website!"
+msgstr ""
+
+#: templates/wrapper.html:67
+msgid "This website uses cookies to improve your experience."
+msgstr ""
+
+#: templates/wrapper.html:68
+msgid "Got it!"
+msgstr ""
+
+#: templates/wrapper.html:69
+msgid "Allow cookies"
+msgstr ""
+
+#: templates/wrapper.html:70
+msgid "Decline"
+msgstr ""
+
+#: templates/wrapper.html:71
+msgid "Learn more"
+msgstr ""
+
+#: templates/wrapper.html:74
+msgid "Cookie Policy"
+msgstr ""
 
 #: views.py:214
 msgid "first page"
@@ -430,14 +476,14 @@ msgstr "קומעדיקע"
 msgid "last page"
 msgstr "לעצטע"
 
+#~ msgid "Go to book"
+#~ msgstr "גייט צו בוך"
+
 #~ msgid "search button"
 #~ msgstr "זוך"
 
 #~ msgid "title field"
 #~ msgstr "טיטל"
-
-#~ msgid "from year"
-#~ msgstr "אױסגאַבע פֿון יאָר"
 
 #~ msgid "to year"
 #~ msgstr "ביז יאָר"
@@ -453,32 +499,6 @@ msgstr "לעצטע"
 
 #~ msgid "Attribute specified"
 #~ msgstr "בסערט אױס אַן אַטריבוט"
-
-#~ msgid ""
-#~ "Texts scanned by the <a href=\"http://www.yiddishbookcenter.org/\">Yiddish "
-#~ "Book Center</a>"
-#~ msgstr ""
-#~ "טעקסטן סקאַנירט דורכן <a href=\"http://www.yiddishbookcenter.org/\">ייִדישן "
-#~ "ביכער־צענטער</a>"
-
-#~ msgid ""
-#~ "Texts OCR'd and indexed by Assaf Urieli, <a href=\"http://www.joli-ciel.com/"
-#~ "\">Joliciel Informatique</a>"
-#~ msgstr ""
-#~ "אָפּטישע אותיות־דערקענען און אינדעקסירן פֿון אסף אוריאלי, <a href=\"http://www."
-#~ "joli-ciel.com/\">זשאָליסיעל אינפֿאָרמאַטיק</a>"
-
-#~ msgid ""
-#~ "Lexicon by Yitskhok Niborski and the <a href=\"http://yiddishweb.com/\">Medem "
-#~ "Bibliothèque</a>"
-#~ msgstr ""
-#~ "לעקסיקאָן פֿון יצחק ניבאָרסקי און דער <a href=\"http://yiddishweb.com/\">מעדעם "
-#~ "ביבליאָטעק</a>"
-
-#~ msgid ""
-#~ "Go to <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter.org</a>"
-#~ msgstr ""
-#~ "גייט צו <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter.org</a>"
 
 #~ msgid "clear form"
 #~ msgstr "אױסמעקן"
@@ -515,6 +535,3 @@ msgstr "לעצטע"
 
 #~ msgid "prefsSnippetsPerDoc"
 #~ msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
-
-#~ msgid "Index size: %(bookCount)s books."
-#~ msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"

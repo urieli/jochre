@@ -119,6 +119,8 @@ SHOW_SECTION = False
 def PAGE_URL_TRANSFORM(pageNumber):
     return pageNumber
 
+# Are keyboard mappings activated in the application
+KEYBOARD_MAPPINGS_ACTIVATED = False
 
 KEYBOARD_MAPPINGS_ENABLED = False
 

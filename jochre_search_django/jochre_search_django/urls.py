@@ -15,12 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from jochre_search_django.settings import LOGIN_REDIRECT_URL
+from django.utils import timezone
+from django.views.decorators.http import last_modified
+from django.views.i18n import JavaScriptCatalog
 
 urlpatterns = [
     path('', include('jochre.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('jsi18n/',
+         last_modified(lambda req, **kw: last_modified_date)(JavaScriptCatalog.as_view()),
+         name='javascript-catalog'),
 ]
 
 # Attempt to add custom URLs if available.

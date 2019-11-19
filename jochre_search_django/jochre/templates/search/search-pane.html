@@ -36,12 +36,14 @@
         <div class="d-flex flex-row">
           <div class="mx-n2">
             {% block search_controls %}
-              {% spaceless %}
-                <a id="updateKeyboardMappings" href="#" class="text-nowrap mx-2">
-                  {% trans 'Update key mappings' %}
-                  <i class="fas fa-keyboard mx-2"></i>
-                </a>
-              {% endspaceless %}
+              {% if useKeyboardMappings %}
+                {% spaceless %}
+                  <a id="updateKeyboardMappings" href="#" class="text-nowrap mx-2">
+                    {% trans 'Update key mappings' %}
+                    <i class="fas fa-keyboard mx-2"></i>
+                  </a>
+                {% endspaceless %}
+              {% endif %}
 
               {% spaceless %}
                 <a id="toggleAdvancedSearch" href="#" class="text-nowrap mx-2">
@@ -134,8 +136,8 @@
               <label for="txtFromYear" class="col-form-label font-weight-bold">{% trans 'Publication year from' %}:</label>
               <input type="number" min="1000" max="2100" step="1" id="txtFromYear" name="fromYear" class="form-control mx-2" value="{{ fromYear }}">
 
-              {# Translators: Search field to add upper limit to results by publication year #}
-              <label for="txtToYear" class="col-form-label font-weight-bold">{% trans 'to' %}:</label>
+              {# Translators: Search field to add upper limit to results by publication year, just the word "to" in English between two text-boxes #}
+              <label for="txtToYear" class="col-form-label font-weight-bold">{% trans 'Publication year to' %}:</label>
               <input type="number" min="1000" max="2100" step="1" id="txtToYear" name="toYear" class="form-control mx-2" value="{{ toYear }}">
             </div>
           </div>

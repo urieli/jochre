@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-10 11:06+0000\n"
+"POT-Creation-Date: 2019-11-19 11:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #. Translators: Login form password sign in button
 #: templates/account/login.html:6 templates/account/login.html:12
-#: templates/account/login.html:56 templates/search/header.html:60
+#: templates/account/login.html:56 templates/search/header.html:58
 msgid "Sign In"
 msgstr ""
 
@@ -90,7 +90,7 @@ msgid "Signup"
 msgstr ""
 
 #: templates/account/signup.html:11 templates/account/signup.html:36
-#: templates/search/header.html:63
+#: templates/search/header.html:61
 msgid "Sign Up"
 msgstr ""
 
@@ -117,31 +117,36 @@ msgstr ""
 msgid "Unable to process query"
 msgstr "Unable to process query"
 
-#: templates/search.html:34
+#: templates/search.html:33
+#, python-format
+msgid "Index size: %(bookCount)s books."
+msgstr "Index size: %(bookCount)s books."
+
+#: templates/search.html:35
 msgid "Please enter a search term"
 msgstr ""
 
-#: templates/search.html:44
+#: templates/search.html:45
 msgid "No search results"
 msgstr "No search results."
 
-#: templates/search.html:56
+#: templates/search.html:57
 #, python-format
-msgid "Found %(count)s results."
-msgstr "Found %(count)s results."
+msgid "Found %(resultCount)s results out of %(bookCount)s."
+msgstr "Returns %(resultCount)s results (out of %(bookCount)s documents)."
 
-#: templates/search.html:58
+#: templates/search.html:59
 #, python-format
-msgid "Found more than %(count)s results."
-msgstr "Found more than %(count)s results."
+msgid "Found more than %(resultCount)s results out of %(bookCount)s."
+msgstr "Returns over %(resultCount)s results (out of %(bookCount)s documents)."
 
-#: templates/search.html:60
+#: templates/search.html:61
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "Results %(start)s to %(end)s:"
 
 #. Translators: Clear all search results
-#: templates/search.html:63 templates/search/search-pane.html:187
+#: templates/search.html:64 templates/search/search-pane.html:184
 #, fuzzy
 #| msgid "No search results"
 msgid "Clear results"
@@ -153,51 +158,51 @@ msgid "Correct document meta data"
 msgstr ""
 
 #. Translators: Instructions on how to correct metadata
-#: templates/search/correct-meta-modal.html:20
+#: templates/search/correct-meta-modal.html:22
 msgid "Correct the meta data."
 msgstr ""
 
-#: templates/search/correct-meta-modal.html:25
+#: templates/search/correct-meta-modal.html:29
 msgid "Field"
 msgstr ""
 
-#: templates/search/correct-meta-modal.html:29
+#: templates/search/correct-meta-modal.html:33
 #, fuzzy
 #| msgid "correctMetaCurrentValue"
 msgid "Current value"
 msgstr "Current value"
 
-#: templates/search/correct-meta-modal.html:39
+#: templates/search/correct-meta-modal.html:43
 msgid "New value"
 msgstr ""
 
-#: templates/search/correct-meta-modal.html:49
-#: templates/search/correct-meta-modal.html:59
+#: templates/search/correct-meta-modal.html:53
+#: templates/search/correct-meta-modal.html:63
 #, fuzzy
 #| msgid "correctMetaMergeWith"
 msgid "or Merge with"
 msgstr "or Merge with"
 
-#: templates/search/correct-meta-modal.html:69
-#: templates/search/word-modal.html:82
+#: templates/search/correct-meta-modal.html:73
+#: templates/search/word-modal.html:84
 msgid "Close"
 msgstr "Close"
 
-#: templates/search/correct-meta-modal.html:71
+#: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
 #: templates/search/preferences-modal.html:63
-#: templates/search/word-modal.html:84
+#: templates/search/word-modal.html:86
 msgid "Save changes"
 msgstr "Save changes"
 
-#: templates/search/correct-meta-modal.html:74
+#: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
 msgstr "Correction recorded."
 
-#: templates/search/correct-meta-modal.html:80
+#: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
 #: templates/search/preferences-modal.html:72
-#: templates/search/word-modal.html:95
+#: templates/search/word-modal.html:97
 msgid "An error occurred."
 msgstr "An error occurred."
 
@@ -205,11 +210,11 @@ msgstr "An error occurred."
 msgid "Powered by"
 msgstr "Powered by"
 
-#: templates/search/footer.html:27 templates/search/header.html:21
+#: templates/search/footer.html:27 templates/search/header.html:19
 msgid "Jochre"
 msgstr ""
 
-#: templates/search/header.html:54
+#: templates/search/header.html:52
 #, fuzzy
 #| msgid "logout"
 msgid "Logout"
@@ -260,7 +265,7 @@ msgid "Preferences saved."
 msgstr "Preferences saved."
 
 #. Translators: search button text
-#: templates/search/search-pane.html:30 templates/search/search-pane.html:188
+#: templates/search/search-pane.html:30 templates/search/search-pane.html:185
 msgid "Search"
 msgstr ""
 
@@ -277,49 +282,58 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
+#: templates/search/search-pane.html:89 templates/search/search-pane.html:90
+#: templates/search/search-pane.html:94
+msgid "Include authors"
+msgstr ""
+
+#: templates/search/search-pane.html:94 templates/search/search-pane.html:95
+msgid "Exclude authors"
+msgstr ""
+
 #. Translators: Search field to limit results by title
-#: templates/search/search-pane.html:127 templates/search/search-result.html:16
+#: templates/search/search-pane.html:124 templates/search/search-result.html:16
 msgid "Title"
 msgstr ""
 
 #. Translators: Search field to add lower limit to results by publication year
-#: templates/search/search-pane.html:137
+#: templates/search/search-pane.html:134
 msgid "Publication year from"
 msgstr ""
 
-#. Translators: Search field to add upper limit to results by publication year
-#: templates/search/search-pane.html:141
-msgid "to"
-msgstr ""
+#. Translators: Search field to add upper limit to results by publication year, just the word "to" in English between two text-boxes
+#: templates/search/search-pane.html:138
+msgid "Publication year to"
+msgstr "to"
 
-#: templates/search/search-pane.html:151
+#: templates/search/search-pane.html:148
 msgid "Strict"
 msgstr ""
 
 #. Translators: Sort by drop-down title
-#: templates/search/search-pane.html:159
+#: templates/search/search-pane.html:156
 #, fuzzy
 #| msgid "sort by"
 msgid "Sort by"
 msgstr "Sort by"
 
 #. Translators: Drop-down value to sort by score
-#: templates/search/search-pane.html:163
+#: templates/search/search-pane.html:160
 msgid "sort by score"
 msgstr "score"
 
 #. Translators: Drop-down value to sort by year in ascending order
-#: templates/search/search-pane.html:165
+#: templates/search/search-pane.html:162
 msgid "sort by year ascending"
 msgstr "year ↑"
 
 #. Translators: Drop-down value to sort by year in descending order
-#: templates/search/search-pane.html:167
+#: templates/search/search-pane.html:164
 msgid "sort by year descending"
 msgstr "year ↓"
 
 #. Translators: Search field to limit results by document reference number
-#: templates/search/search-pane.html:177
+#: templates/search/search-pane.html:174
 #: templates/search/search-result.html:113
 #, fuzzy
 #| msgid "referenceNumber"
@@ -399,18 +413,13 @@ msgid "View page snippet"
 msgstr ""
 
 #: templates/search/search-result.html:150
+#: templates/search/search-result.html:200
 msgid "View transcribed text"
 msgstr ""
 
-#: templates/search/search-result.html:158
-#, fuzzy
-#| msgid "next page"
-msgid "Go to book"
-msgstr "Next"
-
-#: templates/search/search-result.html:158
+#: templates/search/search-result.html:157
 #, python-format
-msgid "(page %(page)s)"
+msgid "Go to book (page %(page)s)"
 msgstr ""
 
 #: templates/search/word-modal.html:7 templates/search/word-modal.html:13
@@ -428,25 +437,53 @@ msgstr ""
 msgid "Word"
 msgstr ""
 
-#: templates/search/word-modal.html:50
+#: templates/search/word-modal.html:52
 msgid "Font"
 msgstr ""
 
-#: templates/search/word-modal.html:61
+#: templates/search/word-modal.html:63
 #, fuzzy
 #| msgid "fixWordFontExample"
 msgid "Font example"
 msgstr "Font example"
 
-#: templates/search/word-modal.html:68
+#: templates/search/word-modal.html:70
 #, fuzzy
 #| msgid "fixWordLanguage"
 msgid "Language"
 msgstr "Language"
 
-#: templates/search/word-modal.html:88
+#: templates/search/word-modal.html:90
 msgid "Suggestion recorded."
 msgstr "Suggestion recorded."
+
+#: templates/wrapper.html:66
+msgid "Cookies used on the website!"
+msgstr ""
+
+#: templates/wrapper.html:67
+msgid "This website uses cookies to improve your experience."
+msgstr ""
+
+#: templates/wrapper.html:68
+msgid "Got it!"
+msgstr ""
+
+#: templates/wrapper.html:69
+msgid "Allow cookies"
+msgstr ""
+
+#: templates/wrapper.html:70
+msgid "Decline"
+msgstr ""
+
+#: templates/wrapper.html:71
+msgid "Learn more"
+msgstr ""
+
+#: templates/wrapper.html:74
+msgid "Cookie Policy"
+msgstr ""
 
 #: views.py:214
 msgid "first page"
@@ -463,6 +500,11 @@ msgstr "Next"
 #: views.py:244
 msgid "last page"
 msgstr "Last"
+
+#, fuzzy
+#~| msgid "next page"
+#~ msgid "Go to book"
+#~ msgstr "Next"
 
 #~ msgid "search button"
 #~ msgstr "Search"
@@ -523,6 +565,3 @@ msgstr "Last"
 
 #~ msgid "prefsSnippetsPerDoc"
 #~ msgstr "Snippets per document"
-
-#~ msgid "Index size: %(bookCount)s books."
-#~ msgstr "Index size: %(bookCount)s books."
