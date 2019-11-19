@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InflectedFormFilter extends TokenFilter {
   private static final Logger LOG = LoggerFactory.getLogger(InflectedFormFilter.class);
@@ -40,7 +40,7 @@ public class InflectedFormFilter extends TokenFilter {
   private Lexicon lexicon;
   private List<String> inflectedForms = null;
   private int index = -1;
-  
+
   public InflectedFormFilter(TokenStream input, Lexicon lexicon) {
     super(input);
     this.lexicon = lexicon;
@@ -48,37 +48,37 @@ public class InflectedFormFilter extends TokenFilter {
 
   @Override
   public final boolean incrementToken() throws IOException {
-      if (inflectedForms==null) {
-        if (!input.incrementToken())
-            return false;
-        String term = new String(termAtt.buffer(), 0, termAtt.length());
+    if (inflectedForms == null) {
+      if (!input.incrementToken())
+        return false;
+      String term = new String(termAtt.buffer(), 0, termAtt.length());
+      if (LOG.isDebugEnabled())
         LOG.debug("term: " + term);
-        Set<String> lemmas = this.lexicon.getLemmas(term);
-        Set<String> inflectedForms = new TreeSet<>();
-        inflectedForms.add(term);
-        if (lemmas!=null) {
-          for (String lemma : lemmas) {
-            Set<String> myInflectedForms = this.lexicon.getWords(lemma);
+      Set<String> lemmas = this.lexicon.getLemmas(term);
+      Set<String> inflectedForms = new TreeSet<>();
+      inflectedForms.add(term);
+      if (lemmas != null) {
+        for (String lemma : lemmas) {
+          Set<String> myInflectedForms = this.lexicon.getWords(lemma);
+          if (LOG.isDebugEnabled())
             LOG.debug("lemma: " + lemma + ", words: " + myInflectedForms);
-            inflectedForms.addAll(myInflectedForms);
-          }
+          inflectedForms.addAll(myInflectedForms);
         }
-        this.inflectedForms = new ArrayList<>(inflectedForms);
-        index = 0;
       }
-      if (index < inflectedForms.size()) {
-        String inflectedForm = inflectedForms.get(index);
-        termAtt.copyBuffer(inflectedForm.toCharArray(), 0, inflectedForm.length());
-        if (index==0)
-          posIncrAtt.setPositionIncrement(1);
-        else
-          posIncrAtt.setPositionIncrement(0);
+      this.inflectedForms = new ArrayList<>(inflectedForms);
+      index = 0;
+    }
+    if (index < inflectedForms.size()) {
+      String inflectedForm = inflectedForms.get(index);
+      termAtt.copyBuffer(inflectedForm.toCharArray(), 0, inflectedForm.length());
+      if (index > 0)
+        posIncrAtt.setPositionIncrement(0);
 
-        index++;
-        if (index==inflectedForms.size())
-          inflectedForms = null;
-        return true;
-      } 
+      index++;
+      if (index == inflectedForms.size())
+        inflectedForms = null;
+      return true;
+    }
 
     return false;
   }

@@ -31,6 +31,7 @@ import org.apache.lucene.search.Matches;
 import org.apache.lucene.search.MatchesIterator;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.RegexpQuery;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.util.AttributeSource;
@@ -62,7 +63,8 @@ public class LuceneQueryHighlighter implements Highlighter {
   // so as not to weight the same term higher for certain fields than others
   private final Map<BytesRef, Double> termLogs = new HashMap<>();
 
-  public LuceneQueryHighlighter(JochreQuery jochreQuery, IndexSearcher indexSearcher, Set<String> fields) throws IOException {
+  public LuceneQueryHighlighter(JochreQuery jochreQuery, IndexSearcher indexSearcher, Set<String> fields)
+      throws IOException {
     this.jochreQuery = jochreQuery;
     this.indexSearcher = indexSearcher;
     this.fields = fields;
@@ -155,11 +157,13 @@ public class LuceneQueryHighlighter implements Highlighter {
 
           for (TermsEnumExtractor extractor : extractors) {
             if (LOG.isTraceEnabled())
-              LOG.trace("Matching extractor " + (extractor.getTerm() == null ? "" : extractor.getTerm().utf8ToString()) + " in field " + field);
+              LOG.trace("Matching extractor " + (extractor.getTerm() == null ? "" : extractor.getTerm().utf8ToString())
+                  + " in field " + field);
             TermsEnum extractorEnum = extractor.getTermsEnum(atomicReaderTerms);
             BytesRef nextBytesRef = extractorEnum.next();
             while (nextBytesRef != null) {
-              List<HighlightTerm> highlights = this.findHighlights(field, extractorEnum, subContext, luceneIdToLuceneDocMap, docsPerLeaf);
+              List<HighlightTerm> highlights = this.findHighlights(field, extractorEnum, subContext,
+                  luceneIdToLuceneDocMap, docsPerLeaf);
               for (HighlightTerm highlightTerm : highlights) {
                 termMap.get(highlightTerm.getDocId()).add(highlightTerm);
               }
@@ -178,7 +182,8 @@ public class LuceneQueryHighlighter implements Highlighter {
                 for (Term term : passage.terms) {
                   termCounter++;
                   if (LOG.isTraceEnabled())
-                    LOG.trace("Searching for term " + termCounter + ": " + term.bytes().utf8ToString() + " in field " + field);
+                    LOG.trace("Searching for term " + termCounter + ": " + term.bytes().utf8ToString() + " in field "
+                        + field);
 
                   if (!termsEnum.seekExact(term.bytes())) {
                     continue; // term not found
@@ -186,9 +191,11 @@ public class LuceneQueryHighlighter implements Highlighter {
 
                   Set<Integer> singleDocIdSet = new HashSet<>();
                   singleDocIdSet.add(docId);
-                  List<HighlightTerm> highlights = this.findHighlights(field, termsEnum, subContext, luceneIdToLuceneDocMap, singleDocIdSet);
+                  List<HighlightTerm> highlights = this.findHighlights(field, termsEnum, subContext,
+                      luceneIdToLuceneDocMap, singleDocIdSet);
                   for (HighlightTerm highlightTerm : highlights) {
-                    if (highlightTerm.getStartOffset() >= passage.start && highlightTerm.getEndOffset() <= passage.end) {
+                    if (highlightTerm.getStartOffset() >= passage.start
+                        && highlightTerm.getEndOffset() <= passage.end) {
                       if (LOG.isTraceEnabled())
                         LOG.trace("Adding term: " + highlightTerm);
                       termMap.get(highlightTerm.getDocId()).add(highlightTerm);
@@ -241,7 +248,8 @@ public class LuceneQueryHighlighter implements Highlighter {
     }
   }
 
-  private void extractWeights(Query query, List<Weight> weights, List<TermsEnumExtractor> extractors) throws IOException {
+  private void extractWeights(Query query, List<Weight> weights, List<TermsEnumExtractor> extractors)
+      throws IOException {
     if (query instanceof BooleanQuery) {
       for (BooleanClause clause : ((BooleanQuery) query).clauses()) {
         if (clause.getOccur() != Occur.MUST_NOT) {
@@ -258,9 +266,18 @@ public class LuceneQueryHighlighter implements Highlighter {
       Automaton automaton = WildcardQuery.toAutomaton(wildcardTerm);
       CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
       extractors.add(new CompiledAutomatonTermsEnumExtractor(compiledAutomaton));
+    } else if (query instanceof RegexpQuery) {
+      RegexpQuery regexpQuery = (RegexpQuery) query;
+      Automaton automaton = regexpQuery.getAutomaton();
+      if (LOG.isDebugEnabled())
+        LOG.debug(automaton.toDot());
+      CompiledAutomaton compiledAutomaton = new CompiledAutomaton(automaton);
+      extractors.add(new CompiledAutomatonTermsEnumExtractor(compiledAutomaton));
     } else if (query instanceof FuzzyQuery) {
       extractors.add(new FuzzyQueryTermsEnumExtractor((FuzzyQuery) query));
     } else {
+      if (LOG.isDebugEnabled())
+        LOG.debug("Extracting weight for " + query.getClass().getName());
       weights.add(query.createWeight(indexSearcher, false, 1.0f));
     }
   }
@@ -298,8 +315,8 @@ public class LuceneQueryHighlighter implements Highlighter {
 
     @Override
     public TermsEnum getTermsEnum(Terms terms) throws IOException {
-      return new FuzzyTermsEnum(terms, new AttributeSource(), fuzzyQuery.getTerm(), fuzzyQuery.getMaxEdits(), fuzzyQuery.getPrefixLength(),
-          fuzzyQuery.getTranspositions());
+      return new FuzzyTermsEnum(terms, new AttributeSource(), fuzzyQuery.getTerm(), fuzzyQuery.getMaxEdits(),
+          fuzzyQuery.getPrefixLength(), fuzzyQuery.getTranspositions());
     }
 
     @Override
@@ -308,13 +325,14 @@ public class LuceneQueryHighlighter implements Highlighter {
     }
   }
 
-  private List<HighlightTerm> findHighlights(String field, TermsEnum termsEnum, LeafReaderContext subContext, Map<Integer, Document> luceneIdToLuceneDocMap,
-      Set<Integer> docsPerLeaf) throws IOException {
+  private List<HighlightTerm> findHighlights(String field, TermsEnum termsEnum, LeafReaderContext subContext,
+      Map<Integer, Document> luceneIdToLuceneDocMap, Set<Integer> docsPerLeaf) throws IOException {
     List<HighlightTerm> highlights = new ArrayList<>();
 
     Term term = new Term(field, BytesRef.deepCopyOf(termsEnum.term()));
 
-    PostingsEnum postingsEnum = termsEnum.postings(null, PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
+    PostingsEnum postingsEnum = termsEnum.postings(null,
+        PostingsEnum.OFFSETS | PostingsEnum.POSITIONS | PostingsEnum.PAYLOADS);
     int relativeId = postingsEnum.nextDoc();
     while (relativeId != DocIdSetIterator.NO_MORE_DOCS) {
       int luceneId = subContext.docBase + relativeId;
@@ -323,7 +341,8 @@ public class LuceneQueryHighlighter implements Highlighter {
         int freq = postingsEnum.freq();
 
         if (LOG.isTraceEnabled()) {
-          LOG.trace("Found " + freq + " matches for term " + term.toString() + ", luceneId " + luceneId + ", field " + field);
+          LOG.trace(
+              "Found " + freq + " matches for term " + term.toString() + ", luceneId " + luceneId + ", field " + field);
         }
         for (int i = 0; i < freq; i++) {
           int position = postingsEnum.nextPosition();
@@ -331,7 +350,8 @@ public class LuceneQueryHighlighter implements Highlighter {
           int end = postingsEnum.endOffset();
 
           if (LOG.isTraceEnabled())
-            LOG.trace("Found match " + position + " at luceneId " + luceneId + ", field " + field + " start=" + start + ", end=" + end);
+            LOG.trace("Found match " + position + " at luceneId " + luceneId + ", field " + field + " start=" + start
+                + ", end=" + end);
 
           BytesRef bytesRef = postingsEnum.getPayload();
           JochrePayload payload = new JochrePayload(bytesRef);

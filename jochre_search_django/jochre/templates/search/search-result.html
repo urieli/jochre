@@ -1,0 +1,208 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<div class="row justify-content-center search-result mb-4 pb-2">
+  {# Translators: Title metadata #}
+  <div class="col">
+    <h2 class="title">
+      {% spaceless %}
+        <span {% if FIELDS_LTR.title %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
+          {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.title }}{% if readOnline %}</a>{% endif %}
+        </span>
+        <svg class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'Title' %}', true, '{{result.doc.title|escapejs}}');">
+          <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+        </svg>
+      {% endspaceless %}
+    </h2>
+
+    {% if result.doc.titleEnglish %}
+      {# Translators: Title metadata in alternate alphabet #}
+      <div class="alt-title">
+        {% spaceless %}
+          <strong>{% trans 'Alternate title' %}:</strong>
+          <span {% if FIELDS_LTR.titleTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
+          <svg class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');">
+            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+          </svg>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if result.doc.volume %}
+      <div class="volume">
+        {% spaceless %}
+          <strong>{% trans 'Volume' %}:</strong>
+          <span {% if FIELDS_LTR.volume %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
+          <svg class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');">
+            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+          </svg>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {# Translators: Author metadata #}
+    <div class="author">
+      {% spaceless %}
+        <strong>{% trans 'Author' %}:</strong>
+        <span {% if FIELDS_LTR.author %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.author }}</span>
+        <svg class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');">
+          <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+        </svg>
+      {% endspaceless %}
+    </div>
+
+    {% if result.doc.authorEnglish %}
+      {# Translators: Author metadata in alternate alphabet #}
+      <div class="alt-author">
+        {% spaceless %}
+          <strong>{% trans 'Alternate author' %}:</strong>
+          <span {% if FIELDS_LTR.authorTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.authorEnglish }}</span>
+          <svg class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');">
+            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+          </svg>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if showSection %}
+      <div class="section">
+        {% spaceless %}
+          <strong>{% trans 'Section' %}:</strong>
+          <span class="mx-1">{% blocktrans with startPage=doc.startPage endPage=doc.endPage %}Pages {{ startPage }} to {{ endPage }}{% endblocktrans %}</span>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if result.doc.publisher %}
+      <div class="publisher">
+        {% spaceless %}
+          <strong>{% trans 'Publisher' %}:</strong>
+          <span {% if FIELDS_LTR.publisher %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
+          <svg class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');">
+            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+          </svg>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if result.doc.date %}
+      <div class="date">
+        {% spaceless %}
+          <strong>{% trans 'Date' %}:</strong>
+          <span {% if FIELDS_LTR.date %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.date }}</span>
+          <svg class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');">
+            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
+          </svg>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if result.doc.id %}
+      <div class="reference-number">
+        {% spaceless %}
+          <strong>{% trans 'Reference number' %}:</strong>
+          <span {% if FIELDS_LTR.referenceNumber %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.id }}</span>
+        {% endspaceless %}
+      </div>
+    {% endif %}
+
+    {% if highlights %}
+      {% if result.snippetError %}
+        <p style="color:red;">{{ result.snippetError.message }}</p>
+        <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
+      {% else %}
+        <div class="row">
+          <div class="col-12">
+            {% for snippet in result.snippets %}
+              <div class="mt-2">
+                <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}class="snippet ltr"{% if RTL %} dir="ltr"{% endif %}{% else %}class="snippet rtl"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
+                  {% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}
+                </div>
+              </div>
+
+              <div class="mt-2">
+                <p class="m-0 font-italic font-weight-bold">{% blocktrans %}(Double-click on a word to make an OCR correction){% endblocktrans %}</p>
+              </div>
+
+              <div class="{% if RTL %}rtl{% else %}ltr{% endif %} mt-1 mb-3 mx-n2 text-right">
+                {% spaceless %}
+                  <a id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" data-toggle="collapse"
+                     href="#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}"
+                     class="text-nowrap mx-1 action-link">
+                    <i class="fas fa-file-image mx-1"></i>
+                    <span class="mx-1">{% trans 'View page snippet' %}</span>
+                  </a>
+                {% endspaceless %}
+
+                {% spaceless %}
+                  <a href="/contents?doc={{ result.doc.name }}#page{{ snippet.pageNumber }}" target="_blank" class="text-nowrap mx-1 action-link">
+                    <i class="fas fa-file-alt mx-1"></i>
+                    <span class="mx-1">{% trans 'View transcribed text' %}</span>
+                  </a>
+                {% endspaceless %}
+
+                {% spaceless %}
+                  {% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank" class="text-nowrap mx-1 action-link">{% endif %}
+                    <i class="fas fa-book-open mx-1"></i>
+                    <span class="mx-1">{% blocktrans with page=snippet.pageNumber %}Go to book (page {{page}}){% endblocktrans %}</span>
+                  {% if readOnline %}</a>{% endif %}
+                {% endspaceless %}
+              </div>
+              <div id="imageRow{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+                <div class="collapse" id="image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}">
+                </div>
+              </div>
+              <script>
+                $(function() {
+                  $("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").click(function(evt){
+                    window.open('{{ snippet.readOnlineUrl }}', '_blank');
+                  });
+
+                  $('#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}').data('counter', 0);
+
+                  // Note a counter is added to the end of the URL simply to force a reload each time the image
+                  // is opened. Normally this wouldn't be required, but in the case where the image failed to load
+                  // the first time, this would reload it after a close and open.
+                  // The "maxResults" parameter is meaningless here, it is simply used to update the URL and prevent caching.
+                  $("#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").on('show.bs.collapse', function () {
+                    $(this).html(`<img src="{% autoescape off %}{{ snippet.imageUrl }}{% endautoescape %}&maxResults=${$(this).data('counter')}" class="image w-100" />`);
+                    $(this).data('counter', $(this).data('counter')+1);
+                  });
+
+                  {% if JOCHRE_CROWD_SOURCE %}
+                  $("#snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}").dblclick(function(evt){
+                    fixWord(evt, {{ result.doc.docId }});
+                  });
+                  {% endif %}
+                });
+              </script>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="row">
+        <div class="col-12">
+          <div class="{% if RTL %}rtl{% else %}ltr{% endif %} mt-1 mb-3 mx-n2 text-right" dir="{% if RTL %}rtl{% else %}ltr{% endif %}">
+            {% spaceless %}
+              <a href="/contents?doc={{ result.doc.name }}" target="_blank" class="text-nowrap mx-1 action-link">
+                <i class="fas fa-file-alt mx-1"></i>
+                <span class="mx-1">{% trans 'View transcribed text' %}</span>
+              </a>
+            {% endspaceless %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>

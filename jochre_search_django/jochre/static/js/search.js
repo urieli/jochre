@@ -1,14 +1,17 @@
 var keyboardMappings = {};
 var keyboardMappingEnabled = false;
 var authorCounter = 0;
+var useKeyboardMappings = USE_KEYBOARD_MAPPINGS;
 
 $(function() {
-  applyKeyboardMappings();
+  if (useKeyboardMappings) {
+    applyKeyboardMappings();
 
-  $('#updateKeyboardMappings').click(function() {
-    loadKeyboardMappings();
-    return false;
-  });
+    $('#updateKeyboardMappings').click(function() {
+      loadKeyboardMappings();
+      return false;
+    });
+  }
 
   $('#updatePreferences').click(function() {
     loadPreferences();
@@ -37,9 +40,11 @@ $(function() {
       console.log(`adding ${author}`);
       authorCounter += 1;
       $('#authorList').append(`
-        <div id="newAuthor${authorCounter}" class="alert alert-success alert-dismissible p-0 alert-auto">
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${author}
-          <button type="button" class="close p-0" data-dismiss="alert" aria-label="Close">&times;</button>
+        <div id="newAuthor${authorCounter}" class="alert alert-info alert-dismissible alert-auto col-auto py-2 mx-2">
+          ${author}
+          <button type="button" class="close py-2" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
           <script>
             $('#newAuthor${authorCounter}').on('closed.bs.alert', function () {
               var currentAuthors = $('#hdnAuthors').val().replace('|${author}','');
@@ -47,7 +52,7 @@ $(function() {
               $('#hdnAuthors').val(currentAuthors);
             })
           <\/script>
-        </div>&nbsp;
+        </div>
         `);
       $('#txtAuthor').typeahead('val','');
       var currentAuthors = $('#hdnAuthors').val();
@@ -55,7 +60,8 @@ $(function() {
     }
   });
 
-  $("#toggleAdvancedSearch").click(function(){
+  $("#toggleAdvancedSearch").click(function(e){
+    e.preventDefault();
     $("#advancedSearch").toggle();
   });
 
@@ -82,11 +88,11 @@ $(function() {
   });
 
   $('#imgFixWord').on('load', function() {
-    $("#imgWordLoading").hide();
+    hideDiv($("#imgWordLoading"));
   });
 
   $('#selFont').on('change', function() {
-    $("#imgFont").attr("src", `${STATIC_LOCATION}images/${this.value}.png`);
+    $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${this.value}.png`);
   });
 
   $('#btnSaveFixWord').click( function (e) {
@@ -104,13 +110,13 @@ $(function() {
       url: '/updateKeyboard',
       data: $('#frmKeys').serialize(),
       success: function() {
-        $('#alertKeyboardError').hide();
-        $('#alertKeyboardSuccess').show();
+        hideDiv($('#alertKeyboardError'));
+        showDiv($('#alertKeyboardSuccess'));
         applyKeyboardMappings();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown) {
-        $('#alertKeyboardError').show();
-        $('#alertKeyboardSuccess').hide();
+        showDiv($('#alertKeyboardError'));
+        hideDiv($('#alertKeyboardSuccess'));
       },
     });
   });
@@ -122,13 +128,13 @@ $(function() {
       url: '/updateKeyboard',
       data: $('#frmKeys').serialize(),
       success: function() {
-        $('#alertKeyboardError').hide();
-        $('#alertKeyboardSuccess').show();
+        hideDiv($('#alertKeyboardError'));
+        showDiv($('#alertKeyboardSuccess'));
         applyKeyboardMappings();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown) {
-        $('#alertKeyboardError').show();
-        $('#alertKeyboardSuccess').hide();
+        showDiv($('#alertKeyboardError'));
+        hideDiv($('#alertKeyboardSuccess'));
       },
     });
   });
@@ -140,12 +146,12 @@ $(function() {
       url: '/updatePreferences',
       data: $('#frmPrefs').serialize(),
       success: function() {
-        $('#alertPrefsError').hide();
-        $('#alertPrefsSuccess').show();
+        hideDiv($('#alertPrefsError'));
+        showDiv($('#alertPrefsSuccess'));
       },
       error: function(XMLHttpRequest, textStatus, errorThrown) {
-        $('#alertPrefsError').show();
-        $('#alertPrefsSuccess').hide();
+        showDiv($('#alertPrefsError'));
+        hideDiv($('#alertPrefsSuccess'));
       },
     });
   });
@@ -157,18 +163,19 @@ $(function() {
       url: '/updatePreferences',
       data: $('#frmPrefs').serialize(),
       success: function() {
-        $('#alertPrefsError').hide();
-        $('#alertPrefsSuccess').show();
+        hideDiv($('#alertPrefsError'));
+        showDiv($('#alertPrefsSuccess'));
+        location.reload();
       },
       error: function(XMLHttpRequest, textStatus, errorThrown) {
-        $('#alertPrefsError').show();
-        $('#alertPrefsSuccess').hide();
+        showDiv($('#alertPrefsError'));
+        hideDiv($('#alertPrefsSuccess'));
       },
     });
   });
 
   $('.alert .close').click(function(){
-    $(this).parent().hide();
+    hideDiv($(this).parent());
     var modal = $(this).closest('.modal');
     if (modal)
       modal.modal('hide');
@@ -199,6 +206,9 @@ function transformChar(charStr) {
 }
 
 function transformKeyPress(textfield, evt) {
+  if (!useKeyboardMappings)
+    return true;
+
   if (!keyboardMappingEnabled)
     return true;
 
@@ -237,7 +247,7 @@ function transformKeyPress(textfield, evt) {
 
 function fixWord(evt, docId) {
   var sel = window.getSelection();
-  
+
   var range = sel.getRangeAt(0);
   console.log(`range startOffset: ${range.startOffset}, endOffset ${range.endOffset}, startContainer ${range.startContainer.nodeName}, endContainer ${range.endContainer.nodeName}, commonAncestorContainer ${range.commonAncestorContainer.nodeName}`);
   console.log(`sel.anchorNode: ${sel.anchorNode.nodeName}, sel.anchorOffset: ${sel.anchorOffset}`);
@@ -255,24 +265,25 @@ function fixWord(evt, docId) {
     wordOffset = parseInt($(span).closest("span[offset]").attr("offset"));
     console.log(`wordOffset: ${wordOffset}`);
   }
-  $('#alertFixWordSuccess').hide();
-  $('#alertFixWordError').hide();
+
+  hideDiv($('#alertFixWordSuccess'));
+  hideDiv($('#alertFixWordError'));
 
   $('#fixWordModal').data('docId', docId);
   $('#fixWordModal').data('wordOffset', wordOffset);
-  
+
   $("#imgFixWord").attr("src","");
-  $("#imgWordLoading").show();
+  showDiv($("#imgWordLoading"));
   $("#txtSuggestion").val("");
   $("#txtSuggestion2").val("");
-  $("#txtSuggestion2").hide();
+  hideDiv($("#txtSuggestion2").parents('.row').first());
   $("#imgFixWord").attr("src",`${JOCHRE_SEARCH_EXT_URL}?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
-  
+
   $("#selFont").val($("#selFont option:first").val());
   $("#selLang").val($("#selLang option:first").val());
-  
-  $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selFont').val()}.png`);
-  
+
+  $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${$('#selFont').val()}.png`);
+
   $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
       $.each( data, function( key, val ) {
         if (key=="word") {
@@ -281,7 +292,7 @@ function fixWord(evt, docId) {
         } else if (key=="word2") {
           console.log(`found word2 : ${val}`);
           $("#txtSuggestion2").val(val);
-          $("#txtSuggestion2").show();
+          showDiv($("#txtSuggestion2").parents('.row').first());
         }
       });
     });
@@ -293,19 +304,19 @@ function applyFix() {
   var docId = $('#fixWordModal').data('docId');
   var wordOffset = $('#fixWordModal').data('wordOffset');
 
-  $("#imgWordLoading").show();
+  showDiv($("#imgWordLoading"));
 
   var suggestion = $("#txtSuggestion").val();
   var suggestion2 = $("#txtSuggestion2").val();
-  
+
   var selFont = document.getElementById("selFont");
   var fontCode = selFont.options[selFont.selectedIndex].value;
 
   var selLang = document.getElementById("selLang");
   var languageCode = selLang.options[selLang.selectedIndex].value;
-  
+
   console.log(`Apply fix ${suggestion} for ${docId} at ${wordOffset}`);
-  
+
   $.ajax({
     url: JOCHRE_SEARCH_EXT_URL + "?command=suggest"
       + "&docId=" + docId
@@ -318,14 +329,14 @@ function applyFix() {
       + "&languageCode=" + encodeURIComponent(languageCode),
     dataType: 'json',
     success: function( data ) {
-      $("#imgWordLoading").hide();
-      $('#alertFixWordError').hide();
-      $('#alertFixWordSuccess').show();
+      hideDiv($("#imgWordLoading"));
+      showDiv($('#alertFixWordSuccess'));
+      hideDiv($('#alertFixWordError'));
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
-      $("#imgWordLoading").hide();
-      $('#alertFixWordError').show();
-      $('#alertFixWordSuccess').hide();
+      hideDiv($("#imgWordLoading"));
+      hideDiv($('#alertFixWordSuccess'));
+      showDiv($('#alertFixWordError'));
       },
     });
 }
@@ -448,7 +459,7 @@ function applyCorrection() {
   let applyEverywhere = (replaceOrMerge==="merge");
 
   console.log(`Apply correction for ${docId}, ${field}: ${value}`);
-  
+
   $.ajax({
     url: JOCHRE_SEARCH_EXT_URL + "?command=correct"
       + "&docId=" + docId
@@ -459,20 +470,20 @@ function applyCorrection() {
       + "&applyEverywhere=" + applyEverywhere,
     dataType: 'json',
     success: function( data ) {
-      $('#alertCorrectMetaError').hide();
-      $('#alertCorrectMetaSuccess').show();
+      hideDiv($('#alertCorrectMetaError'));
+      showDiv($('#alertCorrectMetaSuccess'));
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
-      $('#alertCorrectMetaError').show();
-      $('#alertCorrectMetaSuccess').hide();
+      showDiv($('#alertCorrectMetaError'));
+      hideDiv($('#alertCorrectMetaSuccess'));
       },
     });
 }
 
 function loadKeyboardMappings() {
   $('#keyboardEntries').empty();
-  $('#alertKeyboardError').hide();
-  $('#alertKeyboardSuccess').hide();
+  hideDiv($('#alertKeyboardError'));
+  hideDiv($('#alertKeyboardSuccess'));
   $.getJSON( `/keyboard`, function( data ) {
     var mappings = [];
     var enabled;
@@ -516,8 +527,8 @@ function loadKeyboardMappings() {
 }
 
 function loadPreferences() {
-  $('#alertPrefsError').hide();
-  $('#alertPrefsSuccess').hide();
+  hideDiv($('#alertPrefsError'));
+  hideDiv($('#alertPrefsSuccess'));
   $.getJSON( `/preferences`, function( data ) {
     $.each( data, function( key, val ) {
       if (key=="docsPerPage") {
@@ -528,4 +539,14 @@ function loadPreferences() {
     });
     $("#preferencesModal").modal()
   });
+}
+
+function showDiv(div) {
+  div.removeClass('d-none');
+  div.addClass('d-flex');
+}
+
+function hideDiv(div) {
+  div.addClass('d-none');
+  div.removeClass('d-flex');
 }

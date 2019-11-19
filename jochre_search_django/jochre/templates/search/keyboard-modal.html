@@ -1,0 +1,71 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+
+<div class="modal fade" id="keyboardModal" tabindex="-1" role="dialog" aria-labelledby="{% trans 'Customize keyboard' %}"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        {# Translator: Title of key mappings modal #}
+        <h5 class="modal-title">{% trans 'Customize keyboard' %}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="frmKeys" role="form" autocomplete="off">
+          {% csrf_token %}
+          <input type="hidden" id="frmKeysAction" name="action">
+          <div class="d-flex">
+            <div class="input-group mx-3 mb-3 form-check">
+              <input type="checkbox" id="frmKeysEnabled" class="form-check-input" name="enabled" />
+              <label for="frmKeysEnabled" class="form-check-label">{% trans 'Enable keyboard mappings' %}</label>
+            </div>
+          </div>
+          <div id="keyboardEntries" class="d-flex flex-wrap">
+          </div>
+        </form>
+        <script>
+          $('#frmKeys').on('click', '.btn-add', function(e) {
+            e.preventDefault();
+
+            var entries = $('#keyboardEntries');
+            var currentEntry = $(this).parents('.entry:first');
+            var newEntry = $(currentEntry.clone()).appendTo(entries);
+
+            newEntry.find('input').val('');
+            entries.find('.entry:not(:last) .btn-add')
+              .removeClass('btn-add').addClass('btn-remove')
+              .removeClass('btn-success').addClass('btn-danger')
+              .html('-');
+          })
+          .on('click', '.btn-remove', function(e) {
+            $(this).parents('.entry:first').remove();
+            e.preventDefault();
+            return false;
+          });
+      </script>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans 'Cancel' %}</button>
+        <button id="btnKeyboardDefault" type="button" class="btn btn-warning">{% trans 'Restore defaults' %}</button>
+        <button id="btnKeyboardSave" type="button" class="btn btn-primary">{% trans 'Save changes' %}</button>
+      </div>
+      <div id="alertKeyboardSuccess" class="alert alert-success alert-dismissible d-none mx-3" role="alert">
+        <strong>{% trans 'Keyboard mappings updated.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id="alertKeyboardError" class="alert alert-danger alert-dismissible d-none mx-3" role="alert">
+        <strong>{% trans 'An error occurred.' %}</strong>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

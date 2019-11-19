@@ -20,11 +20,14 @@ package com.joliciel.jochre.search;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
 
 public class PdfImageReader {
   File pdfFile = null;
+
   public PdfImageReader(File pdfFile) {
     this.pdfFile = pdfFile;
   }
@@ -37,21 +40,22 @@ public class PdfImageReader {
 
   public final static class PdfImageReaderInternal extends AbstractPdfImageVisitor {
     BufferedImage image = null;
-    
+
     public PdfImageReaderInternal(File pdfFile) {
       super(pdfFile);
     }
-    
+
     public BufferedImage readImage(int pageNumber) {
-      super.visitImages(pageNumber, pageNumber);
+      Set<Integer> pages = new HashSet<>();
+      pages.add(pageNumber);
+      super.visitImages(pages);
       return this.image;
     }
-    
+
     @Override
-    protected void visitImage(BufferedImage image, String imageName,
-        int pageIndex, int imageIndex) {
+    protected void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex) {
       this.image = image;
     }
-    
+
   }
 }

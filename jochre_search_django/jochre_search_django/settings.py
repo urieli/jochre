@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+import django.conf.locale
+
+from django.conf import global_settings
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,7 +35,8 @@ ROOT_URLCONF = 'jochre_search_django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
             'templates'
         ],
         'APP_DIRS': True,
@@ -48,7 +53,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jochre_search_django.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -58,7 +62,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -77,7 +80,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # auth and allauth settings
 
@@ -109,6 +111,28 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+gettext_noop = lambda s: s
+
+LANGUAGES = (
+    ('yi', gettext_noop('Yiddish')),
+)
+
+EXTRA_LANG_INFO = {
+    'yi': {
+        'bidi': True,  # right-to-left
+        'code': 'yi',
+        'name': 'Yiddish',
+        'name_local': u'ייּדיש',  # unicode codepoints here
+    },
+}
+
+# Add custom languages not provided by Django
+LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
+django.conf.locale.LANG_INFO = LANG_INFO
+
+# Languages using BiDi (right-to-left) layout
+LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI + ["yi"]
 
 ### local settings
 from jochre_search_django.settings_local import *

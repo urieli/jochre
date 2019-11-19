@@ -1,0 +1,83 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load custom_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as RTL %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if RTL %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>{% block head_title %}{% endblock %}</title>
+
+  {% block wrapper_head %}{% endblock %}
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"  crossorigin="anonymous">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+
+<body {% if RTL %}class="rtl"{% else %}class="ltr"{% endif %}>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <script src="https://twitter.github.io/typeahead.js/releases/0.11.1/typeahead.bundle.min.js"></script>
+
+  <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/solid.js" integrity="sha384-IA6YnujJIO+z1m4NKyAGvZ9Wmxrd4Px8WFqhFcgRmwLaJaiwijYgApVpo1MV8p77" crossorigin="anonymous"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/fontawesome.js" integrity="sha384-EMmnH+Njn8umuoSMZ3Ae3bC9hDknHKOWL2e9WJD/cN6XLeAN7tr5ZQ0Hx5HDHtkS" crossorigin="anonymous"></script>
+
+  <script>
+    var JOCHRE_SEARCH_EXT_URL = "{{ JOCHRE_SEARCH_EXT_URL }}";
+    var USERNAME = "{{ request.user.username }}";
+    var IP = "{{ ip }}";
+    var STATIC_LOCATION = "{% static "" %}";
+    var USE_KEYBOARD_MAPPINGS = {{ useKeyboardMappings }};
+  </script>
+
+  <script src="{% static "js/search.js" %}"></script>
+
+  <div class="main-wrapper h-100 d-flex flex-column">
+    {% include "search/header.html" %}
+
+    {% block content %}
+
+    {% endblock %}
+
+    {% include "search/footer.html" %}
+  </div>
+
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+  <script>
+    window.addEventListener("load", function () {
+      window.cookieconsent.initialise({
+        "palette": {
+          "popup": {
+            "background": "#edeff5",
+            "text": "#838391"
+          },
+          "button": {
+            "background": "#4b81e8"
+          }
+        },
+        "content": {
+           header: '{% trans "Cookies used on the website!" %}',
+           message: '{% trans "This website uses cookies to improve your experience." %}',
+           dismiss: '{% trans "Got it!" %}',
+           allow: '{% trans "Allow cookies" %}',
+           deny: '{% trans "Decline" %}',
+           link: '{% trans "Learn more" %}',
+           href: 'https://www.cookiesandyou.com',
+           close: '&#x274c;',
+           policy: '{% trans "Cookie Policy" %}',
+           target: '_blank',
+        }
+      })
+    });
+  </script>
+</body>
+
+</html>

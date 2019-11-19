@@ -784,7 +784,7 @@ public class JochreSearch {
           jochreIndexDirectory.addUpdateInstructions();
 
           // Start the index thread
-          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, false);
           new Thread(builder).start();
         } finally {
           searchManager.getManager().release(indexSearcher);
@@ -849,7 +849,7 @@ public class JochreSearch {
           correction.save();
 
           // start the index thread
-          JochreIndexBuilder builder = new JochreIndexBuilder(configId, forceUpdate);
+          JochreIndexBuilder builder = new JochreIndexBuilder(configId, false);
           new Thread(builder).start();
 
           // send an e-mail if required

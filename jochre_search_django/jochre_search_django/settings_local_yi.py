@@ -11,9 +11,6 @@ logging.basicConfig(level=logging.DEBUG,
                     filename='/var/log/jochreSearchDjango/django.log',
                     filemode='a')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
 
@@ -35,8 +32,8 @@ INSTALLED_APPS = [
 ]
 
 # ... include the providers you want to enable:
-#INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
-#INSTALLED_APPS.append('allauth.socialaccount.providers.google')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.facebook')
+# INSTALLED_APPS.append('allauth.socialaccount.providers.google')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -54,19 +51,41 @@ SECRET_KEY = 'yrm_bco(44o_+6j8_!r&top0uw4i+^3wb*=)6awlw&s@50e+&0'
 
 SITE_ID = 1
 
-JOCHRE_SEARCH_URL='http://localhost:8080/jochre/search'
-JOCHRE_SEARCH_EXT_URL='http://localhost:8080/jochre/search'
+JOCHRE_SEARCH_URL = 'http://localhost:8080/jochre/search'
+JOCHRE_SEARCH_EXT_URL = 'http://localhost:8080/jochre/search'
 
 LOGIN_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-JOCHRE_TITLE="יאָוקער אױף ייִדיש"
-JOCHRE_CREDITS="""Texts scanned by the <a href="http://www.yiddishbookcenter.org/" target="_blank">Yiddish Book Center</a><br/>
+JOCHRE_TITLE= {
+"yi": u"יאָוקער אױף ייִדיש",
+"en": u"Jochre in Yiddish"
+}
+JOCHRE_CREDITS= {
+"en": """Texts scanned by the <a href="http://www.yiddishbookcenter.org/" target="_blank">Yiddish Book Center</a><br/>
 Texts OCR'd and indexed by Assaf Urieli, <a href="http://www.joli-ciel.com/" target="_blank">Joliciel Informatique</a><br/>
-Lexicon by Yitskhok Niborski and the <a href="http://yiddishweb.com/" target="_blank">Medem Bibliothèque</a>"""
+Lexicon by the Yitskhok Niborski and the <a href="http://yiddishweb.com/" target="_blank">Medem Bibliothèque</a>""",
+"yi": """טעקסטן ארײַנסקאַנדירט געװאָרן דורך דעם <a href="http://www.yiddishbookcenter.org/" target="_blank">ייִדישן ביכער-צענטער</a><br/>
+אָפּטישע אותיות־דערקענען און אינדעקסירונג דורך אסף אוריאלין, <a href="http://www.joli-ciel.com/" target="_blank">זשאָליסיעל ענפֿאָרמאַטיק</a><br/>
+לעקסיקאָן פֿון יצחק ניבאָרסקין און דעם <a href="http://yiddishweb.com/" target="_blank">פאריזער יידיש-צענטער - מעדעם ביבליאטעק</a>""",
+}
 
-JOCHRE_LEFT_TO_RIGHT=False
+DEFAULT_LANG = "yi"
+
+# Is each field right-to-left or left-to-right
+FIELDS_LTR = {
+  'contents': False,
+  'title': False,
+  'titleTranscribed': True,
+  'volume': False,
+  'author': False,
+  'authorTranscribed': True,
+  'publisher': True,
+  'date': True,
+  'referenceNumber': True,
+}
+
 JOCHRE_READ_ONLINE=True
 
 JOCHRE_CROWD_SOURCE=True
@@ -86,70 +105,20 @@ JOCHRE_LANGUAGE_NAMES = {
 }
 
 JOCHRE_UI_STRINGS = {
-"logout" : u"Logout",
-"searchButton" : u"זוך",
-"titleField" : u"טיטל",
-"authorField" : u"מחבר",
-"strictField" : u"שטרענג",
-"clear" : u"אױסמעקן",
-"fromYearField" : u"אױסגאַבע פֿון יאָר",
-"toYearField" : u"ביז יאָר",
-"referenceField": u"אידענטיפֿיציר נומער",
-"sortBy" : u"סאָרטירן לױטן",
-"sortByScore" : u"חשבון",
-"sortByYearAscending" : u"יאָר ↑",
-"sortByYearDescending" : u"יאָר ↓",
-"unableToProcessQuery" : u"Unable to process query",
-"noResults" : u"No results",
-"foundResults" : u"Found {0} results. Results {1} to {2}",
-"foundMoreResults" : u"Found more than {0} results. Results {1} to {2}",
-"foundResultsRTL" : u"{0} רעזולטאַטן. רעזולטאַטן {1} ביז {2}",
-"foundMoreResultsRTL" : u"מער װי {0} רעזולטאַטן. רעזולטאַטן {1} ביז {2}",
-"title" : u"Title",
-"titleRTL" : u"טיטל",
-"author" : u"Author",
-"authorRTL" : u"מחבר",
-"section" : u"Section",
-"sectionRTL" : u"אָפּטײל",
-"pages" : u"Pages {0} to {1}",
-"pagesRTL" : u"זײַטן {0} ביז {1}",
-"toRTL" : u"ביז",
-"publisher" : u"Publisher",
-"publisherRTL" : u"פֿאַרלאַג",
-"date" : u"Year",
-"dateRTL" : u"יאָר",
-"referenceNumber": u"Reference number",
-"referenceNumberRTL": u"אידענטיפֿיציר נומער",
 "pageURL" : u"https://archive.org/stream/{0}#page/n{1}/mode/1up",
-"first" : u"First",
-"prev" : u"Prev",
-"next" : u"Next",
-"last" : u"Last",
-"volume" : u"volume",
-"volumeRTL" : u"באַנד",
-"fixWordTitle": u"Fix a word",
-"fixWordInstructions" : u"""Please enter the word exactly as it appears above, including niqqud, apsotrophes, quotes, dashes, and other punctuation.
-If the word as badly segmented (i.e. if only part of the word appears), do not correct it.""",
-"fixWordWord" : u"Word",
-"fixWordFont" : u"Font",
-"fixWordFontExample" : u"Font example",
-"fixWordLanguage" : u"Language",
-"prefsTitle" : u"Preferences",
-"prefsDocsPerPage" : u"Results per page",
-"prefsSnippetsPerDoc" : u"Snippets per result",
-"correctMetaTitle": u"Correct document meta data",
-"correctMetaInstructions": u"""Correct the meta data.""",
-"correctMetaFieldName": u"Field",
-"correctMetaCurrentValue": u"Current value",
-"correctMetaNewValue": u"New value",
 }
 
 SHOW_SECTION = False
 
+
 def PAGE_URL_TRANSFORM(pageNumber):
   return pageNumber - 1
 
-KEYBOARD_MAPPINGS_ENABLED = False
+# Are keyboard mappings activated in the application
+KEYBOARD_MAPPINGS_ACTIVATED = False
+
+# Are keyboard mappings enabled by default
+KEYBOARD_MAPPINGS_ENABLED = True
 
 KEYBOARD_MAPPINGS = {
   u'a':   u'אַ',
