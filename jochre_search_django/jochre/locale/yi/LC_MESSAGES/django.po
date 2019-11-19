@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-18 11:07+0000\n"
+"POT-Creation-Date: 2019-11-19 11:36+0000\n"
 "PO-Revision-Date: 2019-10-10 12:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -116,29 +116,36 @@ msgstr ""
 msgid "Unable to process query"
 msgstr "אוממעגלעך צו באַאַרבעטן דעם נאָכפֿרעג"
 
-#: templates/search.html:34
+#: templates/search.html:33
+#, python-format
+msgid "Index size: %(bookCount)s books."
+msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"
+
+#: templates/search.html:35
 msgid "Please enter a search term"
 msgstr "פֿאַרשרײַבט אַ זוכוואָרט"
 
-#: templates/search.html:44
+#: templates/search.html:45
 msgid "No search results"
 msgstr "קײן רעזולטאַטן"
 
-#: templates/search.html:56
+#: templates/search.html:57
+#, python-format
 msgid "Found %(resultCount)s results out of %(bookCount)s."
 msgstr "גיט אָפּ %(resultCount)s רעזולטאַטן (פֿון %(bookCount)s ביכער)."
 
-#: templates/search.html:58
+#: templates/search.html:59
+#, python-format
 msgid "Found more than %(resultCount)s results out of %(bookCount)s."
 msgstr "גיט אָפּ מער װי %(resultCount)s רעזולטאַטן(פֿון %(bookCount)s ביכער)."
 
-#: templates/search.html:60
+#: templates/search.html:61
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "רעזולטאַטן %(start)s ביז %(end)s:"
 
 #. Translators: Clear all search results
-#: templates/search.html:63 templates/search/search-pane.html:184
+#: templates/search.html:64 templates/search/search-pane.html:184
 msgid "Clear results"
 msgstr "אױסמעקן"
 
@@ -194,7 +201,7 @@ msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
 #: templates/search/footer.html:25
 msgid "Powered by"
-msgstr "באַכּוחט דורך"
+msgstr "אָנגעטריבן פֿון"
 
 #: templates/search/footer.html:27 templates/search/header.html:19
 msgid "Jochre"
@@ -283,12 +290,12 @@ msgstr "טיטל"
 #. Translators: Search field to add lower limit to results by publication year
 #: templates/search/search-pane.html:134
 msgid "Publication year from"
-msgstr ""
+msgstr "אױסגאַבע פֿון יאָר"
 
-#. Translators: Search field to add upper limit to results by publication year
+#. Translators: Search field to add upper limit to results by publication year, just the word "to" in English between two text-boxes
 #: templates/search/search-pane.html:138
-msgid "to"
-msgstr ""
+msgid "Publication year to"
+msgstr "ביז יאָר"
 
 #: templates/search/search-pane.html:148
 msgid "Strict"
@@ -375,7 +382,7 @@ msgstr "יאָר"
 
 #: templates/search/search-result.html:134
 msgid "(Double-click on a word to make an OCR correction)"
-msgstr ""
+msgstr "(טוט אַ טאָפּלקװעטש אױף אַ װאָרט כּדי אױסצובעסערן דעם OCR אַנאַליז)"
 
 #: templates/search/search-result.html:143
 msgid "View page snippet"
@@ -387,13 +394,9 @@ msgid "View transcribed text"
 msgstr "קוקט אָן דעם טראַנסקריבירטן טעקסט"
 
 #: templates/search/search-result.html:157
-msgid "Go to book"
-msgstr "גייט צו בוך"
-
-#: templates/search/search-result.html:157
 #, python-format
-msgid "(page %(page)s)"
-msgstr "(זײַטל %(page)s("
+msgid "Go to book (page %(page)s)"
+msgstr "גייט צו בוך (זײַטל %(page)s)"
 
 #: templates/search/word-modal.html:7 templates/search/word-modal.html:13
 msgid "Fix a word"
@@ -473,14 +476,14 @@ msgstr "קומעדיקע"
 msgid "last page"
 msgstr "לעצטע"
 
+#~ msgid "Go to book"
+#~ msgstr "גייט צו בוך"
+
 #~ msgid "search button"
 #~ msgstr "זוך"
 
 #~ msgid "title field"
 #~ msgstr "טיטל"
-
-#~ msgid "from year"
-#~ msgstr "אױסגאַבע פֿון יאָר"
 
 #~ msgid "to year"
 #~ msgstr "ביז יאָר"
@@ -496,34 +499,6 @@ msgstr "לעצטע"
 
 #~ msgid "Attribute specified"
 #~ msgstr "בסערט אױס אַן אַטריבוט"
-
-#~ msgid ""
-#~ "Texts scanned by the <a href=\"http://www.yiddishbookcenter.org/"
-#~ "\">Yiddish Book Center</a>"
-#~ msgstr ""
-#~ "טעקסטן סקאַנירט דורכן <a href=\"http://www.yiddishbookcenter.org/\">ייִדישן "
-#~ "ביכער־צענטער</a>"
-
-#~ msgid ""
-#~ "Texts OCR'd and indexed by Assaf Urieli, <a href=\"http://www.joli-ciel."
-#~ "com/\">Joliciel Informatique</a>"
-#~ msgstr ""
-#~ "אָפּטישע אותיות־דערקענען און אינדעקסירן פֿון אסף אוריאלי, <a href=\"http://"
-#~ "www.joli-ciel.com/\">זשאָליסיעל אינפֿאָרמאַטיק</a>"
-
-#~ msgid ""
-#~ "Lexicon by Yitskhok Niborski and the <a href=\"http://yiddishweb.com/"
-#~ "\">Medem Bibliothèque</a>"
-#~ msgstr ""
-#~ "לעקסיקאָן פֿון יצחק ניבאָרסקי און דער <a href=\"http://yiddishweb.com/"
-#~ "\">מעדעם ביבליאָטעק</a>"
-
-#~ msgid ""
-#~ "Go to <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter."
-#~ "org</a>"
-#~ msgstr ""
-#~ "גייט צו <a href=\"https://www.yiddishbookcenter.org\">yiddishbookcenter."
-#~ "org</a>"
 
 #~ msgid "clear form"
 #~ msgstr "אױסמעקן"
@@ -560,6 +535,3 @@ msgstr "לעצטע"
 
 #~ msgid "prefsSnippetsPerDoc"
 #~ msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
-
-#~ msgid "Index size: %(bookCount)s books."
-#~ msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"

@@ -112,6 +112,7 @@ def search(request):
         "JOCHRE_LANGUAGE_LIST": settings.JOCHRE_LANGUAGE_LIST,
         "JOCHRE_LANGUAGE_NAMES": settings.JOCHRE_LANGUAGE_NAMES,
         "showSection": settings.SHOW_SECTION,
+        "useKeyboardMappings" : settings.KEYBOARD_MAPPINGS_ACTIVATED,
         "ip": ip,
         "haveSearch": haveSearch,
     }

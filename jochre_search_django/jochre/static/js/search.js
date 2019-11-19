@@ -1,14 +1,17 @@
 var keyboardMappings = {};
 var keyboardMappingEnabled = false;
 var authorCounter = 0;
+var useKeyboardMappings = USE_KEYBOARD_MAPPINGS;
 
 $(function() {
-  applyKeyboardMappings();
+  if (useKeyboardMappings) {
+    applyKeyboardMappings();
 
-  $('#updateKeyboardMappings').click(function() {
-    loadKeyboardMappings();
-    return false;
-  });
+    $('#updateKeyboardMappings').click(function() {
+      loadKeyboardMappings();
+      return false;
+    });
+  }
 
   $('#updatePreferences').click(function() {
     loadPreferences();
@@ -203,6 +206,9 @@ function transformChar(charStr) {
 }
 
 function transformKeyPress(textfield, evt) {
+  if (!useKeyboardMappings)
+    return true;
+
   if (!keyboardMappingEnabled)
     return true;
 

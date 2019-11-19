@@ -30,6 +30,7 @@
         <div class="container w-minor py-4">
           <div class="row justify-content-center">
               <div class="col-lg-9">
+              <p>{% blocktrans %}Index size: {{ bookCount }} books.{% endblocktrans %}</p>
               {% block enterterm %}
                 <p>{% trans 'Please enter a search term' %}</p>
               {% endblock %}

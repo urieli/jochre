@@ -9,7 +9,7 @@
   <div class="col">
     <h2 class="title">
       {% spaceless %}
-        <span {% if FIELDS_LTR.title %}dir="ltr" class="ltr mx-1" {% else %}dir="rtl" class="rtl mx-1" {% endif %}>
+        <span {% if FIELDS_LTR.title %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
           {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.title }}{% if readOnline %}</a>{% endif %}
         </span>
         <svg class="editImage mx-1"
@@ -24,7 +24,7 @@
       <div class="alt-title">
         {% spaceless %}
           <strong>{% trans 'Alternate title' %}:</strong>
-          <span {% if FIELDS_LTR.titleTranscribed %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1" {% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
+          <span {% if FIELDS_LTR.titleTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
           <svg class="editImage mx-1"
                onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');">
             <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -37,7 +37,7 @@
       <div class="volume">
         {% spaceless %}
           <strong>{% trans 'Volume' %}:</strong>
-          <span {% if FIELDS_LTR.volume %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1"{% endif %}>{{ result.doc.volume }}</span>
+          <span {% if FIELDS_LTR.volume %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
           <svg class="editImage mx-1"
                onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');">
             <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -50,7 +50,7 @@
     <div class="author">
       {% spaceless %}
         <strong>{% trans 'Author' %}:</strong>
-        <span {% if FIELDS_LTR.author %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1"{% endif %}>{{ result.doc.author }}</span>
+        <span {% if FIELDS_LTR.author %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.author }}</span>
         <svg class="editImage mx-1"
              onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');">
           <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -63,7 +63,7 @@
       <div class="alt-author">
         {% spaceless %}
           <strong>{% trans 'Alternate author' %}:</strong>
-          <span {% if FIELDS_LTR.authorTranscribed %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1"{% endif %}>{{ result.doc.authorEnglish }}</span>
+          <span {% if FIELDS_LTR.authorTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.authorEnglish }}</span>
           <svg class="editImage mx-1"
                onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');">
             <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -85,7 +85,7 @@
       <div class="publisher">
         {% spaceless %}
           <strong>{% trans 'Publisher' %}:</strong>
-          <span {% if FIELDS_LTR.publisher %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1"{% endif %}>{{ result.doc.publisher }}</span>
+          <span {% if FIELDS_LTR.publisher %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
           <svg class="editImage mx-1"
                onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');">
             <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -98,7 +98,7 @@
       <div class="date">
         {% spaceless %}
           <strong>{% trans 'Date' %}:</strong>
-          <span {% if FIELDS_LTR.date %}dir="ltr" class="ltr mx-1" {% else %}dir="rtl" class="rtl mx-1" {% endif %}>{{ result.doc.date }}</span>
+          <span {% if FIELDS_LTR.date %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.date }}</span>
           <svg class="editImage mx-1"
                onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');">
             <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
@@ -111,7 +111,7 @@
       <div class="reference-number">
         {% spaceless %}
           <strong>{% trans 'Reference number' %}:</strong>
-          <span {% if FIELDS_LTR.referenceNumber %}dir="ltr" class="ltr mx-1"{% else %}dir="rtl" class="rtl mx-1"{% endif %}>{{ result.doc.id }}</span>
+          <span {% if FIELDS_LTR.referenceNumber %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.id }}</span>
         {% endspaceless %}
       </div>
     {% endif %}
@@ -121,11 +121,11 @@
         <p style="color:red;">{{ result.snippetError.message }}</p>
         <p style="font-size:9px; color:red;">{% autoescape off %}{{ result.snippetError.stackTrace }}{% endautoescape %}</p>
       {% else %}
-        <div class="row rtl">
+        <div class="row">
           <div class="col-12">
             {% for snippet in result.snippets %}
               <div class="mt-2">
-                <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" class="snippet rtl">
+                <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}class="snippet ltr"{% if RTL %} dir="ltr"{% endif %}{% else %}class="snippet rtl"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
                   {% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}
                 </div>
               </div>
@@ -134,7 +134,7 @@
                 <p class="m-0 font-italic font-weight-bold">{% blocktrans %}(Double-click on a word to make an OCR correction){% endblocktrans %}</p>
               </div>
 
-              <div class="{% if RTL %}rtl{% else %}ltr{% endif %} mt-1 mb-3 mx-n2 text-right" dir="{% if RTL %}rtl{% else %}ltr{% endif %}">
+              <div class="{% if RTL %}rtl{% else %}ltr{% endif %} mt-1 mb-3 mx-n2 text-right">
                 {% spaceless %}
                   <a id="img{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" data-toggle="collapse"
                      href="#image{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}"
@@ -154,7 +154,7 @@
                 {% spaceless %}
                   {% if readOnline %}<a href="{% autoescape off %}{{ snippet.readOnlineUrl }}{% endautoescape %}" target="_blank" class="text-nowrap mx-1 action-link">{% endif %}
                     <i class="fas fa-book-open mx-1"></i>
-                    <span class="mx-1">{% if readOnline %}{% trans 'Go to book' %} {% endif %}{% blocktrans with page=snippet.pageNumber %}(page {{page}}){% endblocktrans %}</span>
+                    <span class="mx-1">{% blocktrans with page=snippet.pageNumber %}Go to book (page {{page}}){% endblocktrans %}</span>
                   {% if readOnline %}</a>{% endif %}
                 {% endspaceless %}
               </div>

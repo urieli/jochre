@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-18 11:07+0000\n"
+"POT-Creation-Date: 2019-11-19 11:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -117,29 +117,36 @@ msgstr ""
 msgid "Unable to process query"
 msgstr "Unable to process query"
 
-#: templates/search.html:34
+#: templates/search.html:33
+#, python-format
+msgid "Index size: %(bookCount)s books."
+msgstr "Index size: %(bookCount)s books."
+
+#: templates/search.html:35
 msgid "Please enter a search term"
 msgstr ""
 
-#: templates/search.html:44
+#: templates/search.html:45
 msgid "No search results"
 msgstr "No search results."
 
-#: templates/search.html:56
+#: templates/search.html:57
+#, python-format
 msgid "Found %(resultCount)s results out of %(bookCount)s."
 msgstr "Returns %(resultCount)s results (out of %(bookCount)s documents)."
 
-#: templates/search.html:58
+#: templates/search.html:59
+#, python-format
 msgid "Found more than %(resultCount)s results out of %(bookCount)s."
 msgstr "Returns over %(resultCount)s results (out of %(bookCount)s documents)."
 
-#: templates/search.html:60
+#: templates/search.html:61
 #, python-format
 msgid "Results %(start)s to %(end)s:"
 msgstr "Results %(start)s to %(end)s:"
 
 #. Translators: Clear all search results
-#: templates/search.html:63 templates/search/search-pane.html:184
+#: templates/search.html:64 templates/search/search-pane.html:184
 #, fuzzy
 #| msgid "No search results"
 msgid "Clear results"
@@ -294,10 +301,10 @@ msgstr ""
 msgid "Publication year from"
 msgstr ""
 
-#. Translators: Search field to add upper limit to results by publication year
+#. Translators: Search field to add upper limit to results by publication year, just the word "to" in English between two text-boxes
 #: templates/search/search-pane.html:138
-msgid "to"
-msgstr ""
+msgid "Publication year to"
+msgstr "to"
 
 #: templates/search/search-pane.html:148
 msgid "Strict"
@@ -411,14 +418,8 @@ msgid "View transcribed text"
 msgstr ""
 
 #: templates/search/search-result.html:157
-#, fuzzy
-#| msgid "next page"
-msgid "Go to book"
-msgstr "Next"
-
-#: templates/search/search-result.html:157
 #, python-format
-msgid "(page %(page)s)"
+msgid "Go to book (page %(page)s)"
 msgstr ""
 
 #: templates/search/word-modal.html:7 templates/search/word-modal.html:13
@@ -500,6 +501,11 @@ msgstr "Next"
 msgid "last page"
 msgstr "Last"
 
+#, fuzzy
+#~| msgid "next page"
+#~ msgid "Go to book"
+#~ msgstr "Next"
+
 #~ msgid "search button"
 #~ msgstr "Search"
 
@@ -559,6 +565,3 @@ msgstr "Last"
 
 #~ msgid "prefsSnippetsPerDoc"
 #~ msgstr "Snippets per document"
-
-#~ msgid "Index size: %(bookCount)s books."
-#~ msgstr "Index size: %(bookCount)s books."
