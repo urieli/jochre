@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 10:21+0000\n"
+"POT-Creation-Date: 2019-11-20 16:21+0000\n"
 "PO-Revision-Date: 2019-10-10 12:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -131,14 +131,12 @@ msgstr "קײן רעזולטאַטן"
 
 #: templates/search.html:57
 #, python-format
-msgid "Found %(resultCount)s results out of %(bookCount)s."
-msgstr "%(resultCount)s רעזולטאַטן (פֿון אַ סך-הכּל פֿון %(bookCount)s ביכער)."
+msgid "Results found in  %(resultCount)s books."
+msgstr "רעזולטאַטן געפֿונען אין %(resultCount)s ביכער."
 
 #: templates/search.html:59
-#, python-format
-msgid "Found more than %(resultCount)s results out of %(bookCount)s."
-msgstr ""
-"מער װי %(resultCount)s רעזולטאַטן(פֿון אַ סך-הכּל פֿון %(bookCount)s ביכער)."
+msgid "Results found in more than %(resultCount)s books."
+msgstr "רעזולטאַטן געפֿונען אין מער װי %(resultCount)s ביכער."
 
 #: templates/search.html:61
 #, python-format
@@ -270,7 +268,7 @@ msgid "Advanced search"
 msgstr "אַוואַנסירטער זוך"
 
 #. Translators: Search field to limit results by author
-#: templates/search/search-pane.html:84 templates/search/search-result.html:52
+#: templates/search/search-pane.html:84 templates/search/search-result.html:49
 msgid "Author"
 msgstr "מחבר"
 
@@ -324,77 +322,77 @@ msgstr "יאָר ↓"
 
 #. Translators: Search field to limit results by document reference number
 #: templates/search/search-pane.html:176
-#: templates/search/search-result.html:113
+#: templates/search/search-result.html:106
 msgid "Reference number"
 msgstr "אידענטיפֿיציר נומער"
 
-#: templates/search/search-result.html:26
+#: templates/search/search-result.html:25
 msgid "Alternate title"
 msgstr "טיטל אין טראַנסקריפציע"
 
-#: templates/search/search-result.html:29
+#: templates/search/search-result.html:28
 msgid "alternate alphabet title meta"
 msgstr "טיטל אין טראַנסקריפציע"
 
-#: templates/search/search-result.html:39
+#: templates/search/search-result.html:37
 msgid "Volume"
 msgstr "באַנד"
 
-#: templates/search/search-result.html:42
+#: templates/search/search-result.html:40
 msgid "volume"
 msgstr "באַנד"
 
-#: templates/search/search-result.html:55
+#: templates/search/search-result.html:52
 msgid "author meta"
 msgstr "מחבר"
 
-#: templates/search/search-result.html:65
+#: templates/search/search-result.html:61
 msgid "Alternate author"
 msgstr "מחבר אין טראַנסקריפציע"
 
-#: templates/search/search-result.html:68
+#: templates/search/search-result.html:64
 msgid "alternate alphabet author meta"
 msgstr "מחבר אין טראַנסקריפציע"
 
-#: templates/search/search-result.html:78
+#: templates/search/search-result.html:73
 msgid "Section"
 msgstr "אָפּטײל"
 
-#: templates/search/search-result.html:79
+#: templates/search/search-result.html:74
 #, python-format
 msgid "Pages %(startPage)s to %(endPage)s"
 msgstr "זײַטן %(startPage)s ביז  %(endPage)s"
 
-#: templates/search/search-result.html:87
+#: templates/search/search-result.html:82
 msgid "Publisher"
 msgstr "פֿאַרלאַג"
 
-#: templates/search/search-result.html:90
+#: templates/search/search-result.html:85
 msgid "publisher"
 msgstr "פֿאַרלאַג"
 
-#: templates/search/search-result.html:100
+#: templates/search/search-result.html:94
 msgid "Date"
 msgstr "יאָר"
 
-#: templates/search/search-result.html:103
+#: templates/search/search-result.html:97
 msgid "date"
 msgstr "יאָר"
 
-#: templates/search/search-result.html:134
+#: templates/search/search-result.html:127
 msgid "(Double-click on a word to make an OCR correction)"
 msgstr "(טוט אַ טאָפּלקװעטש אױף אַ װאָרט כּדי אױסצובעסערן דעם OCR אַנאַליז)"
 
-#: templates/search/search-result.html:143
+#: templates/search/search-result.html:136
 msgid "View page snippet"
 msgstr "קוקט אָן דעם שטיקעלע זײַטל"
 
-#: templates/search/search-result.html:150
-#: templates/search/search-result.html:200
+#: templates/search/search-result.html:143
+#: templates/search/search-result.html:193
 msgid "View transcribed text"
 msgstr "קוקט אָן דעם טראַנסקריבירטן טעקסט"
 
-#: templates/search/search-result.html:157
+#: templates/search/search-result.html:150
 #, python-format
 msgid "Go to book (page %(page)s)"
 msgstr "גייט צו בוך (זײַטל %(page)s)"
@@ -476,63 +474,3 @@ msgstr "קומעדיקע"
 #: views.py:245
 msgid "last page"
 msgstr "לעצטע"
-
-#~ msgid "Go to book"
-#~ msgstr "גייט צו בוך"
-
-#~ msgid "search button"
-#~ msgstr "זוך"
-
-#~ msgid "title field"
-#~ msgstr "טיטל"
-
-#~ msgid "to year"
-#~ msgstr "ביז יאָר"
-
-#~ msgid "Show original OCR"
-#~ msgstr "ווײַזט די אָריגינעלע אָא\"ד"
-
-#~ msgid "View full text"
-#~ msgstr "קוקט אָן דעם גאַנצן טעקסט"
-
-#~ msgid "Correct an attribute"
-#~ msgstr "אױסבעסרן אַן אַטריבוט"
-
-#~ msgid "Attribute specified"
-#~ msgstr "בסערט אױס אַן אַטריבוט"
-
-#~ msgid "clear form"
-#~ msgstr "אױסמעקן"
-
-#~ msgid "author field"
-#~ msgstr "מחבר"
-
-#~ msgid "strict field"
-#~ msgstr "שטרענג"
-
-#~ msgid "reference field"
-#~ msgstr "אידענטיפֿיציר נומער"
-
-#~ msgid "title meta"
-#~ msgstr "טיטל"
-
-#~ msgid "correctMetaTitle"
-#~ msgstr "אױסבעסרן אַן אַטריבוט"
-
-#~ msgid "correctMetaInstructions"
-#~ msgstr "בסערט אױס אַן אַטריבוט"
-
-#~ msgid "correctMetaFieldName"
-#~ msgstr "אַטריבוט"
-
-#~ msgid "correctMetaNewValue"
-#~ msgstr "נײַער אינהאַלט"
-
-#~ msgid "correctMetaMergeWith"
-#~ msgstr "אָדער גיסט צונױף מיט"
-
-#~ msgid "prefsDocsPerPage"
-#~ msgstr "װיפֿל דאָקומענטן אין אַ זײַט"
-
-#~ msgid "prefsSnippetsPerDoc"
-#~ msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
