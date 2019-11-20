@@ -12,10 +12,9 @@
         <span {% if FIELDS_LTR.title %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
           {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.title }}{% if readOnline %}</a>{% endif %}
         </span>
-        <svg class="editImage mx-1"
-             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'Title' %}', true, '{{result.doc.title|escapejs}}');">
-          <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-        </svg>
+        <img class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'Title' %}', true, '{{result.doc.title|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
       {% endspaceless %}
     </h2>
 
@@ -25,10 +24,9 @@
         {% spaceless %}
           <strong>{% trans 'Alternate title' %}:</strong>
           <span {% if FIELDS_LTR.titleTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
-          <svg class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');">
-            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-          </svg>
+          <img class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
@@ -38,10 +36,9 @@
         {% spaceless %}
           <strong>{% trans 'Volume' %}:</strong>
           <span {% if FIELDS_LTR.volume %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
-          <svg class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');">
-            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-          </svg>
+          <img class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
@@ -51,10 +48,9 @@
       {% spaceless %}
         <strong>{% trans 'Author' %}:</strong>
         <span {% if FIELDS_LTR.author %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.author }}</span>
-        <svg class="editImage mx-1"
-             onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');">
-          <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-        </svg>
+        <img class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');"
+               src="{% static 'images/pencil.png' %}" />
       {% endspaceless %}
     </div>
 
@@ -64,10 +60,9 @@
         {% spaceless %}
           <strong>{% trans 'Alternate author' %}:</strong>
           <span {% if FIELDS_LTR.authorTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.authorEnglish }}</span>
-          <svg class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');">
-            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-          </svg>
+          <img class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
@@ -86,10 +81,9 @@
         {% spaceless %}
           <strong>{% trans 'Publisher' %}:</strong>
           <span {% if FIELDS_LTR.publisher %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
-          <svg class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');">
-            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-          </svg>
+          <img class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
@@ -99,10 +93,9 @@
         {% spaceless %}
           <strong>{% trans 'Date' %}:</strong>
           <span {% if FIELDS_LTR.date %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.date }}</span>
-          <svg class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');">
-            <use xlink:href="{% static 'images/pencil.svg' %}#pencil"></use>
-          </svg>
+          <img class="editImage mx-1"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');"
+               src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
