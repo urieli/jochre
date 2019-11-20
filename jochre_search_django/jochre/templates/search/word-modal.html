@@ -47,7 +47,7 @@
                 </div>
               </div>
             </div>
-            <div class="form-group row">
+            <div class="form-group row d-none">
               {# Translator: Form label on correction form #}
               <label for="selFont" class="col-2 col-form-label">{% trans 'Font' %}:</label>
               <div class="col-6">
@@ -56,13 +56,6 @@
                     <option value="{{fontCode}}">{{JOCHRE_FONT_NAMES|get_item:fontCode}}</option>
                   {% endfor %}
                 </select>
-              </div>
-            </div>
-            <div class="form-group row">
-              {# Translator: Form label on correction form #}
-              <label class="col-2 col-form-label">{% trans 'Font example' %}:</label>
-              <div class="col-10">
-                <img id="imgFont" class="border rounded p-1" style="max-width: 95%; max-height:40px;" />
               </div>
             </div>
             <div class="form-group row">

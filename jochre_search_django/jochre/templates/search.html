@@ -54,9 +54,9 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap mb-1 mx-n2">
                   <div class="h5 m-2 font-weight-bold results-summary">
                     {% if resultCount <= maxResults %}
-                      {% blocktrans %}Found {{ resultCount }} results out of {{ bookCount }}.{% endblocktrans %}
+                      {% blocktrans %}Results found in  {{ resultCount }} books.{% endblocktrans %}
                     {% else %}
-                      {% blocktrans %}Found more than {{ resultCount }} results out of {{ bookCount }}.{% endblocktrans %}
+                      {% blocktrans %}Results found in more than {{ resultCount }} books.{% endblocktrans %}
                     {% endif %}
                     {% blocktrans %}Results {{ start }} to {{ end }}:{% endblocktrans %}
                   </div>
