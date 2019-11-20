@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 10:21+0000\n"
+"POT-Creation-Date: 2019-11-20 16:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -132,13 +132,12 @@ msgstr "No search results."
 
 #: templates/search.html:57
 #, python-format
-msgid "Found %(resultCount)s results out of %(bookCount)s."
-msgstr "%(resultCount)s results (out of a total of %(bookCount)s books)."
+msgid "Results found in  %(resultCount)s books."
+msgstr ""
 
 #: templates/search.html:59
-#, python-format
-msgid "Found more than %(resultCount)s results out of %(bookCount)s."
-msgstr "Over %(resultCount)s results (out of a total of %(bookCount)s books)."
+msgid "Results found in more than %(resultCount)s books."
+msgstr ""
 
 #: templates/search.html:61
 #, python-format
@@ -278,7 +277,7 @@ msgid "Advanced search"
 msgstr ""
 
 #. Translators: Search field to limit results by author
-#: templates/search/search-pane.html:84 templates/search/search-result.html:52
+#: templates/search/search-pane.html:84 templates/search/search-result.html:49
 msgid "Author"
 msgstr ""
 
@@ -334,90 +333,90 @@ msgstr "year ↓"
 
 #. Translators: Search field to limit results by document reference number
 #: templates/search/search-pane.html:176
-#: templates/search/search-result.html:113
+#: templates/search/search-result.html:106
 #, fuzzy
 #| msgid "referenceNumber"
 msgid "Reference number"
 msgstr "Reference number"
 
-#: templates/search/search-result.html:26
+#: templates/search/search-result.html:25
 #, fuzzy
 #| msgid "alternate alphabet title meta"
 msgid "Alternate title"
 msgstr "Transcribed title"
 
-#: templates/search/search-result.html:29
+#: templates/search/search-result.html:28
 msgid "alternate alphabet title meta"
 msgstr "Transcribed title"
 
-#: templates/search/search-result.html:39
+#: templates/search/search-result.html:37
 #, fuzzy
 #| msgid "volume"
 msgid "Volume"
 msgstr "Volume"
 
-#: templates/search/search-result.html:42
+#: templates/search/search-result.html:40
 msgid "volume"
 msgstr "Volume"
 
-#: templates/search/search-result.html:55
+#: templates/search/search-result.html:52
 msgid "author meta"
 msgstr "Author"
 
-#: templates/search/search-result.html:65
+#: templates/search/search-result.html:61
 #, fuzzy
 #| msgid "alternate alphabet author meta"
 msgid "Alternate author"
 msgstr "Transcribed author"
 
-#: templates/search/search-result.html:68
+#: templates/search/search-result.html:64
 msgid "alternate alphabet author meta"
 msgstr "Transcribed author"
 
-#: templates/search/search-result.html:78
+#: templates/search/search-result.html:73
 #, fuzzy
 #| msgid "section"
 msgid "Section"
 msgstr "Section"
 
-#: templates/search/search-result.html:79
+#: templates/search/search-result.html:74
 #, fuzzy, python-format
 #| msgid "Results %(start)s to %(end)s:"
 msgid "Pages %(startPage)s to %(endPage)s"
 msgstr "Pages %(startPage)s to %(endPage)s:"
 
-#: templates/search/search-result.html:87
+#: templates/search/search-result.html:82
 #, fuzzy
 #| msgid "publisher"
 msgid "Publisher"
 msgstr "Publisher"
 
-#: templates/search/search-result.html:90
+#: templates/search/search-result.html:85
 msgid "publisher"
 msgstr "Publisher"
 
-#: templates/search/search-result.html:100
+#: templates/search/search-result.html:94
 msgid "Date"
 msgstr ""
 
-#: templates/search/search-result.html:103
+#: templates/search/search-result.html:97
 msgid "date"
 msgstr "Year"
 
-#: templates/search/search-result.html:134
+#: templates/search/search-result.html:127
 msgid "(Double-click on a word to make an OCR correction)"
 msgstr ""
 
-#: templates/search/search-result.html:143
+#: templates/search/search-result.html:136
 msgid "View page snippet"
 msgstr ""
 
-#: templates/search/search-result.html:150
-#: templates/search/search-result.html:200
+#: templates/search/search-result.html:143
+#: templates/search/search-result.html:193
 msgid "View transcribed text"
 msgstr ""
 
-#: templates/search/search-result.html:157
+#: templates/search/search-result.html:150
 #, python-format
 msgid "Go to book (page %(page)s)"
 msgstr ""
@@ -500,68 +499,3 @@ msgstr "Next"
 #: views.py:245
 msgid "last page"
 msgstr "Last"
-
-#, fuzzy
-#~| msgid "next page"
-#~ msgid "Go to book"
-#~ msgstr "Next"
-
-#~ msgid "search button"
-#~ msgstr "Search"
-
-#~ msgid "title field"
-#~ msgstr "Title"
-
-#~ msgid "from year"
-#~ msgstr "Publication year from"
-
-#~ msgid "to year"
-#~ msgstr "to"
-
-#~ msgid "clear form"
-#~ msgstr "Clear"
-
-#~ msgid "author field"
-#~ msgstr "Author"
-
-#~ msgid "strict field"
-#~ msgstr "Strict"
-
-#~ msgid "reference field"
-#~ msgstr "Reference number"
-
-#~ msgid "title meta"
-#~ msgstr "Title"
-
-#~ msgid "fixWordTitle"
-#~ msgstr "Fix word"
-
-#~ msgid "fixWordInstructions"
-#~ msgstr ""
-#~ "Please enter the word exactly as it appears above, including niqqud, "
-#~ "apsotrophes, quotes, dashes, and other punctuation. If the word as badly "
-#~ "segmented (i.e. if only part of the word appears), do not correct it."
-
-#~ msgid "fixWordWord"
-#~ msgstr "Word"
-
-#~ msgid "fixWordFont"
-#~ msgstr "Font"
-
-#~ msgid "correctMetaTitle"
-#~ msgstr "Correct document meta data"
-
-#~ msgid "correctMetaInstructions"
-#~ msgstr "Correct the meta data."
-
-#~ msgid "correctMetaFieldName"
-#~ msgstr "Field"
-
-#~ msgid "correctMetaNewValue"
-#~ msgstr "New value"
-
-#~ msgid "prefsDocsPerPage"
-#~ msgstr "Documents per page"
-
-#~ msgid "prefsSnippetsPerDoc"
-#~ msgstr "Snippets per document"

@@ -91,10 +91,6 @@ $(function() {
     hideDiv($("#imgWordLoading"));
   });
 
-  $('#selFont').on('change', function() {
-    $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${this.value}.png`);
-  });
-
   $('#btnSaveFixWord').click( function (e) {
     applyFix();
   });
@@ -281,9 +277,7 @@ function fixWord(evt, docId) {
 
   $("#selFont").val($("#selFont option:first").val());
   $("#selLang").val($("#selLang option:first").val());
-
-  $("#imgFont").attr("src", `${STATIC_LOCATION}images/${$('#selLang').val()}_${$('#selFont').val()}.png`);
-
+  
   $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
       $.each( data, function( key, val ) {
         if (key=="word") {
