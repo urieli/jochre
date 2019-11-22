@@ -6,10 +6,10 @@ import os
 import logging
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s',
-                    datefmt='%y-%m-%d %H:%M',
-                    filename='/var/log/jochreSearchDjango/django.log',
-                    filemode='a')
+          format='%(asctime)s %(processName)-10s %(name)s %(levelname)-8s %(message)s',
+          datefmt='%y-%m-%d %H:%M',
+          filename='/var/log/jochreSearchDjango/django.log',
+          filemode='a')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
@@ -18,17 +18,17 @@ SECRET_KEY = '_ktmo6%l23m8q4p(dpzx8r(x#rauoqt2t3**lqx^j3z%@^r!f$'
 DEBUG = True
 
 INSTALLED_APPS = [
-    'jochre',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
+  'jochre',
+  'django.contrib.admin',
+  'django.contrib.auth',
+  'django.contrib.contenttypes',
+  'django.contrib.sessions',
+  'django.contrib.messages',
+  'django.contrib.staticfiles',
+  'django.contrib.sites',
+  'allauth',
+  'allauth.account',
+  'allauth.socialaccount',
 ]
 
 # ... include the providers you want to enable:
