@@ -3,6 +3,7 @@ import json
 import requests
 import logging
 import re
+import urllib
 
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -12,6 +13,7 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.utils import translation
 from django.utils.translation import gettext
+from django.urls import reverse
 
 from jochre.models import KeyboardMapping, Preferences
 
@@ -103,7 +105,6 @@ def search(request):
     "page": page + 1,
     "JOCHRE_TITLE": settings.JOCHRE_TITLE,
     "JOCHRE_CREDITS": settings.JOCHRE_CREDITS,
-    "JOCHRE_SEARCH_EXT_URL": settings.JOCHRE_SEARCH_EXT_URL,
     "readOnline": settings.JOCHRE_READ_ONLINE,
     "FIELDS_LTR": settings.FIELDS_LTR,
     "JOCHRE_CROWD_SOURCE": settings.JOCHRE_CROWD_SOURCE,
@@ -287,13 +288,7 @@ def search(request):
                   "snippet": snippetJson,
                   "user": username}
 
-                logger.debug(
-                  "sending request: {0}, {1}".format(settings.JOCHRE_SEARCH_EXT_URL, userdata))
-
-                req = requests.Request(method='GET', url=settings.JOCHRE_SEARCH_EXT_URL,
-                             params=userdata)
-                preparedReq = req.prepare()
-                snippetImageUrl = preparedReq.url
+                snippetImageUrl = "/jochre-search?{0}".format(urllib.parse.urlencode(userdata))
                 pageNumber = snippet['pageIndex']
 
                 snippetDict = {
@@ -523,4 +518,3 @@ def contents(request):
     }
 
   return render(request, 'contents.html', model)
-
