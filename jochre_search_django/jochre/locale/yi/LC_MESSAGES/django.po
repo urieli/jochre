@@ -21,7 +21,7 @@ msgstr ""
 #: templates/account/login.html:6 templates/account/login.html:12
 #: templates/account/login.html:56 templates/search/header.html:58
 msgid "Sign In"
-msgstr "אַרײַנשרײַבן"
+msgstr "שרײַבט זיך אײַן"
 
 #. Translators: Login page message
 #: templates/account/login.html:19
@@ -41,17 +41,17 @@ msgstr ""
 msgid ""
 "If you have not created an account yet, then please <a href=\"%(signup_url)s"
 "\">sign up</a> first."
-msgstr ""
+msgstr "איר מוזט זיך פֿריִער <a href=\"%(signup_url)s\">רעגיסטרירן</a>."
 
 #. Translators: Login form password reset button
 #: templates/account/login.html:53
 msgid "Forgot Password?"
-msgstr "פּאַראָל פֿאַרגעסן?"
+msgstr "פֿאַרגעסן אײַער פּאַראָל?"
 
 #: templates/account/logout.html:5 templates/account/logout.html:11
 #: templates/account/logout.html:20
 msgid "Sign Out"
-msgstr "אַרױסלאָגירן"
+msgstr "שרײַבט זיך אַרויס"
 
 #: templates/account/logout.html:13
 msgid "Are you sure you want to sign out?"
@@ -86,18 +86,18 @@ msgstr ""
 
 #: templates/account/signup.html:5
 msgid "Signup"
-msgstr "רעגיסטרירן"
+msgstr "רעגיסטרירט זיך"
 
 #: templates/account/signup.html:11 templates/account/signup.html:36
 #: templates/search/header.html:61
 msgid "Sign Up"
-msgstr "רעגיסטרירן"
+msgstr "רעגיסטרירט זיך"
 
 #: templates/account/signup.html:13
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr ""
+msgstr "איר האָט זיך שוין רעגיסטרירט? זײַט אַזוי גוט און <a href=\"%(login_url)s\">שרײַבט זיך אַרײַן</a> "
 
 #: templates/contents.html:11
 msgid "Jochre Document Contents"
@@ -178,7 +178,7 @@ msgstr "אָדער גיסט צונױף מיט"
 #: templates/search/correct-meta-modal.html:73
 #: templates/search/word-modal.html:84
 msgid "Close"
-msgstr "פֿאַרמאַכן"
+msgstr "פֿאַרמאַכט"
 
 #: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
@@ -200,7 +200,7 @@ msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
 #: templates/search/footer.html:25
 msgid "Powered by"
-msgstr "געבױט אױפֿן יסוד פֿון יאָוקער"
+msgstr "געבױט אױפֿן יסוד פֿון"
 
 #: templates/search/footer.html:27 templates/search/header.html:19
 msgid "Jochre"
@@ -244,11 +244,11 @@ msgstr "צװישנבינד שפּראַך"
 
 #: templates/search/preferences-modal.html:41
 msgid "Results per page"
-msgstr "װיפֿל דאָקומענטן אין אַ זײַט"
+msgstr "וויפֿל רעזולטאַטן אויף איין זײַטל "
 
 #: templates/search/preferences-modal.html:51
 msgid "Snippets per result"
-msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
+msgstr "וויפֿל פֿראַגמענטן אויף איין רעזולטאַט "
 
 #: templates/search/preferences-modal.html:66
 msgid "Preferences saved."
@@ -257,7 +257,7 @@ msgstr "די פּרעפֿערענצן זײַנען אױפֿגעהיט געװאָ
 #. Translators: search button text
 #: templates/search/search-pane.html:30 templates/search/search-pane.html:187
 msgid "Search"
-msgstr "זוך"
+msgstr "זוכן"
 
 #: templates/search/search-pane.html:42
 msgid "Update key mappings"
