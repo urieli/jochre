@@ -21,7 +21,7 @@ msgstr ""
 #: templates/account/login.html:6 templates/account/login.html:12
 #: templates/account/login.html:56 templates/search/header.html:58
 msgid "Sign In"
-msgstr "אַרײַנשרײַבן"
+msgstr "שרײַבט זיך אײַן"
 
 #. Translators: Login page message
 #: templates/account/login.html:19
@@ -41,17 +41,17 @@ msgstr ""
 msgid ""
 "If you have not created an account yet, then please <a href=\"%(signup_url)s"
 "\">sign up</a> first."
-msgstr ""
+msgstr "איר מוזט זיך פֿריִער <a href=\"%(signup_url)s\">רעגיסטרירן</a>."
 
 #. Translators: Login form password reset button
 #: templates/account/login.html:53
 msgid "Forgot Password?"
-msgstr "פּאַראָל פֿאַרגעסן?"
+msgstr "פֿאַרגעסן אײַער פּאַראָל?"
 
 #: templates/account/logout.html:5 templates/account/logout.html:11
 #: templates/account/logout.html:20
 msgid "Sign Out"
-msgstr "אַרױסלאָגירן"
+msgstr "שרײַבט זיך אַרויס"
 
 #: templates/account/logout.html:13
 msgid "Are you sure you want to sign out?"
@@ -86,18 +86,18 @@ msgstr ""
 
 #: templates/account/signup.html:5
 msgid "Signup"
-msgstr "רעגיסטרירן"
+msgstr "רעגיסטרירט זיך"
 
 #: templates/account/signup.html:11 templates/account/signup.html:36
 #: templates/search/header.html:61
 msgid "Sign Up"
-msgstr "רעגיסטרירן"
+msgstr "רעגיסטרירט זיך"
 
 #: templates/account/signup.html:13
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr ""
+msgstr "איר האָט זיך שוין רעגיסטרירט? זײַט אַזוי גוט און <a href=\"%(login_url)s\">שרײַבט זיך אַרײַן</a> "
 
 #: templates/contents.html:11
 msgid "Jochre Document Contents"
@@ -123,11 +123,11 @@ msgstr "גרײס פֿון זוכצעטל: %(bookCount)s ביכער"
 
 #: templates/search.html:35
 msgid "Please enter a search term"
-msgstr "פֿאַרשרײַבט אַ זוכוואָרט"
+msgstr "שרײַבט אַרײַן אַ זוכוואָרט"
 
 #: templates/search.html:45
 msgid "No search results"
-msgstr "קײן רעזולטאַטן"
+msgstr "נישטאָ קיין רעזולטאַטן"
 
 #: templates/search.html:57
 #, python-format
@@ -178,14 +178,14 @@ msgstr "אָדער גיסט צונױף מיט"
 #: templates/search/correct-meta-modal.html:73
 #: templates/search/word-modal.html:84
 msgid "Close"
-msgstr "פֿאַרמאכֿט"
+msgstr "פֿאַרמאַכט"
 
 #: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
 #: templates/search/preferences-modal.html:63
 #: templates/search/word-modal.html:86
 msgid "Save changes"
-msgstr "היט אױף"
+msgstr "היט אויף די בײַטן"
 
 #: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
@@ -200,11 +200,11 @@ msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
 #: templates/search/footer.html:25
 msgid "Powered by"
-msgstr "אָנגעטריבן פֿון"
+msgstr "געבױט אױפֿן יסוד פֿון"
 
 #: templates/search/footer.html:27 templates/search/header.html:19
 msgid "Jochre"
-msgstr "זוך"
+msgstr "יאָוקער"
 
 #: templates/search/header.html:52
 msgid "Logout"
@@ -217,7 +217,7 @@ msgstr "מאַכט איבער די קלאַוויאַטור"
 
 #: templates/search/keyboard-modal.html:25
 msgid "Enable keyboard mappings"
-msgstr "שטעלט אָן די קלאַװיאַטור אַנטקעגענערס"
+msgstr "אַקטיווירט קלאַוויאַטור אויסשטעל"
 
 #: templates/search/keyboard-modal.html:53
 #: templates/search/preferences-modal.html:61
@@ -227,7 +227,7 @@ msgstr "אַנולירן"
 #: templates/search/keyboard-modal.html:54
 #: templates/search/preferences-modal.html:62
 msgid "Restore defaults"
-msgstr "ברענגט צוריק די עצם אײַנשטעלונגען"
+msgstr "צוריקברענגען דער אָריגינאַל"
 
 #: templates/search/keyboard-modal.html:58
 msgid "Keyboard mappings updated."
@@ -244,11 +244,11 @@ msgstr "צװישנבינד שפּראַך"
 
 #: templates/search/preferences-modal.html:41
 msgid "Results per page"
-msgstr "װיפֿל דאָקומענטן אין אַ זײַט"
+msgstr "וויפֿל רעזולטאַטן אויף איין זײַטל "
 
 #: templates/search/preferences-modal.html:51
 msgid "Snippets per result"
-msgstr "װיפֿל פֿראַגמענטן טעקסט אין אַ דאָקומענט"
+msgstr "וויפֿל פֿראַגמענטן אויף איין רעזולטאַט "
 
 #: templates/search/preferences-modal.html:66
 msgid "Preferences saved."
@@ -257,15 +257,15 @@ msgstr "די פּרעפֿערענצן זײַנען אױפֿגעהיט געװאָ
 #. Translators: search button text
 #: templates/search/search-pane.html:30 templates/search/search-pane.html:187
 msgid "Search"
-msgstr "זוך"
+msgstr "זוכן"
 
 #: templates/search/search-pane.html:42
 msgid "Update key mappings"
-msgstr "קלאַװיאַטור אַנטקעגענערס"
+msgstr "מאַכט איבער די קלאַוויאַטור"
 
 #: templates/search/search-pane.html:50
 msgid "Advanced search"
-msgstr "אַוואַנסירטער זוך"
+msgstr "אַװאַנסירטער נאָכזוך"
 
 #. Translators: Search field to limit results by author
 #: templates/search/search-pane.html:84 templates/search/search-result.html:49
@@ -385,21 +385,21 @@ msgstr "(טוט אַ טאָפּלקװעטש אױף אַ װאָרט כּדי אױ
 
 #: templates/search/search-result.html:136
 msgid "View page snippet"
-msgstr "קוקט אָן דעם שטיקעלע זײַטל"
+msgstr "ווײַזן דעם פֿראַגמענט פֿון זײַטל"
 
 #: templates/search/search-result.html:143
 #: templates/search/search-result.html:193
 msgid "View transcribed text"
-msgstr "קוקט אָן דעם טראַנסקריבירטן טעקסט"
+msgstr "ווײַזן דעם טראַנסקריבירטן טעקסט"
 
 #: templates/search/search-result.html:150
 #, python-format
 msgid "Go to book (page %(page)s)"
-msgstr "גייט צו בוך (זײַטל %(page)s)"
+msgstr "זען אינעם בוך (זײַטל %(page)s)"
 
 #: templates/search/word-modal.html:7 templates/search/word-modal.html:13
 msgid "Fix a word"
-msgstr "אױסבעסערן אַ װאָרט"
+msgstr "פֿאַרבעסערט אַ וואָרט"
 
 #: templates/search/word-modal.html:29
 msgid ""
@@ -407,9 +407,8 @@ msgid ""
 "apostrophes, quotes, dashes, and other punctuation. If the word is badly "
 "segmented (i.e. if only part of the word appears), do not correct it."
 msgstr ""
-"שרײַבט דאָס װאָרט פּונקט װי עס זעט אױס אױבן, מיט ניקוד, אפּאָסטראָפֿן, גענדזן-"
-"פֿיסלעך, מקפֿן, און אַנדערע אפּשטעל-צײכנס. אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה "
-"אױב נאָר אַ טײל פֿונעם װאָרט זעט אױס אױבן), מע טאָר נישט עס אױסבעסערן."
+"אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה אױב נאָר אַ טײל פֿונעם װאָרט באַװײַזט זיך אױבן), טאָר מען עס נישט אױסבעסערן."
+
 
 #: templates/search/word-modal.html:36
 msgid "Word"
@@ -421,7 +420,7 @@ msgstr "דרוקשריפֿט"
 
 #: templates/search/word-modal.html:63
 msgid "Font example"
-msgstr "דרוקשריפֿט דוגמא"
+msgstr "בײַשפּיל פֿון דרוקשריפֿט"
 
 #: templates/search/word-modal.html:70
 msgid "Language"
@@ -461,16 +460,16 @@ msgstr ""
 
 #: views.py:215
 msgid "first page"
-msgstr "ערשטע"
+msgstr "אָנהייב"
 
 #: views.py:222
 msgid "previous page"
-msgstr "פֿריערדיקע"
+msgstr "פֿריער"
 
 #: views.py:238
 msgid "next page"
-msgstr "קומעדיקע"
+msgstr "ווײַטער"
 
 #: views.py:245
 msgid "last page"
-msgstr "לעצטע"
+msgstr "סוף"

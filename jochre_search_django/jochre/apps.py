@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 
 class JochreConfig(AppConfig):
-    name = 'jochre'
+  name = 'jochre'

@@ -28,7 +28,7 @@ $(function() {
     limit: 100,
     source: function (q, sync, async) {
       console.log(q);
-      $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=prefixSearch&prefix=${q}&field=author&maxResults=8`, function( matches ) {
+      $.getJSON( `/jochre-search?command=prefixSearch&prefix=${q}&field=author&maxResults=8`, function( matches ) {
         async(matches)
       });
     }
@@ -273,12 +273,12 @@ function fixWord(evt, docId) {
   $("#txtSuggestion").val("");
   $("#txtSuggestion2").val("");
   hideDiv($("#txtSuggestion2").parents('.row').first());
-  $("#imgFixWord").attr("src",`${JOCHRE_SEARCH_EXT_URL}?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
+  $("#imgFixWord").attr("src",`/jochre-search?command=wordImage&docId=${docId}&startOffset=${wordOffset}`);
 
   $("#selFont").val($("#selFont option:first").val());
   $("#selLang").val($("#selLang option:first").val());
   
-  $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
+  $.getJSON( `/jochre-search?command=word&docId=${docId}&startOffset=${wordOffset}`, function( data ) {
       $.each( data, function( key, val ) {
         if (key=="word") {
           console.log(`found word : ${val}`);
@@ -312,7 +312,7 @@ function applyFix() {
   console.log(`Apply fix ${suggestion} for ${docId} at ${wordOffset}`);
 
   $.ajax({
-    url: JOCHRE_SEARCH_EXT_URL + "?command=suggest"
+    url: "/jochre-search?command=suggest"
       + "&docId=" + docId
       + "&startOffset=" + wordOffset
       + "&user=" + USERNAME
@@ -395,7 +395,7 @@ function correctMeta(docId, field, fieldForDisplay, rtl, value) {
       limit: 100,
       source: function (q, sync, async) {
         console.log(q);
-        $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
+        $.getJSON( `/jochre-search?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
           async(matches)
         });
       }
@@ -417,7 +417,7 @@ function correctMeta(docId, field, fieldForDisplay, rtl, value) {
       limit: 100,
       source: function (q, sync, async) {
         console.log(q);
-        $.getJSON( `${JOCHRE_SEARCH_EXT_URL}?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
+        $.getJSON( `/jochre-search?command=prefixSearch&prefix=${q}&field=${field}&maxResults=8`, function( matches ) {
           async(matches)
         });
       }
@@ -455,7 +455,7 @@ function applyCorrection() {
   console.log(`Apply correction for ${docId}, ${field}: ${value}`);
 
   $.ajax({
-    url: JOCHRE_SEARCH_EXT_URL + "?command=correct"
+    url: "/jochre-search?command=correct"
       + "&docId=" + docId
       + "&user=" + USERNAME
       + "&ip=" + IP

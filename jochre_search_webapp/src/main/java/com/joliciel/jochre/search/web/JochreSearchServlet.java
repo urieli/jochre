@@ -111,7 +111,7 @@ public class JochreSearchServlet extends HttpServlet {
         out.getRight().flush();
 
       response.setStatus(HttpServletResponse.SC_OK);
-    } catch (RuntimeException e) {
+    } catch (RuntimeException | IOException e) {
       LOG.error("Failed to run " + getURI(req), e);
       throw e;
     } finally {
@@ -122,9 +122,9 @@ public class JochreSearchServlet extends HttpServlet {
 
   public static String getURI(HttpServletRequest request) {
     String uri = request.getScheme() + "://" + request.getServerName()
-        + ("http".equals(request.getScheme()) && request.getServerPort() == 80 || "https".equals(request.getScheme()) && request.getServerPort() == 443
-            ? ""
-            : ":" + request.getServerPort())
+        + ("http".equals(request.getScheme()) && request.getServerPort() == 80
+            || "https".equals(request.getScheme()) && request.getServerPort() == 443 ? ""
+                : ":" + request.getServerPort())
         + request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
 
     return uri;
