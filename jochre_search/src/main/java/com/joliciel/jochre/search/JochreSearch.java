@@ -1076,7 +1076,7 @@ public class JochreSearch {
       throw new RuntimeException(e);
     } finally {
       long endTime = System.currentTimeMillis();
-      LOG.info("Completed in " + (endTime - startTime) + " ms");
+      LOG.info("Command " + command + " completed in " + (endTime - startTime) + " ms");
     }
   }
 
