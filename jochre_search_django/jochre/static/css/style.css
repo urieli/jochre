@@ -24,6 +24,8 @@ h1 {
     vertical-align: top;
 }
 
+.metadata {}
+
 a {
     text-decoration: underline;
 }
@@ -38,16 +40,20 @@ a:hover {
     color: #ed490a;
 }
 
-.rtl {
+.rtl-align {
     text-align: right;
     direction: rtl;
 }
 
-.ltr {
+.rtl {}
+
+.ltr-align {
     text-align: left;
     direction: ltr;
     unicode-bidi: bidi-override;
 }
+
+.ltr {}
 
 .highlight {
     font-weight: bold;
