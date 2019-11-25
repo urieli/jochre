@@ -189,7 +189,7 @@ msgstr "היט אויף די בײַטן"
 
 #: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
-msgstr ""
+msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
 
 #: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
