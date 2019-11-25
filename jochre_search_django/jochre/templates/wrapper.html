@@ -30,6 +30,7 @@
   <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/fontawesome.js" integrity="sha384-EMmnH+Njn8umuoSMZ3Ae3bC9hDknHKOWL2e9WJD/cN6XLeAN7tr5ZQ0Hx5HDHtkS" crossorigin="anonymous"></script>
 
   <script>
+    var RTL = {% if RTL %}true{% else %}false{% endif %};
     var USERNAME = "{{ request.user.username }}";
     var IP = "{{ ip }}";
     var STATIC_LOCATION = "{% static "" %}";
