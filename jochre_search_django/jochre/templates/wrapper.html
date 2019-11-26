@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 </head>
 
-<body {% if RTL %}class="rtl"{% else %}class="ltr"{% endif %}>
+<body {% if RTL %}class="rtl-align rtl"{% else %}class="ltr-align ltr"{% endif %}>
   <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -30,10 +30,11 @@
   <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/fontawesome.js" integrity="sha384-EMmnH+Njn8umuoSMZ3Ae3bC9hDknHKOWL2e9WJD/cN6XLeAN7tr5ZQ0Hx5HDHtkS" crossorigin="anonymous"></script>
 
   <script>
+    var RTL = {% if RTL %}true{% else %}false{% endif %};
     var USERNAME = "{{ request.user.username }}";
     var IP = "{{ ip }}";
     var STATIC_LOCATION = "{% static "" %}";
-    var USE_KEYBOARD_MAPPINGS = {{ useKeyboardMappings }};
+    var USE_KEYBOARD_MAPPINGS = {% if useKeyboardMappings %}true{% else %}false{% endif %};
   </script>
 
   <script src="{% static "js/search.js" %}"></script>

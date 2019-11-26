@@ -63,7 +63,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
   private final SearchStatusHolder searchStatusHolder;
   private final String configId;
   private final JochreSearchConfig config;
-  private final JochreSearchManager manager;
 
   private final boolean forceUpdate;
 
@@ -88,7 +87,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     this.configId = configId;
     this.config = JochreSearchConfig.getInstance(configId);
     this.contentDir = config.getContentDir();
-    this.manager = JochreSearchManager.getInstance(configId);
     this.wordsPerDoc = config.getConfig().getInt("index-builder.words-per-document");
     this.forceUpdate = forceUpdate;
   }
@@ -114,6 +112,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       if (searchStatusHolder.getStatus() != SearchStatus.WAITING) {
         throw new IndexingUnderwayException();
       }
+
+      JochreSearchManager manager = JochreSearchManager.getInstance(configId);
 
       searchStatusHolder.setStatus(SearchStatus.PREPARING);
 
@@ -148,7 +148,7 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
         for (File subdir : subdirs) {
           try {
             searchStatusHolder.setAction("Indexing " + subdir.getName());
-            this.processDocument(indexWriter, subdir, forceUpdate);
+            this.processDocument(manager, indexWriter, subdir, forceUpdate);
             searchStatusHolder.incrementSuccessCount(1);
           } catch (Exception e) {
             LOG.error("Failed to index " + subdir.getName(), e);
@@ -163,7 +163,13 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
         manager.getManager().maybeRefresh();
       }
     } catch (IOException e) {
-      LOG.error("Failed to commit indexWriter", e);
+      LOG.error("Failed to update index", e);
+      throw new RuntimeException(e);
+    } catch (RuntimeException e) {
+      LOG.error("Failed to update index", e);
+      throw e;
+    } catch (Exception e) {
+      LOG.error("Failed to update index", e);
       throw new RuntimeException(e);
     } finally {
       searchStatusHolder.setStatus(SearchStatus.WAITING);
@@ -173,7 +179,8 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
     }
   }
 
-  private void processDocument(IndexWriter indexWriter, File documentDir, boolean forceUpdate) {
+  private void processDocument(JochreSearchManager manager, IndexWriter indexWriter, File documentDir,
+      boolean forceUpdate) {
     try {
       boolean updateIndex = false;
 

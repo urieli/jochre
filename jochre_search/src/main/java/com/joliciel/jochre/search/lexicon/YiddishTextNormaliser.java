@@ -22,6 +22,7 @@ class YiddishTextNormaliser implements TextNormaliser {
     text = text.replaceAll("[שׁשׂ]", "ש");
     text = text.replaceAll("[תּ]", "ת");
     text = text.replaceAll("־", "-");
+    text = text.replaceAll("‛", "'");
 
     return text;
   }
