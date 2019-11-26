@@ -335,7 +335,7 @@ function applyFix() {
     });
 }
 
-function correctMeta(docId, field, fieldForDisplay, rtl, value) {
+function correctMeta(docId, field, fieldForDisplay, leftToRight, value) {
   $('#correctMetaModal').data('docId', docId);
   $('#correctMetaModal').data('field', field);
   $('#correctMetaFieldName').text(fieldForDisplay);
@@ -362,24 +362,59 @@ function correctMeta(docId, field, fieldForDisplay, rtl, value) {
      }
   });
 
-  if (rtl) {
+  if (leftToRight) {
+    $('#correctMetaFieldName').removeClass("rtl");
+    $('#correctMetaFieldName').removeClass("rtl-align");
+    $('#correctMetaCurrentValue').removeClass("rtl");
+    $('#correctMetaCurrentValue').removeClass("rtl-align");
+    $('#correctMetaNewValue').removeClass("rtl");
+    $('#correctMetaNewValue').removeClass("rtl-align");
+    $('#correctMetaAuthorMergeWith').removeClass("rtl");
+    $('#correctMetaAuthorMergeWith').removeClass("rtl-align");
+
+    $('#correctMetaFieldName').addClass("ltr");
+    $('#correctMetaCurrentValue').addClass("ltr");
+    $('#correctMetaNewValue').addClass("ltr");
+    $('#correctMetaAuthorMergeWith').addClass("ltr");
+ 
+    if (RTL) {
+      $('#correctMetaFieldName').addClass("ltr-align");
+      $('#correctMetaCurrentValue').addClass("ltr-align");
+      $('#correctMetaNewValue').addClass("ltr-align");
+     $('#correctMetaAuthorMergeWith').addClass("ltr-align");
+    }
+
+    $("#correctMetaNewValue").off('keypress');
+    $("#correctMetaAuthorMergeWith").off('keypress');
+  } else {
+    $('#correctMetaFieldName').removeClass("ltr");
+    $('#correctMetaFieldName').removeClass("ltr-align");
+    $('#correctMetaCurrentValue').removeClass("ltr");
+    $('#correctMetaCurrentValue').removeClass("ltr-align");
+    $('#correctMetaNewValue').removeClass("ltr");
+    $('#correctMetaNewValue').removeClass("ltr-align");
+    $('#correctMetaAuthorMergeWith').removeClass("ltr");
+    $('#correctMetaAuthorMergeWith').removeClass("ltr-align");
+
+
     $('#correctMetaFieldName').addClass("rtl");
     $('#correctMetaCurrentValue').addClass("rtl");
     $('#correctMetaNewValue').addClass("rtl");
+    $('#correctMetaAuthorMergeWith').addClass("rtl");
+
+    if (!RTL) {
+      $('#correctMetaFieldName').addClass("rtl-align");
+      $('#correctMetaCurrentValue').addClass("rtl-align");
+      $('#correctMetaNewValue').addClass("rtl-align");
+     $('#correctMetaAuthorMergeWith').addClass("rtl-align");
+    }
+
     $("#correctMetaNewValue").keypress(function(evt){
       return transformKeyPress(this, evt);
     });
-    $('#correctMetaAuthorMergeWith').addClass("rtl");
     $("#correctMetaAuthorMergeWith").keypress(function(evt){
       return transformKeyPress(this, evt);
     });
-  } else {
-    $('#correctMetaFieldName').removeClass("rtl");
-    $('#correctMetaCurrentValue').removeClass("rtl");
-    $('#correctMetaNewValue').removeClass("rtl");
-    $("#correctMetaNewValue").off('keypress');
-    $('#correctMetaAuthorMergeWith').removeClass("rtl");
-    $("#correctMetaAuthorMergeWith").off('keypress');
   }
 
   if (field==="author") {

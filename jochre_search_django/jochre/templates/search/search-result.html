@@ -9,66 +9,66 @@
   <div class="col">
     <h2 class="title">
       {% spaceless %}
-        <span {% if FIELDS_LTR.title %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
+        <span {% if FIELDS_LTR.title %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>
           {% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.title }}{% if readOnline %}</a>{% endif %}
         </span>
         <img class="editImage mx-1"
-             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'Title' %}', true, '{{result.doc.title|escapejs}}');"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'title', '{% trans 'Title' %}', {% if FIELDS_LTR.title %}true{% else %}false{% endif %}, '{{result.doc.title|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
       {% endspaceless %}
     </h2>
 
     {% if result.doc.titleEnglish %}
       {# Translators: Title metadata in alternate alphabet #}
-      <div class="alt-title">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Alternate title' %}:</strong>
-          <span {% if FIELDS_LTR.titleTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
+          <span {% if FIELDS_LTR.titleTranscribed %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{% if readOnline %}<a href="{{ result.doc.url }}" target="_blank">{% endif %}{{ result.doc.titleEnglish }}{% if readOnline %}</a>{% endif %}</span>
           <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', false,'{{result.doc.titleEnglish|escapejs}}');"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'titleEnglish', '{% trans 'alternate alphabet title meta' %}', {% if FIELDS_LTR.titleTranscribed %}true{% else %}false{% endif %},'{{result.doc.titleEnglish|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
 
     {% if result.doc.volume %}
-      <div class="volume">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Volume' %}:</strong>
-          <span {% if FIELDS_LTR.volume %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
+          <span {% if FIELDS_LTR.volume %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
           <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', false, '{{result.doc.volume|escapejs}}');"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', {% if FIELDS_LTR.volume %}true{% else %}false{% endif %}, '{{result.doc.volume|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
 
     {# Translators: Author metadata #}
-    <div class="author">
+    <div class="metadata">
       {% spaceless %}
         <strong>{% trans 'Author' %}:</strong>
-        <span {% if FIELDS_LTR.author %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.author }}</span>
+        <span {% if FIELDS_LTR.author %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.author }}</span>
         <img class="editImage mx-1"
-             onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', true, '{{result.doc.author}}');"
+             onclick="correctMeta({{ result.doc.docId }}, 'author', '{% trans 'author meta' %}', {% if FIELDS_LTR.author %}true{% else %}false{% endif %}, '{{result.doc.author}}');"
                src="{% static 'images/pencil.png' %}" />
       {% endspaceless %}
     </div>
 
     {% if result.doc.authorEnglish %}
       {# Translators: Author metadata in alternate alphabet #}
-      <div class="alt-author">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Alternate author' %}:</strong>
-          <span {% if FIELDS_LTR.authorTranscribed %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.authorEnglish }}</span>
+          <span {% if FIELDS_LTR.authorTranscribed %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.authorEnglish }}</span>
           <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', false, '{{result.doc.authorEnglish|escapejs}}');"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'authorEnglish', '{% trans 'alternate alphabet author meta' %}', {% if FIELDS_LTR.authorTranscribed %}true{% else %}false{% endif %}, '{{result.doc.authorEnglish|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
 
     {% if showSection %}
-      <div class="section">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Section' %}:</strong>
           <span class="mx-1">{% blocktrans with startPage=doc.startPage endPage=doc.endPage %}Pages {{ startPage }} to {{ endPage }}{% endblocktrans %}</span>
@@ -77,34 +77,34 @@
     {% endif %}
 
     {% if result.doc.publisher %}
-      <div class="publisher">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Publisher' %}:</strong>
-          <span {% if FIELDS_LTR.publisher %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
+          <span {% if FIELDS_LTR.publisher %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
           <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', false, '{{result.doc.publisher|escapejs}}');"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', {% if FIELDS_LTR.publisher %}true{% else %}false{% endif %}, '{{result.doc.publisher|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
 
     {% if result.doc.date %}
-      <div class="date">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Date' %}:</strong>
-          <span {% if FIELDS_LTR.date %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.date }}</span>
+          <span {% if FIELDS_LTR.date %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.date }}</span>
           <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', false, '{{result.doc.date|escapejs}}');"
+               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', {% if FIELDS_LTR.date %}true{% else %}false{% endif %}, '{{result.doc.date|escapejs}}');"
                src="{% static 'images/pencil.png' %}" />
         {% endspaceless %}
       </div>
     {% endif %}
 
     {% if result.doc.id %}
-      <div class="reference-number">
+      <div class="metadata">
         {% spaceless %}
           <strong>{% trans 'Reference number' %}:</strong>
-          <span {% if FIELDS_LTR.referenceNumber %}class="ltr mx-1"{% if RTL %} dir="ltr"{% endif %}{% else %}class="rtl mx-1"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>{{ result.doc.id }}</span>
+          <span {% if FIELDS_LTR.referenceNumber %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.id }}</span>
         {% endspaceless %}
       </div>
     {% endif %}
@@ -118,7 +118,7 @@
           <div class="col-12">
             {% for snippet in result.snippets %}
               <div class="mt-2">
-                <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}class="snippet ltr"{% if RTL %} dir="ltr"{% endif %}{% else %}class="snippet rtl"{% if not RTL %} dir="rtl"{% endif %}{% endif %}>
+                <div id="snippet{{ forloop.parentloop.counter0 }}_{{ forloop.counter0 }}" {% if FIELDS_LTR.contents %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr snippet"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl snippet" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>
                   {% autoescape off %}{{ snippet.snippetText }}{% endautoescape %}
                 </div>
               </div>

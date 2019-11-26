@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -50,6 +51,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -85,6 +87,7 @@ import com.typesafe.config.ConfigFactory;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
+import freemarker.template.TemplateException;
 
 /**
  * Command-line entry point into Jochre Search.
@@ -852,8 +855,20 @@ public class JochreSearch {
           JochreIndexBuilder builder = new JochreIndexBuilder(configId, false);
           new Thread(builder).start();
 
-          // send an e-mail if required
-          correction.sendEmail();
+          // wrap e-mail in runnable to return directly to client
+          new Thread(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                LOG.debug("Sending e-mail for correction");
+                // send an e-mail if required
+                correction.sendEmail();
+              } catch (MessagingException | IOException | TemplateException e) {
+                LOG.error("Unable to send correction e-mail", e);
+              }
+            }
+          }).start();
+
         } finally {
           searchManager.getManager().release(indexSearcher);
         }
