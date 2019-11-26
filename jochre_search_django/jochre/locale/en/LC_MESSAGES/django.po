@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 16:21+0000\n"
+"POT-Creation-Date: 2019-11-26 14:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -136,6 +136,7 @@ msgid "Results found in  %(resultCount)s books."
 msgstr ""
 
 #: templates/search.html:59
+#, python-format
 msgid "Results found in more than %(resultCount)s books."
 msgstr ""
 
@@ -183,14 +184,14 @@ msgid "or Merge with"
 msgstr "or Merge with"
 
 #: templates/search/correct-meta-modal.html:73
-#: templates/search/word-modal.html:84
+#: templates/search/word-modal.html:77
 msgid "Close"
 msgstr "Close"
 
 #: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
 #: templates/search/preferences-modal.html:63
-#: templates/search/word-modal.html:86
+#: templates/search/word-modal.html:79
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -201,7 +202,7 @@ msgstr "Correction recorded."
 #: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
 #: templates/search/preferences-modal.html:72
-#: templates/search/word-modal.html:97
+#: templates/search/word-modal.html:90
 msgid "An error occurred."
 msgstr "An error occurred."
 
@@ -256,7 +257,7 @@ msgid "Results per page"
 msgstr ""
 
 #: templates/search/preferences-modal.html:51
-msgid "Snippets per result"
+msgid "Snippets per book"
 msgstr ""
 
 #: templates/search/preferences-modal.html:66
@@ -442,17 +443,11 @@ msgstr ""
 
 #: templates/search/word-modal.html:63
 #, fuzzy
-#| msgid "fixWordFontExample"
-msgid "Font example"
-msgstr "Font example"
-
-#: templates/search/word-modal.html:70
-#, fuzzy
 #| msgid "fixWordLanguage"
 msgid "Language"
 msgstr "Language"
 
-#: templates/search/word-modal.html:90
+#: templates/search/word-modal.html:83
 msgid "Suggestion recorded."
 msgstr "Suggestion recorded."
 
@@ -484,18 +479,18 @@ msgstr ""
 msgid "Cookie Policy"
 msgstr ""
 
-#: views.py:215
+#: views.py:216
 msgid "first page"
 msgstr "First"
 
-#: views.py:222
+#: views.py:223
 msgid "previous page"
 msgstr "Prev"
 
-#: views.py:238
+#: views.py:239
 msgid "next page"
 msgstr "Next"
 
-#: views.py:245
+#: views.py:246
 msgid "last page"
 msgstr "Last"

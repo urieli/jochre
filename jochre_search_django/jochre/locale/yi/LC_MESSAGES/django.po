@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-20 16:21+0000\n"
+"POT-Creation-Date: 2019-11-26 14:04+0000\n"
 "PO-Revision-Date: 2019-10-10 12:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -97,7 +97,9 @@ msgstr "רעגיסטרירט זיך"
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr "איר האָט זיך שוין רעגיסטרירט? זײַט אַזוי גוט און <a href=\"%(login_url)s\">שרײַבט זיך אַרײַן</a> "
+msgstr ""
+"איר האָט זיך שוין רעגיסטרירט? זײַט אַזוי גוט און <a href=\"%(login_url)s"
+"\">שרײַבט זיך אַרײַן</a> "
 
 #: templates/contents.html:11
 msgid "Jochre Document Contents"
@@ -135,6 +137,7 @@ msgid "Results found in  %(resultCount)s books."
 msgstr "רעזולטאַטן געפֿונען אין %(resultCount)s ביכער."
 
 #: templates/search.html:59
+#, python-format
 msgid "Results found in more than %(resultCount)s books."
 msgstr "רעזולטאַטן געפֿונען אין מער װי %(resultCount)s ביכער."
 
@@ -176,14 +179,14 @@ msgid "or Merge with"
 msgstr "אָדער גיסט צונױף מיט"
 
 #: templates/search/correct-meta-modal.html:73
-#: templates/search/word-modal.html:84
+#: templates/search/word-modal.html:77
 msgid "Close"
 msgstr "פֿאַרמאַכט"
 
 #: templates/search/correct-meta-modal.html:75
 #: templates/search/keyboard-modal.html:55
 #: templates/search/preferences-modal.html:63
-#: templates/search/word-modal.html:86
+#: templates/search/word-modal.html:79
 msgid "Save changes"
 msgstr "אױפֿהיטן די בײַטן"
 
@@ -194,7 +197,7 @@ msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
 #: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
 #: templates/search/preferences-modal.html:72
-#: templates/search/word-modal.html:97
+#: templates/search/word-modal.html:90
 msgid "An error occurred."
 msgstr "אַ פֿעלער איז פֿאָרגעקומען."
 
@@ -407,8 +410,8 @@ msgid ""
 "apostrophes, quotes, dashes, and other punctuation. If the word is badly "
 "segmented (i.e. if only part of the word appears), do not correct it."
 msgstr ""
-"אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה אױב נאָר אַ טײל פֿונעם װאָרט באַװײַזט זיך אױבן), טאָר מען עס נישט אױסבעסערן."
-
+"אױב אַ װאָרט איז שלעכט סעגמענטירט (ד“ה אױב נאָר אַ טײל פֿונעם װאָרט באַװײַזט זיך "
+"אױבן), טאָר מען עס נישט אױסבעסערן."
 
 #: templates/search/word-modal.html:36
 msgid "Word"
@@ -419,14 +422,10 @@ msgid "Font"
 msgstr "דרוקשריפֿט"
 
 #: templates/search/word-modal.html:63
-msgid "Font example"
-msgstr "בײַשפּיל פֿון דרוקשריפֿט"
-
-#: templates/search/word-modal.html:70
 msgid "Language"
 msgstr "שפּראַך"
 
-#: templates/search/word-modal.html:90
+#: templates/search/word-modal.html:83
 msgid "Suggestion recorded."
 msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
 
@@ -458,18 +457,18 @@ msgstr ""
 msgid "Cookie Policy"
 msgstr ""
 
-#: views.py:215
+#: views.py:216
 msgid "first page"
 msgstr "אָנהייב"
 
-#: views.py:222
+#: views.py:223
 msgid "previous page"
 msgstr "פֿריער"
 
-#: views.py:238
+#: views.py:239
 msgid "next page"
 msgstr "ווײַטער"
 
-#: views.py:245
+#: views.py:246
 msgid "last page"
 msgstr "סוף"
