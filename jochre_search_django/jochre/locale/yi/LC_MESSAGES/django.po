@@ -240,7 +240,7 @@ msgstr "דעם באַניצערס פּרעפֿערענצן"
 
 #: templates/search/preferences-modal.html:24
 msgid "Interface language"
-msgstr "צװישנבינד שפּראַך"
+msgstr "פּרעזענטיר־שפּראַך"
 
 #: templates/search/preferences-modal.html:41
 msgid "Results per page"
