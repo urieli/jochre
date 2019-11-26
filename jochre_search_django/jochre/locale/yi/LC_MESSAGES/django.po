@@ -185,7 +185,7 @@ msgstr "פֿאַרמאַכט"
 #: templates/search/preferences-modal.html:63
 #: templates/search/word-modal.html:86
 msgid "Save changes"
-msgstr "היט אויף די בײַטן"
+msgstr "אױפֿהיטן די בײַטן"
 
 #: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
@@ -227,7 +227,7 @@ msgstr "אַנולירן"
 #: templates/search/keyboard-modal.html:54
 #: templates/search/preferences-modal.html:62
 msgid "Restore defaults"
-msgstr "צוריקברענגען דער אָריגינאַל"
+msgstr "צוריקברענגען דעם אָריגינאַל"
 
 #: templates/search/keyboard-modal.html:58
 msgid "Keyboard mappings updated."
@@ -247,8 +247,8 @@ msgid "Results per page"
 msgstr "וויפֿל רעזולטאַטן אויף איין זײַטל "
 
 #: templates/search/preferences-modal.html:51
-msgid "Snippets per result"
-msgstr "וויפֿל פֿראַגמענטן אויף איין רעזולטאַט "
+msgid "Snippets per book"
+msgstr "וויפֿל פֿראַגמענטן פֿון אײן בוך"
 
 #: templates/search/preferences-modal.html:66
 msgid "Preferences saved."
