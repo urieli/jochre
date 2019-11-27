@@ -192,7 +192,7 @@ msgstr "אױפֿהיטן די בײַטן"
 
 #: templates/search/correct-meta-modal.html:78
 msgid "Correction recorded."
-msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
+msgstr "דער פֿירלײג איז פֿאַרשריבן געװאָרן."
 
 #: templates/search/correct-meta-modal.html:84
 #: templates/search/keyboard-modal.html:64
@@ -427,7 +427,7 @@ msgstr "שפּראַך"
 
 #: templates/search/word-modal.html:83
 msgid "Suggestion recorded."
-msgstr "דער פירלײג איז פֿארשרײַבט געװאָרן."
+msgstr "דער פֿירלײג איז פֿאַרשריבן געװאָרן."
 
 #: templates/wrapper.html:67
 msgid "Cookies used on the website!"
