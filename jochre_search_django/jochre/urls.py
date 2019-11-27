@@ -2,7 +2,7 @@
 """
 from django.urls import path, re_path
 from django.views.generic.base import TemplateView, RedirectView
-from jochre.views import search, keyboard, preferences, updateKeyboard, updatePreferences, contents
+from jochre.views import search, keyboard, preferences, updateKeyboard, updatePreferences, contents, login
 from jochre.localProxy import LocalProxy
 
 urlpatterns = [
@@ -14,4 +14,5 @@ urlpatterns = [
   path('contents', contents, name='contents'),
   path('privacy', TemplateView.as_view(template_name='privacy.html'), name="privacy"),
   re_path('^jochre-search/(?P<url>.*)', LocalProxy.as_view(), name='jochre-search'),
+  path('accounts/login/', login, name='login'),
 ]
