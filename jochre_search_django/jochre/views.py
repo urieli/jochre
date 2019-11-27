@@ -17,6 +17,7 @@ from django.urls import reverse
 
 from jochre.models import KeyboardMapping, Preferences
 
+from allauth.account.views import login as allauth_login
 
 def search(request):
   logger = logging.getLogger(__name__)
@@ -518,3 +519,14 @@ def contents(request):
     }
 
   return render(request, 'contents.html', model)
+
+def login(request):
+    """
+    Return to default language on login.
+    """
+    translation.deactivate()
+    if translation.LANGUAGE_SESSION_KEY in request.session:
+      del request.session[translation.LANGUAGE_SESSION_KEY]
+    response = allauth_login(request)
+
+    return response
