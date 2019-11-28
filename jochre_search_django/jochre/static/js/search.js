@@ -363,8 +363,6 @@ function correctMeta(docId, field, fieldForDisplay, leftToRight, value) {
   });
 
   if (leftToRight) {
-    $('#correctMetaFieldName').removeClass("rtl");
-    $('#correctMetaFieldName').removeClass("rtl-align");
     $('#correctMetaCurrentValue').removeClass("rtl");
     $('#correctMetaCurrentValue').removeClass("rtl-align");
     $('#correctMetaNewValue').removeClass("rtl");
@@ -372,13 +370,11 @@ function correctMeta(docId, field, fieldForDisplay, leftToRight, value) {
     $('#correctMetaAuthorMergeWith').removeClass("rtl");
     $('#correctMetaAuthorMergeWith').removeClass("rtl-align");
 
-    $('#correctMetaFieldName').addClass("ltr");
     $('#correctMetaCurrentValue').addClass("ltr");
     $('#correctMetaNewValue').addClass("ltr");
     $('#correctMetaAuthorMergeWith').addClass("ltr");
  
     if (RTL) {
-      $('#correctMetaFieldName').addClass("ltr-align");
       $('#correctMetaCurrentValue').addClass("ltr-align");
       $('#correctMetaNewValue').addClass("ltr-align");
      $('#correctMetaAuthorMergeWith').addClass("ltr-align");
@@ -387,8 +383,6 @@ function correctMeta(docId, field, fieldForDisplay, leftToRight, value) {
     $("#correctMetaNewValue").off('keypress');
     $("#correctMetaAuthorMergeWith").off('keypress');
   } else {
-    $('#correctMetaFieldName').removeClass("ltr");
-    $('#correctMetaFieldName').removeClass("ltr-align");
     $('#correctMetaCurrentValue').removeClass("ltr");
     $('#correctMetaCurrentValue').removeClass("ltr-align");
     $('#correctMetaNewValue').removeClass("ltr");
@@ -397,13 +391,11 @@ function correctMeta(docId, field, fieldForDisplay, leftToRight, value) {
     $('#correctMetaAuthorMergeWith').removeClass("ltr-align");
 
 
-    $('#correctMetaFieldName').addClass("rtl");
     $('#correctMetaCurrentValue').addClass("rtl");
     $('#correctMetaNewValue').addClass("rtl");
     $('#correctMetaAuthorMergeWith').addClass("rtl");
 
     if (!RTL) {
-      $('#correctMetaFieldName').addClass("rtl-align");
       $('#correctMetaCurrentValue').addClass("rtl-align");
       $('#correctMetaNewValue').addClass("rtl-align");
      $('#correctMetaAuthorMergeWith').addClass("rtl-align");
