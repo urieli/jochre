@@ -41,6 +41,17 @@ INSTALLED_APPS = [
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+
+EMAIL_HOST = '*************'
+EMAIL_HOST_USER = '*******************'
+EMAIL_HOST_PASSWORD = '******************'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Static files (CSS, JavaScript, Images)
@@ -58,8 +69,6 @@ SITE_ID = 1
 JOCHRE_SEARCH_URL = 'http://localhost:8080/jochreSearchOc/search'
 
 LOGIN_REDIRECT_URL = '/'
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 JOCHRE_TITLE = {
   "oc": u"Jochre en Occitan",
