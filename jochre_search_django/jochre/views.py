@@ -19,6 +19,8 @@ from jochre.models import KeyboardMapping, Preferences
 
 from allauth.account.views import login as allauth_login
 
+from django.core.mail import send_mail
+
 def search(request):
   logger = logging.getLogger(__name__)
 
@@ -530,3 +532,20 @@ def login(request):
     response = allauth_login(request)
 
     return response
+
+def testmail(request):
+  sendTo = request.GET['to']
+
+  send_mail(
+      'Testing Django',
+      'Here is my test message message.',
+      settings.EMAIL_HOST_USER,
+      [sendTo],
+      fail_silently=False,
+  )
+
+  model = {
+    "result": "success"
+  }
+
+  return HttpResponse(json.dumps(model), content_type='application/json')
