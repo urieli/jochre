@@ -88,7 +88,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
   private int myShapeCount = -1;
 
-  private boolean saveImagesForDebug = true;
+  private boolean saveImagesForDebug = false;
   private final double blackThresholdPercentile;
   private final double separationThresholdPercentile;
 
@@ -1022,10 +1022,6 @@ public class SourceImage extends JochreImage implements ImageGrid {
       }
     }
     return myShapeCount;
-  }
-
-  public boolean isSaveImagesForDebug() {
-    return saveImagesForDebug;
   }
 
   public void setSaveImagesForDebug(boolean saveImagesForDebug) {
