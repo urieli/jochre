@@ -76,7 +76,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   private User currentUser = null;
 
   private boolean drawSegmentedImage = false;
-  private boolean saveImagesForDebug = false;
 
   private MultiTaskProgressMonitor currentMonitor;
 
@@ -93,10 +92,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   public JochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
     this.jochreSession = jochreSession;
     this.doc = jochreDocument;
-
-    Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
-    drawSegmentedImage = segmenterConfig.getBoolean("draw-segmented-image");
-    saveImagesForDebug = segmenterConfig.getBoolean("draw-pixel-spread");
   }
 
   /**
@@ -193,7 +188,6 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
       }
       LOG.debug("Creating source image object");
       SourceImage sourceImage = jochrePage.newJochreImage(image, imageName + '.' + SUFFIX);
-      sourceImage.setSaveImagesForDebug(saveImagesForDebug);
 
       if (currentUser != null)
         sourceImage.setOwner(currentUser);
@@ -381,13 +375,5 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   public void requestSegmentation(File outputDirectory) {
     this.drawSegmentedImage = true;
     this.outputDirectory = outputDirectory;
-  }
-
-  public boolean isSaveImagesForDebug() {
-    return saveImagesForDebug;
-  }
-
-  public void setSaveImagesForDebug(boolean saveImagesForDebug) {
-    this.saveImagesForDebug = saveImagesForDebug;
   }
 }

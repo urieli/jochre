@@ -76,6 +76,8 @@ public class Segmenter implements Monitorable {
     this.jochreSession = jochreSession;
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     drawSegmentation = segmenterConfig.getBoolean("draw-segmented-image");
+    boolean saveImagesForDebug = segmenterConfig.getBoolean("save-images-for-debug");
+    sourceImage.setSaveImagesForDebug(saveImagesForDebug);
   }
 
   /**
