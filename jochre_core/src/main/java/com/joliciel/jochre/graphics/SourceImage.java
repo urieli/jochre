@@ -21,7 +21,7 @@ package com.joliciel.jochre.graphics;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
+import java.awt.image.RescaleOp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import com.joliciel.jochre.utils.graphics.ImageUtils;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
@@ -50,6 +51,8 @@ import com.joliciel.jochre.doc.JochrePage;
 import com.joliciel.jochre.stats.DBSCANClusterer;
 import com.joliciel.jochre.utils.JochreException;
 import com.typesafe.config.Config;
+
+import javax.imageio.ImageIO;
 
 /**
  * A wrapper for a JochreImage which includes an actual graphical image. In
@@ -85,7 +88,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
   private int myShapeCount = -1;
 
-  private boolean drawPixelSpread = false;
+  private boolean saveImagesForDebug = false;
   private final double blackThresholdPercentile;
   private final double separationThresholdPercentile;
 
@@ -104,6 +107,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
   public SourceImage(String name, BufferedImage image, JochreSession jochreSession) {
     super(image, jochreSession);
+    
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     blackThresholdPercentile = segmenterConfig.getDouble("black-threshold-percentile");
     separationThresholdPercentile = segmenterConfig.getDouble("separation-threshold-percentile");
@@ -113,22 +117,37 @@ public class SourceImage extends JochreImage implements ImageGrid {
     // increase contrast for grayscale images, to help with segmentation
     // the original image will be restored again after segmentation with a
     // call to restoreOriginalImage()
-    imageBackup = image;
+    imageBackup = ImageUtils.deepCopy(image);
 
-    ColorModel srcCM = image.getColorModel();
-    if (!(srcCM instanceof IndexColorModel)) {
-      float contrastFactor = 1.4f;
-      float brightnessFactor = 30f;
-      BrightnessContrastOp op = new BrightnessContrastOp(contrastFactor, brightnessFactor, null);
-      image = op.filter(image, null);
+    this.saveImage(image, "png", new File("data/original.png"));
+    
+    BufferedImage rgb = ImageUtils.indexedToRGB(image);
+    this.saveImage(rgb, "png", new File("data/rgb.png"));
+
+    RescaleOp op = new RescaleOp(1.2f, 15f, null);
+    BufferedImage brighter = op.filter(rgb, rgb);
+
+    this.saveImage(brighter, "png", new File("data/brighter.png"));
+
+    BufferedImage greyImage = ImageUtils.toGreyscale(brighter);
+    this.saveImage(greyImage, "png", new File("data/grey.png"));
+    
+    this.setOriginalImage(greyImage);
+
+    this.setWidth(image.getWidth());
+    this.setHeight(image.getHeight());
+
+    this.calculateThresholds(saveImagesForDebug);
+  }
+  
+  private void saveImage(BufferedImage image, String formatName, File file) {
+    if (saveImagesForDebug) {
+      try {
+        ImageIO.write(image, formatName, file);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
-
-    this.setOriginalImage(image);
-
-    this.setWidth(this.getPixelGrabber().getWidth());
-    this.setHeight(this.getPixelGrabber().getHeight());
-
-    this.calculateThresholds(drawPixelSpread);
   }
 
   private void calculateThresholds(boolean drawPixelSpread) {
@@ -880,11 +899,14 @@ public class SourceImage extends JochreImage implements ImageGrid {
       LOG.debug("Mean vertical count: " + verticalStats.getMean());
       LOG.debug("Median vertical count: " + verticalStats.getPercentile(50));
       LOG.debug("25 percentile vertical count: " + verticalStats.getPercentile(25));
+      LOG.debug("10 percentile vertical count: " + verticalStats.getPercentile(10));
+      LOG.debug("1 percentile vertical count: " + verticalStats.getPercentile(1));
       LOG.debug("Mean vertical count (non empty): " + verticalStatsNonEmpty.getMean());
       LOG.debug("Median vertical count (non empty): " + verticalStatsNonEmpty.getPercentile(50));
       LOG.debug("25 percentile vertical count (non empty): " + verticalStatsNonEmpty.getPercentile(25));
       LOG.debug("10 percentile vertical count (non empty): " + verticalStatsNonEmpty.getPercentile(10));
       LOG.debug("1 percentile vertical count (non empty): " + verticalStatsNonEmpty.getPercentile(1));
+      LOG.debug("0.5 percentile vertical count (non empty): " + verticalStatsNonEmpty.getPercentile(0.5));
 
       // double maxEmptyColumnCount = verticalStatsNonEmpty.getMean() /
       // 8.0;
@@ -895,12 +917,16 @@ public class SourceImage extends JochreImage implements ImageGrid {
       List<int[]> emptyVerticalRanges = new ArrayList<>();
       int emptyVerticalRangeStart = 0;
       for (int i = 0; i < this.getWidth(); i++) {
-        if (!inEmptyVerticalRange && verticalCounts[i] <= maxEmptyColumnCount) {
+        if (!inEmptyVerticalRange && verticalCounts[i] < maxEmptyColumnCount) {
+          if (LOG.isTraceEnabled()) LOG.trace("Entered empty vertical range at " + i + ", count:" + verticalCounts[i]);
           inEmptyVerticalRange = true;
           emptyVerticalRangeStart = i;
-        } else if (inEmptyVerticalRange && verticalCounts[i] > maxEmptyColumnCount) {
+        } else if (inEmptyVerticalRange && verticalCounts[i] >= maxEmptyColumnCount) {
+          if (LOG.isTraceEnabled()) LOG.trace("Exited empty vertical range at " + i + ", count:" + verticalCounts[i]);
           inEmptyVerticalRange = false;
           emptyVerticalRanges.add(new int[] { emptyVerticalRangeStart, i });
+        } else if (inEmptyVerticalRange) {
+          if (LOG.isTraceEnabled()) LOG.trace("In empty vertical range at " + i + ", count:" + verticalCounts[i]);
         }
       }
       if (inEmptyVerticalRange) {
@@ -998,12 +1024,8 @@ public class SourceImage extends JochreImage implements ImageGrid {
     return myShapeCount;
   }
 
-  public boolean isDrawPixelSpread() {
-    return drawPixelSpread;
-  }
-
-  public void setDrawPixelSpread(boolean drawPixelSpread) {
-    this.drawPixelSpread = drawPixelSpread;
+  public void setSaveImagesForDebug(boolean saveImagesForDebug) {
+    this.saveImagesForDebug = saveImagesForDebug;
   }
 
   public void restoreOriginalImage() {
