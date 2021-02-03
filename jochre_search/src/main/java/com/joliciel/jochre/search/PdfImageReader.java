@@ -23,39 +23,47 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.joliciel.jochre.utils.pdf.AbstractPdfImageVisitor;
+import com.joliciel.jochre.utils.pdf.PdfImageObserver;
+import com.joliciel.jochre.utils.pdf.PdfImageVisitor;
 
 public class PdfImageReader {
-  File pdfFile = null;
+  private final File pdfFile;
 
   public PdfImageReader(File pdfFile) {
     this.pdfFile = pdfFile;
   }
 
   public BufferedImage readImage(int pageNumber) {
-    PdfImageReaderInternal imageReader = new PdfImageReaderInternal(this.pdfFile);
-    BufferedImage image = imageReader.readImage(pageNumber);
+    // assuming only one image per PDF page
+    Set<Integer> pages = new HashSet<>();
+    pages.add(pageNumber);
+    PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(this.pdfFile, pages);
+    PdfImageReaderInternal imageReader = new PdfImageReaderInternal();
+    pdfImageVisitor.addImageObserver(imageReader);
+    pdfImageVisitor.visitImages();
+    BufferedImage image = imageReader.getImage();
     return image;
   }
 
-  public final static class PdfImageReaderInternal extends AbstractPdfImageVisitor {
+  public final static class PdfImageReaderInternal implements PdfImageObserver {
     BufferedImage image = null;
 
-    public PdfImageReaderInternal(File pdfFile) {
-      super(pdfFile);
-    }
-
-    public BufferedImage readImage(int pageNumber) {
-      Set<Integer> pages = new HashSet<>();
-      pages.add(pageNumber);
-      super.visitImages(pages);
-      return this.image;
-    }
-
     @Override
-    protected void visitImage(BufferedImage image, String imageName, int pageIndex, int imageIndex) {
-      this.image = image;
+    public void visitImage(BufferedImage currentImage, String imageName, int pageIndex, int imageIndex) {
+      if (this.image==null) {
+        this.image = currentImage;
+      } else {
+        // If there are multiple images we take the biggest one
+        long currentImageSize = currentImage.getHeight() * currentImage.getWidth();
+        long imageSize = image.getHeight() * image.getWidth();
+        if (currentImageSize > imageSize) {
+          this.image = currentImage;
+        }
+      }
     }
 
+    public BufferedImage getImage() {
+      return image;
+    }
   }
 }

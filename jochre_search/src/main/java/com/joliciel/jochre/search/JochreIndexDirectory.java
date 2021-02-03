@@ -39,13 +39,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.joliciel.jochre.utils.pdf.PdfImageVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.joliciel.jochre.utils.pdf.PdfMetadataReader;
 import com.joliciel.jochre.utils.text.DiacriticRemover;
 
 /**
@@ -207,7 +207,7 @@ public class JochreIndexDirectory {
   public Map<JochreIndexField, String> getMetaData() {
     if (this.metaData == null) {
       if (this.getMetaDataFile() == null) {
-        PdfMetadataReader pdfMetadataReader = new PdfMetadataReader(this.getPdfFile());
+        PdfImageVisitor pdfMetadataReader = new PdfImageVisitor(this.getPdfFile());
         Map<String, String> pdfMetaData = pdfMetadataReader.getFields();
         pdfMetadataReader.close();
 

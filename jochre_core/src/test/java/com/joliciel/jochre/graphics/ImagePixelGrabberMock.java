@@ -1,6 +1,6 @@
 package com.joliciel.jochre.graphics;
 
-import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
+import com.joliciel.jochre.utils.graphics.ImagePixelGrabber;
 
 public class ImagePixelGrabberMock implements ImagePixelGrabber {
   private int[] pixels;

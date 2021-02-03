@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.graphics.Shape.SectionBrightnessMeasurementMethod;
-import com.joliciel.jochre.graphics.util.ImagePixelGrabber;
+import com.joliciel.jochre.utils.graphics.ImagePixelGrabber;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 

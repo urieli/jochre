@@ -62,6 +62,14 @@
       <artifactId>jbig2-imageio</artifactId>
     </dependency>
     <dependency>
+      <groupId>de.digitalcollections.imageio</groupId>
+      <artifactId>imageio-openjpeg</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.digitalcollections.imageio</groupId>
+      <artifactId>imageio-turbojpeg</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.joliciel.talismane</groupId>
       <artifactId>talismane-machine-learning</artifactId>
     </dependency>

@@ -76,7 +76,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   private User currentUser = null;
 
   private boolean drawSegmentedImage = false;
-  private boolean drawPixelSpread = false;
+  private boolean saveImagesForDebug = false;
 
   private MultiTaskProgressMonitor currentMonitor;
 
@@ -96,7 +96,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
 
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     drawSegmentedImage = segmenterConfig.getBoolean("draw-segmented-image");
-    drawPixelSpread = segmenterConfig.getBoolean("draw-pixel-spread");
+    saveImagesForDebug = segmenterConfig.getBoolean("draw-pixel-spread");
   }
 
   /**
@@ -193,7 +193,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
       }
       LOG.debug("Creating source image object");
       SourceImage sourceImage = jochrePage.newJochreImage(image, imageName + '.' + SUFFIX);
-      sourceImage.setDrawPixelSpread(drawPixelSpread);
+      sourceImage.setSaveImagesForDebug(saveImagesForDebug);
 
       if (currentUser != null)
         sourceImage.setOwner(currentUser);
@@ -383,11 +383,11 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
     this.outputDirectory = outputDirectory;
   }
 
-  public boolean isDrawPixelSpread() {
-    return drawPixelSpread;
+  public boolean isSaveImagesForDebug() {
+    return saveImagesForDebug;
   }
 
-  public void setDrawPixelSpread(boolean drawPixelSpread) {
-    this.drawPixelSpread = drawPixelSpread;
+  public void setSaveImagesForDebug(boolean saveImagesForDebug) {
+    this.saveImagesForDebug = saveImagesForDebug;
   }
 }

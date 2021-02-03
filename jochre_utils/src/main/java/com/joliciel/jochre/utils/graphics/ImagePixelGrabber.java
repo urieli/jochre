@@ -16,7 +16,7 @@
 //You should have received a copy of the GNU Affero General Public License
 //along with Jochre.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////////
-package com.joliciel.jochre.graphics.util;
+package com.joliciel.jochre.utils.graphics;
 
 /**
  * An interface for getting individual pixel color/brightness out of an image.

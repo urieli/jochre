@@ -17,13 +17,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
+import com.joliciel.jochre.utils.pdf.PdfImageVisitor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.joliciel.jochre.utils.pdf.PdfMetadataReader;
 import com.joliciel.jochre.utils.text.DiacriticRemover;
 
 public class YiddishMetaFetcher {
@@ -77,7 +77,7 @@ public class YiddishMetaFetcher {
   }
 
   public void fetchMetaData(File pdfFile, Writer writer) throws Exception {
-    PdfMetadataReader pdfMetadataReader = new PdfMetadataReader(pdfFile);
+    PdfImageVisitor pdfMetadataReader = new PdfImageVisitor(pdfFile);
     Map<String, String> metadata = pdfMetadataReader.getFields();
     pdfMetadataReader.close();
     String url = metadata.get("Keywords");
