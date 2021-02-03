@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
+import com.joliciel.jochre.pdf.PdfDocumentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.util.media.Media;
@@ -53,7 +54,6 @@ import com.joliciel.jochre.graphics.JochreImage;
 import com.joliciel.jochre.lexicon.MostLikelyWordChooser;
 import com.joliciel.jochre.output.TextGetter;
 import com.joliciel.jochre.output.TextGetter.TextFormat;
-import com.joliciel.jochre.pdf.PdfImageVisitor;
 import com.joliciel.jochre.security.User;
 import com.joliciel.talismane.utils.LogUtils;
 import com.joliciel.talismane.utils.MessageResource;
@@ -298,10 +298,10 @@ public class TextController extends GenericForwardComposer<Window> {
           pages = IntStream.rangeClosed(startPage, endPage).boxed().collect(Collectors.toSet());
         }
         if (lowerCaseFileName.endsWith(".pdf")) {
-          PdfImageVisitor pdfImageVisitor = new PdfImageVisitor(currentFile, pages, documentGenerator);
-          this.progressMonitor = pdfImageVisitor.monitorTask();
+          PdfDocumentProcessor pdfDocumentProcessor = new PdfDocumentProcessor(currentFile, pages, documentGenerator);
+          this.progressMonitor = pdfDocumentProcessor.monitorTask();
           this.currentHtmlIndex = 0;
-          thread = new Thread(pdfImageVisitor);
+          thread = new Thread(pdfDocumentProcessor);
           thread.setName(currentFile.getName() + " Processor");
           progressTimer.setRunning(true);
         } else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg")

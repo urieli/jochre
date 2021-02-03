@@ -196,8 +196,8 @@ public class SegmentationTest {
           LOG.debug("============= Row " + i + " ================");
           for (Shape shape : row.getShapes()) {
             LOG.debug("Shape (" + i + "," + j + "). Left = " + shape.getLeft() + ". Top = " + shape.getTop() + ". Right = " + shape.getRight()
-                + ". Bottom = " + shape.getBottom());
-
+                + ". Bottom = " + shape.getBottom() +". Group: " + shape.getGroup().getIndex());
+            
             if (firstShape) {
               midPixelFirstShape = shape.getPixel(3, 3);
               midPixelFirstShapeRaw = shape.getRawPixel(3, 3);

@@ -27,8 +27,9 @@
     </encoder>
   </appender>
 
-  <logger name="com.joliciel" level="DEBUG" />
-  <logger name="com.joliciel.jochre" level="DEBUG" />
+  <logger name="com.joliciel" level="INFO" />
+  <logger name="com.joliciel.jochre" level="INFO" />
+  <logger name="com.joliciel.jochre.test.integration.SegmentationTest" level="INFO" />
 
   <root level="INFO">
     <appender-ref ref="javalog" />
