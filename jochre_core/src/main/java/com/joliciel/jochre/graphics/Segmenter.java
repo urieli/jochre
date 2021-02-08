@@ -23,18 +23,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
@@ -70,6 +59,7 @@ public class Segmenter implements Monitorable {
 
   private final SourceImage sourceImage;
   private final JochreSession jochreSession;
+  private final int maxShapeStackSize;
 
   public Segmenter(SourceImage sourceImage, JochreSession jochreSession) {
     this.sourceImage = sourceImage;
@@ -77,6 +67,7 @@ public class Segmenter implements Monitorable {
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     drawSegmentation = segmenterConfig.getBoolean("draw-segmented-image");
     boolean saveImagesForDebug = segmenterConfig.getBoolean("save-images-for-debug");
+    maxShapeStackSize = segmenterConfig.getInt("max-shape-stack-size");
     sourceImage.setSaveImagesForDebug(saveImagesForDebug);
   }
 
@@ -484,13 +475,13 @@ public class Segmenter implements Monitorable {
       LOG.debug(largeShape.toString());
       int xOrigin = largeShape.getStartingPoint()[0] - largeShape.getLeft();
       int yOrigin = largeShape.getStartingPoint()[1] - largeShape.getTop();
-      Shape dummyShape = new Shape(sourceImage, xOrigin, yOrigin, jochreSession);
+
       // We want to fill up a mirror of the contiguous pixels within this
       // shape,
       // which is what we'll use for further analysis to know
       // if it's a frame or not.
       WritableImageGrid mirror = new ImageMirror(largeShape);
-      this.findContiguousPixels(largeShape, mirror, dummyShape, xOrigin, yOrigin, sourceImage.getSeparationThreshold());
+      this.getShape(sourceImage, mirror, xOrigin, yOrigin);
 
       int adjustedLeft = (int) Math.round(mirror.getWidth() * 0.05);
       int adjustedRight = (int) Math.round(mirror.getWidth() * 0.95);
@@ -3074,43 +3065,106 @@ public class Segmenter implements Monitorable {
 
     // recursively expand out to the 9 pixel square surrounding this pixel
     // until no other contiguous black pixels have been found.
-    this.findContiguousPixels(sourceImage, mirror, shape, x, y, sourceImage.getSeparationThreshold());
+    int xMax = x+1;
+    for ( ; x<=sourceImage.getWidth(); xMax++) {
+      if (!sourceImage.isPixelBlack(xMax, y, sourceImage.getSeparationThreshold())) {
+        break;
+      }
+    }
+    
+    this.findContiguousPixels(sourceImage, mirror, shape, x, xMax, y, sourceImage.getSeparationThreshold());
     LOG.trace("Got shape for pixel (" + x + "," + y + "): " + shape);
 
     return shape;
   }
 
-  void findContiguousPixels(ImageGrid sourceImage, WritableImageGrid mirror, Shape shape, int x, int y, int blackThreshold) {
+  void findContiguousPixels(ImageGrid sourceImage, WritableImageGrid mirror, Shape shape, int xMin, int xMax, int y, int blackThreshold) {
     // let's imagine
     // 0 X 0 0 x x
     // x x x 0 0 x
     // 0 0 x x x x
     // so we have to go up and to the left to keep finding contiguous black
     // pixels.
-    Stack<int[]> pointStack = new Stack<int[]>();
-    pointStack.push(new int[] { x, y });
+    Stack<int[]> segmentStack = new Stack<int[]>();
+    segmentStack.push(new int[] { xMin, xMax, y });
 
-    while (!pointStack.isEmpty()) {
-      int[] point = pointStack.pop();
-      x = point[0];
-      y = point[1];
+    while (!segmentStack.isEmpty()) {
+      if (segmentStack.size() > maxShapeStackSize) {
+        throw new SegmentationException("While finding contiguous shapes, stack to large");
+      }
+      
+      int[] segment = segmentStack.pop();
+      xMin = segment[0];
+      xMax = segment[1];
+      y = segment[2];
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("Popping next segment, xMin=" + xMin + ", xMax=" + xMax + ", y=" +y);
+      }
       // Add this pixel to the mirror so that we don't touch it again.
-      mirror.setPixel(x, y, 1);
-      for (int rely = y - 1; rely <= y + 1; rely++) {
-        for (int relx = x - 1; relx <= x + 1; relx++) {
+      for (int x=xMin; x<xMax; x++) {
+        mirror.setPixel(x, y, 1);
+      }
+      if (xMin < shape.getLeft()) {
+        shape.setLeft(xMin);
+        if (LOG.isTraceEnabled()) LOG.trace("Set shape left to " + shape.getLeft());
+      }
+      if (xMax-1 > shape.getRight()) {
+        shape.setRight(xMax - 1);
+        if (LOG.isTraceEnabled()) LOG.trace("Set shape right to " + shape.getRight());
+      }
+      if (y > shape.getBottom()) {
+        shape.setBottom(y);
+        if (LOG.isTraceEnabled()) LOG.trace("Set shape bottom to " + shape.getBottom());
+      }
+      // we don't have to check top, cause it's all going
+      // from top to bottom.
+      
+      for (int rely = y - 1; rely <= y + 1; rely+=2) {
+        boolean inBlack = false;
+
+        int currentStart = xMin;
+        for (int relx = xMin-1; relx <= xMax; relx++) {
           if (mirror.getPixel(relx, rely) > 0)
             continue;
-          if (sourceImage.isPixelBlack(relx, rely, blackThreshold)) {
-            if (relx < shape.getLeft())
-              shape.setLeft(relx);
-            if (relx > shape.getRight())
-              shape.setRight(relx);
-            if (rely > shape.getBottom())
-              shape.setBottom(rely);
 
-            // we don't have to check top, cause it's all going
-            // from top to bottom.
-            pointStack.push(new int[] { relx, rely });
+          if (sourceImage.isPixelBlack(relx, rely, blackThreshold)) {
+            if (!inBlack) {
+              // start of a new black segment
+              currentStart = relx;
+              inBlack = true;
+            }
+            // If it's the left-most point, go as far left as necessary
+            if (relx == xMin - 1) {
+              for (int i = xMin - 2; i >= 0; i--) {
+                if (!sourceImage.isPixelBlack(i, rely, blackThreshold)) {
+                  currentStart = i+1;
+                  break;
+                }
+              }
+            }
+            // If it's the right-most point, go as far right as necessary
+            if (relx == xMax) {
+              int xEnd = xMax;
+              for (int i = xMax + 1; i <= sourceImage.getWidth(); i++) {
+                if (!sourceImage.isPixelBlack(i, rely, blackThreshold)) {
+                  xEnd = i;
+                  break;
+                }
+              }
+              segmentStack.push(new int[]{currentStart, xEnd, rely});
+              if (LOG.isTraceEnabled()) {
+                LOG.trace("At xMax pushed " + Arrays.toString(segmentStack.peek()));
+              }
+            }
+          } else {
+            if (inBlack) {
+              // end of the previous segment
+              segmentStack.push(new int[]{currentStart, relx, rely});
+              if (LOG.isTraceEnabled()) {
+                LOG.trace("End of segment, pushed" + Arrays.toString(segmentStack.peek()));
+              }
+              inBlack = false;
+            }
           }
         }
       }

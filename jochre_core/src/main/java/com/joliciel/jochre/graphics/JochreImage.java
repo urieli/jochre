@@ -342,6 +342,11 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
     this.imageStatus = imageStatus;
   }
 
+  public void clearSegmentation() {
+    this.paragraphs = new ArrayList<>();
+    this.shapeMap = new HashMap<>();
+  }
+  
   /**
    * Clears out objects in memory to avoid filling it up.
    */

@@ -106,6 +106,9 @@ public class GroupOfShapes implements Entity, Rectangle {
    * Add a shape to this group's shapes.
    */
   public void addShape(Shape shape) {
+    if (shape.getGroup()!=null) {
+      shape.getGroup().getShapes().remove(shape);
+    }
     this.getShapes().add(shape);
     shape.setGroup(this);
   }

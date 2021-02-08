@@ -898,13 +898,26 @@ public class RowOfShapes implements Entity, Rectangle {
       previousShape = shape;
     } // next shape
 
+    List<GroupOfShapes> emptyGroups = new ArrayList<>();
     for (GroupOfShapes group : this.getGroups()) {
       int j = 0;
       for (Shape shape : group.getShapes()) {
         shape.setIndex(j++);
       }
+      if (group.getShapes().size()==0) {
+        emptyGroups.add(group);
+      }
     }
-  }
+    
+    for (GroupOfShapes emptyGroup : emptyGroups) {
+      this.getGroups().remove(emptyGroup);
+    }
+
+    int j=0;
+    for (GroupOfShapes group : this.getGroups()) {
+      group.setIndex(j++);
+    }
+  } 
 
   /**
    * Gives the height between the base-line and mean-line on this row.
