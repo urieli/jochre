@@ -406,6 +406,9 @@ public class MostLikelyWordChooser {
         }
       }
       possibilities = newPossibilities;
+      if (possibilities.size()>1000) {
+        break;
+      }
     }
 
     TreeMap<Integer, List<List<LetterSequence>>> freqPossibilityMap = new TreeMap<>();
