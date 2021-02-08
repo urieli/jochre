@@ -44,7 +44,8 @@ public class SegmenterImplTest {
 
     final int startX = 3;
     final int startY = 2;
-    int[] pixels = { 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+    int[] pixels = {
+        0, 0, 0, 0, 0, 0, 0, 0, // row 0
         0, 1, 0, 0, 0, 0, 0, 0, // row 1
         0, 0, 0, 1, 0, 0, 1, 1, // row 2
         0, 0, 1, 1, 1, 0, 0, 1, // row 3
@@ -84,7 +85,8 @@ public class SegmenterImplTest {
     final int left = 10;
     final int top = 10;
 
-    int[] pixels = { 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
+    int[] pixels = {
+        1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, // row 0
         0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, // row 1
         0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, // row 2
         0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, // row 3
@@ -135,7 +137,8 @@ public class SegmenterImplTest {
 
     int[] pixels =
         // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
-        { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
+        { 
+            0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // row 0
             0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, // row 1
             0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, // row 2
             0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, // row 3
