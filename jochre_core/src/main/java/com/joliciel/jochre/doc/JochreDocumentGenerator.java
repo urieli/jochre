@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
+import com.joliciel.jochre.graphics.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,10 +40,6 @@ import com.joliciel.jochre.analyser.OriginalShapeLetterAssigner;
 import com.joliciel.jochre.boundaries.BoundaryDetector;
 import com.joliciel.jochre.boundaries.DeterministicBoundaryDetector;
 import com.joliciel.jochre.boundaries.OriginalBoundaryDetector;
-import com.joliciel.jochre.graphics.ImageStatus;
-import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.graphics.Segmenter;
-import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.letterGuesser.LetterGuesser;
 import com.joliciel.jochre.letterGuesser.features.LetterFeature;
 import com.joliciel.jochre.letterGuesser.features.LetterFeatureParser;
@@ -211,7 +208,14 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
         }
         currentMonitor.startTask(monitor, percentAlloted);
       }
-      segmenter.segment();
+      
+      try {
+        segmenter.segment();
+      } catch (SegmentationException se) {
+        LOG.error("segmentation failed", se);
+        sourceImage.clearSegmentation();
+      }
+      
       if (currentMonitor != null)
         currentMonitor.endTask();
 
