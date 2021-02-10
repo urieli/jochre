@@ -33,7 +33,9 @@ public class ImageMirror implements WritableImageGrid {
 
   @Override
   public void setPixel(int x, int y, int value) {
-    pixels[y * imageGrid.getWidth() + x] = (value != 0);
+    if (y * imageGrid.getWidth() + x < pixels.length) {
+      pixels[y * imageGrid.getWidth() + x] = (value != 0);
+    }
   }
 
   @Override
