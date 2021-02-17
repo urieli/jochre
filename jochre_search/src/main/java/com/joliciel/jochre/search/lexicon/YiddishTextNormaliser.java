@@ -21,9 +21,23 @@ class YiddishTextNormaliser implements TextNormaliser {
     text = text.replaceAll("[כֿכּ]", "כ");
     text = text.replaceAll("[שׁשׂ]", "ש");
     text = text.replaceAll("[תּ]", "ת");
-    text = text.replaceAll("־", "-");
-    text = text.replaceAll("‛", "'");
 
+    // Normalise maqaf into hyphen
+    text = text.replace('־', '-');
+    
+    // Normalise geresh and other single quotes
+    text = text.replace('‘', '\'');
+    text = text.replace('’', '\'');
+    text = text.replace('‛', '\'');
+    
+    // Normalise gershayim and other double-quotes
+    text = text.replace('„', '"');
+    text = text.replace('“', '"');
+    text = text.replace('״', '"');
+    text = text.replace('”', '"');
+    text = text.replace('‟', '"');
+    text = text.replace('«', '"');
+    text = text.replace('»', '"');
     return text;
   }
 }
