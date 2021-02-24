@@ -481,7 +481,8 @@ public class Segmenter implements Monitorable {
       // which is what we'll use for further analysis to know
       // if it's a frame or not.
       WritableImageGrid mirror = new ImageMirror(largeShape);
-      this.getShape(sourceImage, mirror, xOrigin, yOrigin);
+      Shape dummyShape = new Shape(sourceImage, xOrigin, yOrigin, jochreSession);
+      this.getShape(largeShape, dummyShape, mirror, xOrigin, yOrigin, sourceImage.getSeparationThreshold());
 
       int adjustedLeft = (int) Math.round(mirror.getWidth() * 0.05);
       int adjustedRight = (int) Math.round(mirror.getWidth() * 0.95);
@@ -3063,19 +3064,22 @@ public class Segmenter implements Monitorable {
   Shape getShape(SourceImage sourceImage, WritableImageGrid mirror, int x, int y) {
     Shape shape = new Shape(sourceImage, x, y, jochreSession);
 
-    // recursively expand out to the 9 pixel square surrounding this pixel
-    // until no other contiguous black pixels have been found.
+    this.getShape(sourceImage, shape, mirror, x, y, sourceImage.getSeparationThreshold());
+    
+    return shape;
+  }
+  
+  void getShape(ImageGrid sourceImage, Shape shape, WritableImageGrid mirror, int x, int y, int blackThreshold) {
+    // find xMax for this x
     int xMax = x+1;
     for ( ; x<=sourceImage.getWidth(); xMax++) {
-      if (!sourceImage.isPixelBlack(xMax, y, sourceImage.getSeparationThreshold())) {
+      if (!sourceImage.isPixelBlack(xMax, y, blackThreshold)) {
         break;
       }
     }
-    
-    this.findContiguousPixels(sourceImage, mirror, shape, x, xMax, y, sourceImage.getSeparationThreshold());
-    LOG.trace("Got shape for pixel (" + x + "," + y + "): " + shape);
 
-    return shape;
+    this.findContiguousPixels(sourceImage, mirror, shape, x, xMax, y, blackThreshold);
+    LOG.trace("Got shape for pixel (" + x + "," + y + "): " + shape);
   }
 
   void findContiguousPixels(ImageGrid sourceImage, WritableImageGrid mirror, Shape shape, int xMin, int xMax, int y, int blackThreshold) {
