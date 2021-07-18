@@ -269,8 +269,11 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
       reader.addConsumer(altoPageIndexer);
 
       UnclosableInputStream uis = jochreIndexDirectory.getAltoInputStream();
-      reader.parseFile(uis, jochreIndexDirectory.getName());
-      uis.reallyClose();
+      try {
+        reader.parseFile(uis, jochreIndexDirectory.getName());
+      } finally {
+        uis.reallyClose();
+      }
     } catch (IOException e) {
       LOG.error("Failed to update jochreIndexDirectory " + jochreIndexDirectory.getName(), e);
       throw new RuntimeException(e);
