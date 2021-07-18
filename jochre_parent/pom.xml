@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.joliciel.jochre</groupId>
   <artifactId>jochre-parent</artifactId>
-  <version>2.5.5</version>
+  <version>2.5.6</version>
   <packaging>pom</packaging>
   <name>Jochre</name>
   <description>Java Optical CHaracter Recognition</description>
