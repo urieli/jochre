@@ -16,14 +16,14 @@
         
     <encoder>
       <charset>UTF-8</charset>
-      <pattern>%date %level %logger %thread %msg%n</pattern>
+      <pattern>%date %level %logger{10} %thread %msg%n</pattern>
     </encoder>
   </appender>
 
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <charset>UTF-8</charset>
-      <pattern>%date %level %logger %thread %msg%n</pattern>
+      <pattern>%date %level %logger{10} %thread %msg%n</pattern>
     </encoder>
   </appender>
 
