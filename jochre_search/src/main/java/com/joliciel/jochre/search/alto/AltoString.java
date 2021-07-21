@@ -34,6 +34,8 @@ public class AltoString implements JochreToken {
    * Style indicating emphasis through individual character separation.
    */
   public static final String SEP_EMPH_STYLE = "SEP_EMPH";
+  
+  public static final int MAX_ALTERNATIVES = 16;
 
   private static Pattern whiteSpacePattern = Pattern.compile("[\\s\ufeff]+", Pattern.UNICODE_CHARACTER_CLASS);
   private static Pattern punctuationPattern = Pattern.compile("\\p{Punct}+", Pattern.UNICODE_CHARACTER_CLASS);
@@ -328,6 +330,7 @@ public class AltoString implements JochreToken {
     this.setSpanEnd(nextString.getSpanEnd());
 
     Set<String> alternatives = new TreeSet<>();
+    alternative_loop:
     for (String contentA : this.getContentStrings()) {
       for (String contentB : nextString.getContentStrings()) {
         alternatives.add(contentA + contentB);
@@ -338,21 +341,26 @@ public class AltoString implements JochreToken {
         } else if (contentA.endsWith("\"")) {
           alternatives.add(contentA.substring(0, contentA.length() - 1) + contentB);
         }
+        if (alternatives.size()>=MAX_ALTERNATIVES) {
+          break alternative_loop;
+        }
       }
     }
 
     if (endOfRowHyphen) {
       this.setContent(this.getContent() + JochreSearchConstants.INDEX_NEWLINE + nextString.getContent());
-    } else
+    } else {
       this.setContent(this.getContent() + nextString.getContent());
+    }
 
     alternatives.remove(this.getContent());
     this.setAlternatives(alternatives);
     this.setContentStrings(null);
 
     this.textLine.recalculate();
-    if (nextRow != null)
+    if (nextRow != null) {
       nextRow.recalculate();
+    }
 
     return true;
   }
