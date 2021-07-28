@@ -27,6 +27,7 @@ import java.util.BitSet;
 import javax.imageio.ImageIO;
 
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,29 +35,23 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ShapeFillerImplTest {
   private static final Logger LOG = LoggerFactory.getLogger(ShapeFillerImplTest.class);
 
   @Test
-  public void testGetFillFactor(@Mocked final JochreImage jochreImage) throws Exception {
+  public void testGetFillFactor() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
     JochreSession jochreSession = new JochreSession(config);
 
-    new Expectations() {
-      {
-        jochreImage.normalize(255);
-        result = 255;
-        minTimes = 0;
-        jochreImage.normalize(0);
-        result = 0;
-        minTimes = 0;
-      }
-    };
+    final JochreImage jochreImage = mock(JochreImage.class);
+    when(jochreImage.normalize(anyInt())).then(AdditionalAnswers.returnsFirstArg());
+    when(jochreImage.isLeftToRight()).thenReturn(true);
 
     for (int i = 0; i <= 2; i++) {
       String imageName = "";
@@ -85,22 +80,15 @@ public class ShapeFillerImplTest {
   }
 
   @Test
-  public void testFillShape(@Mocked final JochreImage jochreImage) throws Exception {
+  public void testFillShape() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
     JochreSession jochreSession = new JochreSession(config);
 
-    new Expectations() {
-      {
-        jochreImage.normalize(255);
-        result = 255;
-        minTimes = 0;
-        jochreImage.normalize(0);
-        result = 0;
-        minTimes = 0;
-      }
-    };
+    final JochreImage jochreImage = mock(JochreImage.class);
+    when(jochreImage.normalize(anyInt())).then(AdditionalAnswers.returnsFirstArg());
+    when(jochreImage.isLeftToRight()).thenReturn(true);
 
     for (int i = 0; i <= 1; i++) {
       String imageName = "";

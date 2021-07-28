@@ -37,17 +37,32 @@ import com.joliciel.jochre.graphics.RowOfShapes;
 import com.joliciel.jochre.graphics.Shape;
 import com.joliciel.jochre.output.TextGetter.TextFormat;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 public class TextGetterImplTest {
   private static final Logger LOG = LoggerFactory.getLogger(TextGetterImplTest.class);
 
   @Test
-  public void testGetText(@Mocked final JochreDocument doc, @Mocked final JochrePage page, @Mocked final JochreImage jochreImage,
-      @Mocked final Paragraph paragraph, @Mocked final RowOfShapes row, @Mocked final GroupOfShapes group, @Mocked final Shape shape1,
-      @Mocked final Shape shape2, @Mocked final Shape shape3, @Mocked final Shape shape4, @Mocked final Shape shape5, @Mocked final Shape shape6,
-      @Mocked final Shape shape7, @Mocked final Shape shape8, @Mocked final Shape shape9) {
+  public void testGetText() {
+    final JochreDocument doc = mock(JochreDocument.class);
+    final JochrePage page = mock(JochrePage.class);
+    final JochreImage jochreImage = mock(JochreImage.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final Shape shape1 = mock(Shape.class);
+    final Shape shape2 = mock(Shape.class);
+    final Shape shape3 = mock(Shape.class);
+    final Shape shape4 = mock(Shape.class);
+    final Shape shape5 = mock(Shape.class);
+    final Shape shape6 = mock(Shape.class);
+    final Shape shape7 = mock(Shape.class);
+    final Shape shape8 = mock(Shape.class);
+    final Shape shape9 = mock(Shape.class);
+        
     final List<Paragraph> paragraphs = new ArrayList<>();
     paragraphs.add(paragraph);
     final List<RowOfShapes> rows = new ArrayList<>();
@@ -55,73 +70,35 @@ public class TextGetterImplTest {
     final List<GroupOfShapes> groups = new ArrayList<>();
     groups.add(group);
 
-    new Expectations() {
-      {
-        jochreImage.getPage();
-        result = page;
-        minTimes = 0;
-        page.getDocument();
-        result = doc;
-        minTimes = 0;
-        doc.isLeftToRight();
-        result = false;
-        minTimes = 0;
-        jochreImage.getParagraphs();
-        result = paragraphs;
-        minTimes = 0;
-        paragraph.getRows();
-        result = rows;
-        minTimes = 0;
-        row.getGroups();
-        result = groups;
-        minTimes = 0;
-        List<Shape> shapes = new ArrayList<>();
-        shapes.add(shape1);
-        shapes.add(shape2);
-        shapes.add(shape3);
-        shapes.add(shape4);
-        shapes.add(shape5);
-        shapes.add(shape6);
-        shapes.add(shape7);
-        shapes.add(shape8);
-        shapes.add(shape9);
+    when(jochreImage.getPage()).thenReturn(page);
+    when(page.getDocument()).thenReturn(doc);
+    when(doc.isLeftToRight()).thenReturn(false);
+    when(jochreImage.getParagraphs()).thenReturn(paragraphs);
+    when(paragraph.getRows()).thenReturn(rows);
+    when(row.getGroups()).thenReturn(groups);
 
-        group.getShapes();
-        result = shapes;
-        minTimes = 0;
-        group.getXHeight();
-        result = 10;
-        minTimes = 0;
-        shape1.getLetter();
-        result = ",";
-        minTimes = 0;
-        shape2.getLetter();
-        result = ",";
-        minTimes = 0;
-        shape3.getLetter();
-        result = "|אַ";
-        minTimes = 0;
-        shape4.getLetter();
-        result = "אַ|";
-        minTimes = 0;
-        shape5.getLetter();
-        result = "|m";
-        minTimes = 0;
-        shape6.getLetter();
-        result = "m|";
-        minTimes = 0;
-        shape7.getLetter();
-        result = "|ש";
-        minTimes = 0;
-        shape8.getLetter();
-        result = "ע|";
-        minTimes = 0;
-        shape9.getLetter();
-        result = ",";
-        minTimes = 0;
+    List<Shape> shapes = new ArrayList<>();
+    shapes.add(shape1);
+    shapes.add(shape2);
+    shapes.add(shape3);
+    shapes.add(shape4);
+    shapes.add(shape5);
+    shapes.add(shape6);
+    shapes.add(shape7);
+    shapes.add(shape8);
+    shapes.add(shape9);
 
-      }
-    };
+    when(group.getShapes()).thenReturn(shapes);
+    when(group.getXHeight()).thenReturn(10);
+    when(shape1.getLetter()).thenReturn(",");
+    when(shape2.getLetter()).thenReturn(",");
+    when(shape3.getLetter()).thenReturn("|אַ");
+    when(shape4.getLetter()).thenReturn("אַ|");
+    when(shape5.getLetter()).thenReturn("|m");
+    when(shape6.getLetter()).thenReturn("m|");
+    when(shape7.getLetter()).thenReturn("|ש");
+    when(shape8.getLetter()).thenReturn("ע|");
+    when(shape9.getLetter()).thenReturn(",");
 
     StringWriter writer = new StringWriter();
     TextGetter textGetter = new TextGetter(writer, TextFormat.PLAIN);
@@ -132,104 +109,71 @@ public class TextGetterImplTest {
   }
 
   @Test
-  public void testGetTextFontSizes(@Mocked final JochreDocument doc, @Mocked final JochrePage page, @Mocked final JochreImage jochreImage,
-      @Mocked final Paragraph paragraph, @Mocked final RowOfShapes row, @Mocked final GroupOfShapes group1, @Mocked final GroupOfShapes group2,
-      @Mocked final GroupOfShapes group3, @Mocked final GroupOfShapes group4, @Mocked final Shape shape1, @Mocked final Shape shape2,
-      @Mocked final Shape shape3, @Mocked final Shape shape4) {
+  public void testGetTextFontSizes() {
+    final JochreDocument doc = mock(JochreDocument.class);
+    final JochrePage page = mock(JochrePage.class);
+    final JochreImage jochreImage = mock(JochreImage.class);
+    
+    final Paragraph paragraph = mock(Paragraph.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final GroupOfShapes group1 = mock(GroupOfShapes.class);
+    final GroupOfShapes group2 = mock(GroupOfShapes.class);
+    
+    final GroupOfShapes group3 = mock(GroupOfShapes.class);
+    final GroupOfShapes group4 = mock(GroupOfShapes.class);
+    final Shape shape1 = mock(Shape.class);
+    final Shape shape2 = mock(Shape.class);
+    final Shape shape3 = mock(Shape.class);
+    final Shape shape4 = mock(Shape.class);
+
+        
     final List<Paragraph> paragraphs = new ArrayList<>();
     paragraphs.add(paragraph);
     final List<RowOfShapes> rows = new ArrayList<>();
     rows.add(row);
 
-    new Expectations() {
-      {
-        jochreImage.getPage();
-        result = page;
-        minTimes = 0;
-        page.getDocument();
-        result = doc;
-        minTimes = 0;
-        doc.isLeftToRight();
-        result = true;
-        minTimes = 0;
-        jochreImage.getParagraphs();
-        result = paragraphs;
-        minTimes = 0;
-        paragraph.getRows();
-        result = rows;
-        minTimes = 0;
-        List<GroupOfShapes> groups = new ArrayList<>();
-        groups.add(group1);
-        groups.add(group2);
-        groups.add(group3);
-        groups.add(group4);
+    when(jochreImage.getPage()).thenReturn(page);
+    when(page.getDocument()).thenReturn(doc);
+    when(doc.isLeftToRight()).thenReturn(true);
+    when(jochreImage.getParagraphs()).thenReturn(paragraphs);
+    when(paragraph.getRows()).thenReturn(rows);
 
-        row.getGroups();
-        result = groups;
-        minTimes = 0;
+    List<GroupOfShapes> groups = new ArrayList<>();
+    groups.add(group1);
+    groups.add(group2);
+    groups.add(group3);
+    groups.add(group4);
+    
+    when(row.getGroups()).thenReturn(groups);
 
-        List<Shape> shapes1 = new ArrayList<>();
-        shapes1.add(shape1);
-        group1.getShapes();
-        result = shapes1;
-        minTimes = 0;
+    List<Shape> shapes1 = new ArrayList<>();
+    shapes1.add(shape1);
+    when(group1.getShapes()).thenReturn(shapes1);
+    when(group1.getXHeight()).thenReturn(10);
 
-        List<Shape> shapes2 = new ArrayList<>();
-        shapes2.add(shape2);
-        group2.getShapes();
-        result = shapes2;
-        minTimes = 0;
+    List<Shape> shapes2 = new ArrayList<>();
+    shapes2.add(shape2);
+    when(group2.getShapes()).thenReturn(shapes2);
+    when(group2.getXHeight()).thenReturn(20);
 
-        List<Shape> shapes3 = new ArrayList<>();
-        shapes3.add(shape3);
-        group3.getShapes();
-        result = shapes3;
-        minTimes = 0;
+    List<Shape> shapes3 = new ArrayList<>();
+    shapes3.add(shape3);
+    when(group3.getShapes()).thenReturn(shapes3);
+    when(group3.getXHeight()).thenReturn(10);
 
-        List<Shape> shapes4 = new ArrayList<>();
-        shapes4.add(shape4);
-        group4.getShapes();
-        result = shapes4;
-        minTimes = 0;
-        group1.getXHeight();
-        result = 10;
-        minTimes = 0;
-        group2.getXHeight();
-        result = 20;
-        minTimes = 0;
-        group3.getXHeight();
-        result = 10;
-        minTimes = 0;
-        group4.getXHeight();
-        result = 5;
-        minTimes = 0;
-
-        shape1.getLetter();
-        result = "A";
-        minTimes = 0;
-        shape2.getLetter();
-        result = "B";
-        minTimes = 0;
-        shape3.getLetter();
-        result = "C";
-        minTimes = 0;
-        shape4.getLetter();
-        result = "D";
-        minTimes = 0;
-        shape1.getXHeight();
-        result = 10;
-        minTimes = 0;
-        shape2.getXHeight();
-        result = 20;
-        minTimes = 0;
-        shape3.getXHeight();
-        result = 10;
-        minTimes = 0;
-        shape4.getXHeight();
-        result = 5;
-        minTimes = 0;
-      }
-    };
+    List<Shape> shapes4 = new ArrayList<>();
+    shapes4.add(shape4);
+    when(group4.getShapes()).thenReturn(shapes4);
+    when(group4.getXHeight()).thenReturn(5);
+    
+    when(shape1.getLetter()).thenReturn("A");
+    when(shape1.getXHeight()).thenReturn(10);
+    when(shape2.getLetter()).thenReturn("B");
+    when(shape2.getXHeight()).thenReturn(20);
+    when(shape3.getLetter()).thenReturn("C");
+    when(shape3.getXHeight()).thenReturn(10);
+    when(shape4.getLetter()).thenReturn("D");
+    when(shape4.getXHeight()).thenReturn(5);
 
     StringWriter writer = new StringWriter();
     TextGetter textGetter = new TextGetter(writer, TextFormat.XHTML);

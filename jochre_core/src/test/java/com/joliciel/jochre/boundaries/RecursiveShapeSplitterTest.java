@@ -22,8 +22,10 @@ import com.joliciel.talismane.machineLearning.features.FeatureResult;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RecursiveShapeSplitterTest {
   private static final Logger LOG = LoggerFactory.getLogger(RecursiveShapeSplitterTest.class);
@@ -34,7 +36,7 @@ public class RecursiveShapeSplitterTest {
    */
   @SuppressWarnings("unchecked")
   @Test
-  public void testSplitShape(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker) throws Exception {
+  public void testSplitShape() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -53,45 +55,35 @@ public class RecursiveShapeSplitterTest {
     shape2.setBaseLine(12);
     shape2.setMeanLine(4);
 
-    new Expectations() {
-      {
-        Split split = new Split(shape, jochreSession);
-        split.setPosition(31);
-        List<Split> splits = new ArrayList<>();
-        splits.add(split);
-        splitCandidateFinder.findSplitCandidates(shape);
-        result = splits;
-        minTimes = 0;
+    final SplitCandidateFinder splitCandidateFinder = mock(SplitCandidateFinder.class);
+    final DecisionMaker decisionMaker = mock(DecisionMaker.class);
 
-        Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.5);
-        Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.5);
-        List<Decision> decisions = new ArrayList<>();
-        decisions.add(yesDecision);
-        decisions.add(noDecision);
+    Split split = new Split(shape, jochreSession);
+    split.setPosition(31);
+    List<Split> splits = new ArrayList<>();
+    splits.add(split);
+    when(splitCandidateFinder.findSplitCandidates(shape)).thenReturn(splits);
 
-        decisionMaker.decide((List<FeatureResult<?>>) any);
-        result = decisions;
-        minTimes = 0;
-        maxTimes = 500;
+    Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.5);
+    Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.5);
+    List<Decision> decisions = new ArrayList<>();
+    decisions.add(yesDecision);
+    decisions.add(noDecision);
+    when(decisionMaker.decide(anyList())).thenReturn(decisions);
 
-        Split split1 = new Split(shape1, jochreSession);
-        split1.setPosition(15);
-        List<Split> splits1 = new ArrayList<>();
-        splits1.add(split1);
-        splitCandidateFinder.findSplitCandidates(shape1);
-        result = splits1;
-        minTimes = 0;
 
-        Split split2 = new Split(shape2, jochreSession);
-        split2.setPosition(15);
-        List<Split> splits2 = new ArrayList<>();
-        splits2.add(split2);
-        splitCandidateFinder.findSplitCandidates(shape2);
-        result = splits2;
-        minTimes = 0;
-      }
-    };
+    Split split1 = new Split(shape1, jochreSession);
+    split1.setPosition(15);
+    List<Split> splits1 = new ArrayList<>();
+    splits1.add(split1);
+    when(splitCandidateFinder.findSplitCandidates(shape1)).thenReturn(splits1);
 
+    Split split2 = new Split(shape2, jochreSession);
+    split2.setPosition(15);
+    List<Split> splits2 = new ArrayList<>();
+    splits2.add(split2);
+    when(splitCandidateFinder.findSplitCandidates(shape2)).thenReturn(splits2);
+    
     Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 
     RecursiveShapeSplitter splitter = new RecursiveShapeSplitter(splitCandidateFinder, splitFeatures, decisionMaker, jochreSession);
@@ -109,7 +101,7 @@ public class RecursiveShapeSplitterTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testSplitShapeNoSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker)
+  public void testSplitShapeNoSplitMoreLikely()
       throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
@@ -129,44 +121,34 @@ public class RecursiveShapeSplitterTest {
     shape2.setBaseLine(12);
     shape2.setMeanLine(4);
 
-    new Expectations() {
-      {
-        Split split = new Split(shape, jochreSession);
-        split.setPosition(31);
-        List<Split> splits = new ArrayList<>();
-        splits.add(split);
-        splitCandidateFinder.findSplitCandidates(shape);
-        result = splits;
-        minTimes = 0;
+    final SplitCandidateFinder splitCandidateFinder = mock(SplitCandidateFinder.class);
+    final DecisionMaker decisionMaker = mock(DecisionMaker.class);
+    
+    Split split = new Split(shape, jochreSession);
+    split.setPosition(31);
+    List<Split> splits = new ArrayList<>();
+    splits.add(split);
+    when(splitCandidateFinder.findSplitCandidates(shape)).thenReturn(splits);
 
-        Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.4);
-        Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.6);
-        List<Decision> decisions = new ArrayList<>();
-        decisions.add(yesDecision);
-        decisions.add(noDecision);
+    Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.4);
+    Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.6);
+    List<Decision> decisions = new ArrayList<>();
+    decisions.add(yesDecision);
+    decisions.add(noDecision);
 
-        decisionMaker.decide((List<FeatureResult<?>>) any);
-        result = decisions;
-        minTimes = 0;
-        maxTimes = 500;
+    when(decisionMaker.decide(anyList())).thenReturn(decisions);
 
-        Split split1 = new Split(shape1, jochreSession);
-        split1.setPosition(15);
-        List<Split> splits1 = new ArrayList<>();
-        splits1.add(split1);
-        splitCandidateFinder.findSplitCandidates(shape1);
-        result = splits1;
-        minTimes = 0;
+    Split split1 = new Split(shape1, jochreSession);
+    split1.setPosition(15);
+    List<Split> splits1 = new ArrayList<>();
+    splits1.add(split1);
+    when(splitCandidateFinder.findSplitCandidates(shape1)).thenReturn(splits1);
 
-        Split split2 = new Split(shape2, jochreSession);
-        split2.setPosition(15);
-        List<Split> splits2 = new ArrayList<>();
-        splits2.add(split2);
-        splitCandidateFinder.findSplitCandidates(shape2);
-        result = splits2;
-        minTimes = 0;
-      }
-    };
+    Split split2 = new Split(shape2, jochreSession);
+    split2.setPosition(15);
+    List<Split> splits2 = new ArrayList<>();
+    splits2.add(split2);
+    when(splitCandidateFinder.findSplitCandidates(shape2)).thenReturn(splits2);
 
     Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 
@@ -219,7 +201,7 @@ public class RecursiveShapeSplitterTest {
    */
   @SuppressWarnings("unchecked")
   @Test
-  public void testSplitShapeSplitMoreLikely(@Mocked final SplitCandidateFinder splitCandidateFinder, @Mocked final DecisionMaker decisionMaker)
+  public void testSplitShapeSplitMoreLikely()
       throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
@@ -239,44 +221,34 @@ public class RecursiveShapeSplitterTest {
     shape2.setBaseLine(12);
     shape2.setMeanLine(4);
 
-    new Expectations() {
-      {
-        Split split = new Split(shape, jochreSession);
-        split.setPosition(31);
-        List<Split> splits = new ArrayList<>();
-        splits.add(split);
-        splitCandidateFinder.findSplitCandidates(shape);
-        result = splits;
-        minTimes = 0;
+    final SplitCandidateFinder splitCandidateFinder = mock(SplitCandidateFinder.class);
+    final DecisionMaker decisionMaker = mock(DecisionMaker.class);
 
-        Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.6);
-        Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.4);
-        List<Decision> decisions = new ArrayList<>();
-        decisions.add(yesDecision);
-        decisions.add(noDecision);
+    Split split = new Split(shape, jochreSession);
+    split.setPosition(31);
+    List<Split> splits = new ArrayList<>();
+    splits.add(split);
+    when(splitCandidateFinder.findSplitCandidates(shape)).thenReturn(splits);
 
-        decisionMaker.decide((List<FeatureResult<?>>) any);
-        result = decisions;
-        minTimes = 0;
-        maxTimes = 500;
+    Decision yesDecision = new Decision(SplitOutcome.DO_SPLIT.name(), 0.6);
+    Decision noDecision = new Decision(SplitOutcome.DO_NOT_SPLIT.name(), 0.4);
+    List<Decision> decisions = new ArrayList<>();
+    decisions.add(yesDecision);
+    decisions.add(noDecision);
 
-        Split split1 = new Split(shape1, jochreSession);
-        split1.setPosition(15);
-        List<Split> splits1 = new ArrayList<>();
-        splits1.add(split1);
-        splitCandidateFinder.findSplitCandidates(shape1);
-        result = splits1;
-        minTimes = 0;
+    when(decisionMaker.decide(anyList())).thenReturn(decisions);
 
-        Split split2 = new Split(shape2, jochreSession);
-        split2.setPosition(15);
-        List<Split> splits2 = new ArrayList<>();
-        splits2.add(split2);
-        splitCandidateFinder.findSplitCandidates(shape2);
-        result = splits2;
-        minTimes = 0;
-      }
-    };
+    Split split1 = new Split(shape1, jochreSession);
+    split1.setPosition(15);
+    List<Split> splits1 = new ArrayList<>();
+    splits1.add(split1);
+    when(splitCandidateFinder.findSplitCandidates(shape1)).thenReturn(splits1);
+
+    Split split2 = new Split(shape2, jochreSession);
+    split2.setPosition(15);
+    List<Split> splits2 = new ArrayList<>();
+    splits2.add(split2);
+    when(splitCandidateFinder.findSplitCandidates(shape2)).thenReturn(splits2);
 
     Set<SplitFeature<?>> splitFeatures = new TreeSet<>();
 

@@ -32,31 +32,25 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class LineDefinitionImplTest {
   @SuppressWarnings("unused")
   private static final Logger LOG = LoggerFactory.getLogger(LineDefinitionImplTest.class);
 
   @Test
-  public void testTrace(@Mocked final Shape shape) {
+  public void testTrace() {
     LineDefinition lineDef = new LineDefinition(0, 0);
     List<Integer> steps = new ArrayList<>();
     steps.add(2);
     steps.add(3);
     lineDef.setSteps(steps);
 
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     BitSet bitset = new BitSet(shape.getHeight() * shape.getWidth());
     lineDef.trace(bitset, shape, 5, 2, 8, 0);
@@ -96,23 +90,16 @@ public class LineDefinitionImplTest {
   }
 
   @Test
-  public void testFollow(@Mocked final Shape shape) {
+  public void testFollow() {
     LineDefinition lineDef = new LineDefinition(0, 0);
     List<Integer> steps = new ArrayList<>();
     steps.add(2);
     steps.add(3);
     lineDef.setSteps(steps);
 
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     int[] endPoint = lineDef.follow(shape, 5, 2, 4, 0);
 
