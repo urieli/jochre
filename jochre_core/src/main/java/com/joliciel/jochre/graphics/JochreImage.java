@@ -302,7 +302,7 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
    * Returns the normalized brightness value corresponding to this brightness,
    * taking into account the black limit and white limit.
    */
-  public final int normalize(int brightness) {
+  public int normalize(int brightness) {
     if (normalizedBrightnessValues == null) {
       normalizedBrightnessValues = new int[256];
       double greyscaleMultiplier = (255.0 / (whiteLimit - blackLimit));

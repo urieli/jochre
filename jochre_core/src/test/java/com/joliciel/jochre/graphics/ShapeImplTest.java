@@ -33,9 +33,10 @@ import com.joliciel.jochre.utils.graphics.ImagePixelGrabber;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ShapeImplTest {
   private static final Logger LOG = LoggerFactory.getLogger(ShapeImplTest.class);
@@ -216,8 +217,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySector(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-      @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySector() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -238,33 +238,21 @@ public class ShapeImplTest {
         226, 225, 224, 223, 222 };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+    
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt()))
+        .thenAnswer(invocationOnMock -> {
+          return invocationOnMock.getArgument(0);
+        });
+    when(image.isLeftToRight()).thenReturn(true);
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -314,8 +302,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySectorMidPixelBreaks(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-      @Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySectorMidPixelBreaks() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -337,33 +324,18 @@ public class ShapeImplTest {
         245, 245, 245, 245, 245, 245, };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -410,8 +382,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySectorTwoSectorMargins(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-      @Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySectorTwoSectorMargins() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -432,34 +403,20 @@ public class ShapeImplTest {
         245, 245, 245, 245, 245, 245, // row
         245, 245, 245, 245, 245, 245, };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
+    
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
+
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -519,8 +476,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySectorWithSquare(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-      @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySectorWithSquare() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -541,33 +497,19 @@ public class ShapeImplTest {
     };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
+
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -616,8 +558,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySectorWithSquareBigger(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-      @Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySectorWithSquareBigger() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -638,33 +579,18 @@ public class ShapeImplTest {
     };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -715,8 +641,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessTotalsBySectorWithSquareSmaller(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row,
-      @Mocked final Paragraph paragraph, @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessTotalsBySectorWithSquareSmaller() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -737,33 +662,18 @@ public class ShapeImplTest {
     };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
@@ -814,8 +724,7 @@ public class ShapeImplTest {
   }
 
   @Test
-  public void testGetBrightnessBySectorNoMargins(@Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-      @Mocked final JochreImage image, @Mocked final BufferedImage shapeImage) throws Exception {
+  public void testGetBrightnessBySectorNoMargins() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -836,33 +745,19 @@ public class ShapeImplTest {
     };
     ImagePixelGrabber pixelGrabber = new ImagePixelGrabberMock(pixels, right - left + 1, bottom - top + 1);
 
-    new Expectations() {
-      {
-        group.getId();
-        result = 1;
-        minTimes = 0;
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = image;
-        minTimes = 0;
-        image.normalize(anyInt);
-        result = new Delegate<Integer>() {
-          @SuppressWarnings("unused")
-          int normalize(int i) {
-            return i;
-          }
-        };
-        minTimes = 0;
-        image.isLeftToRight();
-        result = true;
-        minTimes = 0;
-      }
-    };
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    final JochreImage image = mock(JochreImage.class);
+    final BufferedImage shapeImage = mock(BufferedImage.class);
+
+    when(group.getId()).thenReturn(1);
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(image);
+    when(image.normalize(anyInt())).then(returnsFirstArg());
+    when(image.isLeftToRight()).thenReturn(true);
+
 
     shape.setPixelGrabber(pixelGrabber);
     shape.setGroup(group);
