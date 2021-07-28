@@ -18,7 +18,7 @@
       {% endspaceless %}
     </h2>
 
-    {% if result.doc.titleEnglish %}
+    {% if hasTranscriptions %}
       {# Translators: Title metadata in alternate alphabet #}
       <div class="metadata">
         {% spaceless %}
@@ -31,17 +31,15 @@
       </div>
     {% endif %}
 
-    {% if result.doc.volume %}
-      <div class="metadata">
-        {% spaceless %}
-          <strong>{% trans 'Volume' %}:</strong>
-          <span {% if FIELDS_LTR.volume %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
-          <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', {% if FIELDS_LTR.volume %}true{% else %}false{% endif %}, '{{result.doc.volume|escapejs}}');"
-               src="{% static 'images/pencil.png' %}" />
-        {% endspaceless %}
-      </div>
-    {% endif %}
+    <div class="metadata">
+      {% spaceless %}
+        <strong>{% trans 'Volume' %}:</strong>
+        <span {% if FIELDS_LTR.volume %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.volume }}</span>
+        <img class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'volume', '{% trans 'volume' %}', {% if FIELDS_LTR.volume %}true{% else %}false{% endif %}, '{{result.doc.volume|escapejs}}');"
+             src="{% static 'images/pencil.png' %}" />
+      {% endspaceless %}
+    </div>
 
     {# Translators: Author metadata #}
     <div class="metadata">
@@ -54,7 +52,7 @@
       {% endspaceless %}
     </div>
 
-    {% if result.doc.authorEnglish %}
+    {% if hasTranscriptions %}
       {# Translators: Author metadata in alternate alphabet #}
       <div class="metadata">
         {% spaceless %}
@@ -76,29 +74,25 @@
       </div>
     {% endif %}
 
-    {% if result.doc.publisher %}
-      <div class="metadata">
-        {% spaceless %}
-          <strong>{% trans 'Publisher' %}:</strong>
-          <span {% if FIELDS_LTR.publisher %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
-          <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', {% if FIELDS_LTR.publisher %}true{% else %}false{% endif %}, '{{result.doc.publisher|escapejs}}');"
-               src="{% static 'images/pencil.png' %}" />
-        {% endspaceless %}
-      </div>
-    {% endif %}
+    <div class="metadata">
+      {% spaceless %}
+        <strong>{% trans 'Publisher' %}:</strong>
+        <span {% if FIELDS_LTR.publisher %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.publisher }}</span>
+        <img class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'publisher', '{% trans 'publisher' %}', {% if FIELDS_LTR.publisher %}true{% else %}false{% endif %}, '{{result.doc.publisher|escapejs}}');"
+             src="{% static 'images/pencil.png' %}" />
+      {% endspaceless %}
+    </div>
 
-    {% if result.doc.date %}
-      <div class="metadata">
-        {% spaceless %}
-          <strong>{% trans 'Date' %}:</strong>
-          <span {% if FIELDS_LTR.date %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.date }}</span>
-          <img class="editImage mx-1"
-               onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', {% if FIELDS_LTR.date %}true{% else %}false{% endif %}, '{{result.doc.date|escapejs}}');"
-               src="{% static 'images/pencil.png' %}" />
-        {% endspaceless %}
-      </div>
-    {% endif %}
+    <div class="metadata">
+      {% spaceless %}
+        <strong>{% trans 'Date' %}:</strong>
+        <span {% if FIELDS_LTR.date %}{% if RTL %}class="ltr-align ltr mx-1" dir="ltr"{% else %}class="ltr mx-1"{% endif %}{% else %}{% if not RTL %}class="rtl-align rtl mx-1" dir="rtl"{% else %}class="rtl mx-1"{% endif %}{% endif %}>{{ result.doc.date }}</span>
+        <img class="editImage mx-1"
+             onclick="correctMeta({{ result.doc.docId|escapejs }}, 'date', '{% trans 'date' %}', {% if FIELDS_LTR.date %}true{% else %}false{% endif %}, '{{result.doc.date|escapejs}}');"
+             src="{% static 'images/pencil.png' %}" />
+      {% endspaceless %}
+    </div>
 
     {% if result.doc.id %}
       <div class="metadata">

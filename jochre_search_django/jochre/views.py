@@ -119,6 +119,7 @@ def search(request):
     "useKeyboardMappings" : settings.KEYBOARD_MAPPINGS_ACTIVATED,
     "ip": ip,
     "haveSearch": haveSearch,
+    "hasTranscriptions": settings.HAS_TRANSCRIPTIONS
   }
 
   if haveSearch:
