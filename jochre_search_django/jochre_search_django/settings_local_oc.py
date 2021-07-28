@@ -136,3 +136,6 @@ KEYBOARD_MAPPINGS = {}
 
 DOCS_PER_PAGE = 10
 SNIPPETS_PER_DOC = 20
+
+# Does the metadata include latin transcriptions for title and author?
+HAS_TRANSCRIPTIONS = False
