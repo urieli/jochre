@@ -154,12 +154,12 @@ msgstr "אױסמעקן"
 #: templates/search/correct-meta-modal.html:7
 #: templates/search/correct-meta-modal.html:11
 msgid "Correct document meta data"
-msgstr "אױסבעסרן אַן אַטריבוט"
+msgstr "אױסבעסערן אַן אַטריבוט"
 
 #. Translators: Instructions on how to correct metadata
 #: templates/search/correct-meta-modal.html:22
 msgid "Correct the meta data."
-msgstr "בסערט אױס אַן אַטריבוט."
+msgstr "בעסערט אױס אַן אַטריבוט."
 
 #: templates/search/correct-meta-modal.html:29
 msgid "Field"
