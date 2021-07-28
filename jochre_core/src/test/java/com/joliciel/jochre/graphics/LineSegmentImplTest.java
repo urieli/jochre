@@ -19,6 +19,8 @@
 package com.joliciel.jochre.graphics;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -28,31 +30,21 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
-
 public class LineSegmentImplTest {
   @SuppressWarnings("unused")
   private static final Logger LOG = LoggerFactory.getLogger(LineSegmentImplTest.class);
 
   @Test
-  public void testGetEnclosingRectangle(@Mocked final Shape shape) {
+  public void testGetEnclosingRectangle() {
     LineDefinition lineDef = new LineDefinition(0, 0);
     List<Integer> steps = new ArrayList<>();
     steps.add(2);
     steps.add(3);
     lineDef.setSteps(steps);
 
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 1, 3);
     lineSegment.setLength(4);
@@ -78,23 +70,16 @@ public class LineSegmentImplTest {
   }
 
   @Test
-  public void testGetEnclosingRectangleDiagonal(@Mocked final Shape shape) {
+  public void testGetEnclosingRectangleDiagonal() {
     LineDefinition lineDef = new LineDefinition(0, 0);
     List<Integer> steps = new ArrayList<>();
     steps.add(1);
     steps.add(2);
     lineDef.setSteps(steps);
 
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 1, 5);
     lineSegment.setLength(4);
@@ -120,22 +105,15 @@ public class LineSegmentImplTest {
   }
 
   @Test
-  public void testGetEnclosingRectangleDoubleDiagonal(@Mocked final Shape shape) {
+  public void testGetEnclosingRectangleDoubleDiagonal() {
     LineDefinition lineDef = new LineDefinition(1, 0);
     List<Integer> steps = new ArrayList<>();
     steps.add(2);
     lineDef.setSteps(steps);
-
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     LineSegment lineSegment = new LineSegment(shape, lineDef, 5, 2, 3, 6);
 
@@ -161,23 +139,16 @@ public class LineSegmentImplTest {
   }
 
   @Test
-  public void testGetEnclosingRectangleIntersection(@Mocked final Shape shape) {
+  public void testGetEnclosingRectangleIntersection() {
     LineDefinition lineDef1 = new LineDefinition(0, 0);
     List<Integer> steps1 = new ArrayList<>();
     steps1.add(2);
     steps1.add(3);
     lineDef1.setSteps(steps1);
 
-    new Expectations() {
-      {
-        shape.getHeight();
-        result = 8;
-        minTimes = 0;
-        shape.getWidth();
-        result = 8;
-        minTimes = 0;
-      }
-    };
+    final Shape shape = mock(Shape.class);
+    when(shape.getHeight()).thenReturn(8);
+    when(shape.getWidth()).thenReturn(8);
 
     LineSegment lineSegement1 = new LineSegment(shape, lineDef1, 5, 2, 1, 3);
     lineSegement1.setLength(4);

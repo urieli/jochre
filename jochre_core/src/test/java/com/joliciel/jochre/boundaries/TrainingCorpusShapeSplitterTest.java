@@ -38,106 +38,73 @@ import com.joliciel.jochre.graphics.Shape;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
 public class TrainingCorpusShapeSplitterTest {
   private static final Logger LOG = LoggerFactory.getLogger(TrainingCorpusShapeSplitterTest.class);
 
   @Test
-  public void testSplit(@Mocked final Shape shape, @Mocked final Shape shape1, @Mocked final Shape shape2, @Mocked final Shape shape3,
-      @Mocked final Shape shape4, @Mocked final GroupOfShapes group, @Mocked final RowOfShapes row, @Mocked final Paragraph paragraph,
-      @Mocked final JochreImage jochreImage, @Mocked final JochrePage jochrePage, @Mocked final JochreDocument jochreDocument,
-      @Mocked final Iterator<Split> i, @Mocked final List<Split> splits, @Mocked final Split split1, @Mocked final Split split2,
-      @Mocked final Split split3) throws Exception {
+  public void testSplit() throws Exception {
 
     System.setProperty("config.file", "src/test/resources/testDualCharacters.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
     final JochreSession jochreSession = new JochreSession(config);
 
-    new Expectations() {
-      {
-        shape.getLetter();
-        result = "אָבּער";
-        minTimes = 0;
-        shape.getLeft();
-        result = 100;
-        minTimes = 0;
-        shape.getRight();
-        result = 200;
-        minTimes = 0;
-        shape.getTop();
-        result = 100;
-        minTimes = 0;
-        shape.getBottom();
-        result = 200;
-        minTimes = 0;
+    final Shape shape = mock(Shape.class);
+    final Shape shape1 = mock(Shape.class);
+    final Shape shape2 = mock(Shape.class);
+    final Shape shape3 = mock(Shape.class);
+    
+    final Shape shape4 = mock(Shape.class);
+    final GroupOfShapes group = mock(GroupOfShapes.class);
+    final RowOfShapes row = mock(RowOfShapes.class);
+    final Paragraph paragraph = mock(Paragraph.class);
+    
+    final JochreImage jochreImage = mock(JochreImage.class);
+    final JochrePage jochrePage = mock(JochrePage.class);
+    final JochreDocument jochreDocument = mock(JochreDocument.class);
+    
+    final Iterator<Split> i = (Iterator<Split>) mock(Iterator.class);
+    final List<Split> splits = (List<Split>) mock(List.class);
+    final Split split1 = mock(Split.class);
+    final Split split2 = mock(Split.class);
+    
+    final Split split3 = mock(Split.class);
 
-        shape.getGroup();
-        result = group;
-        minTimes = 0;
-        shape.getJochreImage();
-        result = jochreImage;
-        minTimes = 0;
+    when(shape.getLetter()).thenReturn("אָבּער");
 
-        group.getRow();
-        result = row;
-        minTimes = 0;
-        row.getParagraph();
-        result = paragraph;
-        minTimes = 0;
-        paragraph.getImage();
-        result = jochreImage;
-        minTimes = 0;
-        jochreImage.getPage();
-        result = jochrePage;
-        minTimes = 0;
-        jochrePage.getDocument();
-        result = jochreDocument;
-        minTimes = 0;
-        jochreDocument.getLocale();
-        result = jochreSession.getLocale();
-        minTimes = 0;
+    when(shape.getLeft()).thenReturn(100);
+    when(shape.getRight()).thenReturn(200);
+    when(shape.getTop()).thenReturn(100);
+    when(shape.getBottom()).thenReturn(200);
+    
+    when(shape.getGroup()).thenReturn(group);
+    when(shape.getJochreImage()).thenReturn(jochreImage);
+    
+    when(group.getRow()).thenReturn(row);
+    when(row.getParagraph()).thenReturn(paragraph);
+    when(paragraph.getImage()).thenReturn(jochreImage);
+    when(jochreImage.getPage()).thenReturn(jochrePage);
+    when(jochrePage.getDocument()).thenReturn(jochreDocument);
+    when(jochreDocument.getLocale()).thenReturn(jochreSession.getLocale());
+    
+    when(shape.getSplits()).thenReturn(splits);
+    when(splits.iterator()).thenReturn(i);
+    
+    when(i.hasNext()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+    when(i.next()).thenReturn(split1).thenReturn(split2).thenReturn(split3);
 
-        shape.getSplits();
-        result = splits;
-        minTimes = 0;
-        splits.iterator();
-        result = i;
-        minTimes = 0;
-
-        i.hasNext();
-        returns(true, true, true, false);
-        i.next();
-        returns(split1, split2, split3);
-
-        split1.getPosition();
-        result = 35;
-        minTimes = 0;
-        split2.getPosition();
-        result = 59;
-        minTimes = 0;
-        split3.getPosition();
-        result = 82;
-        minTimes = 0;
-
-        jochreImage.getShape(100, 100, 135, 200);
-        result = shape1;
-        minTimes = 0;
-        jochreImage.getShape(136, 100, 159, 200);
-        result = shape2;
-        minTimes = 0;
-        jochreImage.getShape(160, 100, 182, 200);
-        result = shape3;
-        minTimes = 0;
-        jochreImage.getShape(183, 100, 200, 200);
-        result = shape4;
-        minTimes = 0;
-      }
-    };
-
+    when(split1.getPosition()).thenReturn(35);
+    when(split2.getPosition()).thenReturn(59);
+    when(split3.getPosition()).thenReturn(82);
+    
+    when(jochreImage.getShape(100, 100, 135,200)).thenReturn(shape1);
+    when(jochreImage.getShape(136, 100, 159,200)).thenReturn(shape2);
+    when(jochreImage.getShape(160, 100, 182, 200)).thenReturn(shape3);
+    when(jochreImage.getShape(183, 100, 200, 200)).thenReturn(shape4);
+    
     LOG.debug(shape.toString());
     LOG.debug(shape.getLetter());
     TrainingCorpusShapeSplitter splitter = new TrainingCorpusShapeSplitter(jochreSession);
@@ -146,14 +113,10 @@ public class TrainingCorpusShapeSplitterTest {
     assertEquals(4, shapeSequence.size());
     LOG.debug("Split into: " + shapeSequence.toString());
 
-    new Verifications() {
-      {
-        shape1.setLetter("אָ");
-        shape2.setLetter("בּ");
-        shape3.setLetter("ע");
-        shape4.setLetter("ר");
-      }
-    };
+    verify(shape1).setLetter("אָ");
+    verify(shape2).setLetter("בּ");
+    verify(shape3).setLetter("ע");
+    verify(shape4).setLetter("ר");
   }
 
 }

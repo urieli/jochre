@@ -31,8 +31,9 @@ import com.joliciel.jochre.JochreSession;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Expectations;
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class VectorizerImplTest {
   private static final Logger LOG = LoggerFactory.getLogger(VectorizerImplTest.class);
@@ -109,7 +110,7 @@ public class VectorizerImplTest {
   }
 
   @Test
-  public void testArrayListize(@Mocked final JochreImage image) throws Exception {
+  public void testArrayListize() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -144,16 +145,10 @@ public class VectorizerImplTest {
     for (int i = 0; i < 8 * 8; i++)
       outline.set(i, outlinePixels[i] == 1);
 
+    final JochreImage image = mock(JochreImage.class);
+    when(image.getBlackThreshold()).thenReturn(threshold);
     shape.setOutline(outline);
     shape.setJochreImage(image);
-
-    new Expectations() {
-      {
-        image.getBlackThreshold();
-        result = threshold;
-        minTimes = 0;
-      }
-    };
 
     Vectorizer vectorizer = new Vectorizer();
 

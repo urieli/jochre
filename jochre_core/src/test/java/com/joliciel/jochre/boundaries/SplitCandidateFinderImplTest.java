@@ -39,13 +39,15 @@ import com.joliciel.jochre.graphics.SourceImage;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import mockit.Mocked;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SplitCandidateFinderImplTest {
   private static final Logger LOG = LoggerFactory.getLogger(SplitCandidateFinderImplTest.class);
 
   @Test
-  public void testFindSplitCanidates(@Mocked final JochrePage page) throws Exception {
+  public void testFindSplitCanidates() throws Exception {
     System.setProperty("config.file", "src/test/resources/test.conf");
     ConfigFactory.invalidateCaches();
     Config config = ConfigFactory.load();
@@ -54,6 +56,8 @@ public class SplitCandidateFinderImplTest {
     assertNotNull(imageFileStream);
     BufferedImage image = ImageIO.read(imageFileStream);
 
+    final JochrePage page = mock(JochrePage.class);
+    
     JochreImage jochreImage = new SourceImage(page, "name", image, jochreSession);
     Shape shape = jochreImage.getShape(0, 0, jochreImage.getWidth() - 1, jochreImage.getHeight() - 1);
 
