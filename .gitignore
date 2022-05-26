@@ -29,3 +29,4 @@ ant/conf.xml
 target/
 jochre_search_django/jochre/migrations
 .idea
+*.iml
