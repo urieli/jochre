@@ -1,10 +1,10 @@
 [#ftl]
 [#setting locale="en_US"]
-    <Page ID="PAGE${image.page.index?string["00000"]}_${image.index?string["0"]}" HEIGHT="${image.height?c}" WIDTH="${image.width?c}" PHYSICAL_IMG_NR="${image.page.index?c}" PC="${image.confidence?string["0.00"]}">
+    <Page ID="PAGE${image.page.index?string["00000"]}_${image.index?string["0"]}" HEIGHT="${image.height?c}" WIDTH="${image.width?c}" PHYSICAL_IMG_NR="${image.page.index?c}" ROTATION="${image.meanSlopeDegrees?string["0.00"]}" LANG="${image.page.document.locale.language}" PC="${image.confidence?string["0.00"]}">
       <PrintSpace HEIGHT="${image.printSpace.height?c}" WIDTH="${image.printSpace.width?c}" HPOS="${image.printSpace.left?c}" VPOS="${image.printSpace.top?c}">
         [#list image.paragraphs as paragraph]
         [#if !paragraph.junk]
-          <TextBlock ID="PAR${image.page.index?string["00000"]}_${image.index?string["0"]}_${paragraph.index?string["000"]}" HEIGHT="${paragraph.height?c}" WIDTH="${paragraph.width?c}" HPOS="${paragraph.left?c}" VPOS="${paragraph.top?c}" ROTATION="${image.meanSlopeDegrees?string["0.00"]}" LANG="${image.page.document.locale.language}">
+          <TextBlock ID="PAR${image.page.index?string["00000"]}_${image.index?string["0"]}_${paragraph.index?string["000"]}" HEIGHT="${paragraph.height?c}" WIDTH="${paragraph.width?c}" HPOS="${paragraph.left?c}" VPOS="${paragraph.top?c}">
           [#list paragraph.rows as row]
             [#assign firstShape=row.shapes?first]
             [#if !image.leftToRight][#assign firstShape=row.shapes?last][/#if]
