@@ -71,15 +71,10 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
   private List<JochreToken> currentStrings = null;
 
   /**
-   * 
-   * @param config
-   * @param manager
+   *
    * @param forceUpdate
    *          should all documents in the index be updated, or only those with
    *          changes more recent than the last update date.
-   * @param feedbackDAO
-   *          if not null, will read suggestions from the database
-   * @param searchStatusHolder
    * @throws IOException
    */
   public JochreIndexBuilder(String configId, boolean forceUpdate) throws IOException {
@@ -103,8 +98,6 @@ public class JochreIndexBuilder implements Runnable, TokenExtractor {
    * work will only be updated if the date of it's text layer is later than the
    * previous index date (stored in the index), or if forceUpdate=true. If the
    * work is updated, any previous documents with the same path are first deleted.
-   * Multiple Lucene documents can be created from a single work, if
-   * {@link #getWordsPerDoc()}&gt;0.
    */
   public void updateIndex() {
     long startTime = System.currentTimeMillis();

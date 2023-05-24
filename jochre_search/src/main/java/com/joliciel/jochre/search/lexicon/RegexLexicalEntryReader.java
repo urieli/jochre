@@ -27,7 +27,7 @@ import com.joliciel.jochre.utils.JochreException;
  * <p>Various comma-separated modifiers can be added in parentheses after the attribute name. These include:</p>
  * <ul>
  * <li><b>group</b>: an integer indicating the capturing group (in case it's not group number 1)</li>
- * <li><b>stop</b>: true/false. If <tt>true</tt> (default), only the first regex to match will assign a value to the attribute. If false, another regex
+ * <li><b>stop</b>: true/false. If true (default), only the first regex to match will assign a value to the attribute. If false, another regex
  * for the same attribute can add additional values for this attribute.</li>
  * </ul>
  * <p>For example:</p>

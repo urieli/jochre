@@ -90,10 +90,6 @@ public class JochreIndexDocument {
 
   /**
    * Construct a document already stored in the index.
-   * 
-   * @param indexSearcher
-   * @param docId
-   * @param config
    * @throws IOException
    */
   public JochreIndexDocument(IndexSearcher indexSearcher, int docId, String configId) throws IOException {
@@ -124,11 +120,6 @@ public class JochreIndexDocument {
 
   /**
    * Construct a document from a list of Alto pages, to be stored in the index.
-   * 
-   * @param directory
-   * @param index
-   * @param pages
-   * @param config
    */
   public JochreIndexDocument(JochreIndexDirectory directory, int index, List<AltoPage> pages,
       Map<JochreIndexField, List<Correction>> correctionMap, String configId) {

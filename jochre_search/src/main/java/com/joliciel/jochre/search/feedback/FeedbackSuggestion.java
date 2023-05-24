@@ -82,8 +82,6 @@ public class FeedbackSuggestion {
    *          The Lucene docId
    * @param offset
    *          The word's offset within the document.
-   * @param suggestion
-   *          The new suggestion
    * @param username
    *          The user who made the suggestion
    * @param ip
@@ -92,7 +90,6 @@ public class FeedbackSuggestion {
    *          The font code for this suggestion
    * @param languageCode
    *          The language code for this suggestion
-   * @return the suggestion created
    * @throws IOException
    */
   public FeedbackSuggestion(IndexSearcher indexSearcher, int docId, int offset, String text, String username, String ip,
