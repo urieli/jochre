@@ -1245,13 +1245,6 @@ public class Jochre {
 
   /**
    * Update the images in an existing Jochre document.
-   * 
-   * @param filename
-   *          the PDF file containing the images
-   * @param docId
-   *          the id of the document to update
-   * @param pаges
-   *          the pages to process, empty means all
    */
   public void doCommandUpdateImages(String filename, int docId, Set<Integer> pages) {
     if (filename.length() == 0)

@@ -37,9 +37,7 @@ public class DaoConfig {
 
   /**
    * Return a unique key defining the datasource in this config.
-   * 
-   * @param config
-   * @return
+   *
    */
   public static String getKey(Config jdbcConfig) {
 
