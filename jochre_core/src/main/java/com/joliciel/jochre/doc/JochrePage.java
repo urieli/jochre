@@ -8,15 +8,12 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.joliciel.jochre.graphics.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.joliciel.jochre.Entity;
 import com.joliciel.jochre.JochreSession;
-import com.joliciel.jochre.graphics.GraphicsDao;
-import com.joliciel.jochre.graphics.JochreImage;
-import com.joliciel.jochre.graphics.Segmenter;
-import com.joliciel.jochre.graphics.SourceImage;
 import com.joliciel.jochre.utils.JochreException;
 
 /**
@@ -167,5 +164,4 @@ public class JochrePage implements Entity {
   public void setId(int id) {
     this.id = id;
   }
-
 }

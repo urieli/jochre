@@ -513,12 +513,12 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
   public double getConfidence() {
     if (confidence < 0) {
       confidence = 0;
-      int count = 0;
+      double count = 0;
       for (Paragraph paragraph : paragraphs) {
         for (RowOfShapes row : paragraph.getRows()) {
           for (GroupOfShapes group : row.getGroups()) {
-            count++;
-            confidence += Math.log(group.getConfidence());
+            count += 1;
+            confidence += group.getConfidence();
           }
         }
       }
@@ -526,7 +526,6 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
         confidence = 0;
       } else {
         confidence /= count;
-        confidence = Math.exp(confidence);
       }
     }
     return confidence;
