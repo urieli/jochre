@@ -43,12 +43,23 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
       cfg.setCacheStorage(new NullCacheStorage());
       cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_body_" + version + "_0.ftl")));
+
+      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_body_" + getExactAltoVersion(version) + ".ftl")));
       this.template = new Template("alto_body", templateReader, cfg);
     } catch (IOException e) {
       LOG.error("Failed writing to " + this.getClass().getSimpleName(), e);
       throw new RuntimeException(e);
     }
+  }
+
+  private String getExactAltoVersion(int version) {
+    String exactVersion;
+    if (version==3) {
+      exactVersion = "3_0";
+    } else {
+      exactVersion = "4_4";
+    }
+    return exactVersion;
   }
 
   @Override
@@ -62,7 +73,7 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
       cfg.setCacheStorage(new NullCacheStorage());
       cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_header_" + version + "_0.ftl")));
+      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_header_" + getExactAltoVersion(version) + ".ftl")));
       Map<String, Object> model = new HashMap<>();
       model.put("document", jochreDocument);
 
@@ -116,7 +127,7 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
       cfg.setCacheStorage(new NullCacheStorage());
       cfg.setObjectWrapper(new DefaultObjectWrapperBuilder(new Version(2, 3, 23)).build());
 
-      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_footer_" + version + "_0.ftl")));
+      Reader templateReader = new BufferedReader(new InputStreamReader(AltoXMLExporter.class.getResourceAsStream("alto_footer_" + getExactAltoVersion(version) + ".ftl")));
       Map<String, Object> model = new HashMap<>();
       model.put("document", jochreDocument);
 
