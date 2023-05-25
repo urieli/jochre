@@ -11,7 +11,7 @@
     </sourceImageInformation>
     <Processing ID="OCR_1">
       <processingStepDescription>contentGeneration</processingStepDescription>
-      <processingDateTime>${.now?datetime}</processingDateTime>
+      <processingDateTime>${.now?iso_utc}</processingDateTime>
       <processingSoftware>
         <softwareCreator>Joliciel Informatique</softwareCreator>
         <softwareName>Jochre</softwareName>
