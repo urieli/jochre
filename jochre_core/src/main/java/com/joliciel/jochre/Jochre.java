@@ -1123,7 +1123,8 @@ public class Jochre {
       pdfDocumentProcessor.process();
     } else if (sourceFile.getName().toLowerCase().endsWith(".png")
         || sourceFile.getName().toLowerCase().endsWith(".jpg") || sourceFile.getName().toLowerCase().endsWith(".jpeg")
-        || sourceFile.getName().toLowerCase().endsWith(".gif")) {
+        || sourceFile.getName().toLowerCase().endsWith(".gif") || sourceFile.getName().toLowerCase().endsWith(".tif")
+        || sourceFile.getName().toLowerCase().endsWith(".tiff")) {
       ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
       extractor.extractDocument();
     } else if (sourceFile.isDirectory()) {
