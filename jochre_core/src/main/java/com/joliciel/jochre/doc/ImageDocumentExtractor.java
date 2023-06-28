@@ -66,7 +66,7 @@ public class ImageDocumentExtractor implements Monitorable, Runnable {
           @Override
           public boolean accept(File dir, String name) {
             return (name.toLowerCase().endsWith(".png") || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg")
-                || name.toLowerCase().endsWith(".gif"));
+                || name.toLowerCase().endsWith(".gif") || name.toLowerCase().endsWith(".tif") || name.toLowerCase().endsWith(".tiff"));
           }
         });
       } else {
