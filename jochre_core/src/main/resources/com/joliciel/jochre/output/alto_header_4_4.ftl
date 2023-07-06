@@ -10,8 +10,8 @@
       <fileName>${document.fileName}</fileName>
     </sourceImageInformation>
     <Processing ID="OCR_1">
-      <processingStepDescription>contentGeneration</processingStepDescription>
       <processingDateTime>${.now?iso_utc}</processingDateTime>
+      <processingStepDescription>contentGeneration</processingStepDescription>
       <processingSoftware>
         <softwareCreator>Joliciel Informatique</softwareCreator>
         <softwareName>Jochre</softwareName>
