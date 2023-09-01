@@ -34,6 +34,7 @@ import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
 import org.apache.commons.math.stat.regression.SimpleRegression;
+import org.bytedeco.opencv.opencv_core.Mat;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -88,7 +89,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
 
   private int myShapeCount = -1;
 
-  private boolean saveImagesForDebug = false;
+  private final boolean saveImagesForDebug;
   private final double blackThresholdPercentile;
   private final double separationThresholdPercentile;
 
@@ -97,6 +98,7 @@ public class SourceImage extends JochreImage implements ImageGrid {
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     blackThresholdPercentile = segmenterConfig.getDouble("black-threshold-percentile");
     separationThresholdPercentile = segmenterConfig.getDouble("separation-threshold-percentile");
+    saveImagesForDebug = segmenterConfig.getBoolean("save-images-for-debug");
     this.imageBackup = null;
   }
 
@@ -111,28 +113,30 @@ public class SourceImage extends JochreImage implements ImageGrid {
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     blackThresholdPercentile = segmenterConfig.getDouble("black-threshold-percentile");
     separationThresholdPercentile = segmenterConfig.getDouble("separation-threshold-percentile");
+    saveImagesForDebug = segmenterConfig.getBoolean("save-images-for-debug");
 
     this.name = name;
 
     // increase contrast for grayscale images, to help with segmentation
     // the original image will be restored again after segmentation with a
     // call to restoreOriginalImage()
-    imageBackup = ImageUtils.deepCopy(image);
+    // Note: decided it's better not to restore the original image
+    //imageBackup = ImageUtils.deepCopy(image);
 
     this.saveImage(image, "png", new File("data/original.png"));
     
     BufferedImage rgb = ImageUtils.indexedToRGB(image);
     this.saveImage(rgb, "png", new File("data/rgb.png"));
 
-    RescaleOp op = new RescaleOp(1.2f, 15f, null);
-    BufferedImage brighter = op.filter(rgb, rgb);
-
-    this.saveImage(brighter, "png", new File("data/brighter.png"));
-
-    BufferedImage greyImage = ImageUtils.toGreyscale(brighter);
+    BufferedImage greyImage = ImageUtils.toGreyscale(rgb);
     this.saveImage(greyImage, "png", new File("data/grey.png"));
-    
-    this.setOriginalImage(greyImage);
+
+    BufferedImage equalizedImage = OpenCVUtils.equalizeImage(greyImage);
+    this.saveImage(equalizedImage, "png", new File("data/equalized.png"));
+
+    this.setOriginalImage(equalizedImage);
+    // Decided not to restore original image
+    imageBackup = equalizedImage;
 
     this.setWidth(image.getWidth());
     this.setHeight(image.getHeight());
@@ -1022,10 +1026,6 @@ public class SourceImage extends JochreImage implements ImageGrid {
       }
     }
     return myShapeCount;
-  }
-
-  public void setSaveImagesForDebug(boolean saveImagesForDebug) {
-    this.saveImagesForDebug = saveImagesForDebug;
   }
 
   public void restoreOriginalImage() {
