@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.joliciel.jochre</groupId>
   <artifactId>jochre-parent</artifactId>
-  <version>2.5.13</version>
+  <version>2.6.0</version>
   <packaging>pom</packaging>
   <name>Jochre</name>
   <description>Java Optical CHaracter Recognition</description>
@@ -60,12 +60,12 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
-        <version>2.12.1</version>
+        <version>2.15.2</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.12.1</version>
+        <version>2.15.2</version>
       </dependency>
       <dependency>
         <groupId>com.joliciel.jochre</groupId>
@@ -155,7 +155,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.5</version>
+        <version>1.10.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.lucene</groupId>
@@ -210,7 +210,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.2.5.jre7</version>
+        <version>42.2.26</version>
       </dependency>
       <dependency>
         <groupId>com.typesafe</groupId>
@@ -236,6 +236,11 @@
         <groupId>javax.mail</groupId>
         <artifactId>javax.mail-api</artifactId>
         <version>1.6.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bytedeco</groupId>
+        <artifactId>javacv-platform</artifactId>
+        <version>1.5.9</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

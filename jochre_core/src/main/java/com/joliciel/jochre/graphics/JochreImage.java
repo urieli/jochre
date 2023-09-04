@@ -18,12 +18,14 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.graphics;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.typesafe.config.Config;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.slf4j.Logger;
@@ -614,5 +616,44 @@ public class JochreImage implements Entity, ImageGrid, Monitorable {
    */
   public double getMeanSlopeDegrees() {
     return Math.toDegrees(Math.atan(0 - this.getMeanHorizontalSlope()));
+  }
+
+  public void restoreOriginalSize() {
+    // need to override if there's something to restore
+  }
+
+  protected void rescale(double factor) {
+    for (Paragraph paragraph : this.getParagraphs()) {
+      for (RowOfShapes row : paragraph.getRows()) {
+        for (GroupOfShapes group : row.getGroups()) {
+          for (Shape shape : group.getShapes()) {
+            shape.setLeft(rescale(shape.getLeft(), factor));
+            shape.setTop(rescale(shape.getTop(), factor));
+            shape.setRight(rescale(shape.getRight(), factor));
+            shape.setBottom(rescale(shape.getBottom(), factor));
+            shape.setBaseLine(rescale(shape.getBaseLine(), factor));
+          }
+          group.recalculate();
+        }
+        row.recalculate();
+      }
+      paragraph.recalculate();
+    }
+
+  }
+
+  public static int rescale(int src, double factor) {
+    return (int) Math.round(src * factor);
+  }
+
+  public static BufferedImage resize(BufferedImage img, int newWidth, int newHeight) {
+    Image tmp = img.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+    BufferedImage scaledImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+
+    Graphics2D g2d = scaledImage.createGraphics();
+    g2d.drawImage(tmp, 0, 0, null);
+    g2d.dispose();
+
+    return scaledImage;
   }
 }

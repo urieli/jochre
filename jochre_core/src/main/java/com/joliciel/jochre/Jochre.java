@@ -210,6 +210,8 @@ public class Jochre {
           values.put("jochre.boundaries.splitter.beam-width", Integer.parseInt(argValue));
         } else if (argName.equals("lexicon")) {
           values.put("jochre.lexicon", argValue);
+        } else if (argName.equals("targetShortDimension")) {
+          values.put("jochre.segmenter.target-short-dimension", Integer.parseInt(argValue));
         } else {
           handled = false;
         }

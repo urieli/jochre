@@ -251,4 +251,8 @@ public class Paragraph implements Entity, Rectangle {
   public void setId(int id) {
     this.id = id;
   }
+
+  public void recalculate() {
+    this.coordinatesFound = false;
+  }
 }
