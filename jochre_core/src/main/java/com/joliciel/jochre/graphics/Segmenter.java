@@ -66,9 +66,7 @@ public class Segmenter implements Monitorable {
     this.jochreSession = jochreSession;
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     drawSegmentation = segmenterConfig.getBoolean("draw-segmented-image");
-    boolean saveImagesForDebug = segmenterConfig.getBoolean("save-images-for-debug");
     maxShapeStackSize = segmenterConfig.getInt("max-shape-stack-size");
-    sourceImage.setSaveImagesForDebug(saveImagesForDebug);
   }
 
   /**
@@ -198,8 +196,6 @@ public class Segmenter implements Monitorable {
     if (this.isDrawSegmentation()) {
       this.drawSegmentation(sourceImage);
     }
-
-    sourceImage.restoreOriginalImage();
 
     if (currentMonitor != null) {
       currentMonitor.setFinished(true);
