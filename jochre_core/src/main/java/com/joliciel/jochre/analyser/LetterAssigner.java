@@ -55,6 +55,7 @@ public class LetterAssigner implements LetterGuessObserver {
 
   @Override
   public void onImageEnd() {
+    this.jochreImage.restoreOriginalSize();
   }
 
   @Override

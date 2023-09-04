@@ -197,8 +197,6 @@ public class Segmenter implements Monitorable {
       this.drawSegmentation(sourceImage);
     }
 
-    sourceImage.restoreOriginalImage();
-
     if (currentMonitor != null) {
       currentMonitor.setFinished(true);
     }
