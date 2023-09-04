@@ -165,7 +165,11 @@ public class SourceImage extends JochreImage implements ImageGrid {
     BufferedImage rgb = ImageUtils.indexedToRGB(initialImage);
     this.saveImage(rgb, "png", new File("data/rgb.png"));
 
-    BufferedImage greyImage = ImageUtils.toGreyscale(rgb);
+    RescaleOp op = new RescaleOp(1.2f, 15f, null);
+    BufferedImage brighter = op.filter(rgb, rgb);
+    this.saveImage(brighter, "png", new File("data/brighter.png"));
+
+    BufferedImage greyImage = ImageUtils.toGreyscale(brighter);
     this.saveImage(greyImage, "png", new File("data/grey.png"));
 
     BufferedImage equalizedImage = OpenCVUtils.equalizeImage(greyImage);
