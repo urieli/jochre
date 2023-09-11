@@ -61,12 +61,15 @@ public class Segmenter implements Monitorable {
   private final JochreSession jochreSession;
   private final int maxShapeStackSize;
 
+  private final boolean clean;
+
   public Segmenter(SourceImage sourceImage, JochreSession jochreSession) {
     this.sourceImage = sourceImage;
     this.jochreSession = jochreSession;
     Config segmenterConfig = jochreSession.getConfig().getConfig("jochre.segmenter");
     drawSegmentation = segmenterConfig.getBoolean("draw-segmented-image");
     maxShapeStackSize = segmenterConfig.getInt("max-shape-stack-size");
+    clean = segmenterConfig.getBoolean("is-clean-segment");
   }
 
   /**
@@ -88,7 +91,10 @@ public class Segmenter implements Monitorable {
     }
 
     this.removeSpecks(sourceImage, shapes);
-    this.removeOversizedShapes(shapes);
+
+    if (!clean) {
+      this.removeOversizedShapes(shapes);
+    }
 
     if (currentMonitor != null) {
       currentMonitor.setCurrentAction("imageMonitor.groupingShapesIntoRows");
@@ -115,30 +121,35 @@ public class Segmenter implements Monitorable {
 
     this.findGuideLines(sourceImage);
 
-    List<Rectangle> columnSeparators = sourceImage.findColumnSeparators();
-    if (this.drawSegmentation) {
-      graphics2D.setStroke(new BasicStroke(3));
-      graphics2D.setPaint(Color.ORANGE);
-      for (Rectangle whiteArea : columnSeparators) {
-        int topLeft = (int) Math.round(whiteArea.getLeft() + sourceImage.getXAdjustment(whiteArea.getTop())) + 3;
-        int bottomLeft = (int) Math.round(whiteArea.getLeft() + sourceImage.getXAdjustment(whiteArea.getBottom())) + 3;
-        int topRight = (int) Math.round(whiteArea.getRight() + sourceImage.getXAdjustment(whiteArea.getTop())) - 3;
-        int bottomRight = (int) Math.round(whiteArea.getRight() + sourceImage.getXAdjustment(whiteArea.getBottom())) - 3;
-        graphics2D.drawLine(topLeft, whiteArea.getTop() + 3, bottomLeft, whiteArea.getBottom() - 3);
-        graphics2D.drawLine(topRight, whiteArea.getTop() + 3, bottomRight, whiteArea.getBottom() - 3);
-        graphics2D.drawLine(topLeft, whiteArea.getTop() + 3, topRight, whiteArea.getTop() + 3);
-        graphics2D.drawLine(bottomLeft, whiteArea.getBottom() - 3, bottomRight, whiteArea.getBottom() - 3);
+    List<Rectangle> columnSeparators;
+    if (!clean) {
+      columnSeparators = sourceImage.findColumnSeparators();
+      if (this.drawSegmentation) {
+        graphics2D.setStroke(new BasicStroke(3));
+        graphics2D.setPaint(Color.ORANGE);
+        for (Rectangle whiteArea : columnSeparators) {
+          int topLeft = (int) Math.round(whiteArea.getLeft() + sourceImage.getXAdjustment(whiteArea.getTop())) + 3;
+          int bottomLeft = (int) Math.round(whiteArea.getLeft() + sourceImage.getXAdjustment(whiteArea.getBottom())) + 3;
+          int topRight = (int) Math.round(whiteArea.getRight() + sourceImage.getXAdjustment(whiteArea.getTop())) - 3;
+          int bottomRight = (int) Math.round(whiteArea.getRight() + sourceImage.getXAdjustment(whiteArea.getBottom())) - 3;
+          graphics2D.drawLine(topLeft, whiteArea.getTop() + 3, bottomLeft, whiteArea.getBottom() - 3);
+          graphics2D.drawLine(topRight, whiteArea.getTop() + 3, bottomRight, whiteArea.getBottom() - 3);
+          graphics2D.drawLine(topLeft, whiteArea.getTop() + 3, topRight, whiteArea.getTop() + 3);
+          graphics2D.drawLine(bottomLeft, whiteArea.getBottom() - 3, bottomRight, whiteArea.getBottom() - 3);
+        }
       }
+
+      // now we re-do the grouping of shapes into rows, this time with proper
+      // column breaks to avoid
+      // rows that cross-over columns
+      rows = this.groupShapesIntoRows(sourceImage, shapes, columnSeparators, true);
+
+      this.addRowsToJochreImage(sourceImage, rows);
+
+      this.findGuideLines(sourceImage);
+    } else {
+      columnSeparators = new ArrayList<>();
     }
-
-    // now we re-do the grouping of shapes into rows, this time with proper
-    // column breaks to avoid
-    // rows that cross-over columns
-    rows = this.groupShapesIntoRows(sourceImage, shapes, columnSeparators, true);
-
-    this.addRowsToJochreImage(sourceImage, rows);
-
-    this.findGuideLines(sourceImage);
 
     this.splitRows(sourceImage);
 
@@ -176,7 +187,10 @@ public class Segmenter implements Monitorable {
     this.groupShapesIntoWords(sourceImage);
 
     this.removeOrphans(sourceImage, true);
-    this.cleanMargins(sourceImage);
+
+    if (!clean) {
+      this.cleanMargins(sourceImage);
+    }
 
     if (currentMonitor != null) {
       currentMonitor.setCurrentAction("imageMonitor.analysingFontSize");

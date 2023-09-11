@@ -212,6 +212,8 @@ public class Jochre {
           values.put("jochre.lexicon", argValue);
         } else if (argName.equals("targetShortDimension")) {
           values.put("jochre.segmenter.target-short-dimension", Integer.parseInt(argValue));
+        } else if (argName.equals("isCleanSegment")) {
+          values.put("jochre.segmenter.is-clean-segment", Boolean.parseBoolean(argValue));
         } else {
           handled = false;
         }
@@ -1520,4 +1522,12 @@ public class Jochre {
     return jochreSession;
   }
 
+  public void analyzeAlto4(File sourceFile, Writer writer) throws IOException {
+    final Set<Integer> myPages = new HashSet<>();
+    MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
+    List<DocumentObserver> documentObservers = new ArrayList<>();
+    AltoXMLExporter altoXMLExporter = new AltoXMLExporter(writer, 4);
+    documentObservers.add(altoXMLExporter);
+    this.doCommandAnalyse(sourceFile, wordChooser, myPages, documentObservers, new ArrayList<>());
+  }
 }
