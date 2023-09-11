@@ -32,7 +32,18 @@ import com.joliciel.talismane.utils.StringUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class JochreYiddish {
+public class JochreYiddish extends Jochre {
+  public JochreYiddish() throws ReflectiveOperationException {
+  }
+
+  public JochreYiddish(Config config) throws ReflectiveOperationException {
+    super(config);
+  }
+
+  public JochreYiddish(Config config, Map<String, String> argMap) throws ReflectiveOperationException {
+    super(config, argMap);
+  }
+
   public static void main(String[] args) throws Exception {
     Map<String, String> argMap = StringUtils.convertArgs(args);
 

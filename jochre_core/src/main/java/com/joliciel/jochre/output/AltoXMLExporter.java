@@ -1,10 +1,6 @@
 package com.joliciel.jochre.output;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +26,12 @@ public class AltoXMLExporter extends AbstractExporter implements DocumentObserve
   private static final Logger LOG = LoggerFactory.getLogger(AltoXMLExporter.class);
   private Template template;
   private final int version;
+
+  public AltoXMLExporter(Writer writer, int version) {
+    super(writer);
+    this.version = version;
+    this.initialize();
+  }
 
   public AltoXMLExporter(File outDir, boolean zipped, int version) {
     super(outDir, zipped ? "_alto" + version + ".zip" : "_alto" + version + ".xml");

@@ -33,6 +33,37 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>download-maven-plugin</artifactId>
+        <version>1.7.1</version>
+        <executions>
+          <execution>
+            <id>download-lexicon</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://github.com/urieli/jochre/releases/download/v2.3.5/jochre-yiddish-lexicon-1.0.1.zip</url>
+              <unpack>false</unpack>
+              <outputDirectory>${project.basedir}/resources</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>download-model</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://github.com/urieli/jochre/releases/download/v2.3.5/yiddish_letter_model.zip</url>
+              <unpack>false</unpack>
+              <outputDirectory>${project.basedir}/resources</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <dependencies>
