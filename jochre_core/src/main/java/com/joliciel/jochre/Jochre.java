@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.joliciel.jochre.doc.*;
 import com.joliciel.jochre.pdf.PdfDocumentProcessor;
 import com.joliciel.jochre.utils.pdf.PdfImageObserver;
 import com.joliciel.jochre.utils.pdf.PdfImageVisitor;
@@ -80,13 +81,6 @@ import com.joliciel.jochre.boundaries.features.MergeFeature;
 import com.joliciel.jochre.boundaries.features.MergeFeatureParser;
 import com.joliciel.jochre.boundaries.features.SplitFeature;
 import com.joliciel.jochre.boundaries.features.SplitFeatureParser;
-import com.joliciel.jochre.doc.DocumentDao;
-import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.ImageDocumentExtractor;
-import com.joliciel.jochre.doc.JochreDocument;
-import com.joliciel.jochre.doc.JochreDocumentGenerator;
-import com.joliciel.jochre.doc.JochrePage;
-import com.joliciel.jochre.doc.SourceFileProcessor;
 import com.joliciel.jochre.graphics.CorpusSelectionCriteria;
 import com.joliciel.jochre.graphics.GraphicsDao;
 import com.joliciel.jochre.graphics.ImageStatus;
@@ -1082,6 +1076,34 @@ public class Jochre {
   public void doCommandAnalyse(File sourceFile, MostLikelyWordChooser wordChooser, Set<Integer> pages,
       List<DocumentObserver> observers, List<PdfImageObserver> imageObservers) throws IOException {
 
+    JochreDocumentGenerator documentGenerator = this.getDocumentGenerator(sourceFile.getName(), wordChooser, pages, observers, imageObservers);
+
+    if (!sourceFile.exists())
+      throw new JochreException("The file " + sourceFile.getPath() + " does not exist");
+
+    if (sourceFile.getName().toLowerCase().endsWith(".pdf")) {
+      PdfDocumentProcessor pdfDocumentProcessor = new PdfDocumentProcessor(sourceFile, pages, documentGenerator);
+      for (PdfImageObserver imageObserver : imageObservers) {
+        pdfDocumentProcessor.addImageObserver(imageObserver);
+      }
+      pdfDocumentProcessor.process();
+    } else if (sourceFile.getName().toLowerCase().endsWith(".png")
+        || sourceFile.getName().toLowerCase().endsWith(".jpg") || sourceFile.getName().toLowerCase().endsWith(".jpeg")
+        || sourceFile.getName().toLowerCase().endsWith(".gif") || sourceFile.getName().toLowerCase().endsWith(".tif")
+        || sourceFile.getName().toLowerCase().endsWith(".tiff")) {
+      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
+      extractor.extractDocument();
+    } else if (sourceFile.isDirectory()) {
+      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
+      extractor.extractDocument();
+    } else {
+      throw new RuntimeException("Unrecognised file extension");
+    }
+  }
+
+  private JochreDocumentGenerator getDocumentGenerator(String fileName, MostLikelyWordChooser wordChooser, Set<Integer> pages,
+                                List<DocumentObserver> observers, List<PdfImageObserver> imageObservers) throws IOException {
+
     ClassificationModel letterModel = jochreSession.getLetterModel();
 
     List<String> letterFeatureDescriptors = letterModel.getFeatureDescriptors();
@@ -1110,33 +1132,13 @@ public class Jochre {
     ImageAnalyser analyser = new BeamSearchImageAnalyser(boundaryDetector, letterGuesser, wordChooser, jochreSession);
     analyser.addObserver(letterGuessObserver);
 
-    JochreDocumentGenerator documentGenerator = new JochreDocumentGenerator(sourceFile.getName(), "", jochreSession);
+    JochreDocumentGenerator documentGenerator = new JochreDocumentGenerator(fileName, "", jochreSession);
     documentGenerator.addDocumentObserver(analyser);
 
     for (DocumentObserver observer : observers)
       documentGenerator.addDocumentObserver(observer);
 
-    if (!sourceFile.exists())
-      throw new JochreException("The file " + sourceFile.getPath() + " does not exist");
-
-    if (sourceFile.getName().toLowerCase().endsWith(".pdf")) {
-      PdfDocumentProcessor pdfDocumentProcessor = new PdfDocumentProcessor(sourceFile, pages, documentGenerator);
-      for (PdfImageObserver imageObserver : imageObservers) {
-        pdfDocumentProcessor.addImageObserver(imageObserver);
-      }
-      pdfDocumentProcessor.process();
-    } else if (sourceFile.getName().toLowerCase().endsWith(".png")
-        || sourceFile.getName().toLowerCase().endsWith(".jpg") || sourceFile.getName().toLowerCase().endsWith(".jpeg")
-        || sourceFile.getName().toLowerCase().endsWith(".gif") || sourceFile.getName().toLowerCase().endsWith(".tif")
-        || sourceFile.getName().toLowerCase().endsWith(".tiff")) {
-      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
-      extractor.extractDocument();
-    } else if (sourceFile.isDirectory()) {
-      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
-      extractor.extractDocument();
-    } else {
-      throw new RuntimeException("Unrecognised file extension");
-    }
+    return documentGenerator;
   }
 
   /**
@@ -1522,12 +1524,23 @@ public class Jochre {
     return jochreSession;
   }
 
-  public void analyzeAlto4(File sourceFile, Writer writer) throws IOException {
+  public void imageFileToAlto4(File sourceFile, Writer writer) throws IOException {
     final Set<Integer> myPages = new HashSet<>();
     MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
     List<DocumentObserver> documentObservers = new ArrayList<>();
     AltoXMLExporter altoXMLExporter = new AltoXMLExporter(writer, 4);
     documentObservers.add(altoXMLExporter);
     this.doCommandAnalyse(sourceFile, wordChooser, myPages, documentObservers, new ArrayList<>());
+  }
+
+  public void imageInputStreamToAlto4(InputStream inputStream, String fileName, Writer writer) throws IOException {
+    final Set<Integer> myPages = new HashSet<>();
+    MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
+    List<DocumentObserver> documentObservers = new ArrayList<>();
+    AltoXMLExporter altoXMLExporter = new AltoXMLExporter(writer, 4);
+    documentObservers.add(altoXMLExporter);
+    JochreDocumentGenerator documentGenerator = this.getDocumentGenerator(fileName, wordChooser, myPages, documentObservers, new ArrayList<>());
+    InputStreamDocumentExtractor documentExtractor = new InputStreamDocumentExtractor(inputStream, fileName, documentGenerator);
+    documentExtractor.extractDocument();
   }
 }
