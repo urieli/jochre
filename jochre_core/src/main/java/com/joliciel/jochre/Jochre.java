@@ -128,6 +128,8 @@ import com.joliciel.talismane.machineLearning.features.RuntimeEnvironment;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import javax.imageio.ImageIO;
+
 /**
  * Class encapsulating the various top-level Jochre commands and command-line
  * interface.
@@ -1091,10 +1093,10 @@ public class Jochre {
         || sourceFile.getName().toLowerCase().endsWith(".jpg") || sourceFile.getName().toLowerCase().endsWith(".jpeg")
         || sourceFile.getName().toLowerCase().endsWith(".gif") || sourceFile.getName().toLowerCase().endsWith(".tif")
         || sourceFile.getName().toLowerCase().endsWith(".tiff")) {
-      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
+      ImageFileDocumentExtractor extractor = new ImageFileDocumentExtractor(sourceFile, documentGenerator);
       extractor.extractDocument();
     } else if (sourceFile.isDirectory()) {
-      ImageDocumentExtractor extractor = new ImageDocumentExtractor(sourceFile, documentGenerator);
+      ImageFileDocumentExtractor extractor = new ImageFileDocumentExtractor(sourceFile, documentGenerator);
       extractor.extractDocument();
     } else {
       throw new RuntimeException("Unrecognised file extension");
@@ -1337,7 +1339,7 @@ public class Jochre {
       pdfDocumentProcessor.process();
     } else if (filename.toLowerCase().endsWith(".png") || filename.toLowerCase().endsWith(".jpg")
         || filename.toLowerCase().endsWith(".jpeg") || filename.toLowerCase().endsWith(".gif")) {
-      ImageDocumentExtractor extractor = new ImageDocumentExtractor(file, jochreDocumentGenerator);
+      ImageFileDocumentExtractor extractor = new ImageFileDocumentExtractor(file, jochreDocumentGenerator);
       extractor.extractDocument();
     } else {
       throw new RuntimeException("Unrecognised file extension");
@@ -1534,13 +1536,18 @@ public class Jochre {
   }
 
   public void imageInputStreamToAlto4(InputStream inputStream, String fileName, Writer writer) throws IOException {
+    BufferedImage image = ImageIO.read(inputStream);
+   this.imageToAlto4(image, fileName, writer);
+  }
+
+  public void imageToAlto4(BufferedImage image, String fileName, Writer writer) throws IOException {
     final Set<Integer> myPages = new HashSet<>();
     MostLikelyWordChooser wordChooser = new MostLikelyWordChooser(jochreSession);
     List<DocumentObserver> documentObservers = new ArrayList<>();
     AltoXMLExporter altoXMLExporter = new AltoXMLExporter(writer, 4);
     documentObservers.add(altoXMLExporter);
     JochreDocumentGenerator documentGenerator = this.getDocumentGenerator(fileName, wordChooser, myPages, documentObservers, new ArrayList<>());
-    InputStreamDocumentExtractor documentExtractor = new InputStreamDocumentExtractor(inputStream, fileName, documentGenerator);
+    ImageDocumentExtractor documentExtractor = new ImageDocumentExtractor(image, fileName, documentGenerator);
     documentExtractor.extractDocument();
   }
 }
