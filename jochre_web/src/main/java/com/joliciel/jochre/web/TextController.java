@@ -45,7 +45,7 @@ import org.zkoss.zul.Window;
 import com.joliciel.jochre.JochreSession;
 import com.joliciel.jochre.doc.DocumentDao;
 import com.joliciel.jochre.doc.DocumentObserver;
-import com.joliciel.jochre.doc.ImageDocumentExtractor;
+import com.joliciel.jochre.doc.ImageFileDocumentExtractor;
 import com.joliciel.jochre.doc.JochreDocument;
 import com.joliciel.jochre.doc.JochreDocumentGenerator;
 import com.joliciel.jochre.doc.JochrePage;
@@ -306,7 +306,7 @@ public class TextController extends GenericForwardComposer<Window> {
           progressTimer.setRunning(true);
         } else if (lowerCaseFileName.endsWith(".png") || lowerCaseFileName.endsWith(".jpg")
             || lowerCaseFileName.endsWith(".jpeg") || lowerCaseFileName.endsWith(".gif")) {
-          ImageDocumentExtractor extractor = new ImageDocumentExtractor(currentFile, documentGenerator);
+          ImageFileDocumentExtractor extractor = new ImageFileDocumentExtractor(currentFile, documentGenerator);
           if (startPage >= 0)
             extractor.setPageNumber(startPage);
           this.progressMonitor = extractor.monitorTask();
