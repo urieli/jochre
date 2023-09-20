@@ -79,6 +79,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   private List<DocumentObserver> documentObservers = new ArrayList<>();
 
   private final JochreSession jochreSession;
+  private final boolean exitOnError;
 
   /**
    * Constructor for existing documents.
@@ -89,6 +90,7 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
   public JochreDocumentGenerator(JochreDocument jochreDocument, JochreSession jochreSession) {
     this.jochreSession = jochreSession;
     this.doc = jochreDocument;
+    this.exitOnError = false;
   }
 
   /**
@@ -100,9 +102,14 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
    *            user-friendly name for the document (required if saving)
    */
   public JochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession) {
+    this(filename, userFriendlyName, jochreSession, false);
+  }
+
+  public JochreDocumentGenerator(String filename, String userFriendlyName, JochreSession jochreSession, boolean exitOnError) {
     this.jochreSession = jochreSession;
     this.filename = filename;
     this.userFriendlyName = userFriendlyName;
+    this.exitOnError = exitOnError;
   }
 
   @Override
@@ -214,6 +221,9 @@ public class JochreDocumentGenerator implements SourceFileProcessor, Monitorable
       } catch (SegmentationException se) {
         LOG.error("segmentation failed", se);
         sourceImage.clearSegmentation();
+        if (exitOnError) {
+          throw se;
+        }
       }
       
       if (currentMonitor != null)
