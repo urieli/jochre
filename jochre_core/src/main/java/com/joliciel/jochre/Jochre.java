@@ -509,7 +509,7 @@ public class Jochre {
 
       List<DocumentObserver> observers = null;
       List<PdfImageObserver> imageObservers = null;
-      if (outputFormats.size() > 0 && !command.equals("analyseFolder")) {
+      if (outputFormats.size() > 0) {
         if (outputDir == null) {
           throw new JochreException("Either outputDir our outputFile are required with outputFormats");
         }
@@ -600,7 +600,11 @@ public class Jochre {
 
           @Override
           public boolean accept(File dir, String name) {
-            return (name.toLowerCase().endsWith(".pdf"));
+            return (name.toLowerCase().endsWith(".pdf") || name.toLowerCase().endsWith(".png")
+                || name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".jpeg")
+                || name.toLowerCase().endsWith(".gif") || name.toLowerCase().endsWith(".tif")
+                || name.toLowerCase().endsWith(".tiff")
+            );
           }
         });
 
@@ -610,23 +614,11 @@ public class Jochre {
           LOG.info("Analysing file: " + pdfFile.getAbsolutePath());
           try {
             String baseName = this.getBaseName(pdfFile);
-            File analysisDir = new File(inDir, baseName);
-            analysisDir.mkdirs();
-            List<DocumentObserver> pdfObservers = this.getObservers(outputFormats, baseName, analysisDir, includeDate);
-            List<PdfImageObserver> pdfImageObservers = this.getImageObservers(outputFormats, baseName, analysisDir);
-            this.doCommandAnalyse(pdfFile, wordChooser, pages, pdfObservers, pdfImageObservers);
 
-            File pdfOutputDir = new File(outputDir, baseName);
-            pdfOutputDir.mkdirs();
+            observers = this.getObservers(outputFormats, baseName, outputDir, includeDate);
+            imageObservers = this.getImageObservers(outputFormats, baseName, outputDir);
 
-            File targetFile = new File(pdfOutputDir, pdfFile.getName());
-            Files.move(pdfFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            File[] analysisFiles = analysisDir.listFiles();
-            for (File analysisFile : analysisFiles) {
-              targetFile = new File(pdfOutputDir, analysisFile.getName());
-              Files.move(analysisFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
-            Files.delete(analysisDir.toPath());
+            this.doCommandAnalyse(pdfFile, wordChooser, pages, observers, imageObservers);
           } catch (Exception e) {
             // log errors, but continue processing
             LOG.error("Error processing file: " + pdfFile.getAbsolutePath(), e);
