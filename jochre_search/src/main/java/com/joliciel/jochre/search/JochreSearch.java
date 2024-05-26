@@ -18,16 +18,9 @@
 //////////////////////////////////////////////////////////////////////////////
 package com.joliciel.jochre.search;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -53,6 +46,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import javax.mail.MessagingException;
 
+import com.joliciel.jochre.search.feedback.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.document.Document;
@@ -66,11 +60,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.joliciel.jochre.search.JochreQuery.SortBy;
-import com.joliciel.jochre.search.feedback.Correction;
-import com.joliciel.jochre.search.feedback.FeedbackCriterion;
-import com.joliciel.jochre.search.feedback.FeedbackDocument;
-import com.joliciel.jochre.search.feedback.FeedbackQuery;
-import com.joliciel.jochre.search.feedback.FeedbackSuggestion;
 import com.joliciel.jochre.search.highlight.HighlightManager;
 import com.joliciel.jochre.search.highlight.Highlighter;
 import com.joliciel.jochre.search.highlight.ImageSnippet;
@@ -202,7 +191,11 @@ public class JochreSearch {
     /**
      * How many books were indexed by the current searcher.
      */
-    bookCount("application/json;charset=UTF-8");
+    bookCount("application/json;charset=UTF-8"),
+    /**
+     * Export all suggestion text + image to the provided outDir.
+     */
+    exportSuggestions("application/json;charset=UTF-8");
 
     private final String contentType;
 
@@ -282,6 +275,9 @@ public class JochreSearch {
       // corrections
       boolean applyEverywhere = false;
       int correctionId = -1;
+
+      // File system
+      String outDirPath = null;
 
       for (Entry<String, String> argMapEntry : argMap.entrySet()) {
         String argName = argMapEntry.getKey();
@@ -375,6 +371,8 @@ public class JochreSearch {
           applyEverywhere = argValue.equals("true");
         } else if (argName.equals("correctionId")) {
           correctionId = Integer.parseInt(argValue);
+        } else if (argName.equals("outDir")) {
+          outDirPath = argValue;
         } else {
           throw new RuntimeException("Unknown option: " + argName);
         }
@@ -1036,6 +1034,51 @@ public class JochreSearch {
         }
         break;
       }
+        case exportSuggestions: {
+          if (outDirPath == null)
+            throw new RuntimeException("For command " + command + " outDir is required");
+
+          File outDir = new File(outDirPath);
+          outDir.mkdirs();
+          File outFile = new File(outDir, "suggestions.txt");
+          File imageDir = new File(outDir, "images");
+          imageDir.mkdirs();
+
+          int i = 0;
+          try (Writer writer = new PrintWriter(new FileWriter(outFile, StandardCharsets.UTF_8))) {
+            FeedbackService feedbackService = new FeedbackService(configId);
+            int start = 0;
+            int interval = 100;
+            while (true) {
+              List<FeedbackSuggestion> suggestions = feedbackService.findSuggestions(start, start + interval);
+              if (suggestions.size() == 0) {
+                break;
+              }
+              for (FeedbackSuggestion sug : suggestions) {
+                BufferedImage image = sug.getWord().getImage();
+                String imageId = String.format("%09d", sug.getId());
+                String imageFileName = "suggestion_" + imageId + ".png";
+                File imageFile = new File(imageDir, imageFileName);
+
+                BufferedImage result = new BufferedImage(
+                    image.getWidth(),
+                    image.getHeight(),
+                    BufferedImage.TYPE_INT_RGB);
+                result.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
+
+                ImageIO.write(result, "png", imageFile);
+                writer.write(imageFileName + "\t" + sug.getText() + "\n");
+                writer.flush();
+                i++;
+              }
+              start += interval;
+              if (maxResults > 0 && i > maxResults) {
+                break;
+              }
+            }
+          }
+          break;
+        }
       case serializeLexicon: {
         if (lexiconDirPath == null)
           throw new RuntimeException("For command " + command + " lexiconDir is required");

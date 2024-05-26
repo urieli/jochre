@@ -1,0 +1,15 @@
+version: '3.7'
+volumes:
+  jochre_search_data:
+    name: jochre_search_data
+services:
+  postgres:
+    image: postgres:12
+    volumes:
+      - jochre_search_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: nlp
+      POSTGRES_PASSWORD: nlp
+      POSTGRES_DB: jochresearchyid
+    ports:
+      - "5432:5432"

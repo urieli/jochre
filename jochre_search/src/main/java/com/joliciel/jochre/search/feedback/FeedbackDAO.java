@@ -413,6 +413,54 @@ class FeedbackDAO {
     }
   }
 
+  List<FeedbackSuggestion> findSuggestions(int startIndex, int endIndex) {
+    String sql = null;
+    try {
+      NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
+      sql = "SELECT " + SELECT_SUGGESTION + ", " + SELECT_WORD + ", " + SELECT_ROW + ", " + SELECT_DOCUMENT
+          + " FROM joc_suggestion" + " INNER JOIN joc_font ON suggest_font_id = font_id"
+          + " INNER JOIN joc_language ON suggest_language_id = language_id"
+          + " INNER JOIN joc_user ON suggest_user_id = user_id"
+          + " INNER JOIN joc_ip ON suggest_ip_id = ip_id"
+          + " INNER JOIN joc_word ON suggest_word_id = word_id"
+          + " INNER JOIN joc_row ON word_row_id = row_id"
+          + " INNER JOIN joc_document ON row_doc_id = doc_id"
+          + " WHERE suggest_ignore=:false"
+          + " ORDER BY suggest_id"
+          + " OFFSET :offset"
+          + " LIMIT :limit";
+      MapSqlParameterSource paramSource = new MapSqlParameterSource();
+      paramSource.addValue("false", false);
+      paramSource.addValue("offset", startIndex);
+      paramSource.addValue("limit", (endIndex - startIndex));
+
+      LOG.info(sql);
+      logParameters(paramSource);
+
+      SqlRowSet rs = jt.queryForRowSet(sql, paramSource);
+      SuggestionMapper suggestionMapper = new SuggestionMapper();
+      WordMapper wordMapper = new WordMapper();
+      FeedbackRowMapper rowMapper = new FeedbackRowMapper();
+      DocumentMapper docMapper = new DocumentMapper();
+      List<FeedbackSuggestion> suggestions = new ArrayList<>();
+      while (rs.next()) {
+        FeedbackSuggestion suggestion = suggestionMapper.mapRow(rs);
+        FeedbackWord word = wordMapper.mapRow(rs);
+        FeedbackRow row = rowMapper.mapRow(rs);
+        FeedbackDocument document = docMapper.mapRow(rs);
+        suggestion.setWord(word);
+        word.setRow(row);
+        row.setDocument(document);
+        suggestions.add(suggestion);
+      }
+
+      return suggestions;
+    } catch (SQLException e) {
+      LOG.error("Failed to run sql: " + sql, e);
+      throw new RuntimeException(e);
+    }
+  }
+
   void saveSuggestion(FeedbackSuggestion suggestion) {
     NamedParameterJdbcTemplate jt = new NamedParameterJdbcTemplate(dataSource);
     MapSqlParameterSource paramSource = new MapSqlParameterSource();
