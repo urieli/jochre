@@ -1,5 +1,5 @@
 Django==2.2.7
-requests==2.20.0
+requests==2.31.0
 django-allauth==0.37.1
 gunicorn==19.9.0
 djproxy==2.3.4
