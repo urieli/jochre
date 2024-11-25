@@ -1,3 +1,5 @@
+See GitLab repo for more recent stuff: https://gitlab.com/jochre/jochre3-ocr
+
 ![Jochre Logo](https://raw.githubusercontent.com/wiki/urieli/jochre/images/jochreLogo300px.png)
 
 This version of Jochre is no longer being maintained.
